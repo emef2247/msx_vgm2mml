@@ -1,0 +1,2494 @@
+;[name=scc lpf=1]
+#opll_mode 1
+#tempo 75
+#title { "02_StartingPoint_log"}
+#alloc 1=3100
+#alloc 2=3100
+#alloc 3=2400
+#alloc 4=2100
+#alloc 5=1100
+#alloc 6=1000
+#alloc 7=1000
+
+
+
+;ch1 start
+
+1 /0 v0 o1 r%109
+
+
+;tick count: 109
+
+
+1 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 125
+
+
+1 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 141
+
+
+1 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 157
+
+
+1 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 173
+
+
+1 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 189
+
+
+1 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 205
+
+
+1 /1 s0 m1573 v8 r%2
+ r%2
+ v12 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 215
+
+
+1 /1 s0 m1573 v12 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 223
+
+
+1 /1 s0 m1573 v12 r%1
+ r%1
+ r%1
+ r%1
+ v11 r%7
+ v10 r%7
+ v8 r%7
+ v6 r%7
+
+
+;tick count: 255
+
+
+1 /1 s0 m1573 v4 r%7
+ v3 r%7
+ v0 r%109
+ v1 o2 a+%2
+ a+%2
+ b%2
+ o3 c%2
+ o2 a%2
+
+
+;tick count: 388
+
+ o3 d+%2
+ o2 a+%2
+ b%2
+ o3 c%2
+ o2 a%2
+ o3 f%2
+ o2 b%2
+ o3 c%2
+
+
+;tick count: 404
+
+ o2 a%2
+ o3 d%2
+ f%2
+ o2 b%2
+ o3 c%2
+ o2 a%2
+ o3 d%2
+ f+%2
+
+
+;tick count: 420
+
+ c%2
+ o2 a%2
+ o3 d%2
+ d+%2
+ f+%2
+ c%2
+ o2 a%2
+ o3 d%2
+
+
+;tick count: 436
+
+ d+%2
+ g%2
+ o2 a%2
+ o3 d%2
+ d+%2
+ e%2
+ g%2
+ o2 a%2
+
+
+;tick count: 452
+
+ o3 d%2
+ d+%2
+ e%2
+ f%2
+ d%2
+ d+%2
+ e%2
+ f%2
+
+
+;tick count: 468
+
+ f+%2
+ d%2
+ d+%2
+ e%2
+ f%2
+ g+%1
+ g+%1
+ f+%1
+
+
+;tick count: 481
+
+ g+%1
+ c+%1
+ o2 g+%1
+ f%1
+ c+%1
+ o1 g+%1
+ g+%1
+ g+%1
+
+
+;tick count: 489
+
+ g+%1
+ g+%1
+ g+%1
+ g+%1
+ g+%1
+ g+%1
+ g+%1
+ g+%7
+
+
+;tick count: 503
+
+ g+%7
+ g+%7
+ g+%7
+ g+%7
+ g+%7
+
+
+;ch1 start
+
+1 /0 v0 o1 r%109
+
+
+;tick count: 109
+
+
+1 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 125
+
+
+1 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 141
+
+
+1 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 157
+
+
+1 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 173
+
+
+1 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 189
+
+
+1 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 205
+
+
+1 /1 s0 m1573 v8 r%2
+ r%2
+ v12 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 215
+
+
+1 /1 s0 m1573 v12 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 223
+
+
+1 /1 s0 m1573 v12 r%1
+ r%1
+ r%1
+ r%1
+ v11 r%7
+ v10 r%7
+ v8 r%7
+ v6 r%7
+
+
+;tick count: 255
+
+
+1 /1 s0 m1573 v4 r%7
+ v3 r%7
+ v0 r%109
+ v1 o2 a+%2
+ a+%2
+ b%2
+ o3 c%2
+ o2 a%2
+
+
+;tick count: 388
+
+ o3 d+%2
+ o2 a+%2
+ b%2
+ o3 c%2
+ o2 a%2
+ o3 f%2
+ o2 b%2
+ o3 c%2
+
+
+;tick count: 404
+
+ o2 a%2
+ o3 d%2
+ f%2
+ o2 b%2
+ o3 c%2
+ o2 a%2
+ o3 d%2
+ f+%2
+
+
+;tick count: 420
+
+ c%2
+ o2 a%2
+ o3 d%2
+ d+%2
+ f+%2
+ c%2
+ o2 a%2
+ o3 d%2
+
+
+;tick count: 436
+
+ d+%2
+ g%2
+ o2 a%2
+ o3 d%2
+ d+%2
+ e%2
+ g%2
+ o2 a%2
+
+
+;tick count: 452
+
+ o3 d%2
+ d+%2
+ e%2
+ f%2
+ d%2
+ d+%2
+ e%2
+ f%2
+
+
+;tick count: 468
+
+ f+%2
+ d%2
+ d+%2
+ e%2
+ f%2
+ g+%1
+ g+%1
+ f+%1
+
+
+;tick count: 481
+
+ g+%1
+ c+%1
+ o2 g+%1
+ f%1
+ c+%1
+ o1 g+%1
+ g+%1
+ g+%1
+
+
+;tick count: 489
+
+ g+%1
+ g+%1
+ g+%1
+ g+%1
+ g+%1
+ g+%1
+ g+%1
+ g+%7
+
+
+;tick count: 503
+
+ g+%7
+ g+%7
+ g+%7
+ g+%7
+ g+%7
+
+
+;ch2 start
+
+2 /0 v0 o1 r%108
+
+
+;tick count: 108
+
+
+2 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 124
+
+
+2 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 140
+
+
+2 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 156
+
+
+2 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 172
+
+
+2 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 188
+
+
+2 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 204
+
+
+2 /1 s0 m1573 v8 r%2
+ r%2
+ v14 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 214
+
+
+2 /1 s0 m1573 v14 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 222
+
+
+2 /1 s0 m1573 v14 r%1
+ r%1
+ v12 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 230
+
+
+2 /1 s0 m1573 v12 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 238
+
+
+2 /1 s0 m1573 v12 r%1
+ r%1
+ v10 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 246
+
+
+2 /1 s0 m1573 v10 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 254
+
+
+2 /1 s0 m1573 v10 r%1
+ r%1
+ v0 r%108
+ v1 o2 a+%2
+ a+%2
+ b%2
+ o3 c%2
+ o2 a%2
+
+
+;tick count: 374
+
+ o3 d+%2
+ o2 a+%2
+ b%2
+ o3 c%2
+ o2 a%2
+ o3 f%2
+ o2 b%2
+ o3 c%2
+
+
+;tick count: 390
+
+ o2 a%2
+ o3 d%2
+ f%2
+ o2 b%2
+ o3 c%2
+ o2 a%2
+ o3 d%2
+ f+%2
+
+
+;tick count: 406
+
+ c%2
+ o2 a%2
+ o3 d%2
+ d+%2
+ f+%2
+ c%2
+ o2 a%2
+ o3 d%2
+
+
+;tick count: 422
+
+ d+%2
+ g%2
+ o2 a%2
+ o3 d%2
+ d+%2
+ e%2
+ g%2
+ o2 a%2
+
+
+;tick count: 438
+
+ o3 d%2
+ d+%2
+ e%2
+ f%2
+ d%2
+ d+%2
+ e%2
+ f%2
+
+
+;tick count: 454
+
+ f+%2
+ d%2
+ d+%2
+ e%2
+ f%2
+ c+%1
+ c%1
+ c+%1
+
+
+;tick count: 467
+
+ o2 g+%1
+ g+%1
+ f%1
+ c+%1
+ o1 g+%1
+ f+%1
+ o3 c%1
+ o2 g+%1
+
+
+;tick count: 475
+
+ f+%1
+ f%1
+ c+%1
+ o1 g+%1
+ f+%1
+ o3 c+%1
+ c%1
+ o2 g+%1
+
+
+;tick count: 483
+
+ f+%1
+ g+%1
+ f%1
+ c+%1
+ o1 g+%1
+ f+%1
+ o3 c+%1
+ o2 g+%1
+
+
+;tick count: 491
+
+ g+%1
+ g+%1
+ f%1
+ c+%1
+ o1 g+%1
+ o3 c+%1
+ c%1
+ c+%1
+
+
+;tick count: 499
+
+ o2 g+%1
+ g+%1
+ f%1
+ c+%1
+ o1 g+%1
+ o3 c+%1
+ c+%1
+ c+%1
+
+
+;tick count: 507
+
+ o2 g+%1
+ g+%1
+ f%1
+ c+%1
+ o1 f+%1
+
+
+;ch2 start
+
+2 /0 v0 o1 r%108
+
+
+;tick count: 108
+
+
+2 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 124
+
+
+2 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 140
+
+
+2 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 156
+
+
+2 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 172
+
+
+2 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 188
+
+
+2 /1 s0 m1573 v8 r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+ r%2
+
+
+;tick count: 204
+
+
+2 /1 s0 m1573 v8 r%2
+ r%2
+ v14 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 214
+
+
+2 /1 s0 m1573 v14 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 222
+
+
+2 /1 s0 m1573 v14 r%1
+ r%1
+ v12 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 230
+
+
+2 /1 s0 m1573 v12 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 238
+
+
+2 /1 s0 m1573 v12 r%1
+ r%1
+ v10 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 246
+
+
+2 /1 s0 m1573 v10 r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+ r%1
+
+
+;tick count: 254
+
+
+2 /1 s0 m1573 v10 r%1
+ r%1
+ v0 r%108
+ v1 o2 a+%2
+ a+%2
+ b%2
+ o3 c%2
+ o2 a%2
+
+
+;tick count: 374
+
+ o3 d+%2
+ o2 a+%2
+ b%2
+ o3 c%2
+ o2 a%2
+ o3 f%2
+ o2 b%2
+ o3 c%2
+
+
+;tick count: 390
+
+ o2 a%2
+ o3 d%2
+ f%2
+ o2 b%2
+ o3 c%2
+ o2 a%2
+ o3 d%2
+ f+%2
+
+
+;tick count: 406
+
+ c%2
+ o2 a%2
+ o3 d%2
+ d+%2
+ f+%2
+ c%2
+ o2 a%2
+ o3 d%2
+
+
+;tick count: 422
+
+ d+%2
+ g%2
+ o2 a%2
+ o3 d%2
+ d+%2
+ e%2
+ g%2
+ o2 a%2
+
+
+;tick count: 438
+
+ o3 d%2
+ d+%2
+ e%2
+ f%2
+ d%2
+ d+%2
+ e%2
+ f%2
+
+
+;tick count: 454
+
+ f+%2
+ d%2
+ d+%2
+ e%2
+ f%2
+ c+%1
+ c%1
+ c+%1
+
+
+;tick count: 467
+
+ o2 g+%1
+ g+%1
+ f%1
+ c+%1
+ o1 g+%1
+ f+%1
+ o3 c%1
+ o2 g+%1
+
+
+;tick count: 475
+
+ f+%1
+ f%1
+ c+%1
+ o1 g+%1
+ f+%1
+ o3 c+%1
+ c%1
+ o2 g+%1
+
+
+;tick count: 483
+
+ f+%1
+ g+%1
+ f%1
+ c+%1
+ o1 g+%1
+ f+%1
+ o3 c+%1
+ o2 g+%1
+
+
+;tick count: 491
+
+ g+%1
+ g+%1
+ f%1
+ c+%1
+ o1 g+%1
+ o3 c+%1
+ c%1
+ c+%1
+
+
+;tick count: 499
+
+ o2 g+%1
+ g+%1
+ f%1
+ c+%1
+ o1 g+%1
+ o3 c+%1
+ c+%1
+ c+%1
+
+
+;tick count: 507
+
+ o2 g+%1
+ g+%1
+ f%1
+ c+%1
+ o1 f+%1
+
+
+;ch3 start
+
+3 /1 s0 m1573 v10 o1 r%4
+ r%4
+ r%4
+ r%4
+ r%4
+ r%4
+ r%4
+ r%4
+
+
+;tick count: 32
+
+
+3 /1 s0 m1573 v10 r%4
+ r%4
+ r%4
+ r%4
+ r%4
+ r%4
+ r%4
+ r%4
+
+
+;tick count: 64
+
+
+3 /1 s0 m1573 v7 r%4
+ r%4
+ r%4
+ r%4
+ v5 r%4
+ r%4
+ r%4
+ r%9
+
+
+;tick count: 101
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 109
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 117
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+
+
+;tick count: 125
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 133
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 141
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+
+
+;tick count: 149
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 157
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 165
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+
+
+;tick count: 173
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 181
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 189
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+
+
+;tick count: 197
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 205
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 213
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+
+
+;tick count: 221
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 229
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 237
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+
+
+;tick count: 245
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 253
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 261
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+
+
+;tick count: 269
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 277
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 285
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%58
+ v6 r%1
+ v5 r%1
+
+
+;tick count: 350
+
+
+3 /1 s0 m1573 v4 r%1
+ v3 r%1
+ v1 o4 e%4
+ e%4
+ o3 b%4
+ o4 e%4
+ f+%4
+ o3 b%4
+
+
+;tick count: 376
+
+ o4 c%4
+ o5 e%4
+ o4 b%4
+ o5 e%4
+ f+%4
+ o4 b%4
+ o5 f+%4
+ o4 b%4
+
+
+;tick count: 408
+
+ o5 e%4
+ f+%4
+ o4 b%4
+ b%4
+ o5 e%4
+ f+%4
+ o4 b%4
+ b%4
+
+
+;tick count: 440
+
+ o5 e%4
+ f+%9
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 459
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 467
+
+ c%1
+ c%1
+ c%1
+ o2 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+
+
+;tick count: 475
+
+ c%1
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 483
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 491
+
+ c%1
+ c%1
+ c%1
+ o2 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+
+
+;tick count: 499
+
+ c%1
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 507
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 515
+
+ c%1
+ c%1
+ c%1
+ o2 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+
+
+;tick count: 523
+
+ c%1
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 531
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 539
+
+ c%1
+ c%1
+ c%1
+ o2 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+
+
+;tick count: 547
+
+ c%1
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 555
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 563
+
+ c%1
+ c%1
+ c%1
+ o2 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+
+
+;tick count: 571
+
+ c%1
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 579
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 587
+
+ c%1
+ c%1
+ c%1
+ o2 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+
+
+;tick count: 595
+
+ c%1
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 603
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 611
+
+ c%1
+ c%1
+ c%1
+ o2 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+
+
+;tick count: 619
+
+ c%1
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 627
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 635
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%58
+
+
+;tick count: 700
+
+ c%1
+ c%1
+ c%1
+ c%1
+
+;ch3 end: tick count: 704
+
+
+
+;ch3 start
+
+3 /1 s0 m1573 v10 o1 r%4
+ r%4
+ r%4
+ r%4
+ r%4
+ r%4
+ r%4
+ r%4
+
+
+;tick count: 32
+
+
+3 /1 s0 m1573 v10 r%4
+ r%4
+ r%4
+ r%4
+ r%4
+ r%4
+ r%4
+ r%4
+
+
+;tick count: 64
+
+
+3 /1 s0 m1573 v7 r%4
+ r%4
+ r%4
+ r%4
+ v5 r%4
+ r%4
+ r%4
+ r%9
+
+
+;tick count: 101
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 109
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 117
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+
+
+;tick count: 125
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 133
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 141
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+
+
+;tick count: 149
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 157
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 165
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+
+
+;tick count: 173
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 181
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 189
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+
+
+;tick count: 197
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 205
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 213
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+
+
+;tick count: 221
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 229
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 237
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+
+
+;tick count: 245
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 253
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 261
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+
+
+;tick count: 269
+
+
+3 /1 s0 m1573 v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+
+
+;tick count: 277
+
+
+3 /1 s0 m1573 v8 r%1
+ v7 r%1
+ v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%1
+
+
+;tick count: 285
+
+
+3 /1 s0 m1573 v6 r%1
+ v11 r%1
+ v10 r%1
+ v9 r%1
+ v8 r%1
+ v7 r%58
+ v6 r%1
+ v5 r%1
+
+
+;tick count: 350
+
+
+3 /1 s0 m1573 v4 r%1
+ v3 r%1
+ v1 o4 e%4
+ e%4
+ o3 b%4
+ o4 e%4
+ f+%4
+ o3 b%4
+
+
+;tick count: 376
+
+ o4 c%4
+ o5 e%4
+ o4 b%4
+ o5 e%4
+ f+%4
+ o4 b%4
+ o5 f+%4
+ o4 b%4
+
+
+;tick count: 408
+
+ o5 e%4
+ f+%4
+ o4 b%4
+ b%4
+ o5 e%4
+ f+%4
+ o4 b%4
+ b%4
+
+
+;tick count: 440
+
+ o5 e%4
+ f+%9
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 459
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 467
+
+ c%1
+ c%1
+ c%1
+ o2 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+
+
+;tick count: 475
+
+ c%1
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 483
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 491
+
+ c%1
+ c%1
+ c%1
+ o2 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+
+
+;tick count: 499
+
+ c%1
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 507
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 515
+
+ c%1
+ c%1
+ c%1
+ o2 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+
+
+;tick count: 523
+
+ c%1
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 531
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 539
+
+ c%1
+ c%1
+ c%1
+ o2 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+
+
+;tick count: 547
+
+ c%1
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 555
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 563
+
+ c%1
+ c%1
+ c%1
+ o2 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+
+
+;tick count: 571
+
+ c%1
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 579
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 587
+
+ c%1
+ c%1
+ c%1
+ o2 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+
+
+;tick count: 595
+
+ c%1
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 603
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 611
+
+ c%1
+ c%1
+ c%1
+ o2 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+
+
+;tick count: 619
+
+ c%1
+ o1 c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o2 c%1
+
+
+;tick count: 627
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ o1 c%1
+ c%1
+ c%1
+
+
+;tick count: 635
+
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%1
+ c%58
+
+
+;tick count: 700
+
+ c%1
+ c%1
+ c%1
+ c%1
+
+;ch3 end: tick count: 704
+
