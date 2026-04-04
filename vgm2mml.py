@@ -4,6 +4,7 @@ vgm2mml.py - Top-level CLI: VGM binary → MGSDRV MML
 
 Usage:
     python vgm2mml.py <vgm_file> [--outdir <dir>] [--dump-passes]
+                      [--scc-input trace|log]
 
 Example:
     python vgm2mml.py inputs/02_StartingPoint/02_StartingPoint.vgm \
@@ -29,6 +30,9 @@ def main():
                         help='Output directory (default: <vgm_stem>_log/ next to vgm)')
     parser.add_argument('--dump-passes', action='store_true',
                         help='Write pass0-3 intermediate CSV files')
+    parser.add_argument('--scc-input', choices=['trace', 'log'], default='trace',
+                        help='SCC intermediate format: trace (default, chronological)'
+                             ' or log (per-channel grouped)')
     args = parser.parse_args()
 
     vgm_path = args.vgm
@@ -38,29 +42,37 @@ def main():
 
     # Determine base name: "02_StartingPoint"
     base_name = os.path.splitext(os.path.basename(vgm_path))[0]
-    # Stem for log files: "02_StartingPoint_log"
-    log_stem = base_name + '_log'
 
-    # Determine output directory
+    # Determine output directory (always use <stem>_log/ as the root when
+    # no --outdir is given; both log and trace CSVs live in the same dir)
     if args.outdir:
         out_root = args.outdir
     else:
         out_root = os.path.join(os.path.dirname(os.path.abspath(vgm_path)),
-                                log_stem)
+                                base_name + '_log')
 
     os.makedirs(out_root, exist_ok=True)
 
-    # ── Step 1: Parse VGM → SCC + PSG log CSVs ──────────────────
-    psg_csv, scc_csv = parse_vgm(vgm_path, out_root)
-    print(f"PSG log: {psg_csv}")
-    print(f"SCC log: {scc_csv}")
+    # ── Step 1: Parse VGM → SCC + PSG log/trace CSVs ─────────────
+    psg_log_csv, scc_log_csv, _psg_trace_csv, scc_trace_csv = parse_vgm(
+        vgm_path, out_root)
+    print(f"PSG log:   {psg_log_csv}")
+    print(f"SCC log:   {scc_log_csv}")
+    print(f"SCC trace: {scc_trace_csv}")
 
     # ── Step 2: SCC MML pipeline ─────────────────────────────────
-    # Put SCC pass files into a sub-directory named after the log stem
-    scc_out_dir = os.path.join(out_root, log_stem)
+    if args.scc_input == 'trace':
+        scc_csv = scc_trace_csv
+        stem_suffix = base_name + '_trace'
+    else:
+        scc_csv = scc_log_csv
+        stem_suffix = base_name + '_log'
+
+    # Put SCC pass files into a sub-directory named after the stem
+    scc_out_dir = os.path.join(out_root, stem_suffix)
     mml_path = process_scc_csv(scc_csv, scc_out_dir,
                                 dump_passes=args.dump_passes)
-    print(f"SCC MML: {mml_path}")
+    print(f"SCC MML:   {mml_path}")
 
 
 if __name__ == '__main__':
