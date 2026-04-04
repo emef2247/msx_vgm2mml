@@ -15,9 +15,10 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(REPO_ROOT, 'py'))
 
 from scc_mml import process_scc_csv
+from vgm_reader import parse_vgm
 
 # ──────────────────────────────────────────────────────────────────────────
-# Paths
+# Paths – log (per-channel grouped) pipeline
 # ──────────────────────────────────────────────────────────────────────────
 INPUT_CSV = os.path.join(
     REPO_ROOT,
@@ -27,6 +28,22 @@ GOLDEN_MML = os.path.join(
     REPO_ROOT,
     'outputs', '02_StartingPoint_log',
     '02_StartingPoint_log.scc.pass3.mml')
+
+# ──────────────────────────────────────────────────────────────────────────
+# Paths – trace (chronological) pipeline
+# ──────────────────────────────────────────────────────────────────────────
+TRACE_CSV = os.path.join(
+    REPO_ROOT,
+    'inputs', '02_StartingPoint', '02_StartingPoint_trace.scc.csv')
+
+GOLDEN_TRACE_MML = os.path.join(
+    REPO_ROOT,
+    'outputs', '02_StartingPoint_trace',
+    '02_StartingPoint_trace.scc.pass3.mml')
+
+VGM_FILE = os.path.join(
+    REPO_ROOT,
+    'inputs', '02_StartingPoint', '02_StartingPoint.vgm')
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -132,3 +149,78 @@ def test_scc_mml_ends_with_newline():
             data = fh.read()
 
         assert data.endswith(b'\n'), "MML file does not end with newline"
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Trace CSV pipeline tests
+# ──────────────────────────────────────────────────────────────────────────
+
+def test_trace_csv_exists():
+    """The committed Tcl-generated trace CSV must exist."""
+    assert os.path.isfile(TRACE_CSV), (
+        f"Trace CSV not found: {TRACE_CSV}\n"
+        "Run 'tclsh scc.tcl ...' to regenerate it.")
+
+
+def test_golden_trace_mml_exists():
+    """The committed golden trace pass3.mml must exist."""
+    assert os.path.isfile(GOLDEN_TRACE_MML), (
+        f"Golden trace MML not found: {GOLDEN_TRACE_MML}")
+
+
+def test_trace_csv_pass3_mml_matches_golden():
+    """MML generated from Tcl trace CSV must match the committed golden."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, '02_StartingPoint_trace')
+        mml_path = process_scc_csv(TRACE_CSV, out_dir, dump_passes=False)
+
+        got      = _read(mml_path)
+        expected = _read(GOLDEN_TRACE_MML)
+
+        if got != expected:
+            diff = _unified_diff(got, expected,
+                                 got_label=mml_path,
+                                 exp_label=GOLDEN_TRACE_MML)
+            pytest.fail(
+                "Trace-based pass3.mml differs from the golden reference.\n"
+                "--- diff (expected vs got) ---\n" + diff)
+
+
+def test_vgm_to_trace_mml_matches_golden():
+    """Full pipeline: VGM → trace CSV → MML must match the committed golden."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        # Step 1: parse VGM → trace CSV
+        _psg_log, _scc_log, _psg_trace, scc_trace = parse_vgm(VGM_FILE, tmp_dir)
+
+        # Step 2: trace CSV → MML
+        out_dir = os.path.join(tmp_dir, '02_StartingPoint_trace')
+        mml_path = process_scc_csv(scc_trace, out_dir, dump_passes=False)
+
+        got      = _read(mml_path)
+        expected = _read(GOLDEN_TRACE_MML)
+
+        if got != expected:
+            diff = _unified_diff(got, expected,
+                                 got_label=mml_path,
+                                 exp_label=GOLDEN_TRACE_MML)
+            pytest.fail(
+                "VGM→trace→MML differs from the golden reference.\n"
+                "--- diff (expected vs got) ---\n" + diff)
+
+
+def test_python_trace_csv_matches_tcl_trace_csv():
+    """Python-generated trace CSV must be identical to the Tcl-generated one."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        _psg_log, _scc_log, _psg_trace, scc_trace = parse_vgm(VGM_FILE, tmp_dir)
+
+        got      = _read(scc_trace)
+        expected = _read(TRACE_CSV)
+
+        if got != expected:
+            diff = _unified_diff(got, expected,
+                                 got_label=scc_trace,
+                                 exp_label=TRACE_CSV)
+            pytest.fail(
+                "Python-generated trace CSV differs from the Tcl reference.\n"
+                "--- diff (expected vs got) ---\n" + diff)
+

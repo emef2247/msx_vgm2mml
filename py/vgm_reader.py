@@ -1,7 +1,14 @@
 """
 vgm_reader.py - Port of vgm_read.tcl + psg.tcl + scc.tcl
-Parse a VGM binary file and produce PSG and SCC log CSVs.
+Parse a VGM binary file and produce PSG and SCC log/trace CSVs.
 Usage: python vgm_reader.py <vgm_file> [output_dir]
+
+Log CSV  (*_log.scc.csv)  : events grouped by channel (Tcl scc.tcl output)
+Trace CSV (*_trace.scc.csv): events in chronological VGM-stream order (Tcl trace)
+
+Note: 0x77 and 0x7a wait commands are intentionally treated as 0-sample waits
+to match the reference Tcl vgm_read.tcl behaviour (these handlers omit the
+update_global_time call in the Tcl source).
 """
 import struct
 import sys
@@ -199,6 +206,7 @@ class _SccState:
         self._cur_wtbl: list[str] = []
 
         self.log_buf = {ch: [] for ch in range(self.NUM_CH)}
+        self.trace_buf: list[str] = []   # chronological (all channels)
 
     # ── time ────────────────────────────────────────────────────
     def _update_time(self, time_s: float):
@@ -252,6 +260,12 @@ class _SccState:
         ]
         return ','.join(cols)   # 28 fields
 
+    def _log(self, ch: int, type_: str):
+        """Append a row to both the per-channel log buffer and the trace buffer."""
+        row = self._row(ch, type_)
+        self.log_buf[ch].append(row)
+        self.trace_buf.append(row)
+
     # ── main write entry point ───────────────────────────────────
     def write_scc(self, time_s: float, address: int, value: int):
         self._update_time(time_s)
@@ -262,69 +276,69 @@ class _SccState:
             ch = 0
             self._new_wavetable(ch, value)
             self.wtb_last[ch] = value
-            self.log_buf[ch].append(self._row(ch, 'wtbNew'))
+            self._log(ch, 'wtbNew')
             return
         if 0x9800 < a < 0x9820:
             ch = 0
             self._append_wavetable(ch, value)
             self.wtb_last[ch] = value
-            self.log_buf[ch].append(self._row(ch, 'wtbLast'))
+            self._log(ch, 'wtbLast')
             return
         # Wavetable ch1
         if a == 0x9820:
             ch = 1
             self._new_wavetable(ch, value)
             self.wtb_last[ch] = value
-            self.log_buf[ch].append(self._row(ch, 'wtbNew'))
+            self._log(ch, 'wtbNew')
             return
         if 0x9820 < a < 0x9840:
             ch = 1
             self._append_wavetable(ch, value)
             self.wtb_last[ch] = value
-            self.log_buf[ch].append(self._row(ch, 'wtbLast'))
+            self._log(ch, 'wtbLast')
             return
         # Wavetable ch2
         if a == 0x9840:
             ch = 2
             self._new_wavetable(ch, value)
             self.wtb_last[ch] = value
-            self.log_buf[ch].append(self._row(ch, 'wtbNew'))
+            self._log(ch, 'wtbNew')
             return
         if 0x9840 < a < 0x9860:
             ch = 2
             self._append_wavetable(ch, value)
             self.wtb_last[ch] = value
-            self.log_buf[ch].append(self._row(ch, 'wtbLast'))
+            self._log(ch, 'wtbLast')
             return
         # Wavetable ch3
         if a == 0x9860:
             ch = 3
             self._new_wavetable(ch, value)
             self.wtb_last[ch] = value
-            self.log_buf[ch].append(self._row(ch, 'wtbNew'))
+            self._log(ch, 'wtbNew')
             return
         if 0x9860 < a < 0x9880:
             ch = 3
             self._append_wavetable(ch, value)
             self.wtb_last[ch] = value
-            self.log_buf[ch].append(self._row(ch, 'wtbLast'))
+            self._log(ch, 'wtbLast')
             return
 
         # Frequency registers
-        if   a == 0x9880: ch = 0; self.f1Ctrl[ch] = value; self.log_buf[ch].append(self._row(ch, 'f1Ctrl')); return
-        if   a == 0x9881: ch = 0; self.f2Ctrl[ch] = value; self.log_buf[ch].append(self._row(ch, 'f2Ctrl')); return
-        if   a == 0x9882: ch = 1; self.f1Ctrl[ch] = value; self.log_buf[ch].append(self._row(ch, 'f1Ctrl')); return
-        if   a == 0x9883: ch = 1; self.f2Ctrl[ch] = value; self.log_buf[ch].append(self._row(ch, 'f2Ctrl')); return
-        if   a == 0x9884: ch = 2; self.f1Ctrl[ch] = value; self.log_buf[ch].append(self._row(ch, 'f1Ctrl')); return
-        if   a == 0x9885: ch = 2; self.f2Ctrl[ch] = value; self.log_buf[ch].append(self._row(ch, 'f2Ctrl')); return
-        if   a == 0x9886: ch = 3; self.f1Ctrl[ch] = value; self.log_buf[ch].append(self._row(ch, 'f1Ctrl')); return
-        if   a == 0x9887: ch = 3; self.f2Ctrl[ch] = value; self.log_buf[ch].append(self._row(ch, 'f2Ctrl')); return
+        if   a == 0x9880: ch = 0; self.f1Ctrl[ch] = value; self._log(ch, 'f1Ctrl'); return
+        if   a == 0x9881: ch = 0; self.f2Ctrl[ch] = value; self._log(ch, 'f2Ctrl'); return
+        if   a == 0x9882: ch = 1; self.f1Ctrl[ch] = value; self._log(ch, 'f1Ctrl'); return
+        if   a == 0x9883: ch = 1; self.f2Ctrl[ch] = value; self._log(ch, 'f2Ctrl'); return
+        if   a == 0x9884: ch = 2; self.f1Ctrl[ch] = value; self._log(ch, 'f1Ctrl'); return
+        if   a == 0x9885: ch = 2; self.f2Ctrl[ch] = value; self._log(ch, 'f2Ctrl'); return
+        if   a == 0x9886: ch = 3; self.f1Ctrl[ch] = value; self._log(ch, 'f1Ctrl'); return
+        if   a == 0x9887: ch = 3; self.f2Ctrl[ch] = value; self._log(ch, 'f2Ctrl'); return
 
         # Volume registers
-        if   a == 0x988A: ch = 0; self.vCtrl[ch] = value; self.log_buf[ch].append(self._row(ch, 'vCtrl')); return
-        if   a == 0x988B: ch = 1; self.vCtrl[ch] = value; self.log_buf[ch].append(self._row(ch, 'vCtrl')); return
-        if   a == 0x988C: ch = 2; self.vCtrl[ch] = value; self.log_buf[ch].append(self._row(ch, 'vCtrl')); return
-        if   a == 0x988D: ch = 3; self.vCtrl[ch] = value; self.log_buf[ch].append(self._row(ch, 'vCtrl')); return
+        if   a == 0x988A: ch = 0; self.vCtrl[ch] = value; self._log(ch, 'vCtrl'); return
+        if   a == 0x988B: ch = 1; self.vCtrl[ch] = value; self._log(ch, 'vCtrl'); return
+        if   a == 0x988C: ch = 2; self.vCtrl[ch] = value; self._log(ch, 'vCtrl'); return
+        if   a == 0x988D: ch = 3; self.vCtrl[ch] = value; self._log(ch, 'vCtrl'); return
 
         # Enable register (broadcast)
         if a == 0x988F:
@@ -333,10 +347,11 @@ class _SccState:
                 new_bit = self._enable_bit(ch, value)
                 if new_bit != self.enBit[ch]:
                     self.enBit[ch] = new_bit
-                    self.log_buf[ch].append(self._row(ch, 'enBit'))
+                    self._log(ch, 'enBit')
 
     # ── CSV output ───────────────────────────────────────────────
     def output_csv(self, out_path: str):
+        """Write per-channel grouped log CSV (Tcl *_log.scc.csv format)."""
         hdr = ('#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,'
                'oDiff,envlp,envlpIndex,nE,nF,offset,data,wtblIndex,'
                'f1Ctrl,f2Ctrl,vCtrl,enCtrl')
@@ -347,15 +362,30 @@ class _SccState:
                     fh.write(row + '\n')
                 fh.write('\n')
 
+    def output_trace_csv(self, out_path: str):
+        """Write chronological trace CSV (Tcl *_trace.scc.csv format)."""
+        hdr = ('#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,'
+               'oDiff,envlp,envlpIndex,nE,nF,offset,data,wtblIndex,'
+               'f1Ctrl,f2Ctrl,vCtrl,enCtrl')
+        with open(out_path, 'w', newline='\n') as fh:
+            fh.write(hdr + '\n')
+            for row in self.trace_buf:
+                fh.write(row + '\n')
+
 
 # ─────────────────────────────────────────────────────────────────
 # VGM parser
 # ─────────────────────────────────────────────────────────────────
 
-def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str]:
+def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, str, str]:
     """
-    Parse a VGM file and write PSG and SCC log CSVs.
-    Returns (psg_csv_path, scc_csv_path).
+    Parse a VGM file and write PSG and SCC log/trace CSVs.
+
+    Returns:
+        (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv)
+
+    Note: 0x77 and 0x7a wait commands are treated as 0-sample waits to match
+    the reference Tcl vgm_read.tcl behaviour (see module docstring).
     """
     with open(vgm_path, 'rb') as fh:
         raw = fh.read()
@@ -385,7 +415,13 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str]:
         elif cmd == 0x63:
             global_time += 882 / 44100.0
         elif 0x70 <= cmd <= 0x7F:
-            global_time += ((cmd & 0xF) + 1) / 44100.0
+            # 0x77 and 0x7a: the Tcl vgm_read.tcl handlers compute a local
+            # time variable but never call update_global_time, so they
+            # effectively add 0 samples.  Replicate that behaviour here so
+            # the Python-generated trace CSV is byte-for-byte identical to
+            # the Tcl reference.
+            if cmd not in (0x77, 0x7a):
+                global_time += ((cmd & 0xF) + 1) / 44100.0
         elif cmd == 0xA0:
             aa = raw[pos]; pos += 1
             dd = raw[pos]; pos += 1
@@ -404,17 +440,23 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str]:
         output_dir = os.path.dirname(os.path.abspath(vgm_path))
     os.makedirs(output_dir, exist_ok=True)
 
-    psg_csv = os.path.join(output_dir, f"{base_name}_log.psg.csv")
-    scc_csv = os.path.join(output_dir, f"{base_name}_log.scc.csv")
-    psg.output_csv(psg_csv)
-    scc.output_csv(scc_csv)
-    return psg_csv, scc_csv
+    psg_log_csv   = os.path.join(output_dir, f"{base_name}_log.psg.csv")
+    scc_log_csv   = os.path.join(output_dir, f"{base_name}_log.scc.csv")
+    psg_trace_csv = os.path.join(output_dir, f"{base_name}_trace.psg.csv")
+    scc_trace_csv = os.path.join(output_dir, f"{base_name}_trace.scc.csv")
+
+    psg.output_csv(psg_log_csv)
+    scc.output_csv(scc_log_csv)
+    scc.output_trace_csv(scc_trace_csv)
+    return psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv
 
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print(f"Usage: python {sys.argv[0]} <vgm_file> [output_dir]")
         sys.exit(1)
-    p, s = parse_vgm(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
-    print(f"PSG CSV: {p}")
-    print(f"SCC CSV: {s}")
+    p_log, s_log, p_trace, s_trace = parse_vgm(
+        sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
+    print(f"PSG log CSV:   {p_log}")
+    print(f"SCC log CSV:   {s_log}")
+    print(f"SCC trace CSV: {s_trace}")
