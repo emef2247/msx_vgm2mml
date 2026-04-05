@@ -2,13 +2,10 @@
 #opll_mode 1
 #tempo 75
 #title { "02_StartingPoint_trace"}
-#alloc 1=3100
-#alloc 2=3100
-#alloc 3=2400
-#alloc 4=2100
-#alloc 5=1100
-#alloc 6=1000
-#alloc 7=1000
+#alloc 4=1616
+#alloc 5=704
+#alloc 6=672
+#alloc 7=816
 
 @s00 = {001931475a6a757d7f7d756a5a47311900e7cfb9a6968b8380838b96a6b9cfe7}
 @s01 = {00407f4001c081c001407f4001c0014001e0012001f0011001ffffffff404040}
