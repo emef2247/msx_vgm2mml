@@ -47,19 +47,21 @@ def main():
     # Determine base name: "02_StartingPoint"
     base_name = os.path.splitext(os.path.basename(vgm_path))[0]
 
-    # Determine output directory (always use <stem>_log/ as the root when
-    # no --outdir is given; both log and trace CSVs live in the same dir)
+    # Determine song-level output directory.
+    # With --outdir: place all outputs under <outdir>/<base_name>/ so that
+    # processing multiple VGM files into the same --outdir keeps them separate.
+    # Without --outdir: use <vgm_dir>/<base_name>_log/ (legacy default).
     if args.outdir:
-        out_root = args.outdir
+        song_dir = os.path.join(args.outdir, base_name)
     else:
-        out_root = os.path.join(os.path.dirname(os.path.abspath(vgm_path)),
+        song_dir = os.path.join(os.path.dirname(os.path.abspath(vgm_path)),
                                 base_name + '_log')
 
-    os.makedirs(out_root, exist_ok=True)
+    os.makedirs(song_dir, exist_ok=True)
 
     # ── Step 1: Parse VGM → SCC + PSG log/trace CSVs ─────────────
     psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv = parse_vgm(
-        vgm_path, out_root)
+        vgm_path, song_dir)
     print(f"PSG log:   {psg_log_csv}")
     print(f"PSG trace: {psg_trace_csv}")
     print(f"SCC log:   {scc_log_csv}")
@@ -74,7 +76,7 @@ def main():
         stem_suffix = base_name + '_log'
 
     # Put SCC pass files into a sub-directory named after the stem
-    scc_out_dir = os.path.join(out_root, stem_suffix)
+    scc_out_dir = os.path.join(song_dir, stem_suffix)
     mml_path = process_scc_csv(scc_csv, scc_out_dir,
                                 dump_passes=args.dump_passes)
     print(f"SCC MML:   {mml_path}")
@@ -89,7 +91,7 @@ def main():
         psg_csv = psg_log_csv
         psg_stem_suffix = base_name + '_psg_log'
 
-    psg_out_dir = os.path.join(out_root, psg_stem_suffix)
+    psg_out_dir = os.path.join(song_dir, psg_stem_suffix)
     psg_mml_path = process_psg_csv(psg_csv, psg_out_dir,
                                    stem=psg_stem_suffix,
                                    dump_passes=args.dump_passes)
