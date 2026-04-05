@@ -1,14 +1,10 @@
-;[name=scc lpf=1]
+;[name=psg lpf=1]
 #opll_mode 1
 #tempo 75
-#title { "psg example"}
-#alloc 1=3100
-#alloc 2=3100
-#alloc 3=2400
-#alloc 4=2100
-#alloc 5=1100
-#alloc 6=1000
-#alloc 7=1000
+#title { "03_AJourneyTheStart"}
+#alloc 1=2752
+#alloc 2=12176
+#alloc 3=12400
 
 
 
@@ -896,7 +892,7 @@
 
 
 ;ch2 start
-2 /1 s9 m109850 v2 o2 c+%2 o1 b%1 g+%1
+2 /1 s9 m109850 v2 o2 c+%2 < b%1 g+%1
 ;tick count: 4
 
 2 /0 v0 r%4
@@ -923,13 +919,13 @@
 2 /0 v0 o1 r%7
 ;tick count: 32
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 36
 
 2 /0 v0 r%4
 ;tick count: 40
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 44
 
 2 /0 v0 r%4
@@ -944,7 +940,7 @@
 2 /0 v0 o1 r%7
 ;tick count: 64
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 68
 
 2 /0 v0 r%4
@@ -965,13 +961,13 @@
 2 /0 v0 o1 r%7
 ;tick count: 96
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 100
 
 2 /0 v0 r%4
 ;tick count: 104
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 108
 
 2 /0 v0 r%4
@@ -989,7 +985,7 @@
 2 /2 s10 m9440 n0 v8 f%4 v7 f%3
 ;tick count: 128
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 132
 
 2 /0 v0 r%4
@@ -1016,13 +1012,13 @@
 2 /0 v0 o1 r%7
 ;tick count: 160
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 164
 
 2 /0 v0 r%4
 ;tick count: 168
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 172
 
 2 /0 v0 r%4
@@ -1037,7 +1033,7 @@
 2 /0 v0 o1 r%7
 ;tick count: 192
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 196
 
 2 /0 v0 r%4
@@ -1058,13 +1054,13 @@
 2 /0 v0 o1 r%7
 ;tick count: 224
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 228
 
 2 /0 v0 r%4
 ;tick count: 232
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 236
 
 2 /0 v0 r%4
@@ -1079,10 +1075,10 @@
 2 /3 s10 m9440 n0 v10 o1 f%1
 ;tick count: 249
 
-2 /2 s10 m9440 n0 v8 f%4 v7 f%3 v2 o2 a%1
+2 /2 s10 m9440 n0 v8 f%4 v7 f%3 v2 > a%1
 ;tick count: 257
 
-2 /1 s9 m109850 v2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 c+%1 < b%1 g+%1
 ;tick count: 260
 
 2 /0 v0 r%4
@@ -1109,13 +1105,13 @@
 2 /0 v0 o1 r%7
 ;tick count: 288
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 292
 
 2 /0 v0 r%4
 ;tick count: 296
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 300
 
 2 /0 v0 r%4
@@ -1130,7 +1126,7 @@
 2 /0 v0 o1 r%7
 ;tick count: 320
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 324
 
 2 /0 v0 r%4
@@ -1151,13 +1147,13 @@
 2 /0 v0 o1 r%7
 ;tick count: 352
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 356
 
 2 /0 v0 r%4
 ;tick count: 360
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 364
 
 2 /0 v0 r%4
@@ -1172,10 +1168,10 @@
 2 /3 s10 m9440 n0 v10 o1 f%1
 ;tick count: 377
 
-2 /2 s10 m9440 n0 v8 f%4 v7 f%3 v2 o2 a%1
+2 /2 s10 m9440 n0 v8 f%4 v7 f%3 v2 > a%1
 ;tick count: 385
 
-2 /1 s9 m109850 v2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 c+%1 < b%1 g+%1
 ;tick count: 388
 
 2 /0 v0 r%4
@@ -1202,13 +1198,13 @@
 2 /0 v0 o1 r%7
 ;tick count: 416
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 420
 
 2 /0 v0 r%4
 ;tick count: 424
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 428
 
 2 /0 v0 r%4
@@ -1223,7 +1219,7 @@
 2 /0 v0 o1 r%7
 ;tick count: 448
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 452
 
 2 /0 v0 r%4
@@ -1244,7 +1240,7 @@
 2 /0 v0 o1 r%7
 ;tick count: 480
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 484
 
 2 /0 v0 r%4
@@ -1253,7 +1249,7 @@
 2 /0 v0 r%1
 ;tick count: 489
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 492
 
 2 /0 v0 r%4
@@ -1271,7 +1267,7 @@
 2 /2 s10 m9440 n0 v8 f%4 v7 f%4
 ;tick count: 513
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 516
 
 2 /0 v0 r%4
@@ -1298,13 +1294,13 @@
 2 /0 v0 o1 r%8
 ;tick count: 545
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 548
 
 2 /0 v0 r%5
 ;tick count: 553
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 556
 
 2 /0 v0 r%5
@@ -1316,7 +1312,7 @@
 2 /0 v0 o1 r%7
 ;tick count: 576
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 580
 
 2 /0 v0 r%5
@@ -1334,13 +1330,13 @@
 2 /0 v0 o1 r%8
 ;tick count: 609
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 612
 
 2 /0 v0 r%5
 ;tick count: 617
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 620
 
 2 /0 v0 r%5
@@ -1352,7 +1348,7 @@
 2 /2 s10 m9440 n8 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%2 v8 o1 f%4 v7 f%4
 ;tick count: 641
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 644
 
 2 /0 v0 r%5
@@ -1370,13 +1366,13 @@
 2 /0 v0 o1 r%8
 ;tick count: 673
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 676
 
 2 /0 v0 r%5
 ;tick count: 681
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 684
 
 2 /0 v0 r%5
@@ -1394,7 +1390,7 @@
 2 /0 v0 r%1
 ;tick count: 705
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 708
 
 2 /0 v0 r%5
@@ -1412,13 +1408,13 @@
 2 /0 v0 o1 r%8
 ;tick count: 737
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%2
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%2
 ;tick count: 741
 
 2 /0 v0 r%4
 ;tick count: 745
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 748
 
 2 /0 v0 r%5
@@ -1436,7 +1432,7 @@
 2 /2 s10 m9440 n0 v8 f%3 v7 f%4
 ;tick count: 769
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 772
 
 2 /0 v0 r%5
@@ -1457,13 +1453,13 @@
 2 /0 v0 o1 r%8
 ;tick count: 801
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 804
 
 2 /0 v0 r%5
 ;tick count: 809
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 812
 
 2 /0 v0 r%5
@@ -1481,7 +1477,7 @@
 2 /0 v0 r%1
 ;tick count: 833
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 836
 
 2 /0 v0 r%5
@@ -1499,13 +1495,13 @@
 2 /0 v0 o1 r%8
 ;tick count: 865
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%2
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%2
 ;tick count: 869
 
 2 /0 v0 r%4
 ;tick count: 873
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 876
 
 2 /0 v0 r%5
@@ -1523,7 +1519,7 @@
 2 /2 s10 m9440 n0 v8 f%3 v7 f%4
 ;tick count: 897
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%2
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%2
 ;tick count: 901
 
 2 /0 v0 r%4
@@ -1544,13 +1540,13 @@
 2 /0 v0 o1 r%8
 ;tick count: 929
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%2
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%2
 ;tick count: 933
 
 2 /0 v0 r%4
 ;tick count: 937
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%2
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%2
 ;tick count: 941
 
 2 /0 v0 r%4
@@ -1565,7 +1561,7 @@
 2 /0 v0 o1 r%8
 ;tick count: 961
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > c+%1 < b%1 g+%1
 ;tick count: 964
 
 2 /0 v0 r%5
@@ -1583,13 +1579,13 @@
 2 /0 v0 o1 r%7
 ;tick count: 993
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 997
 
 2 /0 v0 r%4
 ;tick count: 1001
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1005
 
 2 /0 v0 r%4
@@ -1613,7 +1609,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1033
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1037
 
 2 /0 v0 r%4
@@ -1625,7 +1621,7 @@
 2 /0 v0 r%7
 ;tick count: 1049
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1053
 
 2 /0 v0 r%4
@@ -1637,7 +1633,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1065
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1069
 
 2 /0 v0 r%4
@@ -1649,7 +1645,7 @@
 2 /0 v0 r%7
 ;tick count: 1081
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1085
 
 2 /0 v0 r%4
@@ -1661,7 +1657,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1097
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1101
 
 2 /0 v0 r%4
@@ -1673,7 +1669,7 @@
 2 /0 v0 r%7
 ;tick count: 1113
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1117
 
 2 /0 v0 r%4
@@ -1694,7 +1690,7 @@
 2 /0 v0 o1 r%7
 ;tick count: 1145
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1149
 
 2 /0 v0 r%4
@@ -1706,7 +1702,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1161
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1165
 
 2 /0 v0 r%4
@@ -1718,7 +1714,7 @@
 2 /0 v0 r%7
 ;tick count: 1177
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1181
 
 2 /0 v0 r%4
@@ -1730,7 +1726,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1193
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1197
 
 2 /0 v0 r%4
@@ -1742,7 +1738,7 @@
 2 /0 v0 r%7
 ;tick count: 1209
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1213
 
 2 /0 v0 r%4
@@ -1754,7 +1750,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1225
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1229
 
 2 /0 v0 r%4
@@ -1766,7 +1762,7 @@
 2 /0 v0 r%7
 ;tick count: 1241
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1245
 
 2 /0 v0 r%4
@@ -1787,7 +1783,7 @@
 2 /0 v0 o1 r%7
 ;tick count: 1273
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1277
 
 2 /0 v0 r%4
@@ -1799,7 +1795,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1289
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1293
 
 2 /0 v0 r%4
@@ -1811,7 +1807,7 @@
 2 /0 v0 r%7
 ;tick count: 1305
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1309
 
 2 /0 v0 r%4
@@ -1823,7 +1819,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1321
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1325
 
 2 /0 v0 r%4
@@ -1835,7 +1831,7 @@
 2 /0 v0 r%7
 ;tick count: 1337
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1341
 
 2 /0 v0 r%4
@@ -1847,7 +1843,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1353
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1357
 
 2 /0 v0 r%4
@@ -1859,7 +1855,7 @@
 2 /0 v0 r%7
 ;tick count: 1369
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1373
 
 2 /0 v0 r%4
@@ -1880,7 +1876,7 @@
 2 /0 v0 o1 r%7
 ;tick count: 1401
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1405
 
 2 /0 v0 r%4
@@ -1892,7 +1888,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1417
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1421
 
 2 /0 v0 r%4
@@ -1904,7 +1900,7 @@
 2 /0 v0 r%7
 ;tick count: 1433
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1437
 
 2 /0 v0 r%4
@@ -1916,7 +1912,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1449
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1453
 
 2 /0 v0 r%4
@@ -1928,7 +1924,7 @@
 2 /0 v0 r%7
 ;tick count: 1465
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1469
 
 2 /0 v0 r%4
@@ -1940,7 +1936,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1481
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1485
 
 2 /0 v0 r%4
@@ -1952,7 +1948,7 @@
 2 /0 v0 r%7
 ;tick count: 1497
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1501
 
 2 /0 v0 r%4
@@ -1994,7 +1990,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1545
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1549
 
 2 /0 v0 r%4
@@ -2006,7 +2002,7 @@
 2 /0 v0 r%7
 ;tick count: 1561
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1565
 
 2 /0 v0 r%4
@@ -2018,7 +2014,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1577
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1581
 
 2 /0 v0 r%4
@@ -2030,7 +2026,7 @@
 2 /0 v0 r%7
 ;tick count: 1593
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1597
 
 2 /0 v0 r%4
@@ -2042,7 +2038,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1609
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1613
 
 2 /0 v0 r%4
@@ -2054,7 +2050,7 @@
 2 /0 v0 r%7
 ;tick count: 1625
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1629
 
 2 /0 v0 r%4
@@ -2075,7 +2071,7 @@
 2 /0 v0 o1 r%7
 ;tick count: 1657
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1661
 
 2 /0 v0 r%4
@@ -2087,7 +2083,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1673
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1677
 
 2 /0 v0 r%4
@@ -2099,7 +2095,7 @@
 2 /0 v0 r%7
 ;tick count: 1689
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1693
 
 2 /0 v0 r%4
@@ -2111,7 +2107,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1705
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1709
 
 2 /0 v0 r%4
@@ -2123,7 +2119,7 @@
 2 /0 v0 r%7
 ;tick count: 1721
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1725
 
 2 /0 v0 r%4
@@ -2135,7 +2131,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1737
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1741
 
 2 /0 v0 r%4
@@ -2147,7 +2143,7 @@
 2 /0 v0 r%7
 ;tick count: 1753
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1757
 
 2 /0 v0 r%4
@@ -2168,7 +2164,7 @@
 2 /0 v0 o1 r%7
 ;tick count: 1785
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1789
 
 2 /0 v0 r%4
@@ -2180,7 +2176,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1801
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1805
 
 2 /0 v0 r%4
@@ -2192,7 +2188,7 @@
 2 /0 v0 r%7
 ;tick count: 1817
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1821
 
 2 /0 v0 r%4
@@ -2204,7 +2200,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1833
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1837
 
 2 /0 v0 r%4
@@ -2216,7 +2212,7 @@
 2 /0 v0 r%7
 ;tick count: 1849
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1853
 
 2 /0 v0 r%4
@@ -2228,7 +2224,7 @@
 2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1865
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 < a%1 c+%1 < b%1 g+%1
 ;tick count: 1869
 
 2 /0 v0 r%4
@@ -2240,7 +2236,7 @@
 2 /0 v0 r%7
 ;tick count: 1881
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1885
 
 2 /0 v0 r%4
@@ -2261,7 +2257,7 @@
 2 /0 v0 o1 r%7
 ;tick count: 1913
 
-2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 > a%1 c+%1 < b%1 g+%1
 ;tick count: 1917
 
 2 /0 v0 r%4
@@ -2347,10 +2343,10 @@
 
 
 ;ch3 start
-3 /1 s9 m109850 v12 o2 e%2 v11 e%1 v10 e%5 e%1 v9 e%1 v8 e%1 v7 e%1
+3 /1 s9 m109850 v12 o2 e%2 (1 e%1 (1 e%5 e%1 v9 e%1 v8 e%1 v7 e%1
 ;tick count: 12
 
-3 /0 v0 o1 r%1
+3 /0 v0 < r%1
 ;tick count: 13
 
 3 /0 v0 r%1
@@ -2362,7 +2358,7 @@
 3 /0 v0 r%1
 ;tick count: 16
 
-3 /1 s10 m9440 v13 o3 e%1 v12 e%1 v11 e%1 v10 e%5 e%1 v9 e%1 v8 e%1 v7 e%1
+3 /1 s10 m9440 v13 o3 e%1 (1 e%1 (1 e%1 (1 e%5 e%1 v9 e%1 v8 e%1 v7 e%1
 ;tick count: 28
 
 3 /0 v0 o1 r%1
@@ -2377,40 +2373,40 @@
 3 /0 v0 r%1
 ;tick count: 32
 
-3 /1 s9 m109850 v13 o2 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 e%1
+3 /1 s9 m109850 v13 > e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 e%1
 ;tick count: 41
 
-3 /1 s9 m109850 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o3 e%1 v12 e%1
+3 /1 s9 m109850 v12 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 > e%1 (1 e%1
 ;tick count: 50
 
-3 /1 s10 m9440 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o2 e%1 v12 e%1 v11 e%1
+3 /1 s10 m9440 v11 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 < e%1 (1 e%1 (1 e%1
 ;tick count: 59
 
-3 /1 s10 m9440 v10 e%5 e%5 v9 e%1 v8 e%1 v7 e%1 v13 e%1 v12 e%1 v11 e%1
+3 /1 s10 m9440 v10 e%5 e%5 v9 e%1 v8 e%1 v7 e%1 )6 e%1 (1 e%1 (1 e%1
 ;tick count: 75
 
-3 /1 s9 m109850 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o3 e%1 v12 e%1 v11 e%1 v10 e%2
+3 /1 s9 m109850 v10 e%2 v9 e%1 v8 e%1 v7 e%1 )6 > e%1 (1 e%1 (1 e%1 (1 e%2
 ;tick count: 85
 
-3 /1 s10 m9440 v9 e%1 v8 e%1 v7 e%1 v13 o2 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1
+3 /1 s10 m9440 v9 e%1 v8 e%1 v7 e%1 )6 < e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1
 ;tick count: 94
 
-3 /1 s10 m9440 v8 e%1 v7 e%1 v13 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1
+3 /1 s10 m9440 v8 e%1 v7 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1
 ;tick count: 103
 
-3 /1 s9 m109850 v7 e%1 v13 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1
+3 /1 s9 m109850 v7 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1
 ;tick count: 112
 
-3 /1 s10 m9440 v13 o3 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o2 e%1
+3 /1 s10 m9440 v13 > e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 < e%1
 ;tick count: 121
 
-3 /1 s10 m9440 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 e%1 v12 e%1
+3 /1 s10 m9440 v12 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 e%1 (1 e%1
 ;tick count: 130
 
-3 /1 s9 m109850 v11 e%1 v10 e%6 v9 e%1 v8 e%1 v7 e%1
+3 /1 s9 m109850 v11 e%1 (1 e%6 v9 e%1 v8 e%1 v7 e%1
 ;tick count: 140
 
-3 /0 v0 o1 r%1
+3 /0 v0 < r%1
 ;tick count: 141
 
 3 /0 v0 r%1
@@ -2422,7 +2418,7 @@
 3 /0 v0 r%1
 ;tick count: 144
 
-3 /1 s10 m9440 v13 o3 e%1 v12 e%1 v11 e%1 v10 e%5 e%1 v9 e%1 v8 e%1 v7 e%1
+3 /1 s10 m9440 v13 o3 e%1 (1 e%1 (1 e%1 (1 e%5 e%1 v9 e%1 v8 e%1 v7 e%1
 ;tick count: 156
 
 3 /0 v0 o1 r%1
@@ -2437,40 +2433,40 @@
 3 /0 v0 r%1
 ;tick count: 160
 
-3 /1 s9 m109850 v13 o2 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 e%1
+3 /1 s9 m109850 v13 > e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 e%1
 ;tick count: 169
 
-3 /1 s9 m109850 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o3 e%1 v12 e%1
+3 /1 s9 m109850 v12 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 > e%1 (1 e%1
 ;tick count: 178
 
-3 /1 s10 m9440 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o2 e%1 v12 e%1 v11 e%1
+3 /1 s10 m9440 v11 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 < e%1 (1 e%1 (1 e%1
 ;tick count: 187
 
-3 /1 s10 m9440 v10 e%5 e%5 v9 e%1 v8 e%1 v7 e%1 v13 e%1 v12 e%1 v11 e%1
+3 /1 s10 m9440 v10 e%5 e%5 v9 e%1 v8 e%1 v7 e%1 )6 e%1 (1 e%1 (1 e%1
 ;tick count: 203
 
-3 /1 s9 m109850 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o3 e%1 v12 e%1 v11 e%1 v10 e%2
+3 /1 s9 m109850 v10 e%2 v9 e%1 v8 e%1 v7 e%1 )6 > e%1 (1 e%1 (1 e%1 (1 e%2
 ;tick count: 213
 
-3 /1 s10 m9440 v9 e%1 v8 e%1 v7 e%1 v13 o2 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1
+3 /1 s10 m9440 v9 e%1 v8 e%1 v7 e%1 )6 < e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1
 ;tick count: 222
 
-3 /1 s10 m9440 v8 e%1 v7 e%1 v13 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1
+3 /1 s10 m9440 v8 e%1 v7 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1
 ;tick count: 231
 
-3 /1 s9 m109850 v7 e%1 v13 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1
+3 /1 s9 m109850 v7 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1
 ;tick count: 240
 
-3 /1 s10 m9440 v13 o3 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o2 e%1
+3 /1 s10 m9440 v13 > e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 < e%1
 ;tick count: 249
 
-3 /1 s10 m9440 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 e%1 v12 e%1
+3 /1 s10 m9440 v12 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 e%1 (1 e%1
 ;tick count: 258
 
-3 /1 s9 m109850 v11 e%1 v10 e%6 v9 e%1 v8 e%1 v7 e%1
+3 /1 s9 m109850 v11 e%1 (1 e%6 v9 e%1 v8 e%1 v7 e%1
 ;tick count: 268
 
-3 /0 v0 o1 r%1
+3 /0 v0 < r%1
 ;tick count: 269
 
 3 /0 v0 r%1
@@ -2482,7 +2478,7 @@
 3 /0 v0 r%1
 ;tick count: 272
 
-3 /1 s10 m9440 v13 o3 e%1 v12 e%1 v11 e%1 v10 e%5 e%1 v9 e%1 v8 e%1 v7 e%1
+3 /1 s10 m9440 v13 o3 e%1 (1 e%1 (1 e%1 (1 e%5 e%1 v9 e%1 v8 e%1 v7 e%1
 ;tick count: 284
 
 3 /0 v0 o1 r%1
@@ -2497,40 +2493,40 @@
 3 /0 v0 r%1
 ;tick count: 288
 
-3 /1 s9 m109850 v13 o2 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 e%1
+3 /1 s9 m109850 v13 > e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 e%1
 ;tick count: 297
 
-3 /1 s9 m109850 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o3 e%1 v12 e%1
+3 /1 s9 m109850 v12 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 > e%1 (1 e%1
 ;tick count: 306
 
-3 /1 s10 m9440 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o2 e%1 v12 e%1 v11 e%1
+3 /1 s10 m9440 v11 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 < e%1 (1 e%1 (1 e%1
 ;tick count: 315
 
-3 /1 s10 m9440 v10 e%5 e%5 v9 e%1 v8 e%1 v7 e%1 v13 e%1 v12 e%1 v11 e%1
+3 /1 s10 m9440 v10 e%5 e%5 v9 e%1 v8 e%1 v7 e%1 )6 e%1 (1 e%1 (1 e%1
 ;tick count: 331
 
-3 /1 s9 m109850 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o3 e%1 v12 e%1 v11 e%1 v10 e%2
+3 /1 s9 m109850 v10 e%2 v9 e%1 v8 e%1 v7 e%1 )6 > e%1 (1 e%1 (1 e%1 (1 e%2
 ;tick count: 341
 
-3 /1 s10 m9440 v9 e%1 v8 e%1 v7 e%1 v13 o2 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1
+3 /1 s10 m9440 v9 e%1 v8 e%1 v7 e%1 )6 < e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1
 ;tick count: 350
 
-3 /1 s10 m9440 v8 e%1 v7 e%1 v13 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1
+3 /1 s10 m9440 v8 e%1 v7 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1
 ;tick count: 359
 
-3 /1 s9 m109850 v7 e%1 v13 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1
+3 /1 s9 m109850 v7 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1
 ;tick count: 368
 
-3 /1 s10 m9440 v13 o3 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o2 e%1
+3 /1 s10 m9440 v13 > e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 < e%1
 ;tick count: 377
 
-3 /1 s10 m9440 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 e%1 v12 e%1
+3 /1 s10 m9440 v12 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 e%1 (1 e%1
 ;tick count: 386
 
-3 /1 s9 m109850 v11 e%1 v10 e%6 v9 e%1 v8 e%1 v7 e%1
+3 /1 s9 m109850 v11 e%1 (1 e%6 v9 e%1 v8 e%1 v7 e%1
 ;tick count: 396
 
-3 /0 v0 o1 r%1
+3 /0 v0 < r%1
 ;tick count: 397
 
 3 /0 v0 r%1
@@ -2542,7 +2538,7 @@
 3 /0 v0 r%1
 ;tick count: 400
 
-3 /1 s10 m9440 v13 o3 e%1 v12 e%1 v11 e%1 v10 e%5 e%1 v9 e%1 v8 e%1 v7 e%1
+3 /1 s10 m9440 v13 o3 e%1 (1 e%1 (1 e%1 (1 e%5 e%1 v9 e%1 v8 e%1 v7 e%1
 ;tick count: 412
 
 3 /0 v0 o1 r%1
@@ -2557,40 +2553,40 @@
 3 /0 v0 r%1
 ;tick count: 416
 
-3 /1 s9 m109850 v13 o2 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 e%1
+3 /1 s9 m109850 v13 > e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 e%1
 ;tick count: 425
 
-3 /1 s9 m109850 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o3 e%1 v12 e%1
+3 /1 s9 m109850 v12 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 > e%1 (1 e%1
 ;tick count: 434
 
-3 /1 s10 m9440 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o2 e%1 v12 e%1 v11 e%1
+3 /1 s10 m9440 v11 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 < e%1 (1 e%1 (1 e%1
 ;tick count: 443
 
-3 /1 s10 m9440 v10 e%5 e%5 v9 e%1 v8 e%1 v7 e%1 v13 e%1 v12 e%1 v11 e%1
+3 /1 s10 m9440 v10 e%5 e%5 v9 e%1 v8 e%1 v7 e%1 )6 e%1 (1 e%1 (1 e%1
 ;tick count: 459
 
-3 /1 s9 m109850 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o3 e%1 v12 e%1 v11 e%1 v10 e%2
+3 /1 s9 m109850 v10 e%2 v9 e%1 v8 e%1 v7 e%1 )6 > e%1 (1 e%1 (1 e%1 (1 e%2
 ;tick count: 469
 
-3 /1 s10 m9440 v9 e%1 v8 e%1 v7 e%1 v13 o2 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1
+3 /1 s10 m9440 v9 e%1 v8 e%1 v7 e%1 )6 < e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1
 ;tick count: 478
 
-3 /1 s10 m9440 v8 e%1 v7 e%1 v13 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1
+3 /1 s10 m9440 v8 e%1 v7 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1
 ;tick count: 487
 
-3 /1 s9 m109850 v7 e%1 v13 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1
+3 /1 s9 m109850 v7 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1
 ;tick count: 496
 
-3 /1 s10 m9440 v13 o3 e%1 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%1 v13 o2 e%1
+3 /1 s10 m9440 v13 > e%1 (1 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%1 )6 < e%1
 ;tick count: 505
 
-3 /1 s10 m9440 v12 e%1 v11 e%1 v10 e%2 v9 e%1 v8 e%1 v7 e%2 v12 f%1 v11 f%1
+3 /1 s10 m9440 v12 e%1 (1 e%1 (1 e%2 v9 e%1 v8 e%1 v7 e%2 )5 f%1 (1 f%1
 ;tick count: 515
 
 3 /1 s9 m109850 v10 f%6 v9 f%1 v8 f%1 v7 f%1
 ;tick count: 524
 
-3 /0 v0 o1 r%1
+3 /0 v0 < r%1
 ;tick count: 525
 
 3 /0 v0 r%1
@@ -2602,7 +2598,7 @@
 3 /0 v0 r%2
 ;tick count: 529
 
-3 /1 s10 m9440 v12 o3 f%1 v11 f%1 v10 f%5 f%1 v9 f%1 v8 f%1 v7 f%1
+3 /1 s10 m9440 v12 o3 f%1 (1 f%1 (1 f%5 f%1 v9 f%1 v8 f%1 v7 f%1
 ;tick count: 540
 
 3 /0 v0 o1 r%1
@@ -2617,37 +2613,37 @@
 3 /0 v0 r%2
 ;tick count: 545
 
-3 /1 s9 m109850 v12 o2 f%1 v11 f%1 v10 f%2 v9 f%1 v8 f%1 v7 f%2 v12 f%1 v11 f%1
+3 /1 s9 m109850 v12 > f%1 (1 f%1 (1 f%2 v9 f%1 v8 f%1 v7 f%2 )5 f%1 (1 f%1
 ;tick count: 555
 
-3 /1 s9 m109850 v10 f%2 v9 f%1 v8 f%1 v7 f%2 v12 o3 f%1 v11 f%1 v10 f%2 v9 f%1
+3 /1 s9 m109850 v10 f%2 v9 f%1 v8 f%1 v7 f%2 )5 > f%1 (1 f%1 (1 f%2 v9 f%1
 ;tick count: 566
 
-3 /1 s10 m9440 v8 f%1 v7 f%2 v12 o2 f%1 v11 f%1 v10 f%5 f%5 v9 f%1 v8 f%1
+3 /1 s10 m9440 v8 f%1 v7 f%2 )5 < f%1 (1 f%1 (1 f%5 f%5 v9 f%1 v8 f%1
 ;tick count: 583
 
-3 /1 s9 m109850 v7 f%2 v12 f%1 v11 f%1 v10 f%2 v9 f%1 v8 f%1 v7 f%2 v12 o3 f%1
+3 /1 s9 m109850 v7 f%2 )5 f%1 (1 f%1 (1 f%2 v9 f%1 v8 f%1 v7 f%2 )5 > f%1
 ;tick count: 594
 
-3 /1 s10 m9440 v11 f%1 v10 f%2 v9 f%1 v8 f%1 v7 f%2 v12 o2 f%1 v11 f%1 v10 f%2
+3 /1 s10 m9440 v11 f%1 (1 f%2 v9 f%1 v8 f%1 v7 f%2 )5 < f%1 (1 f%1 (1 f%2
 ;tick count: 605
 
-3 /1 s10 m9440 v9 f%1 v8 f%1 v7 f%2 v12 f%1 v11 f%1 v10 f%2 v9 f%1 v8 f%1
+3 /1 s10 m9440 v9 f%1 v8 f%1 v7 f%2 )5 f%1 (1 f%1 (1 f%2 v9 f%1 v8 f%1
 ;tick count: 615
 
-3 /1 s9 m109850 v7 f%2 v12 f%1 v11 f%1 v10 f%2 v9 f%1 v8 f%1 v7 f%2 v12 o3 f%1
+3 /1 s9 m109850 v7 f%2 )5 f%1 (1 f%1 (1 f%2 v9 f%1 v8 f%1 v7 f%2 )5 > f%1
 ;tick count: 626
 
-3 /1 s10 m9440 v11 f%1 v10 f%2 v9 f%1 v8 f%1 v7 f%2 v12 o2 f%1 v11 f%1 v10 f%2
+3 /1 s10 m9440 v11 f%1 (1 f%2 v9 f%1 v8 f%1 v7 f%2 )5 < f%1 (1 f%1 (1 f%2
 ;tick count: 637
 
-3 /1 s10 m9440 v9 f%1 v8 f%1 v7 f%2 v12 f+%1 v11 f+%1 v10 f+%6 v9 f+%1 v8 f+%1
+3 /1 s10 m9440 v9 f%1 v8 f%1 v7 f%2 )5 f+%1 (1 f+%1 (1 f+%6 v9 f+%1 v8 f+%1
 ;tick count: 651
 
 3 /1 s9 m109850 v7 f+%2
 ;tick count: 653
 
-3 /0 v0 o1 r%1
+3 /0 v0 < r%1
 ;tick count: 654
 
 3 /0 v0 r%1
@@ -2656,7 +2652,7 @@
 3 /0 v0 r%2
 ;tick count: 657
 
-3 /1 s10 m9440 v12 o3 f+%1 v11 f+%1 v10 f+%6 v9 f+%1 v8 f+%1 v7 f+%1
+3 /1 s10 m9440 v12 o3 f+%1 (1 f+%1 (1 f+%6 v9 f+%1 v8 f+%1 v7 f+%1
 ;tick count: 668
 
 3 /0 v0 o1 r%1
@@ -2671,34 +2667,34 @@
 3 /0 v0 r%2
 ;tick count: 673
 
-3 /1 s9 m109850 v12 o2 f+%1 v11 f+%1 v10 f+%2 v9 f+%1 v8 f+%1 v7 f+%2 v12 f+%1 v11 f+%1
+3 /1 s9 m109850 v12 > f+%1 (1 f+%1 (1 f+%2 v9 f+%1 v8 f+%1 v7 f+%2 )5 f+%1 (1 f+%1
 ;tick count: 683
 
-3 /1 s9 m109850 v10 f+%2 v9 f+%1 v8 f+%1 v7 f+%2 v12 o3 f+%1 v11 f+%1 v10 f+%2 v9 f+%1
+3 /1 s9 m109850 v10 f+%2 v9 f+%1 v8 f+%1 v7 f+%2 )5 > f+%1 (1 f+%1 (1 f+%2 v9 f+%1
 ;tick count: 694
 
-3 /1 s10 m9440 v8 f+%1 v7 f+%2 v12 o2 f+%1 v11 f+%1 v10 f+%6 f+%4 v9 f+%1 v8 f+%1
+3 /1 s10 m9440 v8 f+%1 v7 f+%2 )5 < f+%1 (1 f+%1 (1 f+%6 f+%4 v9 f+%1 v8 f+%1
 ;tick count: 711
 
-3 /1 s9 m109850 v7 f+%2 v12 f+%1 v11 f+%1 v10 f+%2 v9 f+%1 v8 f+%1 v7 f+%2 v12 o3 f+%1
+3 /1 s9 m109850 v7 f+%2 )5 f+%1 (1 f+%1 (1 f+%2 v9 f+%1 v8 f+%1 v7 f+%2 )5 > f+%1
 ;tick count: 722
 
-3 /1 s10 m9440 v11 f+%1 v10 f+%2 v9 f+%1 v8 f+%1 v7 f+%2 v12 o2 f+%1 v11 f+%1 v10 f+%2
+3 /1 s10 m9440 v11 f+%1 (1 f+%2 v9 f+%1 v8 f+%1 v7 f+%2 )5 < f+%1 (1 f+%1 (1 f+%2
 ;tick count: 733
 
-3 /1 s10 m9440 v9 f+%1 v8 f+%1 v7 f+%2 v12 f+%1 v11 f+%1 v10 f+%2 v9 f+%1 v8 f+%1
+3 /1 s10 m9440 v9 f+%1 v8 f+%1 v7 f+%2 )5 f+%1 (1 f+%1 (1 f+%2 v9 f+%1 v8 f+%1
 ;tick count: 743
 
-3 /1 s9 m109850 v7 f+%2 v12 f+%1 v11 f+%1 v10 f+%2 v9 f+%1 v8 f+%1 v7 f+%2 v13 o3 f+%1
+3 /1 s9 m109850 v7 f+%2 )5 f+%1 (1 f+%1 (1 f+%2 v9 f+%1 v8 f+%1 v7 f+%2 )6 > f+%1
 ;tick count: 754
 
-3 /1 s10 m9440 v11 f+%1 v10 f+%2 v9 f+%1 v8 f+%1 v7 f+%2 v13 o2 f+%1 v11 f+%1 v10 f+%3
+3 /1 s10 m9440 v11 f+%1 (1 f+%2 v9 f+%1 v8 f+%1 v7 f+%2 )6 < f+%1 (2 f+%1 (1 f+%3
 ;tick count: 766
 
-3 /1 s10 m9440 v8 f+%1 v7 f+%2 v12 g%1 v11 g%1 v10 g%6 v9 g%1 v8 g%1 v7 g%2
+3 /1 s10 m9440 v8 f+%1 v7 f+%2 )5 g%1 (1 g%1 (1 g%6 v9 g%1 v8 g%1 v7 g%2
 ;tick count: 781
 
-3 /0 v0 o1 r%1
+3 /0 v0 < r%1
 ;tick count: 782
 
 3 /0 v0 r%1
@@ -2707,7 +2703,7 @@
 3 /0 v0 r%2
 ;tick count: 785
 
-3 /1 s10 m9440 v12 o3 g%1 v11 g%1 v10 g%6 v9 g%1 v8 g%1 v7 g%1
+3 /1 s10 m9440 v12 o3 g%1 (1 g%1 (1 g%6 v9 g%1 v8 g%1 v7 g%1
 ;tick count: 796
 
 3 /0 v0 o1 r%1
@@ -2722,37 +2718,37 @@
 3 /0 v0 r%2
 ;tick count: 801
 
-3 /1 s9 m109850 v12 o2 g%1 v11 g%1 v10 g%2 v9 g%1 v8 g%1 v7 g%2 v12 g%1 v11 g%1
+3 /1 s9 m109850 v12 > g%1 (1 g%1 (1 g%2 v9 g%1 v8 g%1 v7 g%2 )5 g%1 (1 g%1
 ;tick count: 811
 
-3 /1 s9 m109850 v10 g%2 v9 g%1 v8 g%1 v7 g%2 v12 o3 g%1 v11 g%1 v10 g%2 v9 g%1
+3 /1 s9 m109850 v10 g%2 v9 g%1 v8 g%1 v7 g%2 )5 > g%1 (1 g%1 (1 g%2 v9 g%1
 ;tick count: 822
 
-3 /1 s10 m9440 v8 g%1 v7 g%2 v12 o2 g%1 v11 g%1 v10 g%5 g%5 v9 g%1 v8 g%1
+3 /1 s10 m9440 v8 g%1 v7 g%2 )5 < g%1 (1 g%1 (1 g%5 g%5 v9 g%1 v8 g%1
 ;tick count: 839
 
-3 /1 s9 m109850 v7 g%2 v12 g%1 v11 g%1 v10 g%2 v9 g%1 v8 g%1 v7 g%2 v12 o3 g%1
+3 /1 s9 m109850 v7 g%2 )5 g%1 (1 g%1 (1 g%2 v9 g%1 v8 g%1 v7 g%2 )5 > g%1
 ;tick count: 850
 
-3 /1 s10 m9440 v11 g%1 v10 g%2 v9 g%1 v8 g%1 v7 g%2 v12 o2 g%1 v11 g%1 v10 g%2
+3 /1 s10 m9440 v11 g%1 (1 g%2 v9 g%1 v8 g%1 v7 g%2 )5 < g%1 (1 g%1 (1 g%2
 ;tick count: 861
 
-3 /1 s10 m9440 v9 g%1 v8 g%1 v7 g%2 v12 g%1 v11 g%1 v10 g%2 v9 g%1 v8 g%1
+3 /1 s10 m9440 v9 g%1 v8 g%1 v7 g%2 )5 g%1 (1 g%1 (1 g%2 v9 g%1 v8 g%1
 ;tick count: 871
 
-3 /1 s9 m109850 v7 g%2 v12 g%1 v11 g%1 v10 g%2 v9 g%1 v8 g%1 v7 g%2 v13 o3 g%1
+3 /1 s9 m109850 v7 g%2 )5 g%1 (1 g%1 (1 g%2 v9 g%1 v8 g%1 v7 g%2 )6 > g%1
 ;tick count: 882
 
-3 /1 s10 m9440 v11 g%1 v10 g%2 v9 g%1 v8 g%1 v7 g%2 v13 o2 g%1 v11 g%1 v10 g%2
+3 /1 s10 m9440 v11 g%1 (1 g%2 v9 g%1 v8 g%1 v7 g%2 )6 < g%1 (2 g%1 (1 g%2
 ;tick count: 893
 
-3 /1 s10 m9440 v9 g%1 v8 g%1 v7 g%2 v12 f+%1 v11 f+%1 v10 f+%6 v9 f+%1 v8 f+%1
+3 /1 s10 m9440 v9 g%1 v8 g%1 v7 g%2 )5 f+%1 (1 f+%1 (1 f+%6 v9 f+%1 v8 f+%1
 ;tick count: 907
 
 3 /1 s9 m109850 v7 f+%2
 ;tick count: 909
 
-3 /0 v0 o1 r%1
+3 /0 v0 < r%1
 ;tick count: 910
 
 3 /0 v0 r%1
@@ -2761,7 +2757,7 @@
 3 /0 v0 r%2
 ;tick count: 913
 
-3 /1 s10 m9440 v13 o3 f+%1 v11 f+%1 v10 f+%6 v9 f+%1 v8 f+%1 v7 f+%1
+3 /1 s10 m9440 v13 o3 f+%1 (2 f+%1 (1 f+%6 v9 f+%1 v8 f+%1 v7 f+%1
 ;tick count: 924
 
 3 /0 v0 o1 r%1
@@ -2776,343 +2772,343 @@
 3 /0 v0 r%2
 ;tick count: 929
 
-3 /1 s9 m109850 v12 o2 f+%1 v11 f+%1 v10 f+%2 v9 f+%1 v8 f+%1 v7 f+%2 v12 f+%1 v11 f+%2
+3 /1 s9 m109850 v12 > f+%1 (1 f+%1 (1 f+%2 v9 f+%1 v8 f+%1 v7 f+%2 )5 f+%1 (1 f+%2
 ;tick count: 940
 
-3 /1 s9 m109850 v10 f+%1 v9 f+%1 v8 f+%1 v7 f+%2 v13 o3 f+%1 v11 f+%1 v10 f+%2 v9 f+%2
+3 /1 s9 m109850 v10 f+%1 v9 f+%1 v8 f+%1 v7 f+%2 )6 > f+%1 (2 f+%1 (1 f+%2 v9 f+%2
 ;tick count: 951
 
-3 /1 s10 m9440 v8 f+%1 v7 f+%1 v12 o2 f+%1 v11 f+%1 v10 f+%6 f+%4 v9 f+%1 v8 f+%1
+3 /1 s10 m9440 v8 f+%1 v7 f+%1 )5 < f+%1 (1 f+%1 (1 f+%6 f+%4 v9 f+%1 v8 f+%1
 ;tick count: 967
 
-3 /1 s9 m109850 v7 f+%2 v12 b%1 v11 b%1 v10 b%2 v9 b%1 v8 b%1 v7 b%2 v13 b%1
+3 /1 s9 m109850 v7 f+%2 )5 b%1 (1 b%1 (1 b%2 v9 b%1 v8 b%1 v7 b%2 )6 b%1
 ;tick count: 978
 
-3 /1 s10 m9440 v12 b%1 v11 b%1 v10 b%1 v13 b%1 v12 b%1 v11 b%1 v10 b%1 v13 b%1
+3 /1 s10 m9440 v12 b%1 (1 b%1 (1 b%1 )3 b%1 (1 b%1 (1 b%1 (1 b%1 )3 b%1
 ;tick count: 986
 
-3 /1 s10 m9440 v11 b%1 v10 b%2 v9 b%1 v8 b%2 v7 b%1 v13 f+%1 v12 f+%1 v11 f+%1
+3 /1 s10 m9440 v11 b%1 (1 b%2 v9 b%1 v8 b%2 v7 b%1 )6 f+%1 (1 f+%1 (1 f+%1
 ;tick count: 996
 
-3 /1 s9 m109850 v10 f+%2 v9 f+%1 v8 f+%1 v7 f+%1 v13 o1 b%1 v12 b%1 v11 b%1 v10 b%2
+3 /1 s9 m109850 v10 f+%2 v9 f+%1 v8 f+%1 v7 f+%1 )6 < b%1 (1 b%1 (1 b%1 (1 b%2
 ;tick count: 1006
 
-3 /1 s9 m109850 v9 b%1 v8 b%1 v7 b%1 v13 b%1 v12 b%1 v11 b%1 v10 b%2 v9 b%1
+3 /1 s9 m109850 v9 b%1 v8 b%1 v7 b%1 )6 b%1 (1 b%1 (1 b%1 (1 b%2 v9 b%1
 ;tick count: 1015
 
-3 /1 s10 m9440 v8 b%1 v7 b%1 v13 b%1 v12 b%1 v11 b%1 v10 b%2 v9 b%1 v8 b%1
+3 /1 s10 m9440 v8 b%1 v7 b%1 )6 b%1 (1 b%1 (1 b%1 (1 b%2 v9 b%1 v8 b%1
 ;tick count: 1024
 
-3 /1 s10 m9440 v7 b%1 v14 o2 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1
+3 /1 s10 m9440 v7 b%1 )7 > e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1
 ;tick count: 1033
 
-3 /1 s9 m109850 v14 b%1 v13 b%1 v12 b%1 v11 b%2 v10 b%1 v9 b%1 v8 b%1 v14 o3 e%1
+3 /1 s9 m109850 v14 b%1 (1 b%1 (1 b%1 (1 b%2 (1 b%1 v9 b%1 v8 b%1 )6 > e%1
 ;tick count: 1042
 
-3 /1 s9 m109850 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 o2 e%1 v13 e%1
+3 /1 s9 m109850 v13 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 < e%1 (1 e%1
 ;tick count: 1051
 
-3 /1 s9 m109850 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 d%1 v13 d%1 v12 d%1
+3 /1 s9 m109850 v12 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 d%1 (1 d%1 (1 d%1
 ;tick count: 1060
 
-3 /1 s10 m9440 v11 d%2 v10 d%1 v9 d%1 v8 d%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2
+3 /1 s10 m9440 v11 d%2 (1 d%1 v9 d%1 v8 d%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2
 ;tick count: 1070
 
-3 /1 s9 m109850 v10 e%1 v9 e%1 v8 e%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1
+3 /1 s9 m109850 v10 e%1 v9 e%1 v8 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1
 ;tick count: 1079
 
-3 /1 s9 m109850 v9 e%1 v8 e%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1
+3 /1 s9 m109850 v9 e%1 v8 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1
 ;tick count: 1088
 
-3 /1 s9 m109850 v8 e%1 v14 d%1 v13 d%1 v12 d%1 v11 d%2 v10 d%1 v9 d%1 v8 d%1
+3 /1 s9 m109850 v8 e%1 )6 d%1 (1 d%1 (1 d%1 (1 d%2 (1 d%1 v9 d%1 v8 d%1
 ;tick count: 1097
 
-3 /1 s9 m109850 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 e%1
+3 /1 s9 m109850 v14 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 e%1
 ;tick count: 1106
 
-3 /1 s9 m109850 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 e%1 v13 e%1
+3 /1 s9 m109850 v13 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 e%1 (1 e%1
 ;tick count: 1115
 
-3 /1 s9 m109850 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 d%1 v13 d%1 v12 d%1
+3 /1 s9 m109850 v12 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 d%1 (1 d%1 (1 d%1
 ;tick count: 1124
 
-3 /1 s10 m9440 v11 d%2 v10 d%1 v9 d%1 v8 d%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2
+3 /1 s10 m9440 v11 d%2 (1 d%1 v9 d%1 v8 d%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2
 ;tick count: 1134
 
-3 /1 s10 m9440 v10 e%1 v9 e%1 v8 e%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1
+3 /1 s10 m9440 v10 e%1 v9 e%1 v8 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1
 ;tick count: 1143
 
-3 /1 s10 m9440 v9 e%1 v8 e%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1
+3 /1 s10 m9440 v9 e%1 v8 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1
 ;tick count: 1152
 
-3 /1 s9 m109850 v8 e%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1
+3 /1 s9 m109850 v8 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1
 ;tick count: 1161
 
-3 /1 s9 m109850 v14 b%1 v13 b%1 v12 b%1 v11 b%2 v10 b%1 v9 b%1 v8 b%1 v14 o3 e%1
+3 /1 s9 m109850 v14 b%1 (1 b%1 (1 b%1 (1 b%2 (1 b%1 v9 b%1 v8 b%1 )6 > e%1
 ;tick count: 1170
 
-3 /1 s9 m109850 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 o2 e%1 v13 e%1
+3 /1 s9 m109850 v13 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 < e%1 (1 e%1
 ;tick count: 1179
 
-3 /1 s9 m109850 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 d%1 v13 d%1 v12 d%1
+3 /1 s9 m109850 v12 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 d%1 (1 d%1 (1 d%1
 ;tick count: 1188
 
-3 /1 s10 m9440 v11 d%2 v10 d%1 v9 d%1 v8 d%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2
+3 /1 s10 m9440 v11 d%2 (1 d%1 v9 d%1 v8 d%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2
 ;tick count: 1198
 
-3 /1 s9 m109850 v10 e%1 v9 e%1 v8 e%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1
+3 /1 s9 m109850 v10 e%1 v9 e%1 v8 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1
 ;tick count: 1207
 
-3 /1 s9 m109850 v9 e%1 v8 e%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1
+3 /1 s9 m109850 v9 e%1 v8 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1
 ;tick count: 1216
 
-3 /1 s9 m109850 v8 e%1 v14 d%1 v13 d%1 v12 d%1 v11 d%2 v10 d%1 v9 d%1 v8 d%1
+3 /1 s9 m109850 v8 e%1 )6 d%1 (1 d%1 (1 d%1 (1 d%2 (1 d%1 v9 d%1 v8 d%1
 ;tick count: 1225
 
-3 /1 s9 m109850 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 e%1
+3 /1 s9 m109850 v14 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 e%1
 ;tick count: 1234
 
-3 /1 s9 m109850 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 e%1 v13 e%1
+3 /1 s9 m109850 v13 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 e%1 (1 e%1
 ;tick count: 1243
 
-3 /1 s9 m109850 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 d%1 v13 d%1 v12 d%1
+3 /1 s9 m109850 v12 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 d%1 (1 d%1 (1 d%1
 ;tick count: 1252
 
-3 /1 s10 m9440 v11 d%2 v10 d%1 v9 d%1 v8 d%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2
+3 /1 s10 m9440 v11 d%2 (1 d%1 v9 d%1 v8 d%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2
 ;tick count: 1262
 
-3 /1 s10 m9440 v10 e%1 v9 e%1 v8 e%1 v14 g%1 v13 g%1 v12 g%1 v11 g%2 v10 g%1
+3 /1 s10 m9440 v10 e%1 v9 e%1 v8 e%1 )6 g%1 (1 g%1 (1 g%1 (1 g%2 (1 g%1
 ;tick count: 1271
 
-3 /1 s10 m9440 v9 g%1 v8 g%1 v14 b%1 v13 b%1 v12 b%1 v11 b%2 v10 b%1 v9 b%1
+3 /1 s10 m9440 v9 g%1 v8 g%1 )6 b%1 (1 b%1 (1 b%1 (1 b%2 (1 b%1 v9 b%1
 ;tick count: 1280
 
-3 /1 s9 m109850 v8 b%1 v14 o3 c%1 v13 c%1 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1
+3 /1 s9 m109850 v8 b%1 )6 > c%1 (1 c%1 (1 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1
 ;tick count: 1289
 
-3 /1 s9 m109850 v14 o2 g%1 v13 g%1 v12 g%1 v11 g%2 v10 g%1 v9 g%1 v8 g%1 v14 e%1
+3 /1 s9 m109850 v14 < g%1 (1 g%1 (1 g%1 (1 g%2 (1 g%1 v9 g%1 v8 g%1 )6 e%1
 ;tick count: 1298
 
-3 /1 s9 m109850 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 o3 c%1 v13 c%1
+3 /1 s9 m109850 v13 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 > c%1 (1 c%1
 ;tick count: 1307
 
-3 /1 s9 m109850 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1 v14 o2 b%1 v13 b%1 v12 b%1
+3 /1 s9 m109850 v12 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1 )6 < b%1 (1 b%1 (1 b%1
 ;tick count: 1316
 
-3 /1 s10 m9440 v11 b%2 v10 b%1 v9 b%1 v8 b%1 v14 o3 c%1 v13 c%1 v12 c%1 v11 c%2
+3 /1 s10 m9440 v11 b%2 (1 b%1 v9 b%1 v8 b%1 )6 > c%1 (1 c%1 (1 c%1 (1 c%2
 ;tick count: 1326
 
-3 /1 s9 m109850 v10 c%1 v9 c%1 v8 c%1 v14 c%1 v13 c%1 v12 c%1 v11 c%2 v10 c%1
+3 /1 s9 m109850 v10 c%1 v9 c%1 v8 c%1 )6 c%1 (1 c%1 (1 c%1 (1 c%2 (1 c%1
 ;tick count: 1335
 
-3 /1 s9 m109850 v9 c%1 v8 c%1 v14 c%1 v13 c%1 v12 c%1 v11 c%2 v10 c%1 v9 c%1
+3 /1 s9 m109850 v9 c%1 v8 c%1 )6 c%1 (1 c%1 (1 c%1 (1 c%2 (1 c%1 v9 c%1
 ;tick count: 1344
 
-3 /1 s9 m109850 v8 c%1 v14 o2 b%1 v13 b%1 v12 b%1 v11 b%2 v10 b%1 v9 b%1 v8 b%1
+3 /1 s9 m109850 v8 c%1 )6 < b%1 (1 b%1 (1 b%1 (1 b%2 (1 b%1 v9 b%1 v8 b%1
 ;tick count: 1353
 
-3 /1 s9 m109850 v14 o3 c%1 v13 c%1 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1 v14 c%1
+3 /1 s9 m109850 v14 > c%1 (1 c%1 (1 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1 )6 c%1
 ;tick count: 1362
 
-3 /1 s9 m109850 v13 c%1 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1 v14 c%1 v13 c%1
+3 /1 s9 m109850 v13 c%1 (1 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1 )6 c%1 (1 c%1
 ;tick count: 1371
 
-3 /1 s9 m109850 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1 v14 o2 b%1 v13 b%1 v12 b%1
+3 /1 s9 m109850 v12 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1 )6 < b%1 (1 b%1 (1 b%1
 ;tick count: 1380
 
-3 /1 s10 m9440 v11 b%2 v10 b%1 v9 b%1 v8 b%1 v14 o3 c%1 v13 c%1 v12 c%1 v11 c%2
+3 /1 s10 m9440 v11 b%2 (1 b%1 v9 b%1 v8 b%1 )6 > c%1 (1 c%1 (1 c%1 (1 c%2
 ;tick count: 1390
 
-3 /1 s10 m9440 v10 c%1 v9 c%1 v8 c%1 v14 c%1 v13 c%1 v12 c%1 v11 c%2 v10 c%1
+3 /1 s10 m9440 v10 c%1 v9 c%1 v8 c%1 )6 c%1 (1 c%1 (1 c%1 (1 c%2 (1 c%1
 ;tick count: 1399
 
-3 /1 s10 m9440 v9 c%1 v8 c%1 v14 c%1 v13 c%1 v12 c%1 v11 c%2 v10 c%1 v9 c%1
+3 /1 s10 m9440 v9 c%1 v8 c%1 )6 c%1 (1 c%1 (1 c%1 (1 c%2 (1 c%1 v9 c%1
 ;tick count: 1408
 
-3 /1 s9 m109850 v8 c%1 v14 o2 b%1 v13 b%1 v12 b%1 v11 b%2 v10 b%1 v9 b%1 v8 b%1
+3 /1 s9 m109850 v8 c%1 )6 < b%1 (1 b%1 (1 b%1 (1 b%2 (1 b%1 v9 b%1 v8 b%1
 ;tick count: 1417
 
-3 /1 s9 m109850 v14 o3 c%1 v13 c%1 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1 v14 c%1
+3 /1 s9 m109850 v14 > c%1 (1 c%1 (1 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1 )6 c%1
 ;tick count: 1426
 
-3 /1 s9 m109850 v13 c%1 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1 v14 c%1 v13 c%1
+3 /1 s9 m109850 v13 c%1 (1 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1 )6 c%1 (1 c%1
 ;tick count: 1435
 
-3 /1 s9 m109850 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1 v14 o2 b%1 v13 b%1 v12 b%1
+3 /1 s9 m109850 v12 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1 )6 < b%1 (1 b%1 (1 b%1
 ;tick count: 1444
 
-3 /1 s10 m9440 v11 b%2 v10 b%1 v9 b%1 v8 b%1 v14 o3 c%1 v13 c%1 v12 c%1 v11 c%2
+3 /1 s10 m9440 v11 b%2 (1 b%1 v9 b%1 v8 b%1 )6 > c%1 (1 c%1 (1 c%1 (1 c%2
 ;tick count: 1454
 
-3 /1 s9 m109850 v10 c%1 v9 c%1 v8 c%1 v14 c%1 v13 c%1 v12 c%1 v11 c%2 v10 c%1
+3 /1 s9 m109850 v10 c%1 v9 c%1 v8 c%1 )6 c%1 (1 c%1 (1 c%1 (1 c%2 (1 c%1
 ;tick count: 1463
 
-3 /1 s9 m109850 v9 c%1 v8 c%1 v14 c%1 v13 c%1 v12 c%1 v11 c%2 v10 c%1 v9 c%1
+3 /1 s9 m109850 v9 c%1 v8 c%1 )6 c%1 (1 c%1 (1 c%1 (1 c%2 (1 c%1 v9 c%1
 ;tick count: 1472
 
-3 /1 s9 m109850 v8 c%1 v14 o2 b%1 v13 b%1 v12 b%1 v11 b%2 v10 b%1 v9 b%1 v8 b%1
+3 /1 s9 m109850 v8 c%1 )6 < b%1 (1 b%1 (1 b%1 (1 b%2 (1 b%1 v9 b%1 v8 b%1
 ;tick count: 1481
 
-3 /1 s9 m109850 v14 o3 c%1 v13 c%1 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1 v14 c%1
+3 /1 s9 m109850 v14 > c%1 (1 c%1 (1 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1 )6 c%1
 ;tick count: 1490
 
-3 /1 s9 m109850 v13 c%1 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1 v14 c%1 v13 c%1
+3 /1 s9 m109850 v13 c%1 (1 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1 )6 c%1 (1 c%1
 ;tick count: 1499
 
-3 /1 s9 m109850 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1 v14 o2 b%1 v13 b%1 v12 b%1
+3 /1 s9 m109850 v12 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1 )6 < b%1 (1 b%1 (1 b%1
 ;tick count: 1508
 
-3 /1 s9 m109850 v11 b%2 v10 b%1 v9 b%1 v8 b%1 v14 o3 c%1 v13 c%1 v12 c%1 v11 c%2
+3 /1 s9 m109850 v11 b%2 (1 b%1 v9 b%1 v8 b%1 )6 > c%1 (1 c%1 (1 c%1 (1 c%2
 ;tick count: 1518
 
-3 /1 s10 m9440 v10 c%1 v9 c%1 v8 c%1 v14 o2 g%1 v13 g%1 v12 g%1 v11 g%2 v10 g%1
+3 /1 s10 m9440 v10 c%1 v9 c%1 v8 c%1 )6 < g%1 (1 g%1 (1 g%1 (1 g%2 (1 g%1
 ;tick count: 1527
 
-3 /1 s10 m9440 v9 g%1 v8 g%1 v14 d%1 v13 d%1 v12 d%1 v11 d%2 v10 d%1 v9 d%1
+3 /1 s10 m9440 v9 g%1 v8 g%1 )6 d%1 (1 d%1 (1 d%1 (1 d%2 (1 d%1 v9 d%1
 ;tick count: 1536
 
-3 /1 s10 m9440 v8 d%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1
+3 /1 s10 m9440 v8 d%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1
 ;tick count: 1545
 
-3 /1 s9 m109850 v14 b%1 v13 b%1 v12 b%1 v11 b%2 v10 b%1 v9 b%1 v8 b%1 v14 o3 e%1
+3 /1 s9 m109850 v14 b%1 (1 b%1 (1 b%1 (1 b%2 (1 b%1 v9 b%1 v8 b%1 )6 > e%1
 ;tick count: 1554
 
-3 /1 s9 m109850 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 o2 e%1 v13 e%1
+3 /1 s9 m109850 v13 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 < e%1 (1 e%1
 ;tick count: 1563
 
-3 /1 s9 m109850 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 d%1 v13 d%1 v12 d%1
+3 /1 s9 m109850 v12 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 d%1 (1 d%1 (1 d%1
 ;tick count: 1572
 
-3 /1 s10 m9440 v11 d%2 v10 d%1 v9 d%1 v8 d%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2
+3 /1 s10 m9440 v11 d%2 (1 d%1 v9 d%1 v8 d%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2
 ;tick count: 1582
 
-3 /1 s9 m109850 v10 e%1 v9 e%1 v8 e%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1
+3 /1 s9 m109850 v10 e%1 v9 e%1 v8 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1
 ;tick count: 1591
 
-3 /1 s9 m109850 v9 e%1 v8 e%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1
+3 /1 s9 m109850 v9 e%1 v8 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1
 ;tick count: 1600
 
-3 /1 s9 m109850 v8 e%1 v14 d%1 v13 d%1 v12 d%1 v11 d%2 v10 d%1 v9 d%1 v8 d%1
+3 /1 s9 m109850 v8 e%1 )6 d%1 (1 d%1 (1 d%1 (1 d%2 (1 d%1 v9 d%1 v8 d%1
 ;tick count: 1609
 
-3 /1 s9 m109850 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 e%1
+3 /1 s9 m109850 v14 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 e%1
 ;tick count: 1618
 
-3 /1 s9 m109850 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 e%1 v13 e%1
+3 /1 s9 m109850 v13 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 e%1 (1 e%1
 ;tick count: 1627
 
-3 /1 s9 m109850 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 d%1 v13 d%1 v12 d%1
+3 /1 s9 m109850 v12 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 d%1 (1 d%1 (1 d%1
 ;tick count: 1636
 
-3 /1 s10 m9440 v11 d%2 v10 d%1 v9 d%1 v8 d%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2
+3 /1 s10 m9440 v11 d%2 (1 d%1 v9 d%1 v8 d%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2
 ;tick count: 1646
 
-3 /1 s10 m9440 v10 e%1 v9 e%1 v8 e%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1
+3 /1 s10 m9440 v10 e%1 v9 e%1 v8 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1
 ;tick count: 1655
 
-3 /1 s10 m9440 v9 e%1 v8 e%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1
+3 /1 s10 m9440 v9 e%1 v8 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1
 ;tick count: 1664
 
-3 /1 s9 m109850 v8 e%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1
+3 /1 s9 m109850 v8 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1
 ;tick count: 1673
 
-3 /1 s9 m109850 v14 b%1 v13 b%1 v12 b%1 v11 b%2 v10 b%1 v9 b%1 v8 b%1 v14 o3 e%1
+3 /1 s9 m109850 v14 b%1 (1 b%1 (1 b%1 (1 b%2 (1 b%1 v9 b%1 v8 b%1 )6 > e%1
 ;tick count: 1682
 
-3 /1 s9 m109850 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 o2 e%1 v13 e%1
+3 /1 s9 m109850 v13 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 < e%1 (1 e%1
 ;tick count: 1691
 
-3 /1 s9 m109850 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 d%1 v13 d%1 v12 d%1
+3 /1 s9 m109850 v12 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 d%1 (1 d%1 (1 d%1
 ;tick count: 1700
 
-3 /1 s10 m9440 v11 d%2 v10 d%1 v9 d%1 v8 d%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2
+3 /1 s10 m9440 v11 d%2 (1 d%1 v9 d%1 v8 d%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2
 ;tick count: 1710
 
-3 /1 s9 m109850 v10 e%1 v9 e%1 v8 e%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1
+3 /1 s9 m109850 v10 e%1 v9 e%1 v8 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1
 ;tick count: 1719
 
-3 /1 s9 m109850 v9 e%1 v8 e%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1
+3 /1 s9 m109850 v9 e%1 v8 e%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1
 ;tick count: 1728
 
-3 /1 s9 m109850 v8 e%1 v14 d%1 v13 d%1 v12 d%1 v11 d%2 v10 d%1 v9 d%1 v8 d%1
+3 /1 s9 m109850 v8 e%1 )6 d%1 (1 d%1 (1 d%1 (1 d%2 (1 d%1 v9 d%1 v8 d%1
 ;tick count: 1737
 
-3 /1 s9 m109850 v14 e%1 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 e%1
+3 /1 s9 m109850 v14 e%1 (1 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 e%1
 ;tick count: 1746
 
-3 /1 s9 m109850 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 e%1 v13 e%1
+3 /1 s9 m109850 v13 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 e%1 (1 e%1
 ;tick count: 1755
 
-3 /1 s9 m109850 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 d%1 v13 d%1 v12 d%1
+3 /1 s9 m109850 v12 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 d%1 (1 d%1 (1 d%1
 ;tick count: 1764
 
-3 /1 s10 m9440 v11 d%2 v10 d%1 v9 d%1 v8 d%1 v14 e%1 v13 e%1 v12 e%1 v11 e%2
+3 /1 s10 m9440 v11 d%2 (1 d%1 v9 d%1 v8 d%1 )6 e%1 (1 e%1 (1 e%1 (1 e%2
 ;tick count: 1774
 
-3 /1 s10 m9440 v10 e%1 v9 e%1 v8 e%1 v14 g%1 v13 g%1 v12 g%1 v11 g%2 v10 g%1
+3 /1 s10 m9440 v10 e%1 v9 e%1 v8 e%1 )6 g%1 (1 g%1 (1 g%1 (1 g%2 (1 g%1
 ;tick count: 1783
 
-3 /1 s10 m9440 v9 g%1 v8 g%1 v14 b%1 v13 b%1 v12 b%1 v11 b%2 v10 b%1 v9 b%1
+3 /1 s10 m9440 v9 g%1 v8 g%1 )6 b%1 (1 b%1 (1 b%1 (1 b%2 (1 b%1 v9 b%1
 ;tick count: 1792
 
-3 /1 s9 m109850 v8 b%1 v14 o3 c%1 v13 c%1 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1
+3 /1 s9 m109850 v8 b%1 )6 > c%1 (1 c%1 (1 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1
 ;tick count: 1801
 
-3 /1 s9 m109850 v14 o2 g%1 v13 g%1 v12 g%1 v11 g%2 v10 g%1 v9 g%1 v8 g%1 v14 e%1
+3 /1 s9 m109850 v14 < g%1 (1 g%1 (1 g%1 (1 g%2 (1 g%1 v9 g%1 v8 g%1 )6 e%1
 ;tick count: 1810
 
-3 /1 s9 m109850 v13 e%1 v12 e%1 v11 e%2 v10 e%1 v9 e%1 v8 e%1 v14 o3 c%1 v13 c%1
+3 /1 s9 m109850 v13 e%1 (1 e%1 (1 e%2 (1 e%1 v9 e%1 v8 e%1 )6 > c%1 (1 c%1
 ;tick count: 1819
 
-3 /1 s9 m109850 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1 v14 o2 b%1 v13 b%1 v12 b%1
+3 /1 s9 m109850 v12 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1 )6 < b%1 (1 b%1 (1 b%1
 ;tick count: 1828
 
-3 /1 s10 m9440 v11 b%2 v10 b%1 v9 b%1 v8 b%1 v14 o3 c%1 v13 c%1 v12 c%1 v11 c%2
+3 /1 s10 m9440 v11 b%2 (1 b%1 v9 b%1 v8 b%1 )6 > c%1 (1 c%1 (1 c%1 (1 c%2
 ;tick count: 1838
 
-3 /1 s9 m109850 v10 c%1 v9 c%1 v8 c%1 v14 c%1 v13 c%1 v12 c%1 v11 c%2 v10 c%1
+3 /1 s9 m109850 v10 c%1 v9 c%1 v8 c%1 )6 c%1 (1 c%1 (1 c%1 (1 c%2 (1 c%1
 ;tick count: 1847
 
-3 /1 s9 m109850 v9 c%1 v8 c%1 v14 c%1 v13 c%1 v12 c%1 v11 c%2 v10 c%1 v9 c%1
+3 /1 s9 m109850 v9 c%1 v8 c%1 )6 c%1 (1 c%1 (1 c%1 (1 c%2 (1 c%1 v9 c%1
 ;tick count: 1856
 
-3 /1 s9 m109850 v8 c%1 v14 o2 b%1 v13 b%1 v12 b%1 v11 b%2 v10 b%1 v9 b%1 v8 b%1
+3 /1 s9 m109850 v8 c%1 )6 < b%1 (1 b%1 (1 b%1 (1 b%2 (1 b%1 v9 b%1 v8 b%1
 ;tick count: 1865
 
-3 /1 s9 m109850 v14 o3 c%1 v13 c%1 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1 v14 c%1
+3 /1 s9 m109850 v14 > c%1 (1 c%1 (1 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1 )6 c%1
 ;tick count: 1874
 
-3 /1 s9 m109850 v13 c%1 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1 v14 c%1 v13 c%1
+3 /1 s9 m109850 v13 c%1 (1 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1 )6 c%1 (1 c%1
 ;tick count: 1883
 
-3 /1 s9 m109850 v12 c%1 v11 c%2 v10 c%1 v9 c%1 v8 c%1 v14 o2 b%1 v13 b%1 v12 b%1
+3 /1 s9 m109850 v12 c%1 (1 c%2 (1 c%1 v9 c%1 v8 c%1 )6 < b%1 (1 b%1 (1 b%1
 ;tick count: 1892
 
-3 /1 s10 m9440 v11 b%2 v10 b%1 v9 b%1 v8 b%1 v14 o3 c%1 v13 c%1 v12 c%1 v11 c%2
+3 /1 s10 m9440 v11 b%2 (1 b%1 v9 b%1 v8 b%1 )6 > c%1 (1 c%1 (1 c%1 (1 c%2
 ;tick count: 1902
 
-3 /1 s10 m9440 v10 c%1 v9 c%1 v8 c%1 v14 c%1 v13 c%1 v12 c%1 v11 c%2 v10 c%1
+3 /1 s10 m9440 v10 c%1 v9 c%1 v8 c%1 )6 c%1 (1 c%1 (1 c%1 (1 c%2 (1 c%1
 ;tick count: 1911
 
-3 /1 s10 m9440 v9 c%1 v8 c%1 v14 o2 g%1 v13 g%1 v12 g%1 v11 g%2 v10 g%1 v9 g%1
+3 /1 s10 m9440 v9 c%1 v8 c%1 )6 < g%1 (1 g%1 (1 g%1 (1 g%2 (1 g%1 v9 g%1
 ;tick count: 1920
 
-3 /1 s9 m109850 v8 g%1 v14 f+%1 v13 f+%1 v12 f+%1 v11 f+%29 f+%2 f+%2 f+%12
+3 /1 s9 m109850 v8 g%1 )6 f+%1 (1 f+%1 (1 f+%1 (1 f+%29 f+%2 f+%2 f+%12
 ;tick count: 1969
 
-3 /1 s10 m9440 v11 f+%1 f+%7 f+%5 v10 f+%1 v9 f+%1 v8 f+%1 v14 b%1 v13 b%1
+3 /1 s10 m9440 v11 f+%1 f+%7 f+%5 (1 f+%1 v9 f+%1 v8 f+%1 )6 b%1 (1 b%1
 ;tick count: 1987
 
-3 /1 s10 m9440 v12 b%1 v11 b%26 v10 b%1 v9 b%1 v8 b%1 v14 a%1 v13 a%1 v12 a%1
+3 /1 s10 m9440 v12 b%1 (1 b%26 (1 b%1 v9 b%1 v8 b%1 )6 a%1 (1 a%1 (1 a%1
 ;tick count: 2020
 
-3 /1 s10 m9440 v11 a%2 v10 a%1 v9 a%1 v8 a%1 v14 b%1 v13 b%1 v12 b%1 v11 b%2
+3 /1 s10 m9440 v11 a%2 (1 a%1 v9 a%1 v8 a%1 )6 b%1 (1 b%1 (1 b%1 (1 b%2
 ;tick count: 2030
 
-3 /1 s10 m9440 v10 b%1 v9 b%1 v8 b%1 v14 b%1 v13 b%1 v12 b%1 v11 b%2 v10 b%1
+3 /1 s10 m9440 v10 b%1 v9 b%1 v8 b%1 )6 b%1 (1 b%1 (1 b%1 (1 b%2 (1 b%1
 ;tick count: 2039
 
-3 /1 s10 m9440 v9 b%1 v8 b%1 v14 b%1 v13 b%1 v12 b%1 v11 b%2 v10 b%1 v9 b%1
+3 /1 s10 m9440 v9 b%1 v8 b%1 )6 b%1 (1 b%1 (1 b%1 (1 b%2 (1 b%1 v9 b%1
 ;tick count: 2048
 
 3 /1 s10 m9440 v8 b%1
