@@ -20,7 +20,7 @@ import os
 import math
 
 sys.path.insert(0, os.path.dirname(__file__))
-from mml_utils import get_ticks, estimate_mml_used, estimate_alloc
+from mml_utils import get_ticks, estimate_mml_used, estimate_alloc, track_id_to_mgsdrv
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -237,8 +237,9 @@ def _generate_mml(segments: dict, stem: str) -> str:
     mml_buffer: dict[int, list] = {ch: [] for ch in range(NUM_CH)}
 
     for ch in range(NUM_CH):
-        ch_num = ch + CH_OFFSET
-        mml_buffer[ch].append(f'\n\n;ch{ch_num} start')
+        ch_num   = ch + CH_OFFSET
+        track_id = track_id_to_mgsdrv(ch_num)
+        mml_buffer[ch].append(f'\n\n;ch{track_id} start')
 
         segs    = segments[ch]
         l_cnt   = 0
@@ -265,7 +266,7 @@ def _generate_mml(segments: dict, stem: str) -> str:
 
                 if note_cnt == 0:
                     at_val = seg.inst
-                    mml = f'\n{ch_num} @{at_val} v{v}'
+                    mml = f'\n{track_id} @{at_val} v{v}'
                     at_stamp = at_val
                     v_stamp  = v
 
@@ -299,7 +300,7 @@ def _generate_mml(segments: dict, stem: str) -> str:
         if mml:
             mml_buffer[ch].append(mml)
 
-        mml_buffer[ch].append(f'\n;ch{ch_num} end: tick count: {l_cnt}\n')
+        mml_buffer[ch].append(f'\n;ch{track_id} end: tick count: {l_cnt}\n')
 
     # Build header
     lines = []
@@ -308,10 +309,11 @@ def _generate_mml(segments: dict, stem: str) -> str:
     lines.append('#tempo 75')
     lines.append(f'#title {{ "{stem}"}}')
     for ch in range(NUM_CH):
-        ch_num = ch + CH_OFFSET
+        ch_num   = ch + CH_OFFSET
+        track_id = track_id_to_mgsdrv(ch_num)
         used  = estimate_mml_used(mml_buffer[ch])
         alloc = estimate_alloc(used)
-        lines.append(f'#alloc {ch_num}={alloc}')
+        lines.append(f'#alloc {track_id}={alloc}')
     lines.append('')
     lines.append('')
 

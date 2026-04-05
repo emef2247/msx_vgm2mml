@@ -43,6 +43,23 @@ def estimate_alloc(used, overhead=32, ratio=0.15, min_margin=64, align=16):
         alloc = ((alloc + (align - 1)) // align) * align
     return alloc
 
+
+def track_id_to_mgsdrv(ch: int) -> str:
+    """Convert a MGSDRV track number to its single-character track ID.
+
+    MGSDRV track IDs are single characters:
+      1-9  → '1'-'9'
+      10   → 'a', 11 → 'b', ..., 17 → 'h'
+
+    This matches the MGSDRV MML specification where the line-leading track
+    designator must be exactly one character.
+    """
+    if 1 <= ch <= 9:
+        return str(ch)
+    if 10 <= ch <= 17:
+        return chr(ord('a') + ch - 10)
+    raise ValueError(f"Track number {ch} is outside the valid MGSDRV range 1-17")
+
 # Register value -> tone string table (port of reg2tone dict in mml_utils.tcl)
 REG2TONE = {
     3421: "o1c", 3228: "o1c+", 3047: "o1d", 2876: "o1d+", 2715: "o1e",

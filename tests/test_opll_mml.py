@@ -187,16 +187,43 @@ def test_opll_mml_header_has_title():
 
 
 def test_opll_mml_has_tracks_9_to_14():
-    """Generated OPLL MML must reference MGSDRV tracks 9-14."""
+    """Generated OPLL MML must reference MGSDRV tracks 9-e (single-char IDs)."""
     with tempfile.TemporaryDirectory() as tmp:
         results = parse_vgm(VGM_FILE, tmp)
         opll_trace = results[5]
         out_dir = os.path.join(tmp, VGM_STEM)
         mml_path = process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
         content = _read(mml_path)
-        for track in range(9, 15):
-            assert f'#alloc {track}=' in content, (
-                f"OPLL MML missing '#alloc {track}=': {mml_path}")
+        # Tracks 9-14 in MGSDRV single-char notation: 9, a, b, c, d, e
+        expected_track_ids = ['9', 'a', 'b', 'c', 'd', 'e']
+        for tid in expected_track_ids:
+            assert f'#alloc {tid}=' in content, (
+                f"OPLL MML missing '#alloc {tid}=': {mml_path}")
+
+
+def test_opll_mml_track_ids_are_single_char():
+    """OPLL MML track designators must be single characters (9,a,b,c,d,e).
+
+    Decimal two-digit track numbers like '10', '11', etc. must not appear
+    as line-leading track designators.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        mml_path = process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
+        content = _read(mml_path)
+        # No line should start with a two-digit decimal track number (10-17)
+        for track_num in range(10, 18):
+            bad_pattern = re.compile(rf'^{track_num}\s', re.MULTILINE)
+            assert not bad_pattern.search(content), (
+                f"Decimal track number '{track_num}' found as line-leading "
+                f"track designator in OPLL MML – must use single-char ID")
+        # #alloc must also not contain decimal track numbers 10-17
+        for track_num in range(10, 18):
+            assert f'#alloc {track_num}=' not in content, (
+                f"'#alloc {track_num}=' found in OPLL MML header – "
+                f"must use single-char ID")
 
 
 def test_opll_mml_ends_with_newline():
