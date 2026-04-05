@@ -577,6 +577,15 @@ def _note_tok(vol_mod, oct_mod, note):
     return ' '.join(parts)
 
 
+def _flush_grp(header, tokens):
+    """Join RLE-compressed *tokens* into a single MML group line.
+
+    Returns a string of the form ``'{header} {tok1} {tok2} ... '``.
+    """
+    compressed = rle_compress_tokens(tokens)
+    return header + ' ' + ' '.join(compressed) + ' '
+
+
 def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
     """Generate MML text from pass-3 data.
 
@@ -622,8 +631,8 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
                         grp_tokens = [note]
                     else:
                         # Subsequent notes: prefer relative notation when shorter.
-                        vol_mod = emit_volume(v, v_stamp) if v != v_stamp else ''
-                        oct_mod = emit_octave(o, o_stamp) if o != o_stamp else ''
+                        vol_mod = emit_volume(v, v_stamp)
+                        oct_mod = emit_octave(o, o_stamp)
                         grp_tokens.append(_note_tok(vol_mod, oct_mod, note))
 
                     l_cnt += ltmp
@@ -633,17 +642,15 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
                         # Note too long to fit in one token (l > 255): flush the
                         # accumulated tokens as-is (no RLE for partial groups)
                         # and reset for the continuation fragment.
-                        line = grp_header + ' ' + ' '.join(grp_tokens) + ' '
-                        mml_buffer[ch].append(line)
+                        mml_buffer[ch].append(
+                            grp_header + ' ' + ' '.join(grp_tokens) + ' ')
                         grp_header = ''
                         grp_tokens = []
 
                 note_cnt += 1
                 if note_cnt == 8 or (type_ == 'enBit' and en == 0) or v == 0:
                     # Flush the complete group with RLE compression.
-                    compressed = rle_compress_tokens(grp_tokens)
-                    line = grp_header + ' ' + ' '.join(compressed) + ' '
-                    mml_buffer[ch].append(line)
+                    mml_buffer[ch].append(_flush_grp(grp_header, grp_tokens))
                     grp_header = ''
                     grp_tokens = []
                     mml_buffer[ch].append(f'\n;tick count: {l_cnt}\n')
@@ -654,9 +661,7 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
 
         # Flush any remaining tokens for the final (incomplete) group.
         if grp_tokens:
-            compressed = rle_compress_tokens(grp_tokens)
-            line = grp_header + ' ' + ' '.join(compressed) + ' '
-            mml_buffer[ch].append(line)
+            mml_buffer[ch].append(_flush_grp(grp_header, grp_tokens))
 
         mml_buffer[ch].append(f'\n;ch{ch_num} end: tick count: {l_cnt}\n')
 

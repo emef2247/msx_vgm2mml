@@ -75,7 +75,7 @@ class TestEmitVolume:
 # ──────────────────────────────────────────────────────────────────────────
 
 class TestEmitOctave:
-    """emit_octave: return shorter of relative '>'/''<' vs absolute 'oN'."""
+    """emit_octave: return shorter of relative '>'/'<' vs absolute 'oN'."""
 
     def test_no_change_returns_empty(self):
         assert emit_octave(4, 4) == ''
