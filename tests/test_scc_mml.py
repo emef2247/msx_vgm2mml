@@ -5,6 +5,7 @@ Runs the Python SCC MML processor against the committed golden inputs
 and compares the generated pass3.mml to the committed golden reference.
 """
 import os
+import re
 import sys
 import difflib
 import tempfile
@@ -259,7 +260,6 @@ def test_python_trace_csv_matches_tcl_trace_csv():
 
 def _extract_end_ticks(mml_text):
     """Return {ch_num: tick_count} for all 'chN end: tick count:' comments."""
-    import re
     result = {}
     for m in re.finditer(r';ch(\d+) end: tick count: (\d+)', mml_text):
         result[int(m.group(1))] = int(m.group(2))
@@ -347,7 +347,6 @@ def test_scc_mml_relative_octave_tokens():
 
 def test_scc_mml_relative_volume_tokens():
     """SCC MML must use ')N' or '(N' when they are shorter than vN."""
-    import re
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_dir = os.path.join(tmp_dir, '02_StartingPoint_log')
         mml_path = process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,

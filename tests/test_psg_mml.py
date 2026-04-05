@@ -5,6 +5,7 @@ Validates that process_psg_csv generates a .psg.mml file from the
 committed golden input CSV, and checks basic properties of the output.
 """
 import os
+import re
 import sys
 import tempfile
 import pytest
@@ -139,7 +140,6 @@ def test_psg_mml_matches_golden():
 
 def test_psg_mml_has_notes_not_only_rests():
     """PSG MML must contain actual note names (not only rests) after the fix."""
-    import re
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_dir = os.path.join(tmp_dir, PSG_STEM)
         mml_path = process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM,
@@ -181,7 +181,6 @@ def test_vgm_to_psg_mml_is_generated():
 
 def test_vgm_to_psg_trace_mml_has_notes():
     """Full pipeline using trace CSV: PSG MML must contain notes, not just rests."""
-    import re
     with tempfile.TemporaryDirectory() as tmp_dir:
         _psg_log, _scc_log, psg_trace, _scc_trace = parse_vgm(VGM_FILE, tmp_dir)
 
@@ -217,7 +216,6 @@ def test_psg_mml_relative_volume_tokens():
         mml_path = process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM,
                                    dump_passes=False)
         content = _read(mml_path)
-        import re
         # Look for ')N' or '(N' volume-change tokens (N is one or more digits).
         rel_vol = re.findall(r'[)(]\d+', content)
         assert rel_vol, (
