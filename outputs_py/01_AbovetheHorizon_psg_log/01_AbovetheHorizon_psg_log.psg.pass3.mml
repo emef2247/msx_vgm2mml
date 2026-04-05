@@ -1,0 +1,3464 @@
+;[name=scc lpf=1]
+#opll_mode 1
+#tempo 75
+#title { "psg example"}
+#alloc 1=3100
+#alloc 2=3100
+#alloc 3=2400
+#alloc 4=2100
+#alloc 5=1100
+#alloc 6=1000
+#alloc 7=1000
+
+
+
+;ch1 start
+1 /0 v0 o1 r%255 o1 r%66
+;tick count: 321
+
+1 /1 s0 m1573 v8 r%1 v9 r%1 v10 r%1 v8 r%1 v9 r%1 v10 r%1 v11 r%1 v12 r%1
+;tick count: 329
+
+1 /1 s0 m1573 v13 r%1 v12 r%15 v11 r%15 v10 r%15 v9 r%15 v8 r%15 v7 r%15 v6 r%15
+;tick count: 435
+
+1 /1 s0 m1573 v5 r%129 v8 r%1 v9 r%1 v10 r%1 v8 r%1 v9 r%1 v10 r%1 v11 r%1
+;tick count: 571
+
+1 /1 s0 m1573 v12 r%1 v13 r%1 v12 r%15 v11 r%15 v10 r%15 v9 r%15 v8 r%15 v7 r%15
+;tick count: 663
+
+1 /1 s0 m1573 v6 r%15 v5 r%130 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%5 v8 r%2
+;tick count: 819
+
+1 /1 s9 m109850 v7 r%1 v6 r%1 v5 r%1 v4 r%1 r%4 v8 r%1 v9 r%1 v8 r%1
+;tick count: 830
+
+1 /1 s9 m109850 v7 r%1 v6 r%1 v5 r%1 r%4 v8 r%1 v9 r%1 v10 r%1 v9 r%1
+;tick count: 841
+
+1 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%4 v8 r%1 v9 r%1 v10 r%1 v11 r%1 v10 r%1
+;tick count: 852
+
+1 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%3 v8 r%1 v9 r%1 v10 r%1 v11 r%1 v10 r%1
+;tick count: 862
+
+1 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%3 v8 r%1 v9 r%1 v10 r%1 v11 r%1 v12 r%1
+;tick count: 872
+
+1 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%3 v9 r%1 v10 r%1 v11 r%1 v12 r%1
+;tick count: 882
+
+1 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%2 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 891
+
+1 /1 s9 m109850 v8 r%6 r%27 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 930
+
+1 /1 s10 m26318 v9 r%1 v8 r%6 r%27 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1
+;tick count: 969
+
+1 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%6 r%27 v7 r%1 v6 r%1 v5 r%1 v12 r%1
+;tick count: 1008
+
+1 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%27 v7 r%1 v6 r%1 v5 r%1
+;tick count: 1047
+
+1 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%33 v7 r%1 v6 r%1 v5 r%1
+;tick count: 1087
+
+1 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%27 v7 r%1 v6 r%1
+;tick count: 1126
+
+1 /1 s10 m26318 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%27 v7 r%1
+;tick count: 1165
+
+1 /1 s9 m109850 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%7
+;tick count: 1184
+
+1 /1 s10 m26318 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%3
+;tick count: 1194
+
+1 /1 s10 m26318 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%3
+;tick count: 1204
+
+1 /1 s10 m26318 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%33
+;tick count: 1244
+
+1 /1 s9 m109850 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6
+;tick count: 1257
+
+1 /1 s10 m26318 v8 r%27 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 1291
+
+1 /1 s9 m109850 v8 r%6 r%27 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 1330
+
+1 /1 s10 m26318 v9 r%1 v8 r%6 r%27 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1
+;tick count: 1369
+
+1 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%16 r%2 r%4 r%4 r%2 r%4
+;tick count: 1403
+
+1 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 1411
+
+1 /1 s10 m26318 v8 r%6 r%27 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 1450
+
+1 /1 s9 m109850 v9 r%1 v8 r%6 r%10 r%2 r%4 r%4 r%2 r%4
+;tick count: 1483
+
+1 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 1491
+
+1 /1 s10 m26318 v8 r%3 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 1501
+
+1 /1 s10 m26318 v8 r%3 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 1511
+
+1 /1 s10 m26318 v8 r%7 r%6 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 1530
+
+1 /1 s9 m109850 v9 r%1 v8 r%6 r%27 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1
+;tick count: 1569
+
+1 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%6 r%27 v7 r%1 v6 r%1 v5 r%1 v12 r%1
+;tick count: 1608
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%27 v7 r%1 v6 r%1 v5 r%1
+;tick count: 1647
+
+1 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%27 v7 r%1 v6 r%1
+;tick count: 1686
+
+1 /1 s10 m26318 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%33 v7 r%1 v6 r%1
+;tick count: 1726
+
+1 /1 s9 m109850 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%27 v7 r%1
+;tick count: 1765
+
+1 /1 s10 m26318 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%27
+;tick count: 1804
+
+1 /1 s9 m109850 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6
+;tick count: 1817
+
+1 /1 s10 m26318 v8 r%7 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 1831
+
+1 /1 s10 m26318 v8 r%3 v7 r%1 v5 r%2 v11 r%1 v10 r%1 v9 r%1 v8 r%3 v7 r%1
+;tick count: 1844
+
+1 /1 s10 m26318 v6 r%1 v5 r%2 v11 r%1 v10 r%1 v9 r%1 v8 r%33 v7 r%1 v6 r%1
+;tick count: 1885
+
+1 /1 s9 m109850 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%27 v7 r%1
+;tick count: 1924
+
+1 /1 s10 m26318 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%27
+;tick count: 1963
+
+1 /1 s9 m109850 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6
+;tick count: 1976
+
+1 /1 s10 m26318 v8 r%27 v7 r%1 v6 r%1 v5 r%2 v11 r%1 v10 r%1 v9 r%1 v8 r%16
+;tick count: 2026
+
+1 /1 s9 m109850 v8 r%2 r%4 r%4 r%2 r%4 r%1 v7 r%1 v6 r%1
+;tick count: 2045
+
+1 /1 s9 m109850 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%27 v7 r%1
+;tick count: 2084
+
+1 /1 s10 m26318 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%10
+;tick count: 2106
+
+1 /1 s9 m109850 v8 r%2 r%4 r%4 r%2 r%4 r%1 v7 r%1 v6 r%1
+;tick count: 2125
+
+1 /1 s9 m109850 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%2 r%1 v7 r%1
+;tick count: 2134
+
+1 /1 s10 m26318 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%3 v7 r%1
+;tick count: 2144
+
+1 /1 s10 m26318 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%7 r%6
+;tick count: 2163
+
+1 /1 s10 m26318 v7 r%1 v6 r%1 v5 r%2 v12 r%1 v11 r%1 v10 r%1 v9 r%6 r%2
+;tick count: 2178
+
+1 /1 s9 m109850 v9 r%4 r%5 r%9 r%7 v8 r%1 v7 r%1 v6 r%1 v13 r%1
+;tick count: 2207
+
+1 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%6 r%27 v8 r%1 v7 r%1 v6 r%1
+;tick count: 2246
+
+1 /1 s9 m109850 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%6 r%27 v8 r%1 v7 r%1
+;tick count: 2285
+
+1 /1 s9 m109850 v6 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%6 r%27 v8 r%1
+;tick count: 2324
+
+1 /1 s10 m26318 v7 r%1 v6 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%6 r%2
+;tick count: 2338
+
+1 /1 s9 m109850 v9 r%4 r%5 r%9 r%7 v8 r%1 v7 r%1 v6 r%1 v13 r%1
+;tick count: 2367
+
+1 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%6 r%27 v8 r%1 v7 r%1 v6 r%1
+;tick count: 2406
+
+1 /1 s9 m109850 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%6 r%27 v8 r%1 v7 r%1
+;tick count: 2445
+
+1 /1 s9 m109850 v6 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%6 r%27 v8 r%1
+;tick count: 2484
+
+1 /1 s10 m26318 v7 r%1 v6 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%2
+;tick count: 2498
+
+1 /1 s9 m109850 v8 r%4 r%5 r%9 r%7 v7 r%1 v6 r%1 v5 r%1 v12 r%1
+;tick count: 2527
+
+1 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%27 v7 r%1 v6 r%1 v5 r%1
+;tick count: 2566
+
+1 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%27 v7 r%1 v6 r%1
+;tick count: 2605
+
+1 /1 s9 m109850 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%27 v7 r%1
+;tick count: 2644
+
+1 /1 s10 m26318 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%16 r%2
+;tick count: 2668
+
+1 /1 s9 m109850 v8 r%4 r%4 r%2 r%4 r%1 v7 r%1 v6 r%1 v5 r%1
+;tick count: 2686
+
+1 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%27 v7 r%1 v6 r%1
+;tick count: 2725
+
+1 /1 s10 m26318 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%10 r%2
+;tick count: 2748
+
+1 /1 s9 m109850 v8 r%4 r%4 r%2 r%4 r%1 v7 r%1 v6 r%1 v5 r%1
+;tick count: 2766
+
+1 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%7 r%10 r%10 r%6
+;tick count: 2803
+
+1 /1 s10 m26318 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6
+;tick count: 2816
+
+1 /1 s9 m109850 v8 r%27 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 2850
+
+1 /1 s10 m26318 v8 r%6 r%27 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 2889
+
+1 /1 s9 m109850 v9 r%1 v8 r%6 r%27 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1
+;tick count: 2928
+
+1 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%6 r%27 v7 r%1 v6 r%1 v5 r%1 v12 r%1
+;tick count: 2967
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%37 r%9 r%30 r%77 v7 r%1
+;tick count: 3124
+
+1 /1 s9 m109850 v6 r%1 v5 r%2 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30
+;tick count: 3162
+
+1 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 3170
+
+1 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1
+;tick count: 3207
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1
+;tick count: 3244
+
+1 /1 s9 m109850 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 3252
+
+1 /1 s9 m109850 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 3289
+
+1 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1
+;tick count: 3326
+
+1 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1
+;tick count: 3363
+
+1 /1 s9 m109850 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 3371
+
+1 /1 s9 m109850 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1
+;tick count: 3408
+
+1 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1
+;tick count: 3416
+
+1 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1
+;tick count: 3424
+
+1 /1 s10 m26318 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 3432
+
+1 /1 s10 m26318 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 3440
+
+1 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 3448
+
+1 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1
+;tick count: 3485
+
+1 /1 s9 m109850 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30
+;tick count: 3522
+
+1 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 3530
+
+1 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1
+;tick count: 3567
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1
+;tick count: 3604
+
+1 /1 s9 m109850 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v8 r%1 v7 r%1 v6 r%30
+;tick count: 3641
+
+1 /1 s9 m109850 v5 r%2 v3 r%1 v2 r%2 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 3651
+
+1 /1 s9 m109850 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%2 v11 r%1 v10 r%1 v9 r%1
+;tick count: 3689
+
+1 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1
+;tick count: 3726
+
+1 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1
+;tick count: 3734
+
+1 /1 s10 m26318 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1
+;tick count: 3742
+
+1 /1 s10 m26318 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 3750
+
+1 /1 s10 m26318 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 3758
+
+1 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1
+;tick count: 3766
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1
+;tick count: 3803
+
+1 /1 s9 m109850 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 3811
+
+1 /1 s9 m109850 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 3848
+
+1 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1
+;tick count: 3885
+
+1 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1
+;tick count: 3922
+
+1 /1 s9 m109850 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 3930
+
+1 /1 s9 m109850 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1
+;tick count: 3967
+
+1 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1
+;tick count: 4004
+
+1 /1 s9 m109850 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30
+;tick count: 4041
+
+1 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 4049
+
+1 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 4057
+
+1 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1
+;tick count: 4065
+
+1 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1
+;tick count: 4073
+
+1 /1 s10 m26318 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 4081
+
+1 /1 s10 m26318 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 4089
+
+1 /1 s9 m109850 v7 r%1 v6 r%31 v4 r%1 v3 r%1 v2 r%2 v11 r%1 v10 r%1 v9 r%1
+;tick count: 4128
+
+1 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%2 v11 r%1
+;tick count: 4166
+
+1 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1
+;tick count: 4203
+
+1 /1 s9 m109850 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30
+;tick count: 4240
+
+1 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 4248
+
+1 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1
+;tick count: 4285
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1
+;tick count: 4322
+
+1 /1 s9 m109850 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 4330
+
+1 /1 s9 m109850 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 4367
+
+1 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1
+;tick count: 4375
+
+1 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1
+;tick count: 4383
+
+1 /1 s10 m26318 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1
+;tick count: 4391
+
+1 /1 s10 m26318 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 4399
+
+1 /1 s10 m26318 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 4407
+
+1 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1
+;tick count: 4444
+
+1 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1
+;tick count: 4481
+
+1 /1 s9 m109850 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 4489
+
+1 /1 s9 m109850 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1
+;tick count: 4526
+
+1 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1
+;tick count: 4563
+
+1 /1 s9 m109850 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30
+;tick count: 4600
+
+1 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 4608
+
+1 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1
+;tick count: 4645
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1
+;tick count: 4682
+
+1 /1 s9 m109850 v2 r%2 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1
+;tick count: 4691
+
+1 /1 s10 m26318 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 4699
+
+1 /1 s10 m26318 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 4707
+
+1 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 4715
+
+1 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1
+;tick count: 4723
+
+1 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1
+;tick count: 4760
+
+1 /1 s9 m109850 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 4768
+
+1 /1 s9 m109850 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1
+;tick count: 4805
+
+1 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1
+;tick count: 4842
+
+1 /1 s9 m109850 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30
+;tick count: 4879
+
+1 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 4887
+
+1 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1
+;tick count: 4924
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%30 v5 r%1 v4 r%1
+;tick count: 4961
+
+1 /1 s9 m109850 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 4969
+
+1 /1 s9 m109850 v6 r%30 v5 r%1 v4 r%1 v3 r%1 v2 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 5006
+
+1 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1
+;tick count: 5014
+
+1 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1
+;tick count: 5022
+
+1 /1 s10 m26318 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1
+;tick count: 5030
+
+1 /1 s10 m26318 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 5038
+
+1 /1 s10 m26318 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v14 r%1 v13 r%1 v12 r%1
+;tick count: 5046
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%31 v7 r%1 v6 r%1 v5 r%1 v14 r%1
+;tick count: 5084
+
+1 /1 s10 m26318 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%24 r%7 v7 r%1
+;tick count: 5121
+
+1 /1 s10 m26318 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 5129
+
+1 /1 s9 m109850 v8 r%31 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 5167
+
+1 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%24 r%7 v7 r%1 v6 r%1 v5 r%1 v14 r%1
+;tick count: 5204
+
+1 /1 s9 m109850 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v8 r%32 v7 r%1 v5 r%2 v14 r%1
+;tick count: 5244
+
+1 /1 s10 m26318 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%24 r%7 v7 r%1
+;tick count: 5281
+
+1 /1 s10 m26318 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v9 r%1 v8 r%32
+;tick count: 5320
+
+1 /1 s9 m109850 v7 r%1 v5 r%2 v14 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%6
+;tick count: 5334
+
+1 /1 s10 m26318 v8 r%10 r%10 r%6 v6 r%1 v5 r%2 v11 r%1 v10 r%2 v8 r%1
+;tick count: 5367
+
+1 /1 s9 m109850 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%2 v11 r%1 v10 r%1 v9 r%1
+;tick count: 5376
+
+1 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%5 r%16 v5 r%1 v4 r%1 v3 r%2 v11 r%1
+;tick count: 5404
+
+1 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%31 v5 r%1 v4 r%1 v3 r%2
+;tick count: 5443
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%31 v5 r%1 v4 r%1
+;tick count: 5481
+
+1 /1 s9 m109850 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%24
+;tick count: 5512
+
+1 /1 s10 m26318 v6 r%7 v5 r%1 v4 r%1 v3 r%2 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 5527
+
+1 /1 s9 m109850 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 5535
+
+1 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%1 v6 r%21 v5 r%1 v4 r%1 v3 r%1 v12 r%1
+;tick count: 5563
+
+1 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%24 r%7 v5 r%1
+;tick count: 5600
+
+1 /1 s10 m26318 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 5608
+
+1 /1 s9 m109850 v6 r%31 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 5646
+
+1 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%24 r%7 v5 r%1 v4 r%1 v3 r%2 v11 r%1
+;tick count: 5684
+
+1 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1
+;tick count: 5692
+
+1 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%4 r%17
+;tick count: 5719
+
+1 /1 s10 m26318 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 5727
+
+1 /1 s10 m26318 v7 r%1 v6 r%31 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 5765
+
+1 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%1 v6 r%31 v5 r%1 v4 r%1 v3 r%1 v12 r%1
+;tick count: 5803
+
+1 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%24 r%7 v5 r%1
+;tick count: 5840
+
+1 /1 s10 m26318 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 5848
+
+1 /1 s9 m109850 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 5856
+
+1 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%21 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 5884
+
+1 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%24 r%7 v5 r%1 v4 r%1
+;tick count: 5921
+
+1 /1 s10 m26318 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%31
+;tick count: 5959
+
+1 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 5967
+
+1 /1 s10 m26318 v7 r%1 v6 r%24 r%7 v5 r%1 v4 r%1 v3 r%1 v14 r%1 v13 r%1
+;tick count: 6004
+
+1 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%31 v7 r%1 v6 r%1 v5 r%1
+;tick count: 6042
+
+1 /1 s9 m109850 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%24 r%7
+;tick count: 6079
+
+1 /1 s10 m26318 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 6087
+
+1 /1 s9 m109850 v9 r%1 v8 r%31 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1
+;tick count: 6125
+
+1 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%24 r%7 v7 r%1 v6 r%1 v5 r%1
+;tick count: 6162
+
+1 /1 s9 m109850 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%31 v7 r%1
+;tick count: 6200
+
+1 /1 s9 m109850 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 6208
+
+1 /1 s10 m26318 v8 r%24 r%7 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1
+;tick count: 6245
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%31 v7 r%1 v6 r%1 v5 r%1 v14 r%1
+;tick count: 6283
+
+1 /1 s10 m26318 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%5 r%10 r%10
+;tick count: 6313
+
+1 /1 s10 m26318 v8 r%6 v7 r%1 v6 r%1 v5 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 6326
+
+1 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 6334
+
+1 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%4 r%17 v5 r%1 v4 r%1
+;tick count: 6361
+
+1 /1 s10 m26318 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%31
+;tick count: 6399
+
+1 /1 s10 m26318 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 6407
+
+1 /1 s9 m109850 v7 r%1 v6 r%31 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 6445
+
+1 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%24 r%7 v5 r%1 v4 r%1 v3 r%1
+;tick count: 6482
+
+1 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1
+;tick count: 6490
+
+1 /1 s9 m109850 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 6498
+
+1 /1 s9 m109850 v6 r%21 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 6526
+
+1 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%24 r%7 v5 r%1 v4 r%1 v3 r%1 v12 r%1
+;tick count: 6563
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%31 v5 r%1 v4 r%1
+;tick count: 6601
+
+1 /1 s9 m109850 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%24
+;tick count: 6632
+
+1 /1 s10 m26318 v6 r%7 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 6646
+
+1 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 6654
+
+1 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%4 r%17 v5 r%1 v4 r%1
+;tick count: 6681
+
+1 /1 s10 m26318 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%31
+;tick count: 6719
+
+1 /1 s10 m26318 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 6727
+
+1 /1 s9 m109850 v6 r%32 v4 r%1 v3 r%2 v12 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 6767
+
+1 /1 s10 m26318 v6 r%25 r%7 v5 r%1 v3 r%2 v12 r%1 v11 r%1 v10 r%1 v8 r%1
+;tick count: 6806
+
+1 /1 s9 m109850 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%2 v11 r%1 v10 r%1 v9 r%1
+;tick count: 6815
+
+1 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%21 v5 r%1 v4 r%1 v3 r%2 v11 r%1 v10 r%1
+;tick count: 6844
+
+1 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%24 r%7 v5 r%1 v4 r%1 v3 r%2
+;tick count: 6882
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%31 v5 r%1 v4 r%1
+;tick count: 6920
+
+1 /1 s9 m109850 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%24
+;tick count: 6951
+
+1 /1 s10 m26318 v6 r%7 v5 r%1 v4 r%1 v3 r%2 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 6966
+
+1 /1 s9 m109850 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1
+;tick count: 6984
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1
+;tick count: 7002
+
+1 /1 s10 m26318 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1
+;tick count: 7020
+
+1 /1 s10 m26318 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11
+;tick count: 7038
+
+1 /1 s10 m26318 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 7046
+
+1 /1 s9 m109850 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1
+;tick count: 7064
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1
+;tick count: 7082
+
+1 /1 s10 m26318 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1
+;tick count: 7100
+
+1 /1 s10 m26318 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11
+;tick count: 7118
+
+1 /1 s10 m26318 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 7126
+
+1 /1 s9 m109850 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1
+;tick count: 7144
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1
+;tick count: 7162
+
+1 /1 s10 m26318 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1
+;tick count: 7180
+
+1 /1 s10 m26318 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11
+;tick count: 7198
+
+1 /1 s10 m26318 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 7206
+
+1 /1 s9 m109850 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1
+;tick count: 7224
+
+1 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v6 r%1 v5 r%2 v14 r%1 v12 r%1
+;tick count: 7243
+
+1 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%6 r%5 v7 r%1 v6 r%1 v5 r%2
+;tick count: 7261
+
+1 /1 s10 m26318 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1
+;tick count: 7279
+
+1 /1 s10 m26318 v5 r%2 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1
+;tick count: 7298
+
+1 /1 s9 m109850 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7306
+
+1 /1 s9 m109850 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 7324
+
+1 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1
+;tick count: 7342
+
+1 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1
+;tick count: 7360
+
+1 /1 s9 m109850 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1
+;tick count: 7378
+
+1 /1 s9 m109850 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7386
+
+1 /1 s9 m109850 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 7404
+
+1 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1
+;tick count: 7422
+
+1 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1
+;tick count: 7440
+
+1 /1 s9 m109850 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1
+;tick count: 7458
+
+1 /1 s9 m109850 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7466
+
+1 /1 s9 m109850 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 7484
+
+1 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1
+;tick count: 7502
+
+1 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1
+;tick count: 7520
+
+1 /1 s9 m109850 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1
+;tick count: 7538
+
+1 /1 s9 m109850 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7546
+
+1 /1 s9 m109850 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 7564
+
+1 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1
+;tick count: 7572
+
+1 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v6 r%1 v5 r%2 v13 r%1
+;tick count: 7581
+
+1 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1
+;tick count: 7589
+
+1 /1 s10 m26318 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 7597
+
+1 /1 s10 m26318 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7605
+
+1 /1 s9 m109850 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 7623
+
+1 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1
+;tick count: 7641
+
+1 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1
+;tick count: 7659
+
+1 /1 s10 m26318 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1
+;tick count: 7677
+
+1 /1 s10 m26318 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7685
+
+1 /1 s9 m109850 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 7703
+
+1 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1
+;tick count: 7721
+
+1 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1
+;tick count: 7739
+
+1 /1 s10 m26318 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1
+;tick count: 7757
+
+1 /1 s10 m26318 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7765
+
+1 /1 s9 m109850 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 7783
+
+1 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1
+;tick count: 7801
+
+1 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1
+;tick count: 7819
+
+1 /1 s10 m26318 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1
+;tick count: 7837
+
+1 /1 s10 m26318 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7845
+
+1 /1 s9 m109850 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 7863
+
+1 /1 s9 m109850 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%2 v13 r%1 v12 r%1 v11 r%1
+;tick count: 7882
+
+1 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%6 r%5 v7 r%1 v6 r%1 v5 r%2 v13 r%1
+;tick count: 7900
+
+1 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%2
+;tick count: 7919
+
+1 /1 s9 m109850 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1
+;tick count: 7937
+
+1 /1 s9 m109850 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11
+;tick count: 7955
+
+1 /1 s9 m109850 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 7963
+
+1 /1 s10 m26318 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1
+;tick count: 7981
+
+1 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1
+;tick count: 7999
+
+1 /1 s9 m109850 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1
+;tick count: 8017
+
+1 /1 s9 m109850 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11
+;tick count: 8035
+
+1 /1 s9 m109850 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 8043
+
+1 /1 s10 m26318 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1
+;tick count: 8061
+
+1 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1
+;tick count: 8079
+
+1 /1 s9 m109850 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1
+;tick count: 8097
+
+1 /1 s9 m109850 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11
+;tick count: 8115
+
+1 /1 s9 m109850 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 8123
+
+1 /1 s10 m26318 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1
+;tick count: 8141
+
+1 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1 v5 r%1 v14 r%1
+;tick count: 8159
+
+1 /1 s9 m109850 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11 v7 r%1 v6 r%1
+;tick count: 8177
+
+1 /1 s9 m109850 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%11
+;tick count: 8195
+
+1 /1 s9 m109850 v7 r%1 v6 r%1 v5 r%1 v14 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 8203
+
+1 /1 s10 m26318 v9 r%1 v8 r%1 v6 r%1 v5 r%2 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 8212
+
+1 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 r%1 v13 r%1 v12 r%1
+;tick count: 8220
+
+1 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v14 r%1
+;tick count: 8228
+
+1 /1 s10 m26318 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1
+;tick count: 8236
+
+1 /1 s10 m26318 v5 r%1 v9 r%255 v9 r%26
+;ch1 end: tick count: 8518
+
+
+;ch2 start
+2 /0 v0 o1 r%255 o1 r%66
+;tick count: 321
+
+2 /1 s0 m1573 v8 r%1 v9 r%1 v10 r%1 v8 r%1 v9 r%1 v10 r%1 v11 r%1 v12 r%1
+;tick count: 329
+
+2 /1 s0 m1573 v13 r%1 v12 r%15 v11 r%15 v10 r%15 v9 r%15 v8 r%15 v7 r%15 v6 r%15
+;tick count: 435
+
+2 /1 s0 m1573 v5 r%129 v8 r%1 v9 r%1 v10 r%1 v8 r%1 v9 r%1 v10 r%1 v11 r%1
+;tick count: 571
+
+2 /1 s0 m1573 v12 r%1 v13 r%1 v12 r%15 v11 r%15 v10 r%15 v9 r%15 v8 r%15 v7 r%15
+;tick count: 663
+
+2 /1 s0 m1573 v6 r%15 v5 r%130 v2 r%1 r%1 r%1 v0 r%6
+;tick count: 817
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 827
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 837
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 847
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 857
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 867
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 877
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 887
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 897
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 907
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 917
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 927
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 937
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 947
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 957
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 962
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 967
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 977
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 987
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 997
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1007
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1017
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1027
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1037
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1042
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1057
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1067
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1077
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1087
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1097
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1107
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1117
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1122
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1127
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1137
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1147
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1157
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1167
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1177
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1187
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1197
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1202
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1217
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1227
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1237
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1247
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1257
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1267
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1277
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1282
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1287
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1297
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1307
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1317
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1327
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1337
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1347
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1357
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1362
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1377
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1387
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 1397
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 1407
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1417
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1427
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1437
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1442
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1447
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1457
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1467
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 1477
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 1487
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1497
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1507
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1517
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1527
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1537
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1547
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1557
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1567
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1577
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1587
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1597
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1602
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1607
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1617
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1627
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1637
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1647
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1657
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1667
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1677
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1682
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1697
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1707
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1717
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1727
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1737
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1747
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1757
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1762
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1767
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1777
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1787
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1797
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1807
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1817
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1827
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1837
+
+2 /0 v0 r%4
+;tick count: 1841
+
+2 /0 v0 r%1
+;tick count: 1842
+
+2 /2 s10 m26318 n0 v8 r%5 v2 r%1 r%1 r%1 v0 r%6
+;tick count: 1856
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1866
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1876
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1886
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1896
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1906
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1916
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1921
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 1926
+
+2 /0 v0 r%1
+;tick count: 1927
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 v0 r%6
+;tick count: 1936
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 1946
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1956
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 1966
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 1976
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1986
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 1996
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2001
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%5 v2 r%1 r%1 r%1 v0 r%6
+;tick count: 2016
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 2026
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 2036
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 2046
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2056
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2066
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2076
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2081
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2086
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2096
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2106
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 2116
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 2126
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%1 v12 r%1 v9 r%1 v7 r%1 v6 r%1
+;tick count: 2135
+
+2 /2 s10 m26318 n4 v5 r%1 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1
+;tick count: 2143
+
+2 /0 v0 r%3
+;tick count: 2146
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2156
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%4
+;tick count: 2167
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 v0 r%6
+;tick count: 2176
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 2186
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2196
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2206
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2216
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2226
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2236
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2241
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2246
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2256
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2266
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 2276
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 2286
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2296
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2306
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2316
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2321
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2336
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 2346
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2356
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2366
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2376
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2386
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2396
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2401
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2406
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2416
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2426
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 2436
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 2446
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2456
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2466
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2476
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2481
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2496
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 2506
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2516
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2526
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2536
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2546
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2556
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2561
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2566
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2576
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2586
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 2596
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 2606
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2616
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2626
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2636
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2641
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2656
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 2666
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 2676
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 2686
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2696
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2706
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2716
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2721
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2726
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2736
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2746
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 2756
+
+2 /2 s9 m109850 n20 v9 r%1 r%1 v5 r%2 v4 r%2 r%1 v0 r%3
+;tick count: 2766
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2776
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2786
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2796
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2806
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2816
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 2826
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 2836
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 2846
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2856
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2866
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2876
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2881
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2886
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2896
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2906
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 2916
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 2926
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 2936
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2946
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 2956
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 2961
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 2976
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 2986
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 2996
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 3006
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 3016
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 3026
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 3036
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 3041
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%4
+;tick count: 3046
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%16
+;tick count: 3066
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%19
+;tick count: 3086
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%19
+;tick count: 3106
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%20
+;tick count: 3127
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 v0 r%36
+;tick count: 3166
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3206
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3246
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3286
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3326
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3366
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3406
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 3416
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 3426
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 3436
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 3446
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3486
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3526
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3566
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3606
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3646
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 v0 r%37
+;tick count: 3686
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 v0 r%36
+;tick count: 3725
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 3735
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 3745
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 3755
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 3765
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3805
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3845
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3885
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3925
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 3965
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4005
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4045
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 4055
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 4065
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 4075
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 4085
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4125
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 v0 r%37
+;tick count: 4165
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 v0 r%36
+;tick count: 4204
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4244
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4284
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4324
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4364
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 4374
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 4384
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 4394
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 4404
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4444
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4484
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4524
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4564
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4604
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4644
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4684
+
+2 /1 s10 m26318 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 4693
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 4703
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 4713
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 4723
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4763
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4803
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4843
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4883
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4923
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 4963
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 5003
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 5013
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 5023
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 5033
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 5043
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 5083
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 5113
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 5123
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 5163
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 5193
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 5203
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 5243
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 5273
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 5287
+
+2 /0 v0 r%36
+;tick count: 5323
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 5333
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 5343
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 5353
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 5363
+
+2 /1 s9 m109850 v2 r%2 r%1 v0 r%7
+;tick count: 5373
+
+2 /2 s10 m26318 n4 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%4
+;tick count: 5383
+
+2 /0 v0 r%10
+;tick count: 5393
+
+2 /2 s10 m26318 n0 v8 r%4 v7 r%4 v6 r%2 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1
+;tick count: 5408
+
+2 /2 s10 m26318 n4 v3 r%1 v0 r%34
+;tick count: 5443
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 v0 r%36
+;tick count: 5482
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 5512
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%10
+;tick count: 5523
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 v0 r%36
+;tick count: 5562
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 5592
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 5602
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 5642
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 5672
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%2 v2 r%1 r%1 r%1 v0 r%6
+;tick count: 5692
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 5702
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 5712
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v12 r%1 v9 r%1 v7 r%1 v6 r%1
+;tick count: 5726
+
+2 /2 s10 m26318 n4 v5 r%1 v4 r%1 v3 r%1 v0 r%33
+;tick count: 5762
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 5802
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 5832
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 5842
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 5882
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 5912
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 5922
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 5962
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 5992
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 6006
+
+2 /0 v0 r%36
+;tick count: 6042
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 6072
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 6082
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 6122
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 6152
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 6162
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 6202
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 6232
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 6246
+
+2 /0 v0 r%36
+;tick count: 6282
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 6292
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 6302
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 6312
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 6322
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%6
+;tick count: 6332
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 6342
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 6352
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v12 r%1 v9 r%1 v7 r%1 v6 r%1
+;tick count: 6366
+
+2 /2 s10 m26318 n4 v5 r%1 v4 r%1 v3 r%1 v0 r%33
+;tick count: 6402
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 6442
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 6472
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 6482
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 6522
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 6552
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 6562
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 6602
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 6632
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 6646
+
+2 /0 v0 r%6
+;tick count: 6652
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 6662
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 6672
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v12 r%1 v9 r%1 v7 r%1 v6 r%1
+;tick count: 6686
+
+2 /2 s10 m26318 n4 v5 r%1 v4 r%1 v3 r%1 v0 r%33
+;tick count: 6722
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 r%1 v0 r%36
+;tick count: 6762
+
+2 /1 s9 m109850 v12 r%1 v7 r%2 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 6792
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 6802
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 v0 r%37
+;tick count: 6842
+
+2 /2 s10 m26318 n4 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 6871
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%10
+;tick count: 6882
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 v0 r%36
+;tick count: 6921
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%23
+;tick count: 6951
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%2 v2 r%1 r%1 r%1 v0 r%16
+;tick count: 6981
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 6991
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7001
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%13
+;tick count: 7021
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 7031
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 7045
+
+2 /0 v0 r%16
+;tick count: 7061
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7071
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7081
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%13
+;tick count: 7101
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 7111
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 7125
+
+2 /0 v0 r%16
+;tick count: 7141
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7151
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7161
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%13
+;tick count: 7181
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 7191
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 7205
+
+2 /0 v0 r%16
+;tick count: 7221
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7231
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7241
+
+2 /1 s9 m109850 v12 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%2 v0 r%3
+;tick count: 7251
+
+2 /1 s10 m26318 v12 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%4
+;tick count: 7261
+
+2 /3 s10 m26318 n0 v8 r%1 r%3 v7 r%4 v6 r%4 v5 r%4 v0 r%4
+;tick count: 7281
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 v0 r%16
+;tick count: 7300
+
+2 /0 v0 r%1
+;tick count: 7301
+
+2 /0 v0 r%9
+;tick count: 7310
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7320
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%13
+;tick count: 7340
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 7350
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 7364
+
+2 /0 v0 r%16
+;tick count: 7380
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7390
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7400
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%13
+;tick count: 7420
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 7430
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 7444
+
+2 /0 v0 r%16
+;tick count: 7460
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7470
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7480
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%13
+;tick count: 7500
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 7510
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 7524
+
+2 /0 v0 r%16
+;tick count: 7540
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7550
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7560
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 7570
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 7580
+
+2 /3 s10 m26318 n0 v8 r%1 r%3 v7 r%4 v6 r%4 v5 r%4 v0 r%3
+;tick count: 7599
+
+2 /0 v0 r%1
+;tick count: 7600
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 v0 r%16
+;tick count: 7619
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7629
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7639
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%13
+;tick count: 7659
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 7669
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 7683
+
+2 /0 v0 r%16
+;tick count: 7699
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7709
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7719
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%13
+;tick count: 7739
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 7749
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 7763
+
+2 /0 v0 r%16
+;tick count: 7779
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7789
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7799
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%13
+;tick count: 7819
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 7829
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 7843
+
+2 /0 v0 r%16
+;tick count: 7859
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7869
+
+2 /0 v0 r%10
+;tick count: 7879
+
+2 /1 s9 m136169 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 7888
+
+2 /1 s10 m26318 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%4
+;tick count: 7899
+
+2 /2 s10 m26318 n0 v8 r%4 v7 r%4 v6 r%4 v5 r%4 v0 r%4
+;tick count: 7919
+
+2 /1 s9 m109850 v2 r%1 r%1 r%1 v0 r%16
+;tick count: 7938
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7948
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 7958
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%13
+;tick count: 7978
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 7988
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 8002
+
+2 /0 v0 r%16
+;tick count: 8018
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 8028
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 8038
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%13
+;tick count: 8058
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 8068
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 8082
+
+2 /0 v0 r%16
+;tick count: 8098
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 8108
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 8118
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%13
+;tick count: 8138
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%9
+;tick count: 8148
+
+2 /3 s10 m26318 n0 v10 r%1 v8 r%4 v7 r%4 v6 r%1 v2 r%1 r%1 r%1 r%1
+;tick count: 8162
+
+2 /0 v0 r%16
+;tick count: 8178
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 8188
+
+2 /2 s9 m109850 n0 v9 r%1 v0 r%9
+;tick count: 8198
+
+2 /1 s9 m109850 v12 r%1 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%3
+;tick count: 8208
+
+2 /1 s10 m26318 v9 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v0 r%4
+;tick count: 8218
+
+2 /2 s10 m26318 n0 v8 r%4 v7 r%4 v6 r%4 v5 r%4 v0 r%3
+;tick count: 8237
+
+2 /2 s10 m26318 n0 v9 r%1 v0 r%160
+;tick count: 8398
+
+;ch2 end: tick count: 8398
+
+
+;ch3 start
+3 /1 s0 m1573 v3 o1 r%16 v4 r%16 v5 r%16 v6 r%16 v7 r%16 v8 r%16 v9 r%16 v10 r%64
+;tick count: 176
+
+3 /1 s0 m1573 v10 r%65 r%64 r%64 v9 r%64 r%64 r%64 r%64 v8 r%64
+;tick count: 689
+
+3 /1 s0 m1573 v8 r%64 r%52 v0 r%3
+;tick count: 808
+
+3 /1 s9 m109850 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%5 v8 r%1 v6 r%1 v5 r%1
+;tick count: 820
+
+3 /1 s9 m109850 v4 r%1 v3 r%1 v2 r%1 r%4 v8 r%1 v7 r%1 v6 r%1 v5 r%1
+;tick count: 831
+
+3 /1 s9 m109850 v4 r%1 v3 r%1 r%4 v8 r%2 v7 r%1 v6 r%1 v5 r%1 v4 r%1
+;tick count: 843
+
+3 /1 s9 m109850 v4 r%4 v8 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%5 v8 r%1
+;tick count: 858
+
+3 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%5 v8 r%1 v9 r%1 v10 r%1
+;tick count: 870
+
+3 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%4 v8 r%1 v9 r%1 v10 r%1 v9 r%1
+;tick count: 881
+
+3 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%4 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6
+;tick count: 897
+
+3 /1 s9 m109850 v6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 931
+
+3 /1 s10 m26318 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 970
+
+3 /1 s9 m109850 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1
+;tick count: 1009
+
+3 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1
+;tick count: 1048
+
+3 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%1 v6 r%33 v5 r%1 v4 r%1 v3 r%1 v10 r%1
+;tick count: 1088
+
+3 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1
+;tick count: 1127
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1
+;tick count: 1166
+
+3 /1 s9 m109850 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%7 v5 r%1
+;tick count: 1185
+
+3 /1 s10 m26318 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%3 v5 r%1
+;tick count: 1195
+
+3 /1 s10 m26318 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%3 v5 r%1
+;tick count: 1205
+
+3 /1 s10 m26318 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%33 v5 r%1
+;tick count: 1245
+
+3 /1 s9 m109850 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27
+;tick count: 1284
+
+3 /1 s10 m26318 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6
+;tick count: 1297
+
+3 /1 s9 m109850 v6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 1331
+
+3 /1 s10 m26318 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 1370
+
+3 /1 s9 m109850 v7 r%1 v6 r%16 r%2 r%4 r%4 r%2 r%4 r%1
+;tick count: 1404
+
+3 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6
+;tick count: 1417
+
+3 /1 s10 m26318 v6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 1451
+
+3 /1 s9 m109850 v6 r%6 r%10 r%2 r%4 r%4 r%2 r%4 r%1
+;tick count: 1484
+
+3 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%3
+;tick count: 1494
+
+3 /1 s10 m26318 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%3
+;tick count: 1504
+
+3 /1 s10 m26318 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%7
+;tick count: 1518
+
+3 /1 s10 m26318 v6 r%6 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 1531
+
+3 /1 s9 m109850 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 1570
+
+3 /1 s10 m26318 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1
+;tick count: 1609
+
+3 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1
+;tick count: 1648
+
+3 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1
+;tick count: 1687
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%33 v5 r%1 v4 r%1 v3 r%1
+;tick count: 1727
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1
+;tick count: 1766
+
+3 /1 s10 m26318 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1
+;tick count: 1805
+
+3 /1 s9 m109850 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%7
+;tick count: 1824
+
+3 /1 s10 m26318 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%3
+;tick count: 1834
+
+3 /1 s10 m26318 v5 r%1 v3 r%2 v9 r%1 v8 r%1 v7 r%1 v6 r%3 v5 r%1 v4 r%1
+;tick count: 1845
+
+3 /1 s10 m26318 v3 r%2 v9 r%1 v8 r%1 v7 r%1 v6 r%33 v5 r%1 v4 r%1 v3 r%1
+;tick count: 1886
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1
+;tick count: 1925
+
+3 /1 s10 m26318 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1
+;tick count: 1964
+
+3 /1 s9 m109850 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27
+;tick count: 2003
+
+3 /1 s10 m26318 v5 r%1 v4 r%1 v3 r%2 v9 r%1 v8 r%1 v7 r%1 v6 r%16 r%2
+;tick count: 2028
+
+3 /1 s9 m109850 v6 r%4 r%4 r%2 r%4 r%1 v5 r%1 v4 r%1 v3 r%1
+;tick count: 2046
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1
+;tick count: 2085
+
+3 /1 s10 m26318 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%10 r%2
+;tick count: 2108
+
+3 /1 s9 m109850 v6 r%4 r%4 r%2 r%4 r%1 v5 r%1 v4 r%1 v3 r%1
+;tick count: 2126
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%2 r%1 v5 r%1 v4 r%1
+;tick count: 2135
+
+3 /1 s10 m26318 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%3 v5 r%1 v4 r%1
+;tick count: 2145
+
+3 /1 s10 m26318 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%7 r%6 v5 r%1
+;tick count: 2164
+
+3 /1 s10 m26318 v4 r%1 v3 r%2 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%2 r%4
+;tick count: 2182
+
+3 /1 s9 m109850 v6 r%5 r%9 r%7 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1
+;tick count: 2208
+
+3 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1
+;tick count: 2247
+
+3 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1
+;tick count: 2286
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1
+;tick count: 2325
+
+3 /1 s10 m26318 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%2 r%4
+;tick count: 2342
+
+3 /1 s9 m109850 v6 r%5 r%9 r%7 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1
+;tick count: 2368
+
+3 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1
+;tick count: 2407
+
+3 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1
+;tick count: 2446
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1
+;tick count: 2485
+
+3 /1 s10 m26318 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%2 r%4
+;tick count: 2502
+
+3 /1 s9 m109850 v6 r%5 r%9 r%7 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1
+;tick count: 2528
+
+3 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1
+;tick count: 2567
+
+3 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1
+;tick count: 2606
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1
+;tick count: 2645
+
+3 /1 s10 m26318 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%16 r%2 r%4
+;tick count: 2672
+
+3 /1 s9 m109850 v6 r%4 r%2 r%4 r%1 v5 r%1 v4 r%1 v3 r%1 v10 r%1
+;tick count: 2687
+
+3 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1
+;tick count: 2726
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%10 r%2 r%4
+;tick count: 2752
+
+3 /1 s9 m109850 v6 r%4 r%2 r%4 r%1 v5 r%1 v4 r%1 v3 r%1 v10 r%1
+;tick count: 2767
+
+3 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%7 r%10 r%10 r%6 v5 r%1
+;tick count: 2804
+
+3 /1 s10 m26318 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%27
+;tick count: 2843
+
+3 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6
+;tick count: 2856
+
+3 /1 s10 m26318 v6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 2890
+
+3 /1 s9 m109850 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 2929
+
+3 /1 s10 m26318 v7 r%1 v6 r%6 r%27 v5 r%1 v4 r%1 v3 r%1 v10 r%1 v9 r%1
+;tick count: 2968
+
+3 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%37 r%9 r%30 r%77 v5 r%1 v4 r%1
+;tick count: 3125
+
+3 /1 s9 m109850 v3 r%2 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1
+;tick count: 3163
+
+3 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 3171
+
+3 /1 s9 m109850 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1
+;tick count: 3208
+
+3 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1
+;tick count: 3245
+
+3 /1 s9 m109850 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30
+;tick count: 3282
+
+3 /1 s9 m109850 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 3290
+
+3 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1
+;tick count: 3327
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1
+;tick count: 3364
+
+3 /1 s9 m109850 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 3372
+
+3 /1 s9 m109850 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 3409
+
+3 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v13 r%1
+;tick count: 3417
+
+3 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1
+;tick count: 3425
+
+3 /1 s10 m26318 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 3433
+
+3 /1 s10 m26318 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 3441
+
+3 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 3449
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1
+;tick count: 3486
+
+3 /1 s9 m109850 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1
+;tick count: 3523
+
+3 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 3531
+
+3 /1 s9 m109850 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1
+;tick count: 3568
+
+3 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1
+;tick count: 3605
+
+3 /1 s9 m109850 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v8 r%1 v7 r%31 v6 r%1
+;tick count: 3643
+
+3 /1 s9 m109850 v5 r%1 v3 r%2 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30
+;tick count: 3681
+
+3 /1 s9 m109850 v6 r%1 v5 r%1 v4 r%1 v3 r%2 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 3690
+
+3 /1 s9 m109850 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1
+;tick count: 3727
+
+3 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1
+;tick count: 3735
+
+3 /1 s10 m26318 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1
+;tick count: 3743
+
+3 /1 s10 m26318 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 3751
+
+3 /1 s10 m26318 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 3759
+
+3 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1
+;tick count: 3767
+
+3 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1
+;tick count: 3804
+
+3 /1 s9 m109850 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30
+;tick count: 3841
+
+3 /1 s9 m109850 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 3849
+
+3 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1
+;tick count: 3886
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1
+;tick count: 3923
+
+3 /1 s9 m109850 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 3931
+
+3 /1 s9 m109850 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 3968
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1
+;tick count: 4005
+
+3 /1 s9 m109850 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1
+;tick count: 4042
+
+3 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 4050
+
+3 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 4058
+
+3 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v13 r%1
+;tick count: 4066
+
+3 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1
+;tick count: 4074
+
+3 /1 s10 m26318 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 4082
+
+3 /1 s10 m26318 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 4090
+
+3 /1 s9 m109850 v7 r%31 v5 r%1 v4 r%1 v3 r%2 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 4129
+
+3 /1 s9 m109850 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%2 v12 r%1 v11 r%1
+;tick count: 4167
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1
+;tick count: 4204
+
+3 /1 s9 m109850 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1
+;tick count: 4241
+
+3 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 4249
+
+3 /1 s9 m109850 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1
+;tick count: 4286
+
+3 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1
+;tick count: 4323
+
+3 /1 s9 m109850 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30
+;tick count: 4360
+
+3 /1 s9 m109850 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 4368
+
+3 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1
+;tick count: 4376
+
+3 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1
+;tick count: 4384
+
+3 /1 s10 m26318 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1
+;tick count: 4392
+
+3 /1 s10 m26318 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 4400
+
+3 /1 s10 m26318 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 4408
+
+3 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1
+;tick count: 4445
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1
+;tick count: 4482
+
+3 /1 s9 m109850 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 4490
+
+3 /1 s9 m109850 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 4527
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1
+;tick count: 4564
+
+3 /1 s9 m109850 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1
+;tick count: 4601
+
+3 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 4609
+
+3 /1 s9 m109850 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1
+;tick count: 4646
+
+3 /1 s9 m109850 v11 r%1 v10 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%2
+;tick count: 4684
+
+3 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1
+;tick count: 4692
+
+3 /1 s10 m26318 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 4700
+
+3 /1 s10 m26318 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 4708
+
+3 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 4716
+
+3 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v13 r%1
+;tick count: 4724
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1
+;tick count: 4761
+
+3 /1 s9 m109850 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 4769
+
+3 /1 s9 m109850 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 4806
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1
+;tick count: 4843
+
+3 /1 s9 m109850 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1
+;tick count: 4880
+
+3 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 4888
+
+3 /1 s9 m109850 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1
+;tick count: 4925
+
+3 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30 v6 r%1 v5 r%1 v4 r%1
+;tick count: 4962
+
+3 /1 s9 m109850 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%30
+;tick count: 4999
+
+3 /1 s9 m109850 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 5007
+
+3 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1
+;tick count: 5015
+
+3 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1
+;tick count: 5023
+
+3 /1 s10 m26318 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1
+;tick count: 5031
+
+3 /1 s10 m26318 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 5039
+
+3 /1 s10 m26318 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 5047
+
+3 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%31 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 5085
+
+3 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%24 r%7 v5 r%1 v4 r%1
+;tick count: 5122
+
+3 /1 s10 m26318 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%31
+;tick count: 5160
+
+3 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 5168
+
+3 /1 s10 m26318 v7 r%1 v6 r%24 r%7 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 5205
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%31 v5 r%1 v3 r%2 v12 r%1
+;tick count: 5244
+
+3 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%24 r%7 v5 r%1
+;tick count: 5281
+
+3 /1 s10 m26318 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v6 r%32
+;tick count: 5320
+
+3 /1 s9 m109850 v5 r%1 v3 r%2 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 5329
+
+3 /1 s10 m26318 v6 r%5 r%10 r%10 r%6 v4 r%1 v3 r%2 v13 r%1 v12 r%1
+;tick count: 5365
+
+3 /1 s9 m109850 v11 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%2 v12 r%1
+;tick count: 5374
+
+3 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%5 r%16 v6 r%1 v5 r%1
+;tick count: 5401
+
+3 /1 s10 m26318 v4 r%2 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%31 v6 r%1
+;tick count: 5440
+
+3 /1 s10 m26318 v5 r%1 v4 r%2 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%31
+;tick count: 5479
+
+3 /1 s9 m109850 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 5487
+
+3 /1 s10 m26318 v8 r%1 v7 r%24 r%7 v6 r%1 v5 r%1 v4 r%2 v12 r%1 v11 r%1
+;tick count: 5525
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v13 r%1
+;tick count: 5533
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%21 v6 r%1 v5 r%1
+;tick count: 5561
+
+3 /1 s9 m109850 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%24
+;tick count: 5592
+
+3 /1 s10 m26318 v7 r%7 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 5606
+
+3 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%31 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1
+;tick count: 5644
+
+3 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%24 r%7 v6 r%1 v5 r%1
+;tick count: 5681
+
+3 /1 s10 m26318 v4 r%2 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1
+;tick count: 5690
+
+3 /1 s9 m109850 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 5698
+
+3 /1 s10 m26318 v7 r%4 r%17 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 5725
+
+3 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%31 v6 r%1 v5 r%1 v4 r%1 v13 r%1
+;tick count: 5763
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%31 v6 r%1 v5 r%1
+;tick count: 5801
+
+3 /1 s9 m109850 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%24
+;tick count: 5832
+
+3 /1 s10 m26318 v7 r%7 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 5846
+
+3 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1
+;tick count: 5854
+
+3 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%21 v6 r%1 v5 r%1 v4 r%1
+;tick count: 5882
+
+3 /1 s9 m109850 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%24 r%7
+;tick count: 5919
+
+3 /1 s10 m26318 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 5927
+
+3 /1 s9 m109850 v8 r%1 v7 r%31 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 5965
+
+3 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%24 r%7 v6 r%1 v5 r%1 v4 r%1
+;tick count: 6002
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%31 v5 r%1
+;tick count: 6040
+
+3 /1 s9 m109850 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 6048
+
+3 /1 s10 m26318 v6 r%24 r%7 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 6085
+
+3 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%1 v6 r%31 v5 r%1 v4 r%1 v3 r%1 v12 r%1
+;tick count: 6123
+
+3 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%24 r%7 v5 r%1
+;tick count: 6160
+
+3 /1 s10 m26318 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 6168
+
+3 /1 s9 m109850 v6 r%31 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 6206
+
+3 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%24 r%7 v5 r%1 v4 r%1 v3 r%1 v12 r%1
+;tick count: 6243
+
+3 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%31 v5 r%1 v4 r%1
+;tick count: 6281
+
+3 /1 s9 m109850 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%5
+;tick count: 6293
+
+3 /1 s10 m26318 v6 r%10 r%10 r%6 v5 r%1 v4 r%1 v3 r%1 v13 r%1 v12 r%1
+;tick count: 6324
+
+3 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1
+;tick count: 6332
+
+3 /1 s9 m109850 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%4 r%17
+;tick count: 6359
+
+3 /1 s10 m26318 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 6367
+
+3 /1 s10 m26318 v8 r%1 v7 r%31 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 6405
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%31 v6 r%1 v5 r%1 v4 r%1 v13 r%1
+;tick count: 6443
+
+3 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%24 r%7 v6 r%1
+;tick count: 6480
+
+3 /1 s10 m26318 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 6488
+
+3 /1 s9 m109850 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 6496
+
+3 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%21 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1
+;tick count: 6524
+
+3 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%24 r%7 v6 r%1 v5 r%1
+;tick count: 6561
+
+3 /1 s10 m26318 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%31
+;tick count: 6599
+
+3 /1 s9 m109850 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 6607
+
+3 /1 s10 m26318 v8 r%1 v7 r%24 r%7 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1
+;tick count: 6644
+
+3 /1 s9 m109850 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1
+;tick count: 6652
+
+3 /1 s9 m109850 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%4 r%17
+;tick count: 6679
+
+3 /1 s10 m26318 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 6687
+
+3 /1 s10 m26318 v8 r%1 v7 r%31 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1
+;tick count: 6725
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v7 r%32 v5 r%1 v4 r%2 v13 r%1 v12 r%1 v11 r%1
+;tick count: 6765
+
+3 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%24 r%7 v6 r%1 v4 r%2 v13 r%1
+;tick count: 6803
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%2
+;tick count: 6812
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%21 v6 r%1 v5 r%1
+;tick count: 6840
+
+3 /1 s9 m109850 v4 r%2 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%24 r%7
+;tick count: 6878
+
+3 /1 s10 m26318 v6 r%1 v5 r%1 v4 r%2 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 6887
+
+3 /1 s9 m109850 v7 r%31 v6 r%1 v5 r%1 v4 r%1 v13 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 6925
+
+3 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%24 r%7 v6 r%1 v5 r%1 v4 r%2 v11 r%1
+;tick count: 6963
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1
+;tick count: 6981
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1
+;tick count: 6999
+
+3 /1 s9 m109850 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 7007
+
+3 /1 s10 m26318 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7025
+
+3 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 7043
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1
+;tick count: 7061
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1
+;tick count: 7079
+
+3 /1 s9 m109850 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 7087
+
+3 /1 s10 m26318 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7105
+
+3 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 7123
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1
+;tick count: 7141
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1
+;tick count: 7159
+
+3 /1 s9 m109850 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 7167
+
+3 /1 s10 m26318 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7185
+
+3 /1 s10 m26318 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 7203
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1
+;tick count: 7221
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v4 r%1
+;tick count: 7239
+
+3 /1 s9 m109850 v3 r%2 v12 r%1 v10 r%1 v9 r%2 v7 r%2 v6 r%5 r%5 v5 r%1
+;tick count: 7258
+
+3 /1 s10 m26318 v4 r%1 v3 r%2 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11
+;tick count: 7277
+
+3 /1 s10 m26318 v5 r%1 v4 r%1 v3 r%2 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 7286
+
+3 /1 s9 m109850 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7304
+
+3 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 7322
+
+3 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1
+;tick count: 7340
+
+3 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1
+;tick count: 7358
+
+3 /1 s10 m26318 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 7366
+
+3 /1 s9 m109850 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7384
+
+3 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 7402
+
+3 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1
+;tick count: 7420
+
+3 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1
+;tick count: 7438
+
+3 /1 s10 m26318 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 7446
+
+3 /1 s9 m109850 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7464
+
+3 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 7482
+
+3 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1
+;tick count: 7500
+
+3 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1
+;tick count: 7518
+
+3 /1 s10 m26318 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 7526
+
+3 /1 s9 m109850 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7544
+
+3 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 7562
+
+3 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1
+;tick count: 7570
+
+3 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v4 r%1
+;tick count: 7578
+
+3 /1 s10 m26318 v3 r%2 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1
+;tick count: 7587
+
+3 /1 s10 m26318 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 7595
+
+3 /1 s10 m26318 v6 r%1 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7603
+
+3 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 7621
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1
+;tick count: 7639
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1
+;tick count: 7657
+
+3 /1 s10 m26318 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 7665
+
+3 /1 s10 m26318 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7683
+
+3 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 7701
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1
+;tick count: 7719
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1
+;tick count: 7737
+
+3 /1 s10 m26318 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 7745
+
+3 /1 s10 m26318 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7763
+
+3 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1
+;tick count: 7781
+
+3 /1 s9 m109850 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1
+;tick count: 7799
+
+3 /1 s9 m109850 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1
+;tick count: 7817
+
+3 /1 s10 m26318 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1
+;tick count: 7825
+
+3 /1 s10 m26318 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1
+;tick count: 7843
+
+3 /1 s9 m109850 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v10 r%1
+;tick count: 7861
+
+3 /1 s9 m109850 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%2 v11 r%1
+;tick count: 7880
+
+3 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%6 r%5 v5 r%1 v4 r%1
+;tick count: 7897
+
+3 /1 s10 m26318 v3 r%2 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1
+;tick count: 7916
+
+3 /1 s10 m26318 v4 r%1 v3 r%2 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11
+;tick count: 7935
+
+3 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 7943
+
+3 /1 s9 m109850 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 7961
+
+3 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1
+;tick count: 7979
+
+3 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1
+;tick count: 7997
+
+3 /1 s10 m26318 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11
+;tick count: 8015
+
+3 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 8023
+
+3 /1 s9 m109850 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 8041
+
+3 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1
+;tick count: 8059
+
+3 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1
+;tick count: 8077
+
+3 /1 s10 m26318 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11
+;tick count: 8095
+
+3 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 8103
+
+3 /1 s9 m109850 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 8121
+
+3 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1
+;tick count: 8139
+
+3 /1 s10 m26318 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11 v5 r%1 v4 r%1
+;tick count: 8157
+
+3 /1 s10 m26318 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%11
+;tick count: 8175
+
+3 /1 s9 m109850 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1
+;tick count: 8183
+
+3 /1 s9 m109850 v7 r%1 v6 r%11 v5 r%1 v4 r%1 v3 r%1 v12 r%1 v11 r%1 v10 r%1
+;tick count: 8201
+
+3 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v4 r%1 v3 r%2 v12 r%1 v10 r%1
+;tick count: 8210
+
+3 /1 s10 m26318 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%2 v11 r%1
+;tick count: 8219
+
+3 /1 s10 m26318 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1 v4 r%1 v3 r%1
+;tick count: 8227
+
+3 /1 s10 m26318 v12 r%1 v11 r%1 v10 r%1 v9 r%1 v8 r%1 v7 r%1 v6 r%1 v5 r%1
+;tick count: 8235
+
+3 /1 s10 m26318 v4 r%1 v3 r%1 v9 r%241
+;ch3 end: tick count: 8478
