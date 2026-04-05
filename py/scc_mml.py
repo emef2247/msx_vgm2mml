@@ -7,7 +7,9 @@ import sys
 import os
 
 sys.path.insert(0, os.path.dirname(__file__))
-from mml_utils import get_ticks, get_octave, get_scale, estimate_mml_used, estimate_alloc
+from mml_utils import (get_ticks, get_octave, get_scale, estimate_mml_used,
+                       estimate_alloc, emit_volume, emit_octave,
+                       rle_compress_tokens)
 
 # ---------------------------------------------------------------------------
 # Column indices (28 columns, 0-27)
@@ -553,64 +555,113 @@ def _pass3(temp_buf2, ch_list):
 # MML generation  (mirrors scc_mml.tcl generate_mml)
 # ---------------------------------------------------------------------------
 
+def _note_tok(vol_mod, oct_mod, note):
+    """Combine optional volume/octave modifiers with a note string.
+
+    When *all* modifier characters are single-character relative operators
+    (``)``, ``(``, ``>``, ``<``) they are concatenated directly with the note
+    (e.g. ``)e%1``).  Otherwise a space is inserted between the modifier
+    prefix and the note (e.g. ``v9 e%1``).
+    """
+    parts = []
+    if vol_mod:
+        parts.append(vol_mod)
+    if oct_mod:
+        parts.append(oct_mod)
+    parts.append(note)
+    if len(parts) == 1:
+        return parts[0]
+    prefix = ''.join(parts[:-1])
+    if all(c in ')(<>' for c in prefix):
+        return prefix + parts[-1]
+    return ' '.join(parts)
+
+
+def _flush_grp(header, tokens):
+    """Join RLE-compressed *tokens* into a single MML group line.
+
+    Returns a string of the form ``'{header} {tok1} {tok2} ... '``.
+    """
+    compressed = rle_compress_tokens(tokens)
+    return header + ' ' + ' '.join(compressed) + ' '
+
+
 def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
-    """Generate MML text from pass-3 data."""
+    """Generate MML text from pass-3 data.
+
+    Volume and octave changes use the shorter of relative (``)``, ``(``,
+    ``>``, ``<``) or absolute (``vN``, ``oN``) notation.  Consecutive
+    identical note tokens within a group are RLE-compressed to ``N[token]``
+    when that is shorter.
+    """
     mml_buffer = {}
 
     for ch in ch_list:
         mml_buffer[ch] = []
-        note_cnt  = 0
-        l_cnt     = 0
-        o_stamp   = 0
-        v_stamp   = 0
-        mml       = ''
+        note_cnt   = 0
+        l_cnt      = 0
+        o_stamp    = 0
+        v_stamp    = 0
+        grp_header = ''   # '\n{ch_num} @{idx} v{v}[ o{o}]'
+        grp_tokens = []   # per-note tokens for the current group
 
         ch_num = ch + CH_OFFSET
         mml_buffer[ch].append(f'\n\n;ch{ch_num} start')
 
         for row in temp_buf3[ch]:
-            type_      = row[COL_TYPE]
-            l          = _int(row[COL_L])
-            v          = _get_volume(row)
-            o          = _int(row[COL_O])
-            scale      = row[COL_SCALE] if row[COL_SCALE] not in ('', EMPTY) else 'r'
-            en         = _int(row[COL_EN])
-            wtb_index  = _int(row[COL_WTBINDEX])
+            type_     = row[COL_TYPE]
+            l         = _int(row[COL_L])
+            v         = _get_volume(row)
+            o         = _int(row[COL_O])
+            scale     = row[COL_SCALE] if row[COL_SCALE] not in ('', EMPTY) else 'r'
+            en        = _int(row[COL_EN])
+            wtb_index = _int(row[COL_WTBINDEX])
 
             if l > 0:
                 length = l
                 while length > 0:
                     ltmp = min(length, 255)
+                    note = f'{scale}%{ltmp}'
 
                     if note_cnt == 0:
-                        mml = f'\n{ch_num} @{wtb_index} v{v}'
+                        # First note in a new group: always use absolute v and o.
+                        grp_header = f'\n{ch_num} @{wtb_index} v{v}'
+                        if o != o_stamp:
+                            grp_header += f' o{o}'
+                        grp_tokens = [note]
+                    else:
+                        # Subsequent notes: prefer relative notation when shorter.
+                        vol_mod = emit_volume(v, v_stamp)
+                        oct_mod = emit_octave(o, o_stamp)
+                        grp_tokens.append(_note_tok(vol_mod, oct_mod, note))
 
-                    if v != v_stamp and note_cnt != 0:
-                        mml += f' v{v}'
-
-                    if o != o_stamp:
-                        mml += f' o{o}'
-
-                    mml += f' {scale}%{ltmp} '
                     l_cnt += ltmp
-
                     length -= ltmp
+
                     if length > 0:
-                        mml_buffer[ch].append(mml)
-                        mml = ''
+                        # Note too long to fit in one token (l > 255): flush the
+                        # accumulated tokens as-is (no RLE for partial groups)
+                        # and reset for the continuation fragment.
+                        mml_buffer[ch].append(
+                            grp_header + ' ' + ' '.join(grp_tokens) + ' ')
+                        grp_header = ''
+                        grp_tokens = []
 
                 note_cnt += 1
                 if note_cnt == 8 or (type_ == 'enBit' and en == 0) or v == 0:
-                    mml_buffer[ch].append(mml)
-                    mml = ''
+                    # Flush the complete group with RLE compression.
+                    mml_buffer[ch].append(_flush_grp(grp_header, grp_tokens))
+                    grp_header = ''
+                    grp_tokens = []
                     mml_buffer[ch].append(f'\n;tick count: {l_cnt}\n')
                     note_cnt = 0
 
                 o_stamp = o
                 v_stamp = v
 
-        if mml:
-            mml_buffer[ch].append(mml)
+        # Flush any remaining tokens for the final (incomplete) group.
+        if grp_tokens:
+            mml_buffer[ch].append(_flush_grp(grp_header, grp_tokens))
 
         mml_buffer[ch].append(f'\n;ch{ch_num} end: tick count: {l_cnt}\n')
 
