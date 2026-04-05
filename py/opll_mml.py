@@ -300,7 +300,7 @@ def _generate_mml(segments: dict, stem: str) -> str:
         if mml:
             mml_buffer[ch].append(mml)
 
-        mml_buffer[ch].append(f'\n;{track_id} end: tick count: {l_cnt}\n')
+        mml_buffer[ch].append(f'\n;ch{track_id} end: tick count: {l_cnt}\n')
 
     # Build header
     lines = []
