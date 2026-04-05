@@ -1,7 +1,7 @@
-;[name=scc lpf=1]
+;[name=psg lpf=1]
 #opll_mode 1
 #tempo 75
-#title { "psg example"}
+#title { "02_StartingPoint_psg_log"}
 #alloc 1=544
 #alloc 2=704
 #alloc 3=1712
