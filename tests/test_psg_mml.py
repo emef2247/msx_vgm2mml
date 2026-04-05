@@ -145,9 +145,9 @@ def test_psg_mml_has_notes_not_only_rests():
         mml_path = process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM,
                                    dump_passes=False)
         content = _read(mml_path)
-        # Look for note letters a-g (with optional sharp) followed by %
-        # e.g. "a+%2" or "b%4" - these are actual notes, not rests
-        note_pattern = re.compile(r'\b[a-g]\+?%\d+')
+        # Look for note letters a-g (with optional sharp) followed by a valid MML
+        # length number (1, 2, 4, 8, 16, 32, 64) - e.g. "a16", "c+8", "b4"
+        note_pattern = re.compile(r'\b[a-g]\+?(?:1|2|4|8|16|32|64)\b')
         notes = note_pattern.findall(content)
         assert len(notes) > 0, (
             "PSG MML contains only rests (no actual notes found). "
@@ -190,7 +190,7 @@ def test_vgm_to_psg_trace_mml_has_notes():
         mml_path = process_psg_csv(psg_trace, out_dir, stem=stem,
                                    dump_passes=False)
         content = _read(mml_path)
-        note_pattern = re.compile(r'\b[a-g]\+?%\d+')
+        note_pattern = re.compile(r'\b[a-g]\+?(?:1|2|4|8|16|32|64)\b')
         notes = note_pattern.findall(content)
         assert len(notes) > 0, (
             "Trace-based PSG MML contains only rests - frequency mapping broken.")
