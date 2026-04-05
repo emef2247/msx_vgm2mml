@@ -217,7 +217,7 @@ def test_vgm_to_trace_mml_matches_golden():
     """Full pipeline: VGM → trace CSV → MML must match the committed golden."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         # Step 1: parse VGM → trace CSV
-        _psg_log, _scc_log, _psg_trace, scc_trace = parse_vgm(VGM_FILE, tmp_dir)
+        _psg_log, _scc_log, _psg_trace, scc_trace, *_ = parse_vgm(VGM_FILE, tmp_dir)
 
         # Step 2: trace CSV → MML
         out_dir = os.path.join(tmp_dir, '02_StartingPoint_trace')
@@ -239,7 +239,7 @@ def test_vgm_to_trace_mml_matches_golden():
 def test_python_trace_csv_matches_tcl_trace_csv():
     """Python-generated trace CSV must be identical to the Tcl-generated one."""
     with tempfile.TemporaryDirectory() as tmp_dir:
-        _psg_log, _scc_log, _psg_trace, scc_trace = parse_vgm(VGM_FILE, tmp_dir)
+        _psg_log, _scc_log, _psg_trace, scc_trace, *_ = parse_vgm(VGM_FILE, tmp_dir)
 
         got      = _read(scc_trace)
         expected = _read(TRACE_CSV)

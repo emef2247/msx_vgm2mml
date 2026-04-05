@@ -157,7 +157,7 @@ def test_psg_mml_has_notes_not_only_rests():
 def test_psg_trace_csv_is_written():
     """parse_vgm must write the PSG trace CSV (chronological order)."""
     with tempfile.TemporaryDirectory() as tmp_dir:
-        _psg_log, _scc_log, psg_trace, _scc_trace = parse_vgm(VGM_FILE, tmp_dir)
+        _psg_log, _scc_log, psg_trace, _scc_trace, *_ = parse_vgm(VGM_FILE, tmp_dir)
         assert os.path.isfile(psg_trace), (
             f"PSG trace CSV not written: {psg_trace}")
         # Must have more than just the header line
@@ -169,7 +169,7 @@ def test_psg_trace_csv_is_written():
 def test_vgm_to_psg_mml_is_generated():
     """Full pipeline: VGM → PSG log CSV → PSG MML must produce a file."""
     with tempfile.TemporaryDirectory() as tmp_dir:
-        psg_log, _scc_log, _psg_trace, _scc_trace = parse_vgm(VGM_FILE, tmp_dir)
+        psg_log, _scc_log, _psg_trace, _scc_trace, *_ = parse_vgm(VGM_FILE, tmp_dir)
 
         stem = '02_StartingPoint'
         out_dir = os.path.join(tmp_dir, stem)
@@ -183,7 +183,7 @@ def test_vgm_to_psg_trace_mml_has_notes():
     """Full pipeline using trace CSV: PSG MML must contain notes, not just rests."""
     import re
     with tempfile.TemporaryDirectory() as tmp_dir:
-        _psg_log, _scc_log, psg_trace, _scc_trace = parse_vgm(VGM_FILE, tmp_dir)
+        _psg_log, _scc_log, psg_trace, _scc_trace, *_ = parse_vgm(VGM_FILE, tmp_dir)
 
         stem = '02_StartingPoint'
         out_dir = os.path.join(tmp_dir, stem)
