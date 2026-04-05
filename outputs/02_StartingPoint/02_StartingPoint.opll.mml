@@ -3,11 +3,11 @@
 #tempo 75
 #title { "02_StartingPoint"}
 #alloc 9=96
-#alloc a=96
-#alloc b=96
-#alloc c=96
-#alloc d=96
-#alloc e=96
+#alloc 10=96
+#alloc 11=96
+#alloc 12=96
+#alloc 13=96
+#alloc 14=96
 
 
 
@@ -15,21 +15,21 @@
 ;ch9 end: tick count: 0
 
 
-;cha start
-;cha end: tick count: 0
+;ch10 start
+;ch10 end: tick count: 0
 
 
-;chb start
-;chb end: tick count: 0
+;ch11 start
+;ch11 end: tick count: 0
 
 
-;chc start
-;chc end: tick count: 0
+;ch12 start
+;ch12 end: tick count: 0
 
 
-;chd start
-;chd end: tick count: 0
+;ch13 start
+;ch13 end: tick count: 0
 
 
-;che start
-;che end: tick count: 0
+;ch14 start
+;ch14 end: tick count: 0
