@@ -2,13 +2,9 @@
 #opll_mode 1
 #tempo 75
 #title { "psg example"}
-#alloc 1=3100
-#alloc 2=3100
-#alloc 3=2400
-#alloc 4=2100
-#alloc 5=1100
-#alloc 6=1000
-#alloc 7=1000
+#alloc 1=544
+#alloc 2=704
+#alloc 3=1712
 
 
 

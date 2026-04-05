@@ -52,7 +52,7 @@ def main():
     # processing multiple VGM files into the same --outdir keeps them separate.
     # Without --outdir: use <vgm_dir>/<base_name>_log/ (legacy default).
     if args.outdir:
-        song_dir = os.path.join(args.outdir, base_name)
+        out_root = os.path.join(args.outdir, base_name)
     else:
         song_dir = os.path.join(os.path.dirname(os.path.abspath(vgm_path)),
                                 base_name + '_log')

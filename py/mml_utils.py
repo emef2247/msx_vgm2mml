@@ -5,6 +5,44 @@ Tone table and note/octave/scale conversion utilities for MSX PSG/SCC.
 
 import math
 
+
+def estimate_mml_used(items):
+    """Estimate used bytes from a list of MML item strings.
+
+    - Split each item into lines.
+    - Ignore blank lines.
+    - Ignore comment lines that start with ';' after optional whitespace.
+    - For remaining lines, count non-whitespace characters.
+    - Sum across the track.
+    """
+    used = 0
+    for s in items:
+        if not s:
+            continue
+        for line in s.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if stripped.startswith(';'):
+                continue
+            used += len(line.replace(' ', '').replace('\t', '').replace('\r', ''))
+    return used
+
+
+def estimate_alloc(used, overhead=32, ratio=0.15, min_margin=64, align=16):
+    """Convert a used-byte estimate to an alloc value.
+
+    alloc = used + overhead + max(min_margin, ceil(used * ratio))
+    The result is aligned up to the nearest *align*-byte boundary.
+
+    Defaults: overhead=32, ratio=0.15, min_margin=64, align=16.
+    """
+    margin = max(min_margin, math.ceil(used * ratio))
+    alloc = used + overhead + margin
+    if align and align > 1:
+        alloc = ((alloc + (align - 1)) // align) * align
+    return alloc
+
 # Register value -> tone string table (port of reg2tone dict in mml_utils.tcl)
 REG2TONE = {
     3421: "o1c", 3228: "o1c+", 3047: "o1d", 2876: "o1d+", 2715: "o1e",

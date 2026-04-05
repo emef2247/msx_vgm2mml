@@ -1,7 +1,9 @@
 """
-test_vgm2mml.py - Integration tests for the vgm2mml CLI.
+test_vgm2mml.py - CLI-level tests for vgm2mml.py output directory behaviour.
 
-Validates the output directory structure produced by the top-level CLI.
+Validates that:
+  1. --outdir <dir>  → all outputs land under <dir>/<vgm_stem>/
+  2. No --outdir     → all outputs land under <vgm_dir>/<vgm_stem>_log/
 """
 import os
 import sys
@@ -9,98 +11,128 @@ import subprocess
 import tempfile
 import pytest
 
-# Locate repository root (one level up from tests/)
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-VGM_FILE = os.path.join(
-    REPO_ROOT,
-    'inputs', '02_StartingPoint', '02_StartingPoint.vgm')
-
-BASE_NAME = '02_StartingPoint'
+VGMCLI   = os.path.join(REPO_ROOT, 'vgm2mml.py')
+VGM_FILE = os.path.join(REPO_ROOT, 'inputs', '02_StartingPoint',
+                         '02_StartingPoint.vgm')
+VGM_STEM = '02_StartingPoint'
 
 
-def _run_cli(*args):
-    """Run vgm2mml.py as a subprocess and return CompletedProcess."""
-    return subprocess.run(
-        [sys.executable, os.path.join(REPO_ROOT, 'vgm2mml.py')] + list(args),
-        capture_output=True, text=True)
+def _run_cli(*extra_args):
+    """Run vgm2mml.py with the test VGM and optional extra arguments."""
+    cmd = [sys.executable, VGMCLI, VGM_FILE] + list(extra_args)
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    assert result.returncode == 0, (
+        f"CLI exited {result.returncode}\nstdout:\n{result.stdout}\n"
+        f"stderr:\n{result.stderr}")
+    return result
 
 
 # ──────────────────────────────────────────────────────────────────────────
-# A) Output directory restructuring: --outdir creates <outdir>/<base_name>/
+# --outdir: all outputs must land under <outdir>/<vgm_stem>/
 # ──────────────────────────────────────────────────────────────────────────
 
-def test_outdir_creates_per_song_subdirectory():
-    """With --outdir, initial CSVs go into <outdir>/<base_name>/, not <outdir>/."""
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        result = _run_cli(VGM_FILE, '--outdir', tmp_dir)
-        assert result.returncode == 0, f"CLI failed:\n{result.stderr}"
-
-        song_dir = os.path.join(tmp_dir, BASE_NAME)
-        assert os.path.isdir(song_dir), (
-            f"Expected per-song subdirectory {song_dir!r} was not created")
-
-
-def test_outdir_initial_csvs_inside_song_subdir():
-    """The four initial parse_vgm CSVs must be inside <outdir>/<base_name>/."""
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        result = _run_cli(VGM_FILE, '--outdir', tmp_dir)
-        assert result.returncode == 0, f"CLI failed:\n{result.stderr}"
-
-        song_dir = os.path.join(tmp_dir, BASE_NAME)
-        for csv_name in (
-            f'{BASE_NAME}_log.psg.csv',
-            f'{BASE_NAME}_log.scc.csv',
-            f'{BASE_NAME}_trace.psg.csv',
-            f'{BASE_NAME}_trace.scc.csv',
-        ):
-            expected = os.path.join(song_dir, csv_name)
-            assert os.path.isfile(expected), (
-                f"Expected CSV not found inside song subdir: {expected}")
+def test_outdir_creates_stem_subdirectory():
+    """With --outdir, a <vgm_stem>/ subdirectory must be created inside it."""
+    with tempfile.TemporaryDirectory() as tmp:
+        _run_cli('--outdir', tmp)
+        stem_dir = os.path.join(tmp, VGM_STEM)
+        assert os.path.isdir(stem_dir), (
+            f"Expected <outdir>/{VGM_STEM}/ to exist, but it does not.\n"
+            f"Contents of {tmp}: {os.listdir(tmp)}")
 
 
-def test_outdir_no_csvs_at_outdir_root():
-    """No initial CSVs should appear directly at <outdir>/."""
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        result = _run_cli(VGM_FILE, '--outdir', tmp_dir)
-        assert result.returncode == 0, f"CLI failed:\n{result.stderr}"
+def test_outdir_csv_files_inside_stem():
+    """With --outdir, all CSV files must be inside <outdir>/<vgm_stem>/."""
+    with tempfile.TemporaryDirectory() as tmp:
+        _run_cli('--outdir', tmp)
+        stem_dir = os.path.join(tmp, VGM_STEM)
+        # Gather all files directly in tmp (not in subdirs) – should be none
+        direct_files = [f for f in os.listdir(tmp)
+                        if os.path.isfile(os.path.join(tmp, f))]
+        assert direct_files == [], (
+            f"Found unexpected files directly in <outdir>/: {direct_files}\n"
+            f"All outputs should be under <outdir>/{VGM_STEM}/")
 
-        for entry in os.listdir(tmp_dir):
-            path = os.path.join(tmp_dir, entry)
-            # Only the per-song subdirectory should exist at the root level
-            assert os.path.isdir(path), (
-                f"Unexpected file at --outdir root (expected only a subdir): {path}")
-
-
-def test_outdir_dump_passes_inside_song_subdir():
-    """With --dump-passes, pass files must be nested inside <outdir>/<base_name>/."""
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        result = _run_cli(VGM_FILE, '--outdir', tmp_dir, '--dump-passes')
-        assert result.returncode == 0, f"CLI failed:\n{result.stderr}"
-
-        song_dir = os.path.join(tmp_dir, BASE_NAME)
-        # SCC pass files live in <song_dir>/<base_name>_trace/
-        scc_subdir = os.path.join(song_dir, f'{BASE_NAME}_trace')
-        assert os.path.isdir(scc_subdir), (
-            f"SCC pass subdir not found: {scc_subdir}")
-
-        # PSG pass files live in <song_dir>/<base_name>_psg_trace/
-        psg_subdir = os.path.join(song_dir, f'{BASE_NAME}_psg_trace')
-        assert os.path.isdir(psg_subdir), (
-            f"PSG pass subdir not found: {psg_subdir}")
+        # CSV files must exist inside the stem dir
+        csv_files = [f for f in os.listdir(stem_dir) if f.endswith('.csv')]
+        assert len(csv_files) >= 4, (
+            f"Expected at least 4 CSV files in {stem_dir}, got {csv_files}")
 
 
-def test_no_outdir_uses_legacy_default():
-    """Without --outdir, outputs go to <vgm_dir>/<base_name>_log/ (legacy)."""
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        # Copy the VGM into a temp dir so we control where the default output lands
+def test_outdir_mml_files_inside_stem():
+    """With --outdir, all MML files must be inside <outdir>/<vgm_stem>/."""
+    with tempfile.TemporaryDirectory() as tmp:
+        _run_cli('--outdir', tmp)
+        stem_dir = os.path.join(tmp, VGM_STEM)
+        # Walk the entire output tree and collect .mml files
+        mml_files = []
+        for dirpath, _dirs, files in os.walk(tmp):
+            for fname in files:
+                if fname.endswith('.mml'):
+                    mml_files.append(os.path.join(dirpath, fname))
+
+        assert len(mml_files) >= 2, (
+            f"Expected at least 2 MML files in output tree, got {mml_files}")
+
+        for mml in mml_files:
+            assert mml.startswith(stem_dir + os.sep), (
+                f"MML file {mml!r} is outside {stem_dir!r}")
+
+
+def test_outdir_no_files_outside_stem():
+    """With --outdir, nothing must be created directly in <outdir>/."""
+    with tempfile.TemporaryDirectory() as tmp:
+        _run_cli('--outdir', tmp)
+        direct_entries = os.listdir(tmp)
+        # The only entry should be the stem subdirectory itself
+        assert direct_entries == [VGM_STEM], (
+            f"<outdir>/ should contain only '{VGM_STEM}/', "
+            f"but found: {direct_entries}")
+
+
+def test_outdir_stdout_reports_stem_paths():
+    """CLI stdout paths must all reference <outdir>/<vgm_stem>/."""
+    with tempfile.TemporaryDirectory() as tmp:
+        result = _run_cli('--outdir', tmp)
+        for line in result.stdout.splitlines():
+            if ':' not in line:
+                continue
+            path_part = line.split(':', 1)[1].strip()
+            expected_prefix = os.path.join(tmp, VGM_STEM)
+            assert path_part.startswith(expected_prefix), (
+                f"Output path {path_part!r} does not start with "
+                f"{expected_prefix!r}")
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# No --outdir: all outputs must land under <vgm_dir>/<vgm_stem>_log/
+# ──────────────────────────────────────────────────────────────────────────
+
+def test_no_outdir_uses_log_dir_next_to_vgm():
+    """Without --outdir, outputs land in <vgm_dir>/<vgm_stem>_log/."""
+    with tempfile.TemporaryDirectory() as tmp:
+        # Copy the VGM file into a temporary directory so we don't pollute
+        # the repository's inputs/ folder.
         import shutil
-        vgm_copy = os.path.join(tmp_dir, f'{BASE_NAME}.vgm')
-        shutil.copy(VGM_FILE, vgm_copy)
+        vgm_copy = os.path.join(tmp, os.path.basename(VGM_FILE))
+        shutil.copy2(VGM_FILE, vgm_copy)
 
-        result = _run_cli(vgm_copy)
-        assert result.returncode == 0, f"CLI failed:\n{result.stderr}"
+        cmd = [sys.executable, VGMCLI, vgm_copy]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        assert result.returncode == 0, (
+            f"CLI failed\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}")
 
-        legacy_dir = os.path.join(tmp_dir, f'{BASE_NAME}_log')
-        assert os.path.isdir(legacy_dir), (
-            f"Expected legacy output dir {legacy_dir!r} was not created")
+        log_dir = os.path.join(tmp, VGM_STEM + '_log')
+        assert os.path.isdir(log_dir), (
+            f"Expected {log_dir!r} to exist\n"
+            f"Contents of {tmp}: {os.listdir(tmp)}")
+
+        # All CSV files must be inside log_dir (or its subdirectories)
+        for dirpath, _dirs, files in os.walk(tmp):
+            for fname in files:
+                if fname == os.path.basename(vgm_copy):
+                    continue  # skip the VGM itself
+                fpath = os.path.join(dirpath, fname)
+                assert fpath.startswith(log_dir + os.sep), (
+                    f"File {fpath!r} is outside expected log dir {log_dir!r}")

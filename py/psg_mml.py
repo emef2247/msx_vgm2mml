@@ -8,7 +8,7 @@ import os
 import math
 
 sys.path.insert(0, os.path.dirname(__file__))
-from mml_utils import get_ticks, get_octave, get_scale, get_tone_frequency
+from mml_utils import get_ticks, get_octave, get_scale, get_tone_frequency, estimate_mml_used, estimate_alloc
 
 # PSG column indices
 COL_TYPE = 0
@@ -464,13 +464,11 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
         f.write('#opll_mode 1\n')
         f.write('#tempo 75\n')
         f.write('#title { "psg example"}\n')
-        f.write('#alloc 1=3100\n')
-        f.write('#alloc 2=3100\n')
-        f.write('#alloc 3=2400\n')
-        f.write('#alloc 4=2100\n')
-        f.write('#alloc 5=1100\n')
-        f.write('#alloc 6=1000\n')
-        f.write('#alloc 7=1000\n')
+        for ch in ch_list:
+            track = ch + ch_offset
+            used = estimate_mml_used(mml_buffer1[ch])
+            alloc = estimate_alloc(used)
+            f.write(f'#alloc {track}={alloc}\n')
         f.write('\n')
         for ch in ch_list:
             for item in mml_buffer1[ch]:
