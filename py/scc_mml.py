@@ -367,7 +367,18 @@ def _pass1(temp_buf0, ch_list):
 # ---------------------------------------------------------------------------
 
 def _pass2(temp_buf1, ch_list):
-    """Remove wtbNew/wtbLast rows; merge f1/f2Ctrl + vCtrl/enBit at same tick."""
+    """Remove wtbNew/wtbLast rows; merge f1/f2Ctrl + vCtrl/enBit at same tick.
+
+    When wtbNew/wtbLast rows are dropped, their l values are accumulated and
+    propagated to the nearest adjacent non-wtb row so that the total tick count
+    per channel is preserved.  Specifically:
+    - If a non-wtb row already exists in the output buffer, the accumulated l is
+      added to the last such row's l (covers the case of a wavetable update in
+      the middle of playback).
+    - If no non-wtb row has been emitted yet (wavetable setup at the very start
+      of the channel), the accumulated l is added to the first non-wtb row's l
+      (covers the case of ch7 starting with waveform initialisation at tick 0).
+    """
     temp_buf2 = {}
 
     for ch in ch_list:
@@ -377,6 +388,7 @@ def _pass2(temp_buf1, ch_list):
 
         line_stamp = None
         index = 0
+        _acc_l = 0   # l accumulated from dropped wtb rows
 
         while index < n:
             line     = buf[index]
@@ -387,7 +399,23 @@ def _pass2(temp_buf1, ch_list):
 
                 # Add line_stamp to buffer (unless it is a wavetable row)
                 if lt_type not in ('wtbNew', 'wtbLast'):
-                    temp_buf2[ch].append(list(line_stamp))
+                    if _acc_l > 0:
+                        row_to_add = list(line_stamp)
+                        if temp_buf2[ch]:
+                            # There is a previous non-wtb row: extend its l
+                            temp_buf2[ch][-1][COL_L] = str(
+                                _int(temp_buf2[ch][-1][COL_L]) + _acc_l)
+                        else:
+                            # No previous row yet: add to the current row's l
+                            row_to_add[COL_L] = str(
+                                _int(row_to_add[COL_L]) + _acc_l)
+                        _acc_l = 0
+                    else:
+                        row_to_add = list(line_stamp)
+                    temp_buf2[ch].append(row_to_add)
+                else:
+                    # Accumulate the l from the dropped wavetable row
+                    _acc_l += _int(line_stamp[COL_L])
 
                 # Check merge: line is f1/f2Ctrl AND next is vCtrl/enBit at same tick
                 if next_row is not None:
@@ -422,7 +450,18 @@ def _pass2(temp_buf1, ch_list):
         if line_stamp is not None:
             lt_type = line_stamp[COL_TYPE]
             if lt_type not in ('wtbNew', 'wtbLast'):
-                temp_buf2[ch].append(list(line_stamp))
+                if _acc_l > 0:
+                    row_to_add = list(line_stamp)
+                    if temp_buf2[ch]:
+                        temp_buf2[ch][-1][COL_L] = str(
+                            _int(temp_buf2[ch][-1][COL_L]) + _acc_l)
+                    else:
+                        row_to_add[COL_L] = str(
+                            _int(row_to_add[COL_L]) + _acc_l)
+                    _acc_l = 0
+                    temp_buf2[ch].append(row_to_add)
+                else:
+                    temp_buf2[ch].append(list(line_stamp))
 
     return temp_buf2
 

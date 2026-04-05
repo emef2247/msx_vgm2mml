@@ -45,6 +45,27 @@ VGM_FILE = os.path.join(
     REPO_ROOT,
     'inputs', '02_StartingPoint', '02_StartingPoint.vgm')
 
+# ──────────────────────────────────────────────────────────────────────────
+# Paths – 01_AbovetheHorizon (ch7 tick-offset regression)
+# ──────────────────────────────────────────────────────────────────────────
+ABOVE_TRACE_CSV = os.path.join(
+    REPO_ROOT,
+    'inputs', '01_AbovetheHorizon', '01_AbovetheHorizon_trace.scc.csv')
+
+ABOVE_LOG_CSV = os.path.join(
+    REPO_ROOT,
+    'inputs', '01_AbovetheHorizon', '01_AbovetheHorizon_log.scc.csv')
+
+ABOVE_GOLDEN_TRACE_MML = os.path.join(
+    REPO_ROOT,
+    'outputs', '01_AbovetheHorizon_trace',
+    '01_AbovetheHorizon_trace.scc.pass3.mml')
+
+ABOVE_GOLDEN_LOG_MML = os.path.join(
+    REPO_ROOT,
+    'outputs', '01_AbovetheHorizon_log',
+    '01_AbovetheHorizon_log.scc.pass3.mml')
+
 
 # ──────────────────────────────────────────────────────────────────────────
 # Helpers
@@ -223,4 +244,82 @@ def test_python_trace_csv_matches_tcl_trace_csv():
             pytest.fail(
                 "Python-generated trace CSV differs from the Tcl reference.\n"
                 "--- diff (expected vs got) ---\n" + diff)
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# 01_AbovetheHorizon: ch7 timing regression tests
+# ──────────────────────────────────────────────────────────────────────────
+
+def _extract_end_ticks(mml_text):
+    """Return {ch_num: tick_count} for all 'chN end: tick count:' comments."""
+    import re
+    result = {}
+    for m in re.finditer(r';ch(\d+) end: tick count: (\d+)', mml_text):
+        result[int(m.group(1))] = int(m.group(2))
+    return result
+
+
+def test_above_horizon_ch7_tick_count_trace():
+    """ch7 tick count must match ch4-6 when processing 01_AbovetheHorizon trace CSV.
+
+    Regression test for the bug where wtbNew/wtbLast rows were dropped in pass2
+    without propagating their l values, causing ch7 (internal ch3) to be 32
+    ticks short because its waveform initialisation occupies the first 32 ticks.
+    """
+    if not os.path.isfile(ABOVE_TRACE_CSV):
+        pytest.skip(f"01_AbovetheHorizon trace CSV not found: {ABOVE_TRACE_CSV}")
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, '01_AbovetheHorizon_trace')
+        mml_path = process_scc_csv(ABOVE_TRACE_CSV, out_dir, dump_passes=False)
+        ticks = _extract_end_ticks(_read(mml_path))
+
+    assert ticks, "No end-tick comments found in generated MML"
+    expected = ticks[4]  # ch4 (SCC ch0) is the reference
+    for ch in (5, 6, 7):
+        assert ticks.get(ch) == expected, (
+            f"ch{ch} tick count {ticks.get(ch)} != ch4 tick count {expected}; "
+            f"all channels must have equal total length")
+
+
+def test_above_horizon_ch7_tick_count_log():
+    """Same regression test using the log (per-channel) CSV variant."""
+    if not os.path.isfile(ABOVE_LOG_CSV):
+        pytest.skip(f"01_AbovetheHorizon log CSV not found: {ABOVE_LOG_CSV}")
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, '01_AbovetheHorizon_log')
+        mml_path = process_scc_csv(ABOVE_LOG_CSV, out_dir, dump_passes=False)
+        ticks = _extract_end_ticks(_read(mml_path))
+
+    assert ticks, "No end-tick comments found in generated MML"
+    expected = ticks[4]
+    for ch in (5, 6, 7):
+        assert ticks.get(ch) == expected, (
+            f"ch{ch} tick count {ticks.get(ch)} != ch4 tick count {expected}; "
+            f"all channels must have equal total length")
+
+
+def test_above_horizon_trace_mml_matches_golden():
+    """Generated MML for 01_AbovetheHorizon trace must match the committed golden."""
+    if not os.path.isfile(ABOVE_TRACE_CSV):
+        pytest.skip(f"01_AbovetheHorizon trace CSV not found: {ABOVE_TRACE_CSV}")
+    if not os.path.isfile(ABOVE_GOLDEN_TRACE_MML):
+        pytest.skip(f"01_AbovetheHorizon trace golden MML not found: {ABOVE_GOLDEN_TRACE_MML}")
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, '01_AbovetheHorizon_trace')
+        mml_path = process_scc_csv(ABOVE_TRACE_CSV, out_dir, dump_passes=False)
+
+        got      = _read(mml_path)
+        expected = _read(ABOVE_GOLDEN_TRACE_MML)
+
+        if got != expected:
+            diff = _unified_diff(got, expected,
+                                 got_label=mml_path,
+                                 exp_label=ABOVE_GOLDEN_TRACE_MML)
+            pytest.fail(
+                "01_AbovetheHorizon trace pass3.mml differs from golden.\n"
+                "--- diff (expected vs got) ---\n" + diff)
+
 
