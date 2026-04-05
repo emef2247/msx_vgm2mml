@@ -9,7 +9,9 @@ import math
 
 sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import (get_ticks, get_octave, get_scale, get_tone_frequency,
-                       estimate_mml_used, estimate_alloc, ticks_to_mml_length)
+                       estimate_mml_used, estimate_alloc, ticks_to_mml_length,
+                       ticks_to_mml_length_inherited, apply_repeat_compression,
+                       compress_mml_channel)
 
 # PSG column indices
 COL_TYPE = 0
@@ -374,12 +376,14 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
     ch_offset = 1  # PSG channels displayed as 1-based
 
     for ch in ch_list:
-        note_cnt = 0
-        mml = ""
-        l_cnt = 0
-        o_stamp = 0
-        v_stamp = 0
-        mode_stamp = -1   # tracks previous mode so we can flush on mode change
+        note_cnt    = 0
+        mml         = ""
+        l_cnt       = 0
+        o_stamp     = 0
+        v_stamp     = 0
+        mode_stamp  = -1   # tracks previous mode so we can flush on mode change
+        default_len = 64   # current inherited default note length
+        needs_sync  = True  # True → next group head must declare v/o/l
         is_first_group = True
 
         ch_start = f"\n\n;ch{ch + ch_offset} start"
@@ -409,35 +413,63 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
                     mml = ""
                     mml_buffer1[ch].append(f"\n;tick count: {l_cnt}\n")
                     note_cnt = 0
+                    needs_sync = True
 
                 if note_cnt == 0:
                     if mode == 0:
                         v = 0
                         if is_first_group:
-                            mml = f"\n{ch + ch_offset} /0 v{v} o{o} l64"
+                            mml = f"\n{ch + ch_offset} /0 v{v} o{o} l{default_len}"
                             o_stamp = o
+                            v_stamp = v
                             is_first_group = False
+                            needs_sync = False
+                        elif needs_sync:
+                            mml = f"\n{ch + ch_offset} /0 v{v} l{default_len}"
+                            v_stamp = v
+                            needs_sync = False
                         else:
                             mml = f"\n{ch + ch_offset} /0 v{v}"
                     elif mode == 1:
                         if is_first_group:
-                            mml = f"\n{ch + ch_offset} /1 s{hw_env_shape} m{hw_env_period} v{v} o{o} l64"
+                            mml = f"\n{ch + ch_offset} /1 s{hw_env_shape} m{hw_env_period} v{v} o{o} l{default_len}"
                             o_stamp = o
+                            v_stamp = v
                             is_first_group = False
+                            needs_sync = False
+                        elif needs_sync:
+                            mml = f"\n{ch + ch_offset} /1 s{hw_env_shape} m{hw_env_period} v{v} o{o} l{default_len}"
+                            o_stamp = o
+                            v_stamp = v
+                            needs_sync = False
                         else:
                             mml = f"\n{ch + ch_offset} /1 s{hw_env_shape} m{hw_env_period} v{v}"
                     elif mode == 2:
                         if is_first_group:
-                            mml = f"\n{ch + ch_offset} /2 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v} o{o} l64"
+                            mml = f"\n{ch + ch_offset} /2 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v} o{o} l{default_len}"
                             o_stamp = o
+                            v_stamp = v
                             is_first_group = False
+                            needs_sync = False
+                        elif needs_sync:
+                            mml = f"\n{ch + ch_offset} /2 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v} o{o} l{default_len}"
+                            o_stamp = o
+                            v_stamp = v
+                            needs_sync = False
                         else:
                             mml = f"\n{ch + ch_offset} /2 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v}"
                     elif mode == 3:
                         if is_first_group:
-                            mml = f"\n{ch + ch_offset} /3 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v} o{o} l64"
+                            mml = f"\n{ch + ch_offset} /3 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v} o{o} l{default_len}"
                             o_stamp = o
+                            v_stamp = v
                             is_first_group = False
+                            needs_sync = False
+                        elif needs_sync:
+                            mml = f"\n{ch + ch_offset} /3 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v} o{o} l{default_len}"
+                            o_stamp = o
+                            v_stamp = v
+                            needs_sync = False
                         else:
                             mml = f"\n{ch + ch_offset} /3 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v}"
 
@@ -450,9 +482,12 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
                             scale = 'r'
                         if v != v_stamp and note_cnt != 0:
                             mml += f" v{v}"
+                            v_stamp = v
                         if o != o_stamp:
                             mml += f" o{o}"
-                        mml += f" {ticks_to_mml_length(ltmp, scale)}"
+                        note_str, default_len = ticks_to_mml_length_inherited(
+                            ltmp, scale, default_len)
+                        mml += f" {note_str}"
                         l_cnt += ltmp
 
                     length -= ltmp
@@ -468,6 +503,7 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
                     info = f"\n;tick count: {l_cnt}\n"
                     mml_buffer1[ch].append(info)
                     note_cnt = 0
+                    needs_sync = True
 
                 o_stamp = o
                 v_stamp = v
@@ -478,6 +514,9 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
 
         info = f"\n;ch{ch + ch_offset} end: tick count: {l_cnt}\n"
         mml_buffer1[ch].append(info)
+
+        # Apply [...]N compression within each comment-bounded block
+        mml_buffer1[ch] = compress_mml_channel(mml_buffer1[ch])
 
     # Write pass3.mml
     pass3_mml_path = os.path.join(output_dir, f"{output_name_body}.psg.mml")

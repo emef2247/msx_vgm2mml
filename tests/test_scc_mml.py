@@ -331,3 +331,95 @@ def test_above_horizon_trace_mml_matches_golden():
                 "--- diff (expected vs got) ---\n" + diff)
 
 
+# ──────────────────────────────────────────────────────────────────────────
+# Inheritance and [...]N compression feature tests
+# ──────────────────────────────────────────────────────────────────────────
+
+def test_scc_mml_length_inheritance():
+    """Generated SCC MML must use B-rule length inheritance (omit repeated lengths)."""
+    import re
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, '02_StartingPoint_log')
+        mml_path = process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                                   stem='02_StartingPoint')
+        content = _read(mml_path)
+
+    # After 'l64' declaration, a note that uses the default length should
+    # appear without an explicit length number (e.g., just 'c', not 'c64').
+    # Find a line that declares l64 and check that not ALL notes on it have
+    # explicit length suffixes (the inheritance should suppress many of them).
+    content_lines = [ln for ln in content.splitlines()
+                     if not ln.strip().startswith(';') and ln.strip()]
+    for line in content_lines:
+        if 'l64' in line:
+            # A note token looks like a letter (optionally with +) followed by
+            # a digit, e.g. c64, e16.  Also plain letters like 'c', 'e' are notes.
+            note_with_len = re.findall(r'\b[a-gr]\+?(?:1|2|4|8|16|32|64)\b', line)
+            note_bare = re.findall(r'(?<![a-z@/\d])([a-gr]\+?)(?!\d)(?=\s|$)', line)
+            if note_bare:
+                # At least one inherited (bare) note on an l64 line – test passes
+                return
+
+    pytest.fail(
+        "No bare (length-omitted) notes found on any 'l64' line in SCC MML.\n"
+        "Length inheritance (B-rule) does not appear to be active.")
+
+
+def test_scc_mml_sync_after_comment():
+    """After every ;tick count: comment, the next group must declare v, o, and l."""
+    import re
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, '02_StartingPoint_log')
+        mml_path = process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                                   stem='02_StartingPoint')
+        content = _read(mml_path)
+
+    lines = content.splitlines()
+    violations = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if ';tick count:' in line:
+            # Skip blank lines after the comment
+            j = i + 1
+            while j < len(lines) and not lines[j].strip():
+                j += 1
+            if j < len(lines):
+                next_content = lines[j].strip()
+                if next_content and not next_content.startswith(';'):
+                    # This is the group header after a sync point.
+                    # It must contain v, o, and l declarations.
+                    if not re.search(r'\bv\d+\b', next_content):
+                        violations.append(f"line {j+1}: missing v declaration: {next_content!r}")
+                    if not re.search(r'\bo\d+\b', next_content):
+                        violations.append(f"line {j+1}: missing o declaration: {next_content!r}")
+                    if not re.search(r'\bl\d+\b', next_content):
+                        violations.append(f"line {j+1}: missing l declaration: {next_content!r}")
+        i += 1
+
+    assert not violations, (
+        "Group headers after ;tick count: comments missing v/o/l declarations:\n"
+        + '\n'.join(violations[:10]))
+
+
+def test_scc_mml_bracket_compression_grammar():
+    """Any [...]N compression in SCC MML must use [...]N grammar (not N[...])."""
+    import re
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, '02_StartingPoint_log')
+        mml_path = process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                                   stem='02_StartingPoint')
+        content = _read(mml_path)
+
+    # N[...] pattern must NOT appear (wrong grammar)
+    wrong = re.findall(r'\d+\[', content)
+    assert not wrong, (
+        f"Found N[...] (wrong) repeat syntax in SCC MML: {wrong}")
+
+    # [...] must be followed immediately by a digit
+    # Allow for any bracket constructs that do appear
+    brackets = re.findall(r'\[([^\]]+)\](\d+)', content)
+    for inner, count in brackets:
+        assert int(count) >= 2, (
+            f"Repeat count {count} < 2 in [...]N construct: [{inner}]{count}")
+

@@ -180,3 +180,146 @@ def ticks_to_mml_length(ticks, scale):
         # return a silent 64th note as a safe fallback.
         return f'r64'
     return ''.join(parts)
+
+
+def ticks_to_mml_length_inherited(ticks, scale, default_len):
+    """Like ticks_to_mml_length but apply B-rule length inheritance.
+
+    Omits the length number from a note/rest token when it matches
+    *default_len* (the current inherited default).  When the length
+    differs it is written explicitly and becomes the new default.
+
+    Returns a tuple ``(mml_str, new_default_len)``.
+
+    Examples (scale='c', default_len=64):
+        1 tick  → ('c', 64)          length 64 == default → omit
+        4 ticks → ('c16', 16)        length 16 != default → write, update
+        3 ticks → ('c32c64', 64)     32 written, then 64==32? no → 'c64', final default=64
+    """
+    parts = []
+    remaining = ticks
+    cur_default = default_len
+    for tick_val, mml_len in _NOTE_LEN_TABLE:
+        while remaining >= tick_val:
+            if mml_len == cur_default:
+                parts.append(scale)
+            else:
+                parts.append(f'{scale}{mml_len}')
+                cur_default = mml_len
+            remaining -= tick_val
+    if not parts:
+        return f'r64', default_len
+    return ''.join(parts), cur_default
+
+
+def apply_repeat_compression(tokens):
+    """Find and apply ``[...]N`` compression to a list of MML token strings.
+
+    Searches for the most space-saving exact repetition of a contiguous
+    sub-sequence and replaces it with a single ``[...]N`` token.  The
+    function recurses until no further saving is possible.
+
+    Grammar is always ``[...]N`` (never ``N[...]``).
+    Only applied when the compressed form is strictly shorter.
+
+    Parameters
+    ----------
+    tokens : list[str]
+        Whitespace-split MML tokens (must not include comment tokens).
+
+    Returns
+    -------
+    list[str]
+        Compressed token list (may be the same object if no compression
+        was possible).
+    """
+    n = len(tokens)
+    if n < 4:
+        return tokens
+
+    best = None  # (saving, start, sub_len, count)
+    for sub_len in range(1, n // 2 + 1):
+        for start in range(n - sub_len * 2 + 1):
+            sub = tokens[start:start + sub_len]
+            count = 1
+            pos = start + sub_len
+            while pos + sub_len <= n and tokens[pos:pos + sub_len] == sub:
+                count += 1
+                pos += sub_len
+
+            if count >= 2:
+                # Size: each token joined by a single space
+                sub_size = sum(len(t) for t in sub) + (len(sub) - 1)
+                orig_size = sub_size * count + (count - 1)
+                compressed_token = '[' + ' '.join(sub) + ']' + str(count)
+                compressed_size = len(compressed_token)
+                saving = orig_size - compressed_size
+                if saving > 0:
+                    if best is None or saving > best[0]:
+                        best = (saving, start, sub_len, count)
+
+    if best is None:
+        return tokens
+
+    _, start, sub_len, count = best
+    sub = tokens[start:start + sub_len]
+    compressed_token = '[' + ' '.join(sub) + ']' + str(count)
+    new_tokens = (tokens[:start]
+                  + [compressed_token]
+                  + tokens[start + sub_len * count:])
+    return apply_repeat_compression(new_tokens)
+
+
+def compress_mml_channel(items):
+    """Apply ``[...]N`` compression to all comment-bounded blocks in a channel.
+
+    Takes the list of MML buffer strings for a single channel, groups
+    adjacent *content* items (those not starting with ``;`` after stripping
+    leading newlines/whitespace) into blocks, applies
+    :func:`apply_repeat_compression` to each block, and returns a new list
+    where each compressed block is a single string.
+
+    Comment items and empty items act as block boundaries and are
+    preserved unchanged in the output.
+
+    This handles both the SCC/OPLL pattern (one content item per 8-note
+    group) and the PSG pattern (one content item per individual note).
+    """
+    result = []
+    i = 0
+    while i < len(items):
+        item = items[i]
+        stripped = item.lstrip('\n').lstrip()
+
+        if stripped.startswith(';') or not stripped:
+            result.append(item)
+            i += 1
+            continue
+
+        # Collect all consecutive non-comment, non-empty items
+        block_items = []
+        while i < len(items):
+            cur = items[i]
+            cur_stripped = cur.lstrip('\n').lstrip()
+            if cur_stripped.startswith(';') or not cur_stripped:
+                break
+            block_items.append(cur)
+            i += 1
+
+        # Join the block into one string (they share one MML line)
+        block_text = ''.join(block_items)
+        leading_newline = '\n' if block_text.startswith('\n') else ''
+        body = block_text.lstrip('\n')
+        tokens = body.split()
+
+        if len(tokens) < 3:
+            result.append(block_text)
+            continue
+
+        ch_token = tokens[0]
+        content_tokens = tokens[1:]
+        compressed = apply_repeat_compression(content_tokens)
+        result.append(leading_newline + ch_token + ' ' + ' '.join(compressed))
+
+    return result
+

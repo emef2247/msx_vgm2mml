@@ -194,3 +194,94 @@ def test_vgm_to_psg_trace_mml_has_notes():
         notes = note_pattern.findall(content)
         assert len(notes) > 0, (
             "Trace-based PSG MML contains only rests - frequency mapping broken.")
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Inheritance and [...]N compression feature tests
+# ──────────────────────────────────────────────────────────────────────────
+
+def test_psg_mml_length_inheritance():
+    """Generated PSG MML must use B-rule length inheritance on content lines."""
+    import re
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        mml_path = process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM,
+                                   dump_passes=False)
+        content = _read(mml_path)
+
+    # After an 'lN' declaration, subsequent notes of the same length should
+    # have no explicit length suffix.  Check that the MML contains bare note
+    # tokens (letter only, no following digit).
+    content_lines = [ln for ln in content.splitlines()
+                     if not ln.strip().startswith(';') and ln.strip()]
+    for line in content_lines:
+        if re.search(r'\bl\d+\b', line):
+            # Bare note: a note letter (with optional '+') not followed by a digit
+            bare = re.findall(r'(?<![a-z@/\d])([a-gr]\+?)(?!\d)(?=\s|$)', line)
+            if bare:
+                return  # Found at least one inherited bare note
+
+    pytest.fail(
+        "No bare (length-omitted) notes found in PSG MML. "
+        "Length inheritance does not appear to be active.")
+
+
+def test_psg_mml_sync_after_comment():
+    """After every ;tick count: comment, audible PSG groups must declare v, o, l."""
+    import re
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        mml_path = process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM,
+                                   dump_passes=False)
+        content = _read(mml_path)
+
+    lines = content.splitlines()
+    violations = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if ';tick count:' in line:
+            j = i + 1
+            while j < len(lines) and not lines[j].strip():
+                j += 1
+            if j < len(lines):
+                next_content = lines[j].strip()
+                if next_content and not next_content.startswith(';'):
+                    # For mute mode (/0), only v is required
+                    is_mute = '/0' in next_content
+                    if not is_mute:
+                        # Audible mode must have v, o, l
+                        if not re.search(r'\bv\d+\b', next_content):
+                            violations.append(f"line {j+1}: missing v: {next_content!r}")
+                        if not re.search(r'\bo\d+\b', next_content):
+                            violations.append(f"line {j+1}: missing o: {next_content!r}")
+                        if not re.search(r'\bl\d+\b', next_content):
+                            violations.append(f"line {j+1}: missing l: {next_content!r}")
+                    else:
+                        if not re.search(r'\bv\d+\b', next_content):
+                            violations.append(f"line {j+1}: missing v in mute: {next_content!r}")
+        i += 1
+
+    assert not violations, (
+        "PSG group headers after ;tick count: comments missing declarations:\n"
+        + '\n'.join(violations[:10]))
+
+
+def test_psg_mml_bracket_compression_grammar():
+    """Any [...]N compression in PSG MML must use [...]N grammar (not N[...])."""
+    import re
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        mml_path = process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM,
+                                   dump_passes=False)
+        content = _read(mml_path)
+
+    wrong = re.findall(r'\d+\[', content)
+    assert not wrong, (
+        f"Found N[...] (wrong) repeat syntax in PSG MML: {wrong}")
+
+    brackets = re.findall(r'\[([^\]]+)\](\d+)', content)
+    for inner, count in brackets:
+        assert int(count) >= 2, (
+            f"Repeat count {count} < 2 in [...]N construct: [{inner}]{count}")
+

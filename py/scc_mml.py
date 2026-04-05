@@ -9,7 +9,10 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import (get_ticks, get_octave, get_scale,
                        estimate_mml_used, estimate_alloc,
-                       ticks_to_mml_length)
+                       ticks_to_mml_length,
+                       ticks_to_mml_length_inherited,
+                       apply_repeat_compression,
+                       compress_mml_channel)
 
 # ---------------------------------------------------------------------------
 # Column indices (28 columns, 0-27)
@@ -556,18 +559,31 @@ def _pass3(temp_buf2, ch_list):
 # ---------------------------------------------------------------------------
 
 def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
-    """Generate MML text from pass-3 data."""
+    """Generate MML text from pass-3 data.
+
+    Applies B-rule length/v/o inheritance:
+      - ``l64`` is declared on the first group; the current default length
+        is tracked and a note's length number is omitted when it matches.
+      - ``v`` and ``o`` are only re-emitted when their value changes.
+      - After every ``; tick count:`` comment (sync point) the next group
+        header always declares ``v``, ``o``, and ``l`` explicitly.
+
+    After building each channel's token stream, ``[...]N`` compression is
+    applied within comment-bounded blocks.
+    """
     mml_buffer = {}
 
     for ch in ch_list:
         mml_buffer[ch] = []
-        note_cnt  = 0
-        l_cnt     = 0
-        o_stamp   = 0
-        v_stamp   = 0
-        at_stamp  = -1
+        note_cnt     = 0
+        l_cnt        = 0
+        o_stamp      = 0
+        v_stamp      = 0
+        at_stamp     = -1
+        default_len  = 64   # current inherited default note length
+        needs_sync   = True  # True → next group head must declare v/o/l
         is_first_group = True
-        mml       = ''
+        mml          = ''
 
         ch_num = ch + CH_OFFSET
         mml_buffer[ch].append(f'\n\n;ch{ch_num} start')
@@ -588,11 +604,23 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
 
                     if note_cnt == 0:
                         if is_first_group:
-                            mml = f'\n{ch_num} @{wtb_index} v{v} o{o} l64'
+                            # First group: always full declaration
+                            mml = f'\n{ch_num} @{wtb_index} v{v} o{o} l{default_len}'
                             at_stamp = wtb_index
                             v_stamp  = v
                             o_stamp  = o
                             is_first_group = False
+                            needs_sync = False
+                        elif needs_sync:
+                            # After a comment (sync point): re-declare v/o/l
+                            mml = f'\n{ch_num}'
+                            if wtb_index != at_stamp:
+                                mml += f' @{wtb_index}'
+                                at_stamp = wtb_index
+                            mml += f' v{v} o{o} l{default_len}'
+                            v_stamp = v
+                            o_stamp = o
+                            needs_sync = False
                         else:
                             mml = f'\n{ch_num}'
                             if wtb_index != at_stamp:
@@ -604,11 +632,14 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
 
                     if v != v_stamp and note_cnt != 0:
                         mml += f' v{v}'
+                        v_stamp = v
 
                     if o != o_stamp:
                         mml += f' o{o}'
 
-                    mml += f' {ticks_to_mml_length(ltmp, scale)} '
+                    note_str, default_len = ticks_to_mml_length_inherited(
+                        ltmp, scale, default_len)
+                    mml += f' {note_str}'
                     l_cnt += ltmp
 
                     length -= ltmp
@@ -622,6 +653,7 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
                     mml = ''
                     mml_buffer[ch].append(f'\n;tick count: {l_cnt}\n')
                     note_cnt = 0
+                    needs_sync = True  # next group must re-declare v/o/l
 
                 o_stamp = o
                 v_stamp = v
@@ -630,6 +662,9 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
             mml_buffer[ch].append(mml)
 
         mml_buffer[ch].append(f'\n;ch{ch_num} end: tick count: {l_cnt}\n')
+
+        # Apply [...]N compression within each comment-bounded block
+        mml_buffer[ch] = compress_mml_channel(mml_buffer[ch])
 
     # --- Build final MML text ---
     lines = []

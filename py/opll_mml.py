@@ -21,7 +21,9 @@ import math
 
 sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import (get_ticks, estimate_mml_used, estimate_alloc,
-                       track_id_to_mgsdrv, ticks_to_mml_length)
+                       track_id_to_mgsdrv, ticks_to_mml_length,
+                       ticks_to_mml_length_inherited, apply_repeat_compression,
+                       compress_mml_channel)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -234,7 +236,10 @@ def _build_segments(trace_path: str) -> dict:
 # ---------------------------------------------------------------------------
 
 def _generate_mml(segments: dict, stem: str) -> str:
-    """Generate MGSDRV MML text from per-channel segment data."""
+    """Generate MGSDRV MML text from per-channel segment data.
+
+    Applies B-rule length/v/o inheritance and ``[...]N`` compression.
+    """
     mml_buffer: dict[int, list] = {ch: [] for ch in range(NUM_CH)}
 
     for ch in range(NUM_CH):
@@ -242,14 +247,16 @@ def _generate_mml(segments: dict, stem: str) -> str:
         track_id = track_id_to_mgsdrv(ch_num)
         mml_buffer[ch].append(f'\n\n;ch{track_id} start')
 
-        segs    = segments[ch]
-        l_cnt   = 0
-        o_stamp = 0
-        v_stamp = -1
-        at_stamp = -1
+        segs         = segments[ch]
+        l_cnt        = 0
+        o_stamp      = 0
+        v_stamp      = -1
+        at_stamp     = -1
+        default_len  = 64
+        needs_sync   = True
         is_first_group = True
-        mml     = ''
-        note_cnt = 0
+        mml          = ''
+        note_cnt     = 0
 
         for seg_idx, seg in enumerate(segs):
             length = seg.tick_end - seg.tick_start
@@ -269,9 +276,21 @@ def _generate_mml(segments: dict, stem: str) -> str:
                 if note_cnt == 0:
                     at_val = seg.inst
                     if is_first_group:
-                        mml = f'\n{track_id} @{at_val} v{v} o{octave} l64'
+                        mml = f'\n{track_id} @{at_val} v{v} o{octave} l{default_len}'
                         o_stamp = octave
+                        v_stamp = v
+                        at_stamp = at_val
                         is_first_group = False
+                        needs_sync = False
+                    elif needs_sync:
+                        mml = f'\n{track_id}'
+                        if at_val != at_stamp:
+                            mml += f' @{at_val}'
+                            at_stamp = at_val
+                        mml += f' v{v} o{octave} l{default_len}'
+                        o_stamp = octave
+                        v_stamp = v
+                        needs_sync = False
                     else:
                         mml = f'\n{track_id}'
                         if at_val != at_stamp:
@@ -293,7 +312,9 @@ def _generate_mml(segments: dict, stem: str) -> str:
                     mml += f' o{octave}'
                     o_stamp = octave
 
-                mml += f' {ticks_to_mml_length(ltmp, scale)}'
+                note_str, default_len = ticks_to_mml_length_inherited(
+                    ltmp, scale, default_len)
+                mml += f' {note_str}'
                 l_cnt += ltmp
 
                 remaining -= ltmp
@@ -307,11 +328,15 @@ def _generate_mml(segments: dict, stem: str) -> str:
                 mml = ''
                 mml_buffer[ch].append(f'\n;tick count: {l_cnt}\n')
                 note_cnt = 0
+                needs_sync = True
 
         if mml:
             mml_buffer[ch].append(mml)
 
         mml_buffer[ch].append(f'\n;ch{track_id} end: tick count: {l_cnt}\n')
+
+        # Apply [...]N compression within each comment-bounded block
+        mml_buffer[ch] = compress_mml_channel(mml_buffer[ch])
 
     # Build header
     lines = []
