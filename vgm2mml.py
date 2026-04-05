@@ -48,14 +48,13 @@ def main():
     base_name = os.path.splitext(os.path.basename(vgm_path))[0]
 
     # Determine song-level output directory.
-    # With --outdir: place all outputs under <outdir>/<base_name>/ so that
-    # processing multiple VGM files into the same --outdir keeps them separate.
-    # Without --outdir: use <vgm_dir>/<base_name>_log/ (legacy default).
+    # All outputs (raw CSVs + MML + pass CSVs) go into a single flat directory.
+    # With --outdir: <outdir>/<vgm_stem>/
+    # Without --outdir: <repo_root>/outputs/<vgm_stem>/
     if args.outdir:
         song_dir = os.path.join(args.outdir, base_name)
     else:
-        song_dir = os.path.join(os.path.dirname(os.path.abspath(vgm_path)),
-                                base_name + '_log')
+        song_dir = os.path.join(_SCRIPT_DIR, 'outputs', base_name)
 
     os.makedirs(song_dir, exist_ok=True)
 
@@ -68,32 +67,18 @@ def main():
     print(f"SCC trace: {scc_trace_csv}")
 
     # ── Step 2: SCC MML pipeline ─────────────────────────────────
-    if args.scc_input == 'trace':
-        scc_csv = scc_trace_csv
-        stem_suffix = base_name + '_trace'
-    else:
-        scc_csv = scc_log_csv
-        stem_suffix = base_name + '_log'
+    scc_csv = scc_trace_csv if args.scc_input == 'trace' else scc_log_csv
 
-    # Put SCC pass files into a sub-directory named after the stem
-    scc_out_dir = os.path.join(song_dir, stem_suffix)
-    mml_path = process_scc_csv(scc_csv, scc_out_dir,
+    mml_path = process_scc_csv(scc_csv, song_dir, stem=base_name,
                                 dump_passes=args.dump_passes)
     print(f"SCC MML:   {mml_path}")
 
     # ── Step 3: PSG MML pipeline ─────────────────────────────────
     # Default: use trace CSV (chronological order, same as SCC default).
     # Use --psg-input log for the log-based variant (debug).
-    if args.psg_input == 'trace':
-        psg_csv = psg_trace_csv
-        psg_stem_suffix = base_name + '_psg_trace'
-    else:
-        psg_csv = psg_log_csv
-        psg_stem_suffix = base_name + '_psg_log'
+    psg_csv = psg_trace_csv if args.psg_input == 'trace' else psg_log_csv
 
-    psg_out_dir = os.path.join(song_dir, psg_stem_suffix)
-    psg_mml_path = process_psg_csv(psg_csv, psg_out_dir,
-                                   stem=psg_stem_suffix,
+    psg_mml_path = process_psg_csv(psg_csv, song_dir, stem=base_name,
                                    dump_passes=args.dump_passes)
     print(f"PSG MML:   {psg_mml_path}")
 

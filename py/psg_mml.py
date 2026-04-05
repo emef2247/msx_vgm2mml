@@ -458,7 +458,7 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
         mml_buffer1[ch].append(info)
 
     # Write pass3.mml
-    pass3_mml_path = os.path.join(output_dir, f"{output_name_body}.psg.pass3.mml")
+    pass3_mml_path = os.path.join(output_dir, f"{output_name_body}.psg.mml")
     with open(pass3_mml_path, 'w', newline='\n') as f:
         f.write(';[name=psg lpf=1]\n')
         f.write('#opll_mode 1\n')
