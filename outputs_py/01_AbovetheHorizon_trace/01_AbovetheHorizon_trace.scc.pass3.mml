@@ -1,0 +1,3577 @@
+;[name=scc lpf=1]
+#opll_mode 1
+#tempo 75
+#title { "01_AbovetheHorizon_trace"}
+#alloc 1=3100
+#alloc 2=3100
+#alloc 3=2400
+#alloc 4=2100
+#alloc 5=1100
+#alloc 6=1000
+#alloc 7=1000
+
+@s00 = {00f8f0e8e0d8d0c8c0b8b0a8a098908880787068605850484038302820181008}
+@s01 = {001931475a6a757d7f7d756a5a4731198090a0b0c0d0e0f00010203040506070}
+@s02 = {00407f4001c081c001407f4001c0014001e0012001f0011001ffffffff404040}
+@s03 = {003050607060503000d0b0a090a0b0d000406070604000c0a090a0c000700090}
+@s04 = {305050300000104060706030f0e0e000202010c0a090a0c00000d0b0b0d00000}
+
+
+
+;ch4 start
+4 @0 v3 o1 a%16  v4 a%16  v5 a%16  v6 a%16  v7 a%16  v8 a%16  v9 a%16  v10 a%255  v10 a%255  v10 a%3 
+;tick count: 625
+
+4 @0 v9 a%180  a%3 
+;tick count: 808
+
+4 @1 v2 o5 a%4  a%5  g+%5  g%5  f+%5  f%5  e%5  d+%5 
+;tick count: 847
+
+4 @1 v2 d%5  c+%5  c%5  o4 b%5  a+%5  a%5  g+%5  g%5 
+;tick count: 887
+
+4 @2 v8 o3 b%1 
+;tick count: 888
+
+4 @2 v8 b%1  v7 b%3  v6 b%3  v5 b%3  v4 b%3  v3 b%1  b%2  v2 b%1 
+;tick count: 905
+
+4 @2 v1 b%1  v0 b%1 
+;tick count: 907
+
+4 @2 v8 b%2  v7 o4 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%3  v2 c%1  v1 c%1 
+;tick count: 926
+
+4 @2 v0 c%1 
+;tick count: 927
+
+4 @2 v8 c%2  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 946
+
+4 @2 v0 d%1 
+;tick count: 947
+
+4 @2 v8 d%2  v7 e%3  v6 e%3  v5 e%3  v4 e%3  v3 e%23  v2 e%1  v1 e%1 
+;tick count: 986
+
+4 @2 v0 e%1 
+;tick count: 987
+
+4 @2 v8 e%2  v7 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%23  v2 c%1  v1 c%1 
+;tick count: 1026
+
+4 @2 v0 c%1 
+;tick count: 1027
+
+4 @2 v8 c%2  v7 e%3  v6 e%3  v5 e%3  v4 e%3  v3 e%23  v2 e%1  v1 e%1 
+;tick count: 1066
+
+4 @2 v0 e%1 
+;tick count: 1067
+
+4 @2 v8 e%2  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%23  v2 d%1  v1 d%1 
+;tick count: 1106
+
+4 @2 v0 d%1 
+;tick count: 1107
+
+4 @2 v8 d%2  v7 o3 b%3  v6 b%3  v5 b%3  v4 b%3  v3 b%23  v2 b%1  v1 b%1 
+;tick count: 1146
+
+4 @2 v0 b%1 
+;tick count: 1147
+
+4 @2 v8 b%2  v7 o4 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%23  v2 c%1  v1 c%1 
+;tick count: 1186
+
+4 @2 v0 c%1 
+;tick count: 1187
+
+4 @2 v8 c%2  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 1206
+
+4 @2 v0 d%1 
+;tick count: 1207
+
+4 @2 v8 d%2  v7 e%3  v6 e%3  v5 e%3  v4 e%3  v3 e%63  v2 e%1  v1 e%1 
+;tick count: 1286
+
+4 @2 v0 e%1 
+;tick count: 1287
+
+4 @2 v8 e%2  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%23  v2 d%1  v1 d%1 
+;tick count: 1326
+
+4 @2 v0 d%1 
+;tick count: 1327
+
+4 @2 v8 d%2  v7 o3 a%3  v6 a%3  v5 a%3  v4 a%3  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 1366
+
+4 @2 v0 a%1 
+;tick count: 1367
+
+4 @2 v8 a%2  v7 g%3  v6 g%3  v5 g%3  v4 g%3  v3 g%63  v2 g%1  v1 g%1 
+;tick count: 1446
+
+4 @2 v0 g%1 
+;tick count: 1447
+
+4 @2 v8 g%2  v7 o4 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%63  v2 c%1  v1 c%1 
+;tick count: 1526
+
+4 @2 v0 c%1 
+;tick count: 1527
+
+4 @2 v8 c%2  v7 o3 b%3  v6 b%3  v5 b%3  v4 b%3  v3 b%3  v2 b%1  v1 b%1 
+;tick count: 1546
+
+4 @2 v0 b%1 
+;tick count: 1547
+
+4 @2 v8 b%2  v7 o4 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%3  v2 c%1  v1 c%1 
+;tick count: 1566
+
+4 @2 v0 c%1 
+;tick count: 1567
+
+4 @2 v8 c%2  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 1586
+
+4 @2 v0 d%1 
+;tick count: 1587
+
+4 @2 v8 d%2  v7 e%3  v6 e%3  v5 e%3  v4 e%3  v3 e%23  v2 e%1  v1 e%1 
+;tick count: 1626
+
+4 @2 v0 e%1 
+;tick count: 1627
+
+4 @2 v8 e%2  v7 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%23  v2 c%1  v1 c%1 
+;tick count: 1666
+
+4 @2 v0 c%1 
+;tick count: 1667
+
+4 @2 v8 c%2  v7 a%3  v6 a%3  v5 a%3  v4 a%3  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 1706
+
+4 @2 v0 a%1 
+;tick count: 1707
+
+4 @2 v8 a%2  v7 e%3  v6 e%3  v5 e%3  v4 e%3  v3 e%23  v2 e%1  v1 e%1 
+;tick count: 1746
+
+4 @2 v0 e%1 
+;tick count: 1747
+
+4 @2 v8 e%2  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%23  v2 d%1  v1 d%1 
+;tick count: 1786
+
+4 @2 v0 d%1 
+;tick count: 1787
+
+4 @2 v8 d%2  v7 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%23  v2 c%1  v1 c%1 
+;tick count: 1826
+
+4 @2 v0 c%1 
+;tick count: 1827
+
+4 @2 v8 c%2  v7 d%3  v6 d%3  v5 d%3  v4 d%2  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 1845
+
+4 @2 v0 d%2 
+;tick count: 1847
+
+4 @2 v8 d%1  v7 e%3  v6 e%3  v5 e%3  v4 e%3  v3 e%63  v2 e%1  v1 e%1 
+;tick count: 1925
+
+4 @2 v0 e%1 
+;tick count: 1926
+
+4 @2 v0 e%1 
+;tick count: 1927
+
+4 @2 v8 d%1  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%23  v2 d%1  v1 d%1 
+;tick count: 1965
+
+4 @2 v0 d%1 
+;tick count: 1966
+
+4 @2 v8 d%2  v7 o3 a%3  v6 a%3  v5 a%3  v4 a%3  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 2005
+
+4 @2 v0 a%2 
+;tick count: 2007
+
+4 @2 v8 a%1  v7 g%3  v6 g%3  v5 g%3  v4 g%3  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 2045
+
+4 @2 v0 g%1 
+;tick count: 2046
+
+4 @2 v8 g%2  v7 o4 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%23  v2 c%1  v1 c%1 
+;tick count: 2085
+
+4 @2 v0 c%1 
+;tick count: 2086
+
+4 @2 v8 c%2  v7 e%3  v6 e%3  v5 e%3  v4 e%3  v3 e%23  v2 e%1  v1 e%1 
+;tick count: 2125
+
+4 @2 v0 e%1 
+;tick count: 2126
+
+4 @2 v8 e%2  v7 g%3  v6 g%3  v5 g%3  v4 g%3  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 2165
+
+4 @2 v0 g%2 
+;tick count: 2167
+
+4 @2 v8 g%1  v7 g%3  v6 g%3  v5 g%3  v4 g%3  v3 g%63  v2 g%1  v1 g%1 
+;tick count: 2245
+
+4 @2 v0 g%1 
+;tick count: 2246
+
+4 @2 v8 g%2  v7 f%3  v6 f%3  v5 f%3  v4 f%3  v3 f%63  v2 f%1  v1 f%1 
+;tick count: 2325
+
+4 @2 v0 f%1 
+;tick count: 2326
+
+4 @2 v8 f%2  v7 e%3  v6 e%3  v5 e%3  v4 e%3  v3 e%63  v2 e%1  v1 e%1 
+;tick count: 2405
+
+4 @2 v0 e%1 
+;tick count: 2406
+
+4 @2 v8 e%2  v7 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%63  v2 c%1  v1 c%1 
+;tick count: 2485
+
+4 @2 v0 c%1 
+;tick count: 2486
+
+4 @2 v8 c%2  v7 o3 a%3  v6 a%3  v5 a%3  v4 a%3  v3 a%3  v2 a%1  v1 a%1 
+;tick count: 2505
+
+4 @2 v0 a%1 
+;tick count: 2506
+
+4 @2 v8 a%2  v7 b%3  v6 b%3  v5 b%3  v4 b%3  v3 b%3  v2 b%1  v1 b%1 
+;tick count: 2525
+
+4 @2 v0 b%1 
+;tick count: 2526
+
+4 @2 v8 b%2  v7 o4 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%3  v2 c%1  v1 c%1 
+;tick count: 2545
+
+4 @2 v0 c%1 
+;tick count: 2546
+
+4 @2 v8 c%2  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%83  v2 d%1  v1 d%1 
+;tick count: 2645
+
+4 @2 v0 d%1 
+;tick count: 2646
+
+4 @2 v8 d%2  v7 o3 a%3  v6 a%3  v5 a%3  v4 a%3  v3 a%3  v2 a%1  v1 a%1 
+;tick count: 2665
+
+4 @2 v0 a%1 
+;tick count: 2666
+
+4 @2 v8 a%2  v7 b%3  v6 b%3  v5 b%3  v4 b%3  v3 b%3  v2 b%1  v1 b%1 
+;tick count: 2685
+
+4 @2 v0 b%1 
+;tick count: 2686
+
+4 @2 v8 b%2  v7 o4 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%3  v2 c%1  v1 c%1 
+;tick count: 2705
+
+4 @2 v0 c%1 
+;tick count: 2706
+
+4 @2 v8 c%2  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%23  v2 d%1  v1 d%1 
+;tick count: 2745
+
+4 @2 v0 d%1 
+;tick count: 2746
+
+4 @2 v8 d%2  v7 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%23  v2 c%1  v1 c%1 
+;tick count: 2785
+
+4 @2 v0 c%1 
+;tick count: 2786
+
+4 @2 v8 c%2  v7 o3 b%3  v6 b%3  v5 b%3  v4 b%3  v3 b%3  v2 b%1  v1 b%1 
+;tick count: 2805
+
+4 @2 v0 b%1 
+;tick count: 2806
+
+4 @2 v8 b%2  v7 a%3  v6 a%3  v5 a%3  v4 a%3  v3 a%63  v2 a%1  v1 a%1 
+;tick count: 2885
+
+4 @2 v0 a%1 
+;tick count: 2886
+
+4 @2 v8 a%2  v7 o4 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%63  v2 d%1  v1 d%1 
+;tick count: 2965
+
+4 @2 v0 d%1 
+;tick count: 2966
+
+4 @2 v8 d%2  v7 e%3  v6 e%3  v5 e%3  v4 e%3  v3 e%143  v2 e%1  v1 e%1 
+;tick count: 3125
+
+4 @2 v0 e%2 
+;tick count: 3127
+
+4 @2 v9 o2 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1  v8 a%1 
+;tick count: 3135
+
+4 @2 v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1  v0 a%2 
+;tick count: 3166
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3174
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3204
+
+4 @2 v0 a%2 
+;tick count: 3206
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3214
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3244
+
+4 @2 v0 a%2 
+;tick count: 3246
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3254
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3284
+
+4 @2 v0 a%2 
+;tick count: 3286
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3294
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3324
+
+4 @2 v0 a%2 
+;tick count: 3326
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3334
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3364
+
+4 @2 v0 a%2 
+;tick count: 3366
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3374
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3404
+
+4 @2 v0 a%2 
+;tick count: 3406
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3414
+
+4 @2 v8 a%1  v7 a%1  v8 a%1  v9 f+%1  v10 f+%1  v11 f+%1  v12 f+%1  v11 f+%1 
+;tick count: 3422
+
+4 @2 v10 f+%1  v9 f+%1  v8 f+%1  v7 f+%1  v8 f+%1  v9 g%1  v10 g%1  v11 g%1 
+;tick count: 3430
+
+4 @2 v12 g%1  v11 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v8 g%1  v9 g+%1 
+;tick count: 3438
+
+4 @2 v10 g+%1  v11 g+%1  v12 g+%1  v11 g+%1  v10 g+%1  v9 g+%1  v8 g+%1  v7 g+%1 
+;tick count: 3446
+
+4 @2 v8 g+%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3454
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3484
+
+4 @2 v0 a%2 
+;tick count: 3486
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3494
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3524
+
+4 @2 v0 a%2 
+;tick count: 3526
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3534
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3564
+
+4 @2 v0 a%2 
+;tick count: 3566
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3574
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3604
+
+4 @2 v0 a%2 
+;tick count: 3606
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3614
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3644
+
+4 @2 v0 a%2 
+;tick count: 3646
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1  v8 a%1 
+;tick count: 3654
+
+4 @2 v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1  v0 a%3 
+;tick count: 3686
+
+4 @2 v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1  v8 a%1 
+;tick count: 3694
+
+4 @2 v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1  v0 a%2 
+;tick count: 3725
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3733
+
+4 @2 v8 a%1  v7 a%1  v8 a%1  v9 f+%1  v10 f+%1  v11 f+%1  v12 f+%1  v11 f+%1 
+;tick count: 3741
+
+4 @2 v10 f+%1  v9 f+%1  v8 f+%1  v7 f+%1  v8 f+%1  v9 g%1  v10 g%1  v11 g%1 
+;tick count: 3749
+
+4 @2 v12 g%1  v11 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v8 g%1  v9 g+%1 
+;tick count: 3757
+
+4 @2 v10 g+%1  v11 g+%1  v12 g+%1  v11 g+%1  v10 g+%1  v9 g+%1  v8 g+%1  v7 g+%1 
+;tick count: 3765
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3773
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3803
+
+4 @2 v0 a%2 
+;tick count: 3805
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3813
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3843
+
+4 @2 v0 a%2 
+;tick count: 3845
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3853
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3883
+
+4 @2 v0 a%2 
+;tick count: 3885
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3893
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3923
+
+4 @2 v0 a%2 
+;tick count: 3925
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3933
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 3963
+
+4 @2 v0 a%2 
+;tick count: 3965
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 3973
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4003
+
+4 @2 v0 a%2 
+;tick count: 4005
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4013
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4043
+
+4 @2 v0 a%2 
+;tick count: 4045
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4053
+
+4 @2 v8 a%1  v7 a%1  v8 a%1  v9 f+%1  v10 f+%1  v11 f+%1  v12 f+%1  v11 f+%1 
+;tick count: 4061
+
+4 @2 v10 f+%1  v9 f+%1  v8 f+%1  v7 f+%1  v8 f+%1  v9 g%1  v10 g%1  v11 g%1 
+;tick count: 4069
+
+4 @2 v12 g%1  v11 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v8 g%1  v9 g+%1 
+;tick count: 4077
+
+4 @2 v10 g+%1  v11 g+%1  v12 g+%1  v11 g+%1  v10 g+%1  v9 g+%1  v8 g+%1  v7 g+%1 
+;tick count: 4085
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4093
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v0 a%3 
+;tick count: 4125
+
+4 @2 v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1  v8 a%1 
+;tick count: 4133
+
+4 @2 v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1  v0 a%3 
+;tick count: 4165
+
+4 @2 v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1  v8 a%1 
+;tick count: 4173
+
+4 @2 v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1  v0 a%2 
+;tick count: 4204
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4212
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4242
+
+4 @2 v0 a%2 
+;tick count: 4244
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4252
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4282
+
+4 @2 v0 a%2 
+;tick count: 4284
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4292
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4322
+
+4 @2 v0 a%2 
+;tick count: 4324
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4332
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4362
+
+4 @2 v0 a%2 
+;tick count: 4364
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4372
+
+4 @2 v8 a%1  v7 a%1  v8 a%1  v9 f+%1  v10 f+%1  v11 f+%1  v12 f+%1  v11 f+%1 
+;tick count: 4380
+
+4 @2 v10 f+%1  v9 f+%1  v8 f+%1  v7 f+%1  v8 f+%1  v9 g%1  v10 g%1  v11 g%1 
+;tick count: 4388
+
+4 @2 v12 g%1  v11 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v8 g%1  v9 g+%1 
+;tick count: 4396
+
+4 @2 v10 g+%1  v11 g+%1  v12 g+%1  v11 g+%1  v10 g+%1  v9 g+%1  v8 g+%1  v7 g+%1 
+;tick count: 4404
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4412
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4442
+
+4 @2 v0 a%2 
+;tick count: 4444
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4452
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4482
+
+4 @2 v0 a%2 
+;tick count: 4484
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4492
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4522
+
+4 @2 v0 a%2 
+;tick count: 4524
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4532
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4562
+
+4 @2 v0 a%2 
+;tick count: 4564
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4572
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4602
+
+4 @2 v0 a%2 
+;tick count: 4604
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4612
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4642
+
+4 @2 v0 a%2 
+;tick count: 4644
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v9 a%1  v8 a%1 
+;tick count: 4652
+
+4 @2 v7 a%2  v5 a%1  v4 a%1  v3 a%24  v1 a%1  v0 a%3 
+;tick count: 4684
+
+4 @2 v8 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1  v8 a%1 
+;tick count: 4692
+
+4 @2 v7 a%1  v8 a%1  v9 f+%1  v10 f+%1  v11 f+%1  v12 f+%1  v11 f+%1  v10 f+%1 
+;tick count: 4700
+
+4 @2 v9 f+%1  v8 f+%1  v7 f+%1  v8 f+%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1 
+;tick count: 4708
+
+4 @2 v11 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v8 g%1  v9 g+%1  v10 g+%1 
+;tick count: 4716
+
+4 @2 v11 g+%1  v12 g+%1  v11 g+%1  v10 g+%1  v9 g+%1  v8 g+%1  v7 g+%1  v8 g+%1 
+;tick count: 4724
+
+4 @2 v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1  v8 a%1 
+;tick count: 4732
+
+4 @2 v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1  v0 a%2 
+;tick count: 4763
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4771
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4801
+
+4 @2 v0 a%2 
+;tick count: 4803
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4811
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4841
+
+4 @2 v0 a%2 
+;tick count: 4843
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4851
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4881
+
+4 @2 v0 a%2 
+;tick count: 4883
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4891
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4921
+
+4 @2 v0 a%2 
+;tick count: 4923
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4931
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 4961
+
+4 @2 v0 a%2 
+;tick count: 4963
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 4971
+
+4 @2 v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1  v3 a%23  v2 a%1  v1 a%1 
+;tick count: 5001
+
+4 @2 v0 a%2 
+;tick count: 5003
+
+4 @2 v8 a%1  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1  v9 a%1 
+;tick count: 5011
+
+4 @2 v8 a%1  v7 a%1  v8 a%1  v9 f+%1  v10 f+%1  v11 f+%1  v12 f+%1  v11 f+%1 
+;tick count: 5019
+
+4 @2 v10 f+%1  v9 f+%1  v8 f+%1  v7 f+%1  v8 f+%1  v9 g%1  v10 g%1  v11 g%1 
+;tick count: 5027
+
+4 @2 v12 g%1  v11 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v8 g%1  v9 g+%1 
+;tick count: 5035
+
+4 @2 v10 g+%1  v11 g+%1  v12 g+%1  v11 g+%1  v10 g+%1  v9 g+%1  v8 g+%1  v7 g+%1 
+;tick count: 5043
+
+4 @3 v8 o4 g%2  v7 g%3  v6 g%3  v5 g%3  v4 g%3  v3 g%63  v2 g%1  v1 g%1 
+;tick count: 5122
+
+4 @3 v0 g%1 
+;tick count: 5123
+
+4 @3 v8 g%2  v7 f%3  v6 f%3  v5 f%3  v4 f%3  v3 f%63  v2 f%1  v1 f%1 
+;tick count: 5202
+
+4 @3 v0 f%1 
+;tick count: 5203
+
+4 @3 v8 f%2  v7 e%3  v6 e%3  v5 e%3  v4 e%3  v3 e%63  v2 e%1  v1 e%1 
+;tick count: 5282
+
+4 @3 v0 e%1 
+;tick count: 5283
+
+4 @3 v8 e%2  v7 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%63  v2 c%1  v0 c%2 
+;tick count: 5363
+
+4 @2 v8 o2 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v10 g%1  v9 g%1  v8 g%1 
+;tick count: 5371
+
+4 @2 v7 g%2  v8 g%1  v10 o3 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 5380
+
+4 @2 v8 g%1  v7 g%2  v5 g%1  v4 g%1  v3 g%13  v2 g%1  v1 g%1  v0 g%3 
+;tick count: 5403
+
+4 @2 v9 o2 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1  v8 g%1 
+;tick count: 5411
+
+4 @2 v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1  v0 g%3 
+;tick count: 5443
+
+4 @2 v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1  v8 g%1 
+;tick count: 5451
+
+4 @2 v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1  v0 g%3 
+;tick count: 5483
+
+4 @2 v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1  v8 g%1 
+;tick count: 5491
+
+4 @2 v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1  v0 g%3 
+;tick count: 5523
+
+4 @2 v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1  v8 g%1 
+;tick count: 5531
+
+4 @2 v7 g%1  v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1 
+;tick count: 5539
+
+4 @2 v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%13  v2 g%1 
+;tick count: 5559
+
+4 @2 v1 g%1  v0 g%2 
+;tick count: 5562
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 5570
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 5600
+
+4 @2 v0 g%2 
+;tick count: 5602
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 5610
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 5640
+
+4 @2 v0 g%2 
+;tick count: 5642
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 5650
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 5680
+
+4 @2 v0 g%3 
+;tick count: 5683
+
+4 @2 v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1  v8 g%1 
+;tick count: 5691
+
+4 @2 v7 g%1  v8 g%1  v9 o3 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1 
+;tick count: 5699
+
+4 @2 v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%13  v2 g%1 
+;tick count: 5719
+
+4 @2 v1 g%1  v0 g%2 
+;tick count: 5722
+
+4 @2 v8 g%1  v9 o2 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 5730
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 5760
+
+4 @2 v0 g%2 
+;tick count: 5762
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 5770
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 5800
+
+4 @2 v0 g%2 
+;tick count: 5802
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 5810
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 5840
+
+4 @2 v0 g%2 
+;tick count: 5842
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 5850
+
+4 @2 v8 g%1  v7 g%1  v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1 
+;tick count: 5858
+
+4 @2 v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%13 
+;tick count: 5878
+
+4 @2 v2 g%1  v1 g%1  v0 g%2 
+;tick count: 5882
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 5890
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 5920
+
+4 @2 v0 g%2 
+;tick count: 5922
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 5930
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 5960
+
+4 @2 v0 g%2 
+;tick count: 5962
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 5970
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 6000
+
+4 @2 v0 g%2 
+;tick count: 6002
+
+4 @3 v8 o4 g%1 
+;tick count: 6003
+
+4 @3 v8 g%1  v7 g%3  v6 g%3  v5 g%3  v4 g%3  v3 g%63  v2 g%1  v1 g%1 
+;tick count: 6081
+
+4 @3 v0 g%1 
+;tick count: 6082
+
+4 @3 v8 g%2  v7 f%3  v6 f%3  v5 f%3  v4 f%3  v3 f%63  v2 f%1  v1 f%1 
+;tick count: 6161
+
+4 @3 v0 f%1 
+;tick count: 6162
+
+4 @3 v8 f%2  v7 e%3  v6 e%3  v5 e%3  v4 e%3  v3 e%63  v2 e%1  v1 e%1 
+;tick count: 6241
+
+4 @3 v0 e%1 
+;tick count: 6242
+
+4 @3 v8 e%2  v7 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%63  v2 c%1  v1 c%1 
+;tick count: 6321
+
+4 @3 v0 c%1 
+;tick count: 6322
+
+4 @2 v8 o2 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 6330
+
+4 @2 v8 g%1  v7 g%1  v8 g%1  v9 o3 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1 
+;tick count: 6338
+
+4 @2 v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%13 
+;tick count: 6358
+
+4 @2 v2 g%1  v1 g%1  v0 g%2 
+;tick count: 6362
+
+4 @2 v8 g%1  v9 o2 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 6370
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 6400
+
+4 @2 v0 g%2 
+;tick count: 6402
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 6410
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 6440
+
+4 @2 v0 g%2 
+;tick count: 6442
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 6450
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 6480
+
+4 @2 v0 g%2 
+;tick count: 6482
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 6490
+
+4 @2 v8 g%1  v7 g%1  v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1 
+;tick count: 6498
+
+4 @2 v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%13 
+;tick count: 6518
+
+4 @2 v2 g%1  v1 g%1  v0 g%2 
+;tick count: 6522
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 6530
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 6560
+
+4 @2 v0 g%2 
+;tick count: 6562
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 6570
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 6600
+
+4 @2 v0 g%2 
+;tick count: 6602
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 6610
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 6640
+
+4 @2 v0 g%2 
+;tick count: 6642
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 6650
+
+4 @2 v8 g%1  v7 g%1  v8 g%1  v9 o3 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1 
+;tick count: 6658
+
+4 @2 v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%13 
+;tick count: 6678
+
+4 @2 v2 g%1  v1 g%1  v0 g%2 
+;tick count: 6682
+
+4 @2 v8 g%1  v9 o2 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 6690
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 6720
+
+4 @2 v0 g%2 
+;tick count: 6722
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 6730
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 6760
+
+4 @2 v0 g%2 
+;tick count: 6762
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 6770
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 6800
+
+4 @2 v0 g%2 
+;tick count: 6802
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1  v8 g%1 
+;tick count: 6810
+
+4 @2 v7 g%2  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 6819
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%13  v2 g%1  v1 g%1 
+;tick count: 6839
+
+4 @2 v0 g%3 
+;tick count: 6842
+
+4 @2 v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1  v8 g%1 
+;tick count: 6850
+
+4 @2 v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1  v0 g%3 
+;tick count: 6882
+
+4 @2 v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1  v8 g%1 
+;tick count: 6890
+
+4 @2 v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1  v0 g%2 
+;tick count: 6921
+
+4 @2 v8 g%1  v9 g%1  v10 g%1  v11 g%1  v12 g%1  v11 g%1  v10 g%1  v9 g%1 
+;tick count: 6929
+
+4 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%23  v2 g%1  v1 g%1 
+;tick count: 6959
+
+4 @2 v0 g%3 
+;tick count: 6962
+
+4 @2 v9 f%1  v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1  v8 f%1 
+;tick count: 6970
+
+4 @2 v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1  v0 f%2 
+;tick count: 6981
+
+4 @2 v8 f%1  v9 f%1  v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1 
+;tick count: 6989
+
+4 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1 
+;tick count: 6999
+
+4 @2 v0 f%2 
+;tick count: 7001
+
+4 @2 v8 f%1  v9 f%1  v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1 
+;tick count: 7009
+
+4 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1 
+;tick count: 7019
+
+4 @2 v0 f%2 
+;tick count: 7021
+
+4 @2 v8 f%1  v9 f%1  v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1 
+;tick count: 7029
+
+4 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1 
+;tick count: 7039
+
+4 @2 v0 f%2 
+;tick count: 7041
+
+4 @2 v8 f%1  v9 f%1  v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1 
+;tick count: 7049
+
+4 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1 
+;tick count: 7059
+
+4 @2 v0 f%2 
+;tick count: 7061
+
+4 @2 v8 f%1  v9 f%1  v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1 
+;tick count: 7069
+
+4 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1 
+;tick count: 7079
+
+4 @2 v0 f%2 
+;tick count: 7081
+
+4 @2 v8 f%1  v9 f%1  v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1 
+;tick count: 7089
+
+4 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1 
+;tick count: 7099
+
+4 @2 v0 f%2 
+;tick count: 7101
+
+4 @2 v8 f%1  v9 f%1  v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1 
+;tick count: 7109
+
+4 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1 
+;tick count: 7119
+
+4 @2 v0 f%2 
+;tick count: 7121
+
+4 @2 v8 f%1  v9 e%1  v10 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1 
+;tick count: 7129
+
+4 @2 v8 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%1  v3 e%3  v2 e%1  v1 e%1 
+;tick count: 7139
+
+4 @2 v0 e%2 
+;tick count: 7141
+
+4 @2 v8 e%1  v9 e%1  v10 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1 
+;tick count: 7149
+
+4 @2 v8 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%1  v3 e%3  v2 e%1  v1 e%1 
+;tick count: 7159
+
+4 @2 v0 e%2 
+;tick count: 7161
+
+4 @2 v8 e%1  v9 e%1  v10 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1 
+;tick count: 7169
+
+4 @2 v8 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%1  v3 e%3  v2 e%1  v1 e%1 
+;tick count: 7179
+
+4 @2 v0 e%2 
+;tick count: 7181
+
+4 @2 v8 e%1  v9 e%1  v10 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1 
+;tick count: 7189
+
+4 @2 v8 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%1  v3 e%3  v2 e%1  v1 e%1 
+;tick count: 7199
+
+4 @2 v0 e%2 
+;tick count: 7201
+
+4 @2 v8 e%1  v9 e%1  v10 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1 
+;tick count: 7209
+
+4 @2 v8 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%1  v3 e%3  v2 e%1  v1 e%1 
+;tick count: 7219
+
+4 @2 v0 e%2 
+;tick count: 7221
+
+4 @2 v8 e%1  v9 e%1  v10 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1 
+;tick count: 7229
+
+4 @2 v8 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%1  v3 e%3  v2 e%1  v1 e%1 
+;tick count: 7239
+
+4 @2 v0 e%2 
+;tick count: 7241
+
+4 @2 v8 e%1  v9 e%1  v10 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1 
+;tick count: 7249
+
+4 @2 v8 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%1  v3 e%3  v1 e%1  v0 e%3 
+;tick count: 7261
+
+4 @2 v8 e%1  v10 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1  v8 e%1 
+;tick count: 7269
+
+4 @2 v7 e%1  v6 e%1  v5 e%1  v4 e%1  v3 e%3  v2 e%1  v1 e%1  v0 e%3 
+;tick count: 7281
+
+4 @2 v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1  v8 d+%1 
+;tick count: 7289
+
+4 @2 v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1  v0 d+%3 
+;tick count: 7301
+
+4 @2 v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1  v8 d+%1 
+;tick count: 7309
+
+4 @2 v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1  v0 d+%2 
+;tick count: 7320
+
+4 @2 v8 d+%1  v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1 
+;tick count: 7328
+
+4 @2 v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1 
+;tick count: 7338
+
+4 @2 v0 d+%2 
+;tick count: 7340
+
+4 @2 v8 d+%1  v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1 
+;tick count: 7348
+
+4 @2 v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1 
+;tick count: 7358
+
+4 @2 v0 d+%2 
+;tick count: 7360
+
+4 @2 v8 d+%1  v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1 
+;tick count: 7368
+
+4 @2 v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1 
+;tick count: 7378
+
+4 @2 v0 d+%2 
+;tick count: 7380
+
+4 @2 v8 d+%1  v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1 
+;tick count: 7388
+
+4 @2 v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1 
+;tick count: 7398
+
+4 @2 v0 d+%2 
+;tick count: 7400
+
+4 @2 v8 d+%1  v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1 
+;tick count: 7408
+
+4 @2 v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1 
+;tick count: 7418
+
+4 @2 v0 d+%2 
+;tick count: 7420
+
+4 @2 v8 d+%1  v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1 
+;tick count: 7428
+
+4 @2 v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1 
+;tick count: 7438
+
+4 @2 v0 d+%2 
+;tick count: 7440
+
+4 @2 v8 d+%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1  v10 d%1  v9 d%1 
+;tick count: 7448
+
+4 @2 v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 7458
+
+4 @2 v0 d%2 
+;tick count: 7460
+
+4 @2 v8 d%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1  v10 d%1  v9 d%1 
+;tick count: 7468
+
+4 @2 v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 7478
+
+4 @2 v0 d%2 
+;tick count: 7480
+
+4 @2 v8 d%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1  v10 d%1  v9 d%1 
+;tick count: 7488
+
+4 @2 v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 7498
+
+4 @2 v0 d%2 
+;tick count: 7500
+
+4 @2 v8 d%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1  v10 d%1  v9 d%1 
+;tick count: 7508
+
+4 @2 v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 7518
+
+4 @2 v0 d%2 
+;tick count: 7520
+
+4 @2 v8 d%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1  v10 d%1  v9 d%1 
+;tick count: 7528
+
+4 @2 v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 7538
+
+4 @2 v0 d%2 
+;tick count: 7540
+
+4 @2 v8 d%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1  v10 d%1  v9 d%1 
+;tick count: 7548
+
+4 @2 v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 7558
+
+4 @2 v0 d%2 
+;tick count: 7560
+
+4 @2 v8 d%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1  v10 d%1  v9 d%1 
+;tick count: 7568
+
+4 @2 v8 d%1  v7 d%1  v8 d%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1 
+;tick count: 7576
+
+4 @2 v10 d%1  v9 d%1  v7 d%2  v8 d%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1 
+;tick count: 7585
+
+4 @2 v10 d+%1  v9 d+%1  v8 d+%1  v7 d+%1  v8 d+%1  v9 e%1  v10 e%1  v11 e%1 
+;tick count: 7593
+
+4 @2 v12 e%1  v11 e%1  v10 e%1  v9 e%1  v8 e%1  v7 e%1  e%1  v9 f%1 
+;tick count: 7601
+
+4 @2 v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1  v8 f%1  v7 f%1 
+;tick count: 7609
+
+4 @2 v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1  v0 f%2 
+;tick count: 7619
+
+4 @2 v8 f%1  v9 f%1  v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1 
+;tick count: 7627
+
+4 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1 
+;tick count: 7637
+
+4 @2 v0 f%2 
+;tick count: 7639
+
+4 @2 v8 f%1  v9 f%1  v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1 
+;tick count: 7647
+
+4 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1 
+;tick count: 7657
+
+4 @2 v0 f%2 
+;tick count: 7659
+
+4 @2 v8 f%1  v9 f%1  v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1 
+;tick count: 7667
+
+4 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1 
+;tick count: 7677
+
+4 @2 v0 f%2 
+;tick count: 7679
+
+4 @2 v8 f%1  v9 f%1  v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1 
+;tick count: 7687
+
+4 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1 
+;tick count: 7697
+
+4 @2 v0 f%2 
+;tick count: 7699
+
+4 @2 v8 f%1  v9 f%1  v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1 
+;tick count: 7707
+
+4 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1 
+;tick count: 7717
+
+4 @2 v0 f%2 
+;tick count: 7719
+
+4 @2 v8 f%1  v9 f%1  v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1 
+;tick count: 7727
+
+4 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1 
+;tick count: 7737
+
+4 @2 v0 f%2 
+;tick count: 7739
+
+4 @2 v8 f%1  v9 f%1  v10 f%1  v11 f%1  v12 f%1  v11 f%1  v10 f%1  v9 f%1 
+;tick count: 7747
+
+4 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%3  v2 f%1  v1 f%1 
+;tick count: 7757
+
+4 @2 v0 f%2 
+;tick count: 7759
+
+4 @2 v8 f%1  v9 e%1  v10 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1 
+;tick count: 7767
+
+4 @2 v8 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%1  v3 e%3  v2 e%1  v1 e%1 
+;tick count: 7777
+
+4 @2 v0 e%2 
+;tick count: 7779
+
+4 @2 v8 e%1  v9 e%1  v10 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1 
+;tick count: 7787
+
+4 @2 v8 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%1  v3 e%3  v2 e%1  v1 e%1 
+;tick count: 7797
+
+4 @2 v0 e%2 
+;tick count: 7799
+
+4 @2 v8 e%1  v9 e%1  v10 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1 
+;tick count: 7807
+
+4 @2 v8 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%1  v3 e%3  v2 e%1  v1 e%1 
+;tick count: 7817
+
+4 @2 v0 e%2 
+;tick count: 7819
+
+4 @2 v8 e%1  v9 e%1  v10 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1 
+;tick count: 7827
+
+4 @2 v8 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%1  v3 e%3  v2 e%1  v1 e%1 
+;tick count: 7837
+
+4 @2 v0 e%2 
+;tick count: 7839
+
+4 @2 v8 e%1  v9 e%1  v10 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1 
+;tick count: 7847
+
+4 @2 v8 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%1  v3 e%3  v2 e%1  v1 e%1 
+;tick count: 7857
+
+4 @2 v0 e%2 
+;tick count: 7859
+
+4 @2 v8 e%1  v9 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1  v8 e%1 
+;tick count: 7867
+
+4 @2 v7 e%2  v5 e%1  v4 e%1  v3 e%3  v2 e%1  v1 e%1  v0 e%3 
+;tick count: 7879
+
+4 @2 v8 e%1  v10 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1  v8 e%1 
+;tick count: 7887
+
+4 @2 v7 e%2  v6 e%1  v4 e%2  v3 e%3  v1 e%1  v0 e%3 
+;tick count: 7899
+
+4 @2 v9 e%1  v10 e%1  v11 e%1  v12 e%1  v11 e%1  v10 e%1  v9 e%1  v8 e%1 
+;tick count: 7907
+
+4 @2 v7 e%1  v6 e%1  v5 e%1  v4 e%1  v3 e%3  v2 e%1  v1 e%1  v0 e%3 
+;tick count: 7919
+
+4 @2 v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1  v8 d+%1 
+;tick count: 7927
+
+4 @2 v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1  v0 d+%2 
+;tick count: 7938
+
+4 @2 v8 d+%1  v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1 
+;tick count: 7946
+
+4 @2 v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1 
+;tick count: 7956
+
+4 @2 v0 d+%2 
+;tick count: 7958
+
+4 @2 v8 d+%1  v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1 
+;tick count: 7966
+
+4 @2 v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1 
+;tick count: 7976
+
+4 @2 v0 d+%2 
+;tick count: 7978
+
+4 @2 v8 d+%1  v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1 
+;tick count: 7986
+
+4 @2 v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1 
+;tick count: 7996
+
+4 @2 v0 d+%2 
+;tick count: 7998
+
+4 @2 v8 d+%1  v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1 
+;tick count: 8006
+
+4 @2 v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1 
+;tick count: 8016
+
+4 @2 v0 d+%2 
+;tick count: 8018
+
+4 @2 v8 d+%1  v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1 
+;tick count: 8026
+
+4 @2 v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1 
+;tick count: 8036
+
+4 @2 v0 d+%2 
+;tick count: 8038
+
+4 @2 v8 d+%1  v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1 
+;tick count: 8046
+
+4 @2 v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1 
+;tick count: 8056
+
+4 @2 v0 d+%2 
+;tick count: 8058
+
+4 @2 v8 d+%1  v9 d+%1  v10 d+%1  v11 d+%1  v12 d+%1  v11 d+%1  v10 d+%1  v9 d+%1 
+;tick count: 8066
+
+4 @2 v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1  v4 d+%1  v3 d+%3  v2 d+%1  v1 d+%1 
+;tick count: 8076
+
+4 @2 v0 d+%2 
+;tick count: 8078
+
+4 @2 v8 d+%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1  v10 d%1  v9 d%1 
+;tick count: 8086
+
+4 @2 v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 8096
+
+4 @2 v0 d%2 
+;tick count: 8098
+
+4 @2 v8 d%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1  v10 d%1  v9 d%1 
+;tick count: 8106
+
+4 @2 v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 8116
+
+4 @2 v0 d%2 
+;tick count: 8118
+
+4 @2 v8 d%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1  v10 d%1  v9 d%1 
+;tick count: 8126
+
+4 @2 v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 8136
+
+4 @2 v0 d%2 
+;tick count: 8138
+
+4 @2 v8 d%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1  v10 d%1  v9 d%1 
+;tick count: 8146
+
+4 @2 v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 8156
+
+4 @2 v0 d%2 
+;tick count: 8158
+
+4 @2 v8 d%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1  v10 d%1  v9 d%1 
+;tick count: 8166
+
+4 @2 v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 8176
+
+4 @2 v0 d%2 
+;tick count: 8178
+
+4 @2 v8 d%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1  v10 d%1  v9 d%1 
+;tick count: 8186
+
+4 @2 v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%3  v2 d%1  v1 d%1 
+;tick count: 8196
+
+4 @2 v0 d%2 
+;tick count: 8198
+
+4 @2 v8 d%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1  v10 d%1  v9 d%1 
+;tick count: 8206
+
+4 @2 v7 d%2  v8 d%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1  v11 d%1  v9 d%1 
+;tick count: 8215
+
+4 @2 v8 d%1  v7 d%2  v9 a%1  v10 a%1  v11 a%1  v12 a%1  v11 a%1  v10 a%1 
+;tick count: 8224
+
+4 @2 v9 a%1  v8 a%1  v7 a%1  v8 a%1  v9 d%1  v10 d%1  v11 d%1  v12 d%1 
+;tick count: 8232
+
+4 @2 v11 d%1  v10 d%1  v9 d%1  v8 d%1  v7 d%1  d%1  v8 g%255  v8 g%25 
+;ch4 end: tick count: 8518
+
+
+;ch5 start
+5 @0 v1 o1 a%8  v2 a%8  v3 a%8  v4 a%8  v5 a%8  v6 a%8  v7 a%8  v8 a%8 
+;tick count: 64
+
+5 @0 v9 a%48  v10 a%64  a%65  a%64  a%64  v9 a%64  a%64  a%64 
+;tick count: 561
+
+5 @0 v9 a%64  v8 a%64  a%64  a%52  a%3 
+;tick count: 808
+
+5 @1 v2 o5 g+%4  g+%5  g+%5  g%5  g+%5  g+%5  g%5  f+%5 
+;tick count: 847
+
+5 @1 v2 f%5  e%5  d+%5  d%5  c+%5  c%5  o4 b%5  a+%5 
+;tick count: 887
+
+5 @1 v2 g+%1 
+;tick count: 888
+
+5 @1 v2 g+%4  g+%5  g%5  v8 o3 b%1  v6 b%1  v5 b%3  v4 b%15  v8 b%1 
+;tick count: 923
+
+5 @2 v6 o4 c%1  v5 c%3  v4 c%15  v8 c%1  v6 d%1  v5 d%3  v4 d%15  v8 d%1 
+;tick count: 963
+
+5 @2 v6 e%1  v5 e%3  v4 e%35  v8 e%1  v6 c%1  v5 c%3  v4 c%35  v8 c%1 
+;tick count: 1043
+
+5 @2 v6 e%1  v5 e%3  v4 e%35  v8 e%1  v6 d%1  v5 d%3  v4 d%35  v8 d%1 
+;tick count: 1123
+
+5 @2 v6 o3 b%1  v5 b%3  v4 b%35  v8 b%1  v6 o4 c%1  v5 c%3  v4 c%35  v8 c%1 
+;tick count: 1203
+
+5 @2 v6 d%1  v5 d%3  v4 d%15  v8 d%1  v6 e%1  v5 e%3  v4 e%75  v8 e%1 
+;tick count: 1303
+
+5 @2 v6 d%1  v5 d%3  v4 d%35  v8 d%1  v6 o3 a%1  v5 a%3  v4 a%35  v8 a%1 
+;tick count: 1383
+
+5 @2 v6 g%1  v5 g%3  v4 g%75  v8 g%1  v6 o4 c%1  v5 c%3  v4 c%75  v8 c%1 
+;tick count: 1543
+
+5 @2 v6 o3 b%1  v5 b%3  v4 b%15  v8 b%1  v6 o4 c%1  v5 c%3  v4 c%15  v8 c%1 
+;tick count: 1583
+
+5 @2 v6 d%1  v5 d%3  v4 d%15  v8 d%1  v6 e%1  v5 e%3  v4 e%35  v8 e%1 
+;tick count: 1643
+
+5 @2 v6 c%1  v5 c%3  v4 c%35  v8 c%1  v6 a%1  v5 a%3  v4 a%35  v8 a%1 
+;tick count: 1723
+
+5 @2 v6 e%1  v5 e%3  v4 e%35  v8 e%1  v6 d%1  v5 d%3  v4 d%35  v8 d%1 
+;tick count: 1803
+
+5 @2 v6 c%1  v5 c%3  v4 c%35  v8 c%1  v5 d%4  v4 d%14  v8 d%1  v6 e%1 
+;tick count: 1863
+
+5 @2 v5 e%3  v4 e%75  v8 e%1  v6 d%1  v5 d%3  v4 d%35  v8 d%1  v6 o3 a%1 
+;tick count: 1983
+
+5 @2 v5 a%3  v4 a%35  v8 a%1  v6 g%1  v5 g%3  v4 g%35  v8 g%1  v6 o4 c%1 
+;tick count: 2063
+
+5 @2 v5 c%3  v4 c%35  v8 c%1  v6 e%1  v5 e%3  v4 e%35  v8 e%1  v6 g%1 
+;tick count: 2143
+
+5 @2 v5 g%3  v4 g%15  g%6 
+;tick count: 2167
+
+5 @2 v7 e%1  v6 e%3  v5 e%3  v4 e%3  v3 e%69  v8 e%1  v7 d%1  v6 d%3 
+;tick count: 2251
+
+5 @2 v5 d%3  v4 d%3  v3 d%69  v8 d%1  v7 c%1  v6 c%3  v5 c%3  v4 c%3 
+;tick count: 2337
+
+5 @2 v3 c%69  v8 c%1  v7 o3 a%1  v6 a%3  v5 a%3  v4 a%3  v3 a%69  v8 a%1 
+;tick count: 2487
+
+5 @2 v6 o2 a%1  v5 a%2  v4 a%2  v3 a%2  v2 a%9  v1 a%1  v0 a%2 
+;tick count: 2506
+
+5 @2 v8 a%1  v6 b%1  v5 b%2  v4 b%2  v3 b%2  v2 b%9  v1 b%1  v0 b%2 
+;tick count: 2526
+
+5 @2 v8 b%1  v6 o3 c%1  v5 c%2  v4 c%2  v3 c%2  v2 c%9  v1 c%1  v0 c%2 
+;tick count: 2546
+
+5 @2 v8 c%1  v6 d%1  v5 d%2  v4 d%2  v3 d%2  v2 d%89  v1 d%1  v0 d%2 
+;tick count: 2646
+
+5 @2 v8 d%1  v6 a%1  v5 a%3  v4 a%10  v8 a%1  v6 a%1  v5 a%3  v4 a%15 
+;tick count: 2681
+
+5 @2 v8 a%1  v6 b%1  v5 b%3  v4 b%15  v8 b%1  v6 o4 c%1  v5 c%3  v4 c%15 
+;tick count: 2721
+
+5 @2 v8 c%1  v6 d%1  v5 d%3  v4 d%35  v8 d%1  v6 c%1  v5 c%3  v4 c%35 
+;tick count: 2801
+
+5 @2 v8 c%1  v6 o3 b%1  v5 b%3  v4 b%15  v8 b%1  v6 a%1  v5 a%3  v4 a%75 
+;tick count: 2901
+
+5 @2 v8 a%1  v6 o4 d%1  v5 d%3  v4 d%75  v8 d%1  v6 e%1  v5 e%3  v4 e%135 
+;tick count: 3121
+
+5 @2 v4 e%6 
+;tick count: 3127
+
+5 @0 v8 o5 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%27  e%5  e%5  e%5 
+;tick count: 3173
+
+5 @0 v4 e%5  e%5  e%5  e%5  e%5  e%4  v3 e%1  v2 e%1 
+;tick count: 3204
+
+5 @0 v1 e%1  v0 e%1 
+;tick count: 3206
+
+5 @0 v8 e%2  v7 g%1  v6 g%1  v5 g%1  v4 g%27  g%5  g%5  g%5 
+;tick count: 3253
+
+5 @0 v4 g%5  g%5  g%5  g%5  g%5  g%4  v3 g%1  v2 g%1 
+;tick count: 3284
+
+5 @0 v1 g%1  v0 g%1 
+;tick count: 3286
+
+5 @0 v8 g%2  v7 f+%1  v6 f+%1  v5 f+%1  v4 f+%27  f+%5  f+%5  f+%5 
+;tick count: 3333
+
+5 @0 v4 f+%5  f+%5  f+%5  f+%5  f+%5  f+%4  v3 f+%1  v2 f+%1 
+;tick count: 3364
+
+5 @0 v1 f+%1  v0 f+%1 
+;tick count: 3366
+
+5 @0 v8 f+%2  v7 f%1  v6 f%1  v5 f%1  v4 f%27  f%5  f%5  f%5 
+;tick count: 3413
+
+5 @0 v4 f%5  f%5  f%5  f%5  f%5  f%4  v3 f%1  v2 f%1 
+;tick count: 3444
+
+5 @0 v1 f%1  v0 f%1 
+;tick count: 3446
+
+5 @0 v8 f%2  v7 e%1  v6 e%1  v5 e%1  v4 e%27  e%5  e%5  e%5 
+;tick count: 3493
+
+5 @0 v4 e%5  e%5  e%5  e%5  e%5  e%4  v3 e%1  v2 e%1 
+;tick count: 3524
+
+5 @0 v1 e%1  v0 e%1 
+;tick count: 3526
+
+5 @0 v8 e%2  v7 g%1  v6 g%1  v5 g%1  v4 g%27  g%5  g%5  g%5 
+;tick count: 3573
+
+5 @0 v4 g%5  g%5  g%5  g%5  g%5  g%4  v3 g%1  v2 g%1 
+;tick count: 3604
+
+5 @0 v1 g%1  v0 g%1 
+;tick count: 3606
+
+5 @0 v8 g%2  v7 f+%1  v6 f+%1  v5 f+%1  v4 f+%27  f+%5  f+%5  f+%4 
+;tick count: 3652
+
+5 @0 v4 f+%5  f+%5  f+%5  f+%5  f+%5  f+%4  v3 f+%1  v2 f+%1 
+;tick count: 3683
+
+5 @0 v1 f+%1  v0 f+%2 
+;tick count: 3686
+
+5 @0 v8 f+%1  v7 f%1  v6 f%1  v5 f%1  v4 f%27  f%5  f%5  f%5 
+;tick count: 3732
+
+5 @0 v4 f%5  f%5  f%5  f%5  f%5  f%4  v3 f%1  v2 f%1 
+;tick count: 3763
+
+5 @0 v1 f%1  v0 f%1 
+;tick count: 3765
+
+5 @3 v8 o3 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%1 
+;tick count: 3773
+
+5 @3 v2 g%1  v1 g%1  v8 g%1  v9 a%1  v8 a%1  v7 a%1  v6 a%1  v5 a%1 
+;tick count: 3781
+
+5 @3 v4 a%1  v3 a%1  v2 a%1  v1 a%1  v8 a%1  v9 b%1  v8 b%1  v7 b%1 
+;tick count: 3789
+
+5 @3 v6 b%1  v5 b%1  v4 b%1  v3 b%1  v2 b%1  v1 b%1  v8 b%1  v9 o4 c%1 
+;tick count: 3797
+
+5 @3 v8 c%1  v7 c%1  v6 c%1  v5 c%1  v4 c%1  v3 c%1  v2 c%1  v1 c%1 
+;tick count: 3805
+
+5 @3 v8 c%1  v9 e%1  v8 e%1  v7 e%1  v6 e%1  v5 e%27  e%5  e%5 
+;tick count: 3847
+
+5 @3 v5 e%5  e%5  e%5  e%5  e%5  e%5  e%4  v4 e%1 
+;tick count: 3882
+
+5 @3 v3 e%1  v2 e%1  v1 e%1  v8 e%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1 
+;tick count: 3890
+
+5 @3 v5 g%27  g%4  v4 g%1  v3 g%1  v2 g%1  v1 g%1  v8 g%1  v9 f+%1 
+;tick count: 3927
+
+5 @3 v8 f+%1  v7 f+%1  v6 f+%1  v5 f+%27  f+%5  f+%5  f+%5  f+%5 
+;tick count: 3977
+
+5 @3 v5 f+%5  f+%5  f+%5  f+%5  f+%4  v4 f+%1  v3 f+%1  v2 f+%1 
+;tick count: 4004
+
+5 @3 v1 f+%1  v8 f+%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%21  v4 f%1 
+;tick count: 4032
+
+5 @3 v3 f%1  v2 f%1  v1 f%1  v8 f%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1 
+;tick count: 4040
+
+5 @3 v5 g%21  v4 g%1  v3 g%1  v2 g%1  v1 g%1  v8 g%1  v9 f%1  v8 f%1 
+;tick count: 4068
+
+5 @3 v7 f%1  v6 f%1  v5 f%11  v4 f%1  v3 f%1  v2 f%1  v1 f%1  v8 o5 e%2 
+;tick count: 4087
+
+5 @0 v7 e%1  v6 e%1  v5 e%1  v4 e%27  e%4  e%5  e%5  e%5 
+;tick count: 4136
+
+5 @0 v4 e%5  e%5  e%5  e%5  e%4  v3 e%1  v2 e%1  v1 e%1 
+;tick count: 4163
+
+5 @0 v0 e%2 
+;tick count: 4165
+
+5 @0 v8 e%1  v7 g%1  v6 g%1  v5 g%1  v4 g%27  g%5  g%5  g%5 
+;tick count: 4211
+
+5 @0 v4 g%5  g%5  g%5  g%5  g%5  g%4  v3 g%1  v2 g%1 
+;tick count: 4242
+
+5 @0 v1 g%1  v0 g%1 
+;tick count: 4244
+
+5 @0 v8 g%2  v7 f+%1  v6 f+%1  v5 f+%1  v4 f+%27  f+%5  f+%5  f+%5 
+;tick count: 4291
+
+5 @0 v4 f+%5  f+%5  f+%5  f+%5  f+%5  f+%4  v3 f+%1  v2 f+%1 
+;tick count: 4322
+
+5 @0 v1 f+%1  v0 f+%1 
+;tick count: 4324
+
+5 @0 v8 f+%2  v7 f%1  v6 f%1  v5 f%1  v4 f%27  f%5  f%5  f%5 
+;tick count: 4371
+
+5 @0 v4 f%5  f%5  f%5  f%5  f%5  f%4  v3 f%1  v2 f%1 
+;tick count: 4402
+
+5 @0 v1 f%1  v0 f%1 
+;tick count: 4404
+
+5 @3 v8 o3 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%1 
+;tick count: 4412
+
+5 @3 v2 g%1  v1 g%1  v8 g%1  v9 a%1  v8 a%1  v7 a%1  v6 a%1  v5 a%1 
+;tick count: 4420
+
+5 @3 v4 a%1  v3 a%1  v2 a%1  v1 a%1  v8 a%1  v9 b%1  v8 b%1  v7 b%1 
+;tick count: 4428
+
+5 @3 v6 b%1  v5 b%1  v4 b%1  v3 b%1  v2 b%1  v1 b%1  v8 b%1  v9 o4 c%1 
+;tick count: 4436
+
+5 @3 v8 c%1  v7 c%1  v6 c%1  v5 c%1  v4 c%1  v3 c%1  v2 c%1  v1 c%1 
+;tick count: 4444
+
+5 @3 v8 c%1  v9 e%1  v8 e%1  v7 e%1  v6 e%1  v5 e%27  e%5  e%5 
+;tick count: 4486
+
+5 @3 v5 e%5  e%5  e%5  e%5  e%5  e%5  e%4  v4 e%1 
+;tick count: 4521
+
+5 @3 v3 e%1  v2 e%1  v1 e%1  v8 e%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1 
+;tick count: 4529
+
+5 @3 v5 g%27  g%4  v4 g%1  v3 g%1  v2 g%1  v1 g%1  v8 g%1  v9 f+%1 
+;tick count: 4566
+
+5 @3 v8 f+%1  v7 f+%1  v6 f+%1  v5 f+%27  f+%5  f+%5  f+%5  f+%5 
+;tick count: 4616
+
+5 @3 v5 f+%5  f+%5  f+%5  f+%5  f+%4  v4 f+%1  v3 f+%1  v2 f+%1 
+;tick count: 4643
+
+5 @3 v1 f+%1  v8 f+%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%21  v4 f%1 
+;tick count: 4671
+
+5 @3 v3 f%1  v2 f%1  v1 f%1  v8 f%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1 
+;tick count: 4679
+
+5 @3 v5 g%20  v4 g%1  v3 g%1  v2 g%1  v1 g%1  v8 g%1  v9 f%1  v8 f%1 
+;tick count: 4706
+
+5 @3 v7 f%1  v6 f%1  v5 f%11  v4 f%1  v3 f%1  v2 f%1  v1 f%1  v8 f%1 
+;tick count: 4724
+
+5 @0 v8 o5 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%27  e%5  e%5  e%5 
+;tick count: 4770
+
+5 @0 v4 e%5  e%5  e%5  e%5  e%5  e%4  v3 e%1  v2 e%1 
+;tick count: 4801
+
+5 @0 v1 e%1  v0 e%1 
+;tick count: 4803
+
+5 @0 v8 e%2  v7 g%1  v6 g%1  v5 g%1  v4 g%27  g%5  g%5  g%5 
+;tick count: 4850
+
+5 @0 v4 g%5  g%5  g%5  g%5  g%5  g%4  v3 g%1  v2 g%1 
+;tick count: 4881
+
+5 @0 v1 g%1  v0 g%1 
+;tick count: 4883
+
+5 @0 v8 g%2  v7 f+%1  v6 f+%1  v5 f+%1  v4 f+%27  f+%5  f+%5  f+%5 
+;tick count: 4930
+
+5 @0 v4 f+%5  f+%5  f+%5  f+%5  f+%5  f+%4  v3 f+%1  v2 f+%1 
+;tick count: 4961
+
+5 @0 v1 f+%1  v0 f+%1 
+;tick count: 4963
+
+5 @0 v8 f+%2  v7 f%1  v6 f%1  v5 f%1  v4 f%27  f%5  f%5  f%5 
+;tick count: 5010
+
+5 @0 v4 f%5  f%5  f%5  f%5  f%5  f%4  v3 f%1  v2 f%1 
+;tick count: 5041
+
+5 @0 v1 f%1  v0 f%1 
+;tick count: 5043
+
+5 @2 v8 o4 e%1  v7 e%1  v6 e%3  v5 e%3  v4 e%3  v3 e%69  v8 e%1  v7 d%1 
+;tick count: 5125
+
+5 @2 v6 d%3  v5 d%3  v4 d%3  v3 d%69  v8 d%1  v7 c%1  v6 c%3  v5 c%3 
+;tick count: 5211
+
+5 @2 v4 c%3  v3 c%69  v8 c%1  v7 o3 a%1  v6 a%3  v5 a%3  v4 a%3  v3 a%69 
+;tick count: 5363
+
+5 @2 v8 d%1  v9 d%1  v10 d%1  v9 d%1  v8 d%1  v7 d%1  v5 d%1  v4 d%1 
+;tick count: 5371
+
+5 @2 v3 d%2  v8 d%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1 
+;tick count: 5380
+
+5 @2 v4 g%1  v3 g%2  v9 o4 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1 
+;tick count: 5389
+
+5 @2 v5 c%1  v4 c%1  v3 c%2  v9 o3 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1 
+;tick count: 5398
+
+5 @2 v6 g%1  v5 g%1  v4 g%1  v3 g%2  v9 o4 c%1  v10 c%1  v9 c%1  v8 c%1 
+;tick count: 5407
+
+5 @2 v7 c%1  v6 c%1  v5 c%1  v4 c%1  v3 c%1  v8 c%1  v9 f%1  v10 f%1 
+;tick count: 5415
+
+5 @2 v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%1  v8 f%1 
+;tick count: 5423
+
+5 @2 v9 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1  v4 c%1 
+;tick count: 5431
+
+5 @2 v3 c%1  v8 c%1  v9 f%1  v10 f%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1 
+;tick count: 5439
+
+5 @2 v5 f%1  v4 f%1  v3 f%2  v9 a+%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1 
+;tick count: 5448
+
+5 @2 v6 a+%1  v5 a+%1  v4 a+%1  v3 a+%1  v8 a+%1  v9 f%1  v10 f%1  v9 f%1 
+;tick count: 5456
+
+5 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%1  v8 f%1  v9 a+%1 
+;tick count: 5464
+
+5 @2 v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1  v6 a+%1  v5 a+%1  v4 a+%1  v3 a+%1 
+;tick count: 5472
+
+5 @2 v3 a+%1  v9 o5 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%40  v5 g%1 
+;tick count: 5519
+
+5 @2 v4 g%1  v3 g%1  v2 g%2  v3 g%1  v4 g%1  v5 g%1  v6 g%1  v7 g%1 
+;tick count: 5528
+
+5 @4 v8 g%1  v9 g%1  v10 g%1  v9 g%1  v8 o4 a+%1  v7 a+%1  v6 a+%3  v5 a+%3 
+;tick count: 5540
+
+5 @4 v4 a+%3  v3 a+%3  v2 a+%3  v1 a+%13  v8 a+%1  v7 a%1  v6 a%3  v5 a%3 
+;tick count: 5570
+
+5 @4 v4 a%3  v3 a%3  v2 a%3  v1 a%23  a%1  v7 g%1  v6 g%3  v5 g%3 
+;tick count: 5610
+
+5 @4 v4 g%3  v3 g%3  v2 g%3  v1 g%13  v8 g%1  v7 o5 c%1  v6 c%3  v5 c%3 
+;tick count: 5640
+
+5 @4 v4 c%3  v3 c%3  v2 c%3  v1 c%34  v9 o3 d%1  v10 d%1  v9 d%1  v8 d%1 
+;tick count: 5687
+
+5 @2 v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%1  v8 d%1  v9 g%1  v10 g%1 
+;tick count: 5695
+
+5 @2 v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%1  v8 g%1 
+;tick count: 5703
+
+5 @2 v9 o4 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1  v4 c%1 
+;tick count: 5711
+
+5 @2 v3 c%1  v8 c%1  v9 o3 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1 
+;tick count: 5719
+
+5 @2 v5 g%1  v4 g%1  v3 g%1  v8 g%1  v9 o4 c%1  v10 c%1  v9 c%1  v8 c%1 
+;tick count: 5727
+
+5 @2 v7 c%1  v6 c%1  v5 c%1  v4 c%1  v3 c%1  v8 c%1  v9 f%1  v10 f%1 
+;tick count: 5735
+
+5 @2 v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%1  v8 f%1 
+;tick count: 5743
+
+5 @2 v9 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1  v4 c%1 
+;tick count: 5751
+
+5 @2 v3 c%1  v8 c%1  v9 f%1  v10 f%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1 
+;tick count: 5759
+
+5 @2 v5 f%1  v4 f%1  v3 f%1  v8 f%1  v9 a+%1  v10 a+%1  v9 a+%1  v8 a+%1 
+;tick count: 5767
+
+5 @2 v7 a+%1  v6 a+%1  v5 a+%1  v4 a+%1  v3 a+%1  v8 a+%1  v9 f%1  v10 f%1 
+;tick count: 5775
+
+5 @2 v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%1  v8 f%1 
+;tick count: 5783
+
+5 @2 v9 a+%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1  v6 a+%1  v5 a+%1  v4 a+%1 
+;tick count: 5791
+
+5 @2 v3 a+%1  v8 a+%1  v9 o5 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%40 
+;tick count: 5838
+
+5 @2 v5 g%1  v4 g%1  v3 g%1  v2 g%1  v3 g%1  v4 g%1  v5 g%1  v6 g%1 
+;tick count: 5846
+
+5 @4 v7 g%1  v8 g%1  v9 g%1  v10 g%1  v9 g%1  v8 o4 a+%1  v7 a+%1  v6 a+%3 
+;tick count: 5856
+
+5 @4 v5 a+%3  v4 a+%3  v3 a+%3  v2 a+%3  v1 a+%13  v8 a+%1  v7 a%1  v6 a%3 
+;tick count: 5886
+
+5 @4 v5 a%3  v4 a%3  v3 a%3  v2 a%3  v1 a%23  v8 a%1  v7 g%1  v6 g%3 
+;tick count: 5926
+
+5 @4 v5 g%3  v4 g%3  v3 g%3  v2 g%3  v1 g%13  v8 g%1  v7 o5 c%1  v6 c%3 
+;tick count: 5956
+
+5 @4 v5 c%3  v4 c%3  v3 c%3  v2 c%3  v1 c%33  v7 o4 e%1  v6 e%3  v5 e%3 
+;tick count: 6008
+
+5 @2 v4 e%3  v3 e%69  v8 e%1  v7 d%1  v6 d%3  v5 d%3  v4 d%3  v3 d%69 
+;tick count: 6160
+
+5 @2 v8 d%1  v7 c%1  v6 c%3  v5 c%3  v4 c%3  v3 c%69  v8 c%1  v7 o3 a%1 
+;tick count: 6242
+
+5 @2 v6 a%3  v5 a%3  v4 a%3  v3 a%69  v8 d%1  v9 d%1  v10 d%1  v9 d%1 
+;tick count: 6324
+
+5 @2 v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%1  v8 d%1  v9 g%1 
+;tick count: 6332
+
+5 @2 v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%1 
+;tick count: 6340
+
+5 @2 v8 g%1  v9 o4 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1 
+;tick count: 6348
+
+5 @2 v4 c%1  v3 c%1  v8 c%1  v9 o3 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1 
+;tick count: 6356
+
+5 @2 v6 g%1  v5 g%1  v4 g%1  v3 g%1  v8 g%1  v9 o4 c%1  v10 c%1  v9 c%1 
+;tick count: 6364
+
+5 @2 v8 c%1  v7 c%1  v6 c%1  v5 c%1  v4 c%1  v3 c%1  v8 c%1  v9 f%1 
+;tick count: 6372
+
+5 @2 v10 f%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%1 
+;tick count: 6380
+
+5 @2 v8 f%1  v9 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1 
+;tick count: 6388
+
+5 @2 v4 c%1  v3 c%1  v8 c%1  v9 f%1  v10 f%1  v9 f%1  v8 f%1  v7 f%1 
+;tick count: 6396
+
+5 @2 v6 f%1  v5 f%1  v4 f%1  v3 f%1  v8 f%1  v9 a+%1  v10 a+%1  v9 a+%1 
+;tick count: 6404
+
+5 @2 v8 a+%1  v7 a+%1  v6 a+%1  v5 a+%1  v4 a+%1  v3 a+%1  v8 a+%1  v9 f%1 
+;tick count: 6412
+
+5 @2 v10 f%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%1 
+;tick count: 6420
+
+5 @2 v8 f%1  v9 a+%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1  v6 a+%1  v5 a+%1 
+;tick count: 6428
+
+5 @2 v4 a+%1  v3 a+%1  v8 a+%1  v9 o5 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1 
+;tick count: 6436
+
+5 @2 v6 g%40  v5 g%1  v4 g%1  v3 g%1  v2 g%1  v3 g%1  v4 g%1  v5 g%1 
+;tick count: 6483
+
+5 @4 v6 g%1  v7 g%1  v8 g%1  v9 g%1  v10 g%1  v9 g%1  v8 o4 a+%1  v7 a+%1 
+;tick count: 6491
+
+5 @4 v6 a+%3  v5 a+%3  v4 a+%3  v3 a+%3  v2 a+%3  v1 a+%13  v8 a+%1  v7 a%1 
+;tick count: 6521
+
+5 @4 v6 a%3  v5 a%3  v4 a%3  v3 a%3  v2 a%3  v1 a%23  v8 a%1  v7 g%1 
+;tick count: 6561
+
+5 @4 v6 g%3  v5 g%3  v4 g%3  v3 g%3  v2 g%3  v1 g%13  v8 g%1  v7 o5 c%1 
+;tick count: 6591
+
+5 @4 v6 c%3  v5 c%3  v4 c%3  v3 c%3  v2 c%3  v1 c%33  v8 o3 d%1  v9 d%1 
+;tick count: 6641
+
+5 @2 v10 d%1  v9 d%1  v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%1 
+;tick count: 6649
+
+5 @2 v8 d%1  v9 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1 
+;tick count: 6657
+
+5 @2 v4 g%1  v3 g%1  v8 g%1  v9 o4 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1 
+;tick count: 6665
+
+5 @2 v6 c%1  v5 c%1  v4 c%1  v3 c%1  v8 c%1  v9 o3 g%1  v10 g%1  v9 g%1 
+;tick count: 6673
+
+5 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%1  v8 g%1  v9 o4 c%1 
+;tick count: 6681
+
+5 @2 v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1  v4 c%1  v3 c%1 
+;tick count: 6689
+
+5 @2 v8 c%1  v9 f%1  v10 f%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%1 
+;tick count: 6697
+
+5 @2 v4 f%1  v3 f%1  v8 f%1  v9 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1 
+;tick count: 6705
+
+5 @2 v6 c%1  v5 c%1  v4 c%1  v3 c%1  v8 c%1  v9 f%1  v10 f%1  v9 f%1 
+;tick count: 6713
+
+5 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%1  v8 f%1  v9 a+%1 
+;tick count: 6721
+
+5 @2 v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1  v6 a+%1  v5 a+%1  v4 a+%1  v3 a+%1 
+;tick count: 6729
+
+5 @2 v8 a+%1  v9 f%1  v10 f%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%1 
+;tick count: 6737
+
+5 @2 v4 f%1  v3 f%1  v8 f%1  v9 a+%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1 
+;tick count: 6745
+
+5 @2 v6 a+%1  v5 a+%1  v4 a+%1  v3 a+%1  v8 a+%1  v9 o5 g%1  v10 g%1  v9 g%1 
+;tick count: 6753
+
+5 @2 v8 g%1  v7 g%1  v6 g%40  v5 g%1  v4 g%1  v3 g%1  v2 g%1  v3 g%1 
+;tick count: 6800
+
+5 @4 v4 g%1  v5 g%1  v7 g%1  v8 g%1  v9 g%1  v10 g%1  v9 g%2  v7 o4 a+%1 
+;tick count: 6809
+
+5 @4 v6 a+%3  v5 a+%3  v4 a+%3  v3 a+%3  v2 a+%3  v1 a+%14  v7 a%1  v6 a%3 
+;tick count: 6842
+
+5 @4 v5 a%3  v4 a%3  v3 a%3  v2 a%3  v1 a%24  v7 g%1  v6 g%3  v5 g%3 
+;tick count: 6885
+
+5 @4 v4 g%3  v3 g%3  v2 g%3  v1 g%13  v8 g%1  v7 o5 c%1  v6 c%3  v5 c%3 
+;tick count: 6915
+
+5 @4 v4 c%3  v3 c%3  v2 c%3  v1 c%34  v9 o3 b%1  v8 b%3  v7 b%3  v6 b%3 
+;tick count: 6968
+
+5 @2 v5 b%3  v4 b%3  v3 b%63  v8 b%1  v9 b%1  v8 b%3  v7 b%3  v6 b%3 
+;tick count: 7048
+
+5 @2 v5 b%3  v4 b%3  v3 b%13  v8 b%1  v9 o4 c%1  v8 c%3  v7 c%3  v6 c%3 
+;tick count: 7078
+
+5 @2 v5 c%3  v4 c%3  v3 c%13  v8 c%1  v9 d%1  v8 d%3  v7 d%3  v6 d%3 
+;tick count: 7108
+
+5 @2 v5 d%3  v4 d%3  v3 d%3  v8 d%1  v9 o3 b%1  v8 b%3  v7 b%3  v6 b%3 
+;tick count: 7128
+
+5 @2 v5 b%3  v4 b%3  v3 b%63  v8 b%1  v9 b%1  v8 b%3  v7 b%3  v6 b%3 
+;tick count: 7208
+
+5 @2 v5 b%3  v4 b%3  v3 b%13  v8 b%1  v9 o4 c%1  v8 c%3  v7 c%3  v6 c%3 
+;tick count: 7238
+
+5 @2 v5 c%3  v4 c%3  v3 c%13  v8 c%1  d%3  v7 d%3  v6 d%3  v5 d%3 
+;tick count: 7270
+
+5 @2 v4 d%3  v3 d%4  v9 o3 a+%1  v8 a+%3  v7 a+%3  v6 a+%3  v5 a+%3  v4 a+%3 
+;tick count: 7293
+
+5 @2 v3 a+%63  v8 a+%1  v9 a+%1  v8 a+%3  v7 a+%3  v6 a+%3  v5 a+%3  v4 a+%3 
+;tick count: 7373
+
+5 @2 v3 a+%13  v8 a+%1  v9 o4 d%1  v8 d%3  v7 d%3  v6 d%3  v5 d%3  v4 d%3 
+;tick count: 7403
+
+5 @2 v3 d%13  v8 d%1  v9 g%1  v8 g%3  v7 g%3  v6 g%3  v5 g%3  v4 g%3 
+;tick count: 7433
+
+5 @2 v3 g%3  v8 g%1  v9 g%1  v8 g%3  v7 g%3  v6 g%3  v5 g%3  v4 g%3 
+;tick count: 7453
+
+5 @2 v3 g%63  v8 g%1  v9 f+%1  v8 f+%3  v7 f+%3  v6 f+%3  v5 f+%3  v4 f+%3 
+;tick count: 7533
+
+5 @2 v3 f+%63  v9 d%1  v8 d%3  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%13 
+;tick count: 7625
+
+5 @2 v8 d%1  v9 o3 b%1  v8 b%3  v7 b%3  v6 b%3  v5 b%3  v4 b%3  v3 b%13 
+;tick count: 7655
+
+5 @2 v8 b%1  v9 o4 c%1  v8 c%3  v7 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%3 
+;tick count: 7675
+
+5 @2 v8 c%1  v9 d%1  v8 d%3  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%13 
+;tick count: 7705
+
+5 @2 v8 d%1  v9 g%1  v8 g%3  v7 g%3  v6 g%3  v5 g%3  v4 g%3  v3 g%13 
+;tick count: 7735
+
+5 @2 v8 g%1  v9 d%1  v8 d%3  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%3 
+;tick count: 7755
+
+5 @2 v8 d%1  v9 d%1  v8 d%3  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%13 
+;tick count: 7785
+
+5 @2 v8 d%1  v9 o3 b%1  v8 b%3  v7 b%3  v6 b%3  v5 b%3  v4 b%3  v3 b%13 
+;tick count: 7815
+
+5 @2 v8 b%1  v9 o4 c%1  v8 c%3  v7 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%3 
+;tick count: 7835
+
+5 @2 v8 c%1  v9 d%1  v8 d%3  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%13 
+;tick count: 7865
+
+5 @2 v9 g%1  v8 g%3  v7 g%3  v6 g%4  v5 g%3  v4 g%2  v3 g%14  v9 d%1 
+;tick count: 7896
+
+5 @2 v8 d%3  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%4  v9 d%1  v8 d%3 
+;tick count: 7919
+
+5 @2 v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%13  v8 d%1  v9 o3 a+%1  v8 a+%3 
+;tick count: 7949
+
+5 @2 v7 a+%3  v6 a+%3  v5 a+%3  v4 a+%3  v3 a+%13  v8 a+%1  v9 o4 d%1  v8 d%3 
+;tick count: 7979
+
+5 @2 v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%3  v8 d%1  v9 g%1  v8 g%3 
+;tick count: 7999
+
+5 @2 v7 g%3  v6 g%3  v5 g%3  v4 g%3  v3 g%13  v8 g%1  v9 a%1  v8 a%3 
+;tick count: 8029
+
+5 @2 v7 a%3  v6 a%3  v5 a%3  v4 a%3  v3 a%13  v8 a%1  v9 g%1  v8 g%3 
+;tick count: 8059
+
+5 @2 v7 g%3  v6 g%3  v5 g%3  v4 g%3  v3 g%3  v8 g%1  v9 g%1  v8 g%3 
+;tick count: 8079
+
+5 @2 v7 g%3  v6 g%3  v5 g%3  v4 g%3  v3 g%63  v8 g%1  v9 f+%1  v8 f+%3 
+;tick count: 8159
+
+5 @2 v7 f+%3  v6 f+%3  v5 f+%3  v4 f+%3  v3 f+%62  f+%1  v9 f%1  v8 f%3 
+;tick count: 8238
+
+5 @2 v7 f%3  v6 f%3  v5 f%3  v4 f%3  v3 f%63  v8 f%1  v9 e%1  v8 e%3 
+;tick count: 8318
+
+5 @2 v7 e%3  v6 e%3  v5 e%3  v4 e%3  v3 e%64  v9 d%1  v8 d%3  v7 d%3 
+;tick count: 8401
+
+5 @2 v6 d%3  v5 d%4  v4 d%3  v3 d%103 
+;ch5 end: tick count: 8514
+
+
+;ch6 start
+6 @0 v0 o1 r%32 
+;tick count: 32
+
+6 @0 v1 r%16  v2 o2 a%8  v3 a%8  v4 a%255  v4 a%2  v8 a%1  v9 o4 e%1  v10 e%1  v8 e%1 
+;tick count: 325
+
+6 @0 v9 a%1  v10 a%1  v9 a%15  v8 a%15  v7 a%15  v6 a%15  v5 a%15  v4 a%15 
+;tick count: 417
+
+6 @0 v3 a%15  v2 a%132  v8 a%1  v9 e%1  v10 e%1  v8 e%1  v9 g%1  v10 g%1 
+;tick count: 570
+
+6 @0 v9 g%15  v8 g%15  v7 g%15  v6 g%15  v5 g%15  v4 g%15  v3 g%15  v2 g%130 
+;tick count: 805
+
+6 @0 v2 g%3 
+;tick count: 808
+
+6 @1 v8 o5 e%4  e%5  d+%5  d%5  c+%5  c%5  o4 b%5  a+%5 
+;tick count: 847
+
+6 @1 v8 a%5  g+%5  g%5  f+%5  f%5  e%5  d+%5  d%5 
+;tick count: 887
+
+6 @1 v6 e%1  v5 e%13  e%2  v4 e%15  v3 e%15  v2 e%15  v1 e%95  v0 e%3 
+;tick count: 1046
+
+6 @1 v8 e%1  v6 e%1  v5 e%15  v4 e%15  v3 e%15  v2 e%15  v1 e%95  v0 e%3 
+;tick count: 1206
+
+6 @1 v8 e%1  v6 c%1  v5 c%15  v4 c%15  v3 c%15  v2 c%15  v1 c%95  v0 c%3 
+;tick count: 1366
+
+6 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%15  v3 c%15  v2 c%15  v1 c%95  v0 c%3 
+;tick count: 1526
+
+6 @1 v8 c%1  v6 e%1  v5 e%15  v4 e%15  v3 e%15  v2 e%15  v1 e%95  v0 e%3 
+;tick count: 1686
+
+6 @1 v8 e%1  v6 e%1  v5 e%15  v4 e%15  v3 e%15  v2 e%15  v1 e%94  v0 e%4 
+;tick count: 1846
+
+6 @1 v6 c%1  v5 c%15  v4 c%15  v3 c%15  v2 c%15  v1 c%95  v0 c%4 
+;tick count: 2006
+
+6 @1 v6 c%1  v5 c%15  v4 c%15  v3 c%15  v2 c%15  v1 c%93  c%2 
+;tick count: 2162
+
+6 @1 v0 c%4 
+;tick count: 2166
+
+6 @1 v6 e%1  v5 e%15  v4 e%15  v3 e%15  v2 e%15  v1 e%15  v0 e%3 
+;tick count: 2245
+
+6 @1 v8 e%1  v6 f%1  v5 f%15  v4 f%15  v3 f%8  v8 f%1  v6 f%1  v5 f%8 
+;tick count: 2295
+
+6 @1 v8 f%1  v6 f%1  v5 f%15  v4 f%13  v8 f%1  v6 e%1  v5 e%15  v4 e%15 
+;tick count: 2357
+
+6 @1 v3 e%15  v2 e%15  v1 e%15  v0 e%3 
+;tick count: 2405
+
+6 @1 v8 e%1  v6 e%1  v5 e%15  v4 e%15  v3 e%8  v8 e%1  v6 e%1  v5 e%8 
+;tick count: 2455
+
+6 @1 v8 e%1  v6 e%1  v5 e%15  v4 e%13  v8 e%1  v6 c%1  v5 c%15  v4 c%3 
+;tick count: 2505
+
+6 @1 v8 c%1  v6 d%1  v5 d%15  v4 d%3  v8 d%1  v6 e%1  v5 e%15  v4 e%3 
+;tick count: 2545
+
+6 @1 v8 e%1  v6 f%1  v5 f%15  v4 f%15  v3 f%15  v2 f%13  v8 f%1  v6 f%1 
+;tick count: 2607
+
+6 @1 v5 f%8  v8 f%1  v6 f%1  v5 f%15  v4 f%13  v8 f%1  v6 c%1  v5 c%15 
+;tick count: 2662
+
+6 @1 v4 c%3  v8 c%1  v6 d%1  v5 d%15  v4 d%3  v8 d%1  v6 e%1  v5 e%15 
+;tick count: 2702
+
+6 @1 v4 e%3  v8 e%1  v6 f%1  v5 f%15  v4 f%15  v3 f%15  v2 f%13  v8 f%1 
+;tick count: 2766
+
+6 @1 v6 f%1  v5 f%8  v8 f%1  v6 f%1  v5 f%15  v4 f%13  v8 f%1  v6 d%1 
+;tick count: 2807
+
+6 @1 v5 d%15  v4 d%15  v3 d%15  v2 d%15  v1 d%15  v0 d%3 
+;tick count: 2885
+
+6 @1 v8 d%1  v6 f+%1  v5 f+%15  v4 f+%15  v3 f+%15  v2 f+%15  v1 f+%15  v0 f+%3 
+;tick count: 2965
+
+6 @1 v8 f+%1  v6 e%1  v5 e%15  v4 e%15  v3 e%15  v2 e%15  v1 e%15  v0 e%3 
+;tick count: 3045
+
+6 @1 v8 e%1  v6 e%1  v5 e%15  v4 e%15  v3 e%15  v2 e%15  v1 e%13  e%2 
+;tick count: 3122
+
+6 @1 v0 e%4 
+;tick count: 3126
+
+6 @3 v6 g%1  v5 g%1  v4 g%1  v3 g%1  v2 g%1  v1 g%1  v0 g%73 
+;tick count: 3205
+
+6 @3 v8 g%1  v6 o5 c%1  v5 c%1  v4 c%1  v3 c%1  v2 c%1  v1 c%1  v0 c%73 
+;tick count: 3285
+
+6 @3 v8 c%1  v6 o4 b%1  v5 b%1  v4 b%1  v3 b%1  v2 b%1  v1 b%1  v0 b%73 
+;tick count: 3365
+
+6 @3 v8 b%1  v6 a%1  v5 a%1  v4 a%1  v3 a%1  v2 a%1  v1 a%1  v0 a%73 
+;tick count: 3445
+
+6 @3 v8 a%1  v6 g%1  v5 g%1  v4 g%1  v3 g%1  v2 g%1  v1 g%1  v0 g%73 
+;tick count: 3525
+
+6 @3 v8 g%1  v6 o5 c%1  v5 c%1  v4 c%1  v3 c%1  v2 c%1  v1 c%1  v0 c%73 
+;tick count: 3605
+
+6 @3 v8 c%1  v6 o4 b%1  v5 b%1  v4 b%1  v3 b%1  v2 b%1  v1 b%1  v0 b%73 
+;tick count: 3685
+
+6 @3 v6 a%1  v5 a%1  v4 a%1  v3 a%1  v2 a%1  v1 a%1  v0 a%73 
+;tick count: 3764
+
+6 @3 v8 o3 g%1  g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%3  v3 g%1  v2 g%1 
+;tick count: 3774
+
+6 @3 v8 g%2  v7 a%1  v6 a%1  v5 a%1  v4 a%3  v3 a%1  v2 a%1  v8 a%2 
+;tick count: 3786
+
+6 @3 v7 b%1  v6 b%1  v5 b%1  v4 b%3  v3 b%1  v2 b%1  v8 b%2  v7 o4 c%1 
+;tick count: 3797
+
+6 @3 v6 c%1  v5 c%1  v4 c%3  v3 c%1  v2 c%1  v8 c%2  v7 e%1  v6 e%1 
+;tick count: 3808
+
+6 @3 v5 e%1  v4 e%73  v3 e%1  v2 e%1  v8 e%2  v7 g%1  v6 g%1  v5 g%1 
+;tick count: 3889
+
+6 @3 v4 g%33  v3 g%1  v2 g%1  v8 g%2  v7 f+%1  v6 f+%1  v5 f+%1  v4 f+%73 
+;tick count: 4002
+
+6 @3 v3 f+%1  v2 f+%1  v8 f+%2  v7 f%1  v6 f%1  v5 f%1  v4 f%23  v3 f%1 
+;tick count: 4033
+
+6 @3 v2 f%1  v8 f%2  v7 g%1  v6 g%1  v5 g%1  v4 g%23  v3 g%1  v2 g%1 
+;tick count: 4064
+
+6 @3 v8 g%2  v7 f%1  v6 f%1  v5 f%1  v4 f%13  v3 f%1  v2 f%1  v8 o3 g%1 
+;tick count: 4085
+
+6 @3 v9 g%1  v10 g%1  v11 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1 
+;tick count: 4093
+
+6 @3 v5 g%1  v4 g%1  v3 g%64  v2 g%1  v1 g%1  v0 g%3 
+;tick count: 4164
+
+6 @3 v9 o4 c%1  v10 c%1  v11 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1 
+;tick count: 4172
+
+6 @3 v5 c%1  v4 c%1  v3 c%65  v2 c%1  v1 c%1  v0 c%2 
+;tick count: 4243
+
+6 @3 v8 c%1  v9 o3 b%1  v10 b%1  v11 b%1  v10 b%1  v9 b%1  v8 b%1  v7 b%1 
+;tick count: 4251
+
+6 @3 v6 b%1  v5 b%1  v4 b%1  v3 b%65  v2 b%1  v1 b%1  v0 b%2 
+;tick count: 4323
+
+6 @3 v8 b%1  v9 a%1  v10 a%1  v11 a%1  v10 a%1  v9 a%1  v8 a%1  v7 a%1 
+;tick count: 4331
+
+6 @3 v6 a%1  v5 a%1  v4 a%1  v3 a%65  v2 a%1  v1 a%1  v0 a%2 
+;tick count: 4403
+
+6 @3 v8 g%2  v7 g%1  v6 g%1  v5 g%1  v4 g%3  v3 g%1  v2 g%1  v8 g%2 
+;tick count: 4415
+
+6 @3 v7 a%1  v6 a%1  v5 a%1  v4 a%3  v3 a%1  v2 a%1  v8 a%2  v7 b%1 
+;tick count: 4426
+
+6 @3 v6 b%1  v5 b%1  v4 b%3  v3 b%1  v2 b%1  v8 b%2  v7 o4 c%1  v6 c%1 
+;tick count: 4437
+
+6 @3 v5 c%1  v4 c%3  v3 c%1  v2 c%1  v8 c%2  v7 e%1  v6 e%1  v5 e%1 
+;tick count: 4448
+
+6 @3 v4 e%73  v3 e%1  v2 e%1  v8 e%2  v7 g%1  v6 g%1  v5 g%1  v4 g%33 
+;tick count: 4561
+
+6 @3 v3 g%1  v2 g%1  v8 g%2  v7 f+%1  v6 f+%1  v5 f+%1  v4 f+%73  v3 f+%1 
+;tick count: 4642
+
+6 @3 v2 f+%1  v8 f+%2  v7 f%1  v6 f%1  v5 f%1  v4 f%23  v3 f%1  v2 f%1 
+;tick count: 4673
+
+6 @3 v8 f%2  v7 g%1  v6 g%1  v5 g%1  v4 g%22  v3 g%1  v2 g%1  v8 g%2 
+;tick count: 4704
+
+6 @3 v7 f%1  v6 f%1  v5 f%1  v4 f%13  v3 f%1  v2 f%1  v8 f%1  v9 o3 g%1 
+;tick count: 4724
+
+6 @3 v10 g%1  v11 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1 
+;tick count: 4732
+
+6 @3 v4 g%1  v3 g%65  v2 g%1  v1 g%1  v0 g%2 
+;tick count: 4802
+
+6 @3 v8 g%1  v9 o4 c%1  v10 c%1  v11 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1 
+;tick count: 4810
+
+6 @3 v6 c%1  v5 c%1  v4 c%1  v3 c%65  v2 c%1  v1 c%1  v0 c%2 
+;tick count: 4882
+
+6 @3 v8 c%1  v9 o3 b%1  v10 b%1  v11 b%1  v10 b%1  v9 b%1  v8 b%1  v7 b%1 
+;tick count: 4890
+
+6 @3 v6 b%1  v5 b%1  v4 b%1  v3 b%65  v2 b%1  v1 b%1  v0 b%2 
+;tick count: 4962
+
+6 @3 v8 b%1  v9 a%1  v10 a%1  v11 a%1  v10 a%1  v9 a%1  v8 a%1  v7 a%1 
+;tick count: 4970
+
+6 @3 v6 a%1  v5 a%1  v4 a%1  v3 a%65  v2 a%1  v1 a%1  v0 a%2 
+;tick count: 5042
+
+6 @1 v8 o4 e%1  v6 e%1  v5 e%15  v4 e%15  v3 e%15  v2 e%15  v1 e%15  v0 e%3 
+;tick count: 5122
+
+6 @1 v8 e%1  v6 f%1  v5 f%15  v4 f%15  v3 f%8  v8 f%1  v6 f%1  v5 f%8 
+;tick count: 5172
+
+6 @1 v8 f%1  v6 f%1  v5 f%15  v4 f%13  v8 f%1  v6 e%1  v5 e%15  v4 e%15 
+;tick count: 5234
+
+6 @1 v3 e%15  v2 e%15  v1 e%15  v0 e%3 
+;tick count: 5282
+
+6 @1 v8 e%1  v6 e%1  v5 e%15  v4 e%15  v3 e%8  v8 e%1  v6 e%1  v5 e%8 
+;tick count: 5332
+
+6 @1 v8 e%1  v6 e%1  v5 e%15  v4 e%13  v8 o3 d%1  v9 d%1  v10 d%1  v9 d%1 
+;tick count: 5366
+
+6 @2 v8 d%1  v7 d%1  v5 d%1  v4 d%1  v3 d%2  v8 d%1  v10 g%1  v9 g%1 
+;tick count: 5375
+
+6 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%2  v9 o4 c%1  v10 c%1 
+;tick count: 5384
+
+6 @2 v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1  v4 c%1  v3 c%2  v9 o3 g%1 
+;tick count: 5393
+
+6 @2 v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%2 
+;tick count: 5402
+
+6 @2 v9 o4 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1  v4 c%1 
+;tick count: 5410
+
+6 @2 v3 c%1  v8 c%1  v9 f%1  v10 f%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1 
+;tick count: 5418
+
+6 @2 v5 f%1  v4 f%1  v3 f%1  v8 f%1  v9 c%1  v10 c%1  v9 c%1  v8 c%1 
+;tick count: 5426
+
+6 @2 v7 c%1  v6 c%1  v5 c%1  v4 c%1  v3 c%1  v8 c%1  v9 f%1  v10 f%1 
+;tick count: 5434
+
+6 @2 v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%2  v9 a+%1 
+;tick count: 5443
+
+6 @2 v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1  v6 a+%1  v5 a+%1  v4 a+%1  v3 a+%1 
+;tick count: 5451
+
+6 @2 v8 a+%1  v9 f%1  v10 f%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%1 
+;tick count: 5459
+
+6 @2 v4 f%1  v3 f%1  v8 f%1  v9 a+%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1 
+;tick count: 5467
+
+6 @2 v6 a+%1  v5 a+%1  v4 a+%1  v3 a+%2  v9 o5 g%1  v10 g%1  v9 g%1  v8 g%1 
+;tick count: 5476
+
+6 @2 v7 g%1  v6 g%40  v5 g%1  v4 g%1  v3 g%1  v2 g%2  v3 g%1  v4 g%1 
+;tick count: 5524
+
+6 @4 v5 g%1  v6 g%1  v7 g%1  v8 g%1  v9 g%1  v10 g%1  v9 g%1  v8 o4 g%1 
+;tick count: 5532
+
+6 @4 v7 g%1  v6 g%3  v5 g%3  v4 g%3  v3 g%3  v2 g%3  v1 g%13  v8 g%1 
+;tick count: 5562
+
+6 @4 v7 f%1  v6 f%3  v5 f%3  v4 f%3  v3 f%3  v2 f%3  v1 f%23  f%1 
+;tick count: 5602
+
+6 @4 v7 e%1  v6 e%3  v5 e%3  v4 e%3  v3 e%3  v2 e%3  v1 e%13  v8 e%1 
+;tick count: 5632
+
+6 @4 v7 g%1  v6 g%3  v5 g%3  v4 g%3  v3 g%3  v2 g%3  v1 g%34  v9 o3 d%1 
+;tick count: 5683
+
+6 @2 v10 d%1  v9 d%1  v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%1 
+;tick count: 5691
+
+6 @2 v8 d%1  v9 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1 
+;tick count: 5699
+
+6 @2 v4 g%1  v3 g%1  v8 g%1  v9 o4 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1 
+;tick count: 5707
+
+6 @2 v6 c%1  v5 c%1  v4 c%1  v3 c%1  v8 c%1  v9 o3 g%1  v10 g%1  v9 g%1 
+;tick count: 5715
+
+6 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%1  v8 g%1  v9 o4 c%1 
+;tick count: 5723
+
+6 @2 v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1  v4 c%1  v3 c%1 
+;tick count: 5731
+
+6 @2 v8 c%1  v9 f%1  v10 f%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%1 
+;tick count: 5739
+
+6 @2 v4 f%1  v3 f%1  v8 f%1  v9 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1 
+;tick count: 5747
+
+6 @2 v6 c%1  v5 c%1  v4 c%1  v3 c%1  v8 c%1  v9 f%1  v10 f%1  v9 f%1 
+;tick count: 5755
+
+6 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%1  v8 f%1  v9 a+%1 
+;tick count: 5763
+
+6 @2 v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1  v6 a+%1  v5 a+%1  v4 a+%1  v3 a+%1 
+;tick count: 5771
+
+6 @2 v8 a+%1  v9 f%1  v10 f%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%1 
+;tick count: 5779
+
+6 @2 v4 f%1  v3 f%1  v8 f%1  v9 a+%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1 
+;tick count: 5787
+
+6 @2 v6 a+%1  v5 a+%1  v4 a+%1  v3 a+%1  v8 a+%1  v9 o5 g%1  v10 g%1  v9 g%1 
+;tick count: 5795
+
+6 @2 v8 g%1  v7 g%1  v6 g%40  v5 g%1  v4 g%1  v3 g%1  v2 g%1  v3 g%1 
+;tick count: 5842
+
+6 @4 v4 g%1  v5 g%1  v6 g%1  v7 g%1  v8 g%1  v9 g%1  v10 g%1  v9 g%1 
+;tick count: 5850
+
+6 @4 v8 o4 g%1  v7 g%1  v6 g%3  v5 g%3  v4 g%3  v3 g%3  v2 g%3  v1 g%13 
+;tick count: 5880
+
+6 @4 v8 g%1  v7 f%1  v6 f%3  v5 f%3  v4 f%3  v3 f%3  v2 f%3  v1 f%23 
+;tick count: 5920
+
+6 @4 v8 f%1  v7 e%1  v6 e%3  v5 e%3  v4 e%3  v3 e%3  v2 e%3  v1 e%13 
+;tick count: 5950
+
+6 @4 v8 e%1  v7 g%1  v6 g%3  v5 g%3  v4 g%3  v3 g%3  v2 g%3  v1 g%33 
+;tick count: 6000
+
+6 @4 v8 e%1 
+;tick count: 6001
+
+6 @1 v6 e%1  v5 e%15  v4 e%15  v3 e%15  v2 e%15  v1 e%15  v0 e%3 
+;tick count: 6080
+
+6 @1 v8 e%1  v6 f%1  v5 f%15  v4 f%15  v3 f%8  v8 f%1  v6 f%1  v5 f%8 
+;tick count: 6130
+
+6 @1 v8 f%1  v6 f%1  v5 f%15  v4 f%13  v8 f%1  v6 e%1  v5 e%15  v4 e%15 
+;tick count: 6192
+
+6 @1 v3 e%15  v2 e%15  v1 e%15  v0 e%3 
+;tick count: 6240
+
+6 @1 v8 e%1  v6 e%1  v5 e%15  v4 e%15  v3 e%8  v8 e%1  v6 e%1  v5 e%8 
+;tick count: 6290
+
+6 @1 v8 e%1  v6 e%1  v5 e%15  v4 e%13  v8 o3 d%1  v9 d%1  v10 d%1  v9 d%1 
+;tick count: 6324
+
+6 @2 v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%1  v8 d%1  v9 g%1 
+;tick count: 6332
+
+6 @2 v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%1 
+;tick count: 6340
+
+6 @2 v8 g%1  v9 o4 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1 
+;tick count: 6348
+
+6 @2 v4 c%1  v3 c%1  v8 c%1  v9 o3 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1 
+;tick count: 6356
+
+6 @2 v6 g%1  v5 g%1  v4 g%1  v3 g%1  v8 g%1  v9 o4 c%1  v10 c%1  v9 c%1 
+;tick count: 6364
+
+6 @2 v8 c%1  v7 c%1  v6 c%1  v5 c%1  v4 c%1  v3 c%1  v8 c%1  v9 f%1 
+;tick count: 6372
+
+6 @2 v10 f%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%1 
+;tick count: 6380
+
+6 @2 v8 f%1  v9 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1 
+;tick count: 6388
+
+6 @2 v4 c%1  v3 c%1  v8 c%1  v9 f%1  v10 f%1  v9 f%1  v8 f%1  v7 f%1 
+;tick count: 6396
+
+6 @2 v6 f%1  v5 f%1  v4 f%1  v3 f%1  v8 f%1  v9 a+%1  v10 a+%1  v9 a+%1 
+;tick count: 6404
+
+6 @2 v8 a+%1  v7 a+%1  v6 a+%1  v5 a+%1  v4 a+%1  v3 a+%1  v8 a+%1  v9 f%1 
+;tick count: 6412
+
+6 @2 v10 f%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%1 
+;tick count: 6420
+
+6 @2 v8 f%1  v9 a+%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1  v6 a+%1  v5 a+%1 
+;tick count: 6428
+
+6 @2 v4 a+%1  v3 a+%1  v8 a+%1  v9 o5 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1 
+;tick count: 6436
+
+6 @2 v6 g%40  v5 g%1  v4 g%1  v3 g%1  v2 g%1  v3 g%1  v4 g%1  v5 g%1 
+;tick count: 6483
+
+6 @4 v6 g%1  v7 g%1  v8 g%1  v9 g%1  v10 g%1  v9 g%1  v8 o4 g%1  v7 g%1 
+;tick count: 6491
+
+6 @4 v6 g%3  v5 g%3  v4 g%3  v3 g%3  v2 g%3  v1 g%13  v8 g%1  v7 f%1 
+;tick count: 6521
+
+6 @4 v6 f%3  v5 f%3  v4 f%3  v3 f%3  v2 f%3  v1 f%23  v8 f%1  v7 e%1 
+;tick count: 6561
+
+6 @4 v6 e%3  v5 e%3  v4 e%3  v3 e%3  v2 e%3  v1 e%13  v8 e%1  v7 g%1 
+;tick count: 6591
+
+6 @4 v6 g%3  v5 g%3  v4 g%3  v3 g%3  v2 g%3  v1 g%33  v8 o3 d%1  v9 d%1 
+;tick count: 6641
+
+6 @2 v10 d%1  v9 d%1  v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1  v3 d%1 
+;tick count: 6649
+
+6 @2 v8 d%1  v9 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1 
+;tick count: 6657
+
+6 @2 v4 g%1  v3 g%1  v8 g%1  v9 o4 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1 
+;tick count: 6665
+
+6 @2 v6 c%1  v5 c%1  v4 c%1  v3 c%1  v8 c%1  v9 o3 g%1  v10 g%1  v9 g%1 
+;tick count: 6673
+
+6 @2 v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1  v3 g%1  v8 g%1  v9 o4 c%1 
+;tick count: 6681
+
+6 @2 v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1  v4 c%1  v3 c%1 
+;tick count: 6689
+
+6 @2 v8 c%1  v9 f%1  v10 f%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%1 
+;tick count: 6697
+
+6 @2 v4 f%1  v3 f%1  v8 f%1  v9 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1 
+;tick count: 6705
+
+6 @2 v6 c%1  v5 c%1  v4 c%1  v3 c%1  v8 c%1  v9 f%1  v10 f%1  v9 f%1 
+;tick count: 6713
+
+6 @2 v8 f%1  v7 f%1  v6 f%1  v5 f%1  v4 f%1  v3 f%1  v8 f%1  v9 a+%1 
+;tick count: 6721
+
+6 @2 v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1  v6 a+%1  v5 a+%1  v4 a+%1  v3 a+%1 
+;tick count: 6729
+
+6 @2 v8 a+%1  v9 f%1  v10 f%1  v9 f%1  v8 f%1  v7 f%1  v6 f%1  v5 f%1 
+;tick count: 6737
+
+6 @2 v4 f%1  v3 f%1  v8 f%1  v9 a+%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1 
+;tick count: 6745
+
+6 @2 v6 a+%1  v5 a+%1  v4 a+%1  v3 a+%1  v8 a+%1  v9 o5 g%1  v10 g%1  v9 g%1 
+;tick count: 6753
+
+6 @2 v8 g%1  v7 g%1  v6 g%40  v5 g%1  v4 g%1  v3 g%1  v2 g%1  v3 g%1 
+;tick count: 6800
+
+6 @4 v4 g%1  v5 g%1  v7 g%1  v8 g%1  v9 g%1  v10 g%1  v9 g%2  v7 o4 g%1 
+;tick count: 6809
+
+6 @4 v6 g%3  v5 g%3  v4 g%3  v3 g%3  v2 g%3  v1 g%14  v7 f%1  v6 f%3 
+;tick count: 6842
+
+6 @4 v5 f%3  v4 f%3  v3 f%3  v2 f%3  v1 f%24  v7 e%1  v6 e%3  v5 e%3 
+;tick count: 6885
+
+6 @4 v4 e%3  v3 e%3  v2 e%3  v1 e%13  v8 e%1  v7 g%1  v6 g%3  v5 g%3 
+;tick count: 6915
+
+6 @4 v4 g%3  v3 g%3  v2 g%3  v1 g%34  v9 o3 g%1  v8 g%3  v7 g%3  v6 g%3 
+;tick count: 6968
+
+6 @2 v5 g%3  v4 g%3  v3 g%63  v8 g%1  v9 g%1  v8 g%3  v7 g%3  v6 g%3 
+;tick count: 7048
+
+6 @2 v5 g%3  v4 g%3  v3 g%13  v8 g%1  v9 a%1  v8 a%3  v7 a%3  v6 a%3 
+;tick count: 7078
+
+6 @2 v5 a%3  v4 a%3  v3 a%13  v8 a%1  v9 b%1  v8 b%3  v7 b%3  v6 b%3 
+;tick count: 7108
+
+6 @2 v5 b%3  v4 b%3  v3 b%3  v8 b%1  v9 g%1  v8 g%3  v7 g%3  v6 g%3 
+;tick count: 7128
+
+6 @2 v5 g%3  v4 g%3  v3 g%63  v8 g%1  v9 g%1  v8 g%3  v7 g%3  v6 g%3 
+;tick count: 7208
+
+6 @2 v5 g%3  v4 g%3  v3 g%13  v8 g%1  v9 a%1  v8 a%3  v7 a%3  v6 a%3 
+;tick count: 7238
+
+6 @2 v5 a%3  v4 a%3  v3 a%13  v8 a%1  b%3  v7 b%3  v6 b%3  v5 b%3 
+;tick count: 7270
+
+6 @2 v4 b%3  v3 b%4  v9 g%1  v8 g%3  v7 g%3  v6 g%3  v5 g%3  v4 g%3 
+;tick count: 7293
+
+6 @2 v3 g%63  v8 g%1  v9 g%1  v8 g%3  v7 g%3  v6 g%3  v5 g%3  v4 g%3 
+;tick count: 7373
+
+6 @2 v3 g%13  v8 g%1  v9 a+%1  v8 a+%3  v7 a+%3  v6 a+%3  v5 a+%3  v4 a+%3 
+;tick count: 7403
+
+6 @2 v3 a+%13  v8 a+%1  v9 o4 d%1  v8 d%3  v7 d%3  v6 d%3  v5 d%3  v4 d%3 
+;tick count: 7433
+
+6 @2 v3 d%3  v8 d%1  v9 d%1  v8 d%3  v7 d%3  v6 d%3  v5 d%3  v4 d%3 
+;tick count: 7453
+
+6 @2 v3 d%63  v8 d%1  v9 d%1  v8 d%3  v7 d%3  v6 d%3  v5 d%3  v4 d%3 
+;tick count: 7533
+
+6 @2 v3 d%63  v9 o3 b%1  v8 b%3  v7 b%3  v6 b%3  v5 b%3  v4 b%3  v3 b%13 
+;tick count: 7625
+
+6 @2 v8 b%1  v9 g%1  v8 g%3  v7 g%3  v6 g%3  v5 g%3  v4 g%3  v3 g%13 
+;tick count: 7655
+
+6 @2 v8 g%1  v9 a%1  v8 a%3  v7 a%3  v6 a%3  v5 a%3  v4 a%3  v3 a%3 
+;tick count: 7675
+
+6 @2 v8 a%1  v9 b%1  v8 b%3  v7 b%3  v6 b%3  v5 b%3  v4 b%3  v3 b%13 
+;tick count: 7705
+
+6 @2 v8 b%1  v9 o4 d%1  v8 d%3  v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%13 
+;tick count: 7735
+
+6 @2 v8 d%1  v9 o3 b%1  v8 b%3  v7 b%3  v6 b%3  v5 b%3  v4 b%3  v3 b%3 
+;tick count: 7755
+
+6 @2 v8 b%1  v9 b%1  v8 b%3  v7 b%3  v6 b%3  v5 b%3  v4 b%3  v3 b%13 
+;tick count: 7785
+
+6 @2 v8 b%1  v9 g%1  v8 g%3  v7 g%3  v6 g%3  v5 g%3  v4 g%3  v3 g%13 
+;tick count: 7815
+
+6 @2 v8 g%1  v9 a%1  v8 a%3  v7 a%3  v6 a%3  v5 a%3  v4 a%3  v3 a%3 
+;tick count: 7835
+
+6 @2 v8 a%1  v9 b%1  v8 b%3  v7 b%3  v6 b%3  v5 b%3  v4 b%3  v3 b%13 
+;tick count: 7865
+
+6 @2 v9 o4 d%1  v8 d%3  v7 d%3  v6 d%4  v5 d%3  v4 d%2  v3 d%14  v9 o3 b%1 
+;tick count: 7896
+
+6 @2 v8 b%3  v7 b%3  v6 b%3  v5 b%3  v4 b%3  v3 b%4  v9 a+%1  v8 a+%3 
+;tick count: 7919
+
+6 @2 v7 a+%3  v6 a+%3  v5 a+%3  v4 a+%3  v3 a+%13  v8 a+%1  v9 g%1  v8 g%3 
+;tick count: 7949
+
+6 @2 v7 g%3  v6 g%3  v5 g%3  v4 g%3  v3 g%13  v8 g%1  v9 a+%1  v8 a+%3 
+;tick count: 7979
+
+6 @2 v7 a+%3  v6 a+%3  v5 a+%3  v4 a+%3  v3 a+%3  v8 a+%1  v9 o4 d%1  v8 d%3 
+;tick count: 7999
+
+6 @2 v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%13  v8 d%1  v9 d%1  v8 d%3 
+;tick count: 8029
+
+6 @2 v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%13  v8 d%1  v9 d%1  v8 d%3 
+;tick count: 8059
+
+6 @2 v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%3  v8 d%1  v9 d%1  v8 d%3 
+;tick count: 8079
+
+6 @2 v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%63  v8 d%1  v9 d%1  v8 d%3 
+;tick count: 8159
+
+6 @2 v7 d%3  v6 d%3  v5 d%3  v4 d%3  v3 d%62  d%1  v9 c%1  v8 c%3 
+;tick count: 8238
+
+6 @2 v7 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%63  v8 c%1  v9 c%1  v8 c%3 
+;tick count: 8318
+
+6 @2 v7 c%3  v6 c%3  v5 c%3  v4 c%3  v3 c%64  v9 o3 b%1  v8 b%3  v7 b%3 
+;tick count: 8401
+
+6 @2 v6 b%4  v5 b%3  v4 b%3  v3 b%103 
+;ch6 end: tick count: 8514
+
+
+;ch7 start
+7 @0 v0 o1 r%32 
+;tick count: 32
+
+7 @0 v1 r%64  v2 o3 a%193  v8 a%1  v9 o4 e%1  v10 e%1  v8 e%1  v9 a%1  v10 a%1 
+;tick count: 295
+
+7 @0 v9 a%15  v8 a%15  v7 a%15  v6 a%15  v5 a%15  v4 a%15  v3 a%15  v2 a%132 
+;tick count: 532
+
+7 @0 v8 a%1  v9 e%1  v10 e%1  v8 e%1  v9 g%1  v10 g%1  v9 g%15  v8 g%15 
+;tick count: 568
+
+7 @0 v7 g%15  v6 g%15  v5 g%15  v4 g%15  v3 g%15  v2 g%133  v8 o5 e%4  e%5 
+;tick count: 785
+
+7 @1 v8 d+%5  d%5  e%5  d+%5  d%5  c+%5  c%5  o4 b%5 
+;tick count: 825
+
+7 @1 v8 a+%5  a%5  g+%5  g%5  f+%5  f%5  c%1 
+;tick count: 856
+
+7 @1 v6 c%1  v5 c%13  c%2  v4 c%15  v3 c%15  v2 c%15  v1 c%95  v0 c%3 
+;tick count: 1015
+
+7 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%15  v3 c%15  v2 c%15  v1 c%95  v0 c%3 
+;tick count: 1175
+
+7 @1 v8 c%1  v6 o3 a%1  v5 a%15  v4 a%15  v3 a%15  v2 a%15  v1 a%95  v0 a%3 
+;tick count: 1335
+
+7 @1 v8 a%1  v6 g%1  v5 g%15  v4 g%15  v3 g%15  v2 g%15  v1 g%95  v0 g%3 
+;tick count: 1495
+
+7 @1 v8 g%1  v6 o4 c%1  v5 c%15  v4 c%15  v3 c%15  v2 c%15  v1 c%95  v0 c%3 
+;tick count: 1655
+
+7 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%15  v3 c%15  v2 c%15  v1 c%94  v0 c%4 
+;tick count: 1815
+
+7 @1 v6 o3 a%1  v5 a%15  v4 a%15  v3 a%15  v2 a%15  v1 a%95  v0 a%4 
+;tick count: 1975
+
+7 @1 v6 g%1  v5 g%15  v4 g%15  v3 g%15  v2 g%15  v1 g%95  v0 g%4 
+;tick count: 2135
+
+7 @1 v6 o4 c%1  v5 c%15  v4 c%15  v3 c%15  v2 c%15  v1 c%15  v0 c%3 
+;tick count: 2214
+
+7 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%15  v3 c%8  v8 c%1  v6 c%1  v5 c%8 
+;tick count: 2264
+
+7 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%13  v8 c%1  v6 c%1  v5 c%15  v4 c%15 
+;tick count: 2326
+
+7 @1 v3 c%15  v2 c%15  v1 c%15  v0 c%3 
+;tick count: 2374
+
+7 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%15  v3 c%8  v8 c%1  v6 c%1  v5 c%8 
+;tick count: 2424
+
+7 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%13  v8 c%1  v6 o3 a%1  v5 a%15  v4 a%3 
+;tick count: 2474
+
+7 @1 v8 a%1  v6 b%1  v5 b%15  v4 b%3  v8 b%1  v6 o4 c%1  v5 c%15  v4 c%3 
+;tick count: 2514
+
+7 @1 v8 c%1  v6 d%1  v5 d%15  v4 d%15  v3 d%15  v2 d%13  v8 d%1  v6 d%1 
+;tick count: 2576
+
+7 @1 v5 d%8  v8 d%1  v6 d%1  v5 d%15  v4 d%13  v8 d%1  v6 o3 a%1  v5 a%15 
+;tick count: 2631
+
+7 @1 v4 a%3  v8 a%1  v6 b%1  v5 b%15  v4 b%3  v8 b%1  v6 o4 c%1  v5 c%15 
+;tick count: 2671
+
+7 @1 v4 c%3  v8 c%1  v6 d%1  v5 d%15  v4 d%15  v3 d%15  v2 d%13  v8 d%1 
+;tick count: 2735
+
+7 @1 v6 d%1  v5 d%8  v8 d%1  v6 d%1  v5 d%15  v4 d%13  v8 d%1  v6 o3 a%1 
+;tick count: 2776
+
+7 @1 v5 a%15  v4 a%15  v3 a%15  v2 a%15  v1 a%15  v0 a%3 
+;tick count: 2854
+
+7 @1 v8 a%1  v6 o4 d%1  v5 d%15  v4 d%15  v3 d%15  v2 d%15  v1 d%15  v0 d%3 
+;tick count: 2934
+
+7 @1 v8 d%1  v6 o3 b%1  v5 b%15  v4 b%15  v3 b%15  v2 b%15  v1 b%15  v0 b%3 
+;tick count: 3014
+
+7 @1 v8 b%1  v6 b%1  v5 b%15  v4 b%15  v3 b%15  v2 b%15  v1 b%15  v0 b%4 
+;tick count: 3095
+
+7 @1 v9 o4 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1  v4 c%1 
+;tick count: 3103
+
+7 @1 v3 c%1  v2 c%66  v1 c%1  v0 c%3 
+;tick count: 3174
+
+7 @1 v8 c%1  v9 e%1  v10 e%1  v9 e%1  v8 e%1  v7 e%1  v6 e%1  v5 e%1 
+;tick count: 3182
+
+7 @1 v4 e%1  v3 e%1  v2 e%66  v1 e%1  v0 e%3 
+;tick count: 3254
+
+7 @1 v8 e%1  v9 d+%1  v10 d+%1  v9 d+%1  v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1 
+;tick count: 3262
+
+7 @1 v4 d+%1  v3 d+%1  v2 d+%66  v1 d+%1  v0 d+%3 
+;tick count: 3334
+
+7 @1 v8 d+%1  v9 d%1  v10 d%1  v9 d%1  v8 d%1  v7 d%1  v6 d%1  v5 d%1 
+;tick count: 3342
+
+7 @1 v4 d%1  v3 d%1  v2 d%66  v1 d%1  v0 d%3 
+;tick count: 3414
+
+7 @1 v8 d%1  v9 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1 
+;tick count: 3422
+
+7 @1 v4 c%1  v3 c%1  v2 c%66  v1 c%1  v0 c%3 
+;tick count: 3494
+
+7 @1 v8 c%1  v9 e%1  v10 e%1  v9 e%1  v8 e%1  v7 e%1  v6 e%1  v5 e%1 
+;tick count: 3502
+
+7 @1 v4 e%1  v3 e%1  v2 e%66  v1 e%1  v0 e%3 
+;tick count: 3574
+
+7 @1 v8 e%1  v9 d+%1  v10 d+%1  v9 d+%1  v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1 
+;tick count: 3582
+
+7 @1 v4 d+%1  v3 d+%1  v2 d+%65  v1 d+%1  v0 d+%4 
+;tick count: 3654
+
+7 @1 v9 d%1  v10 d%1  v9 d%1  v8 d%1  v7 d%1  v6 d%1  v5 d%1  v4 d%1 
+;tick count: 3662
+
+7 @1 v3 d%1  v2 d%66  v1 d%1  v0 d%3 
+;tick count: 3733
+
+7 @1 v8 c%1  v9 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1 
+;tick count: 3741
+
+7 @1 v4 c%1  v3 c%1  v2 c%66  v1 c%1  v0 c%3 
+;tick count: 3813
+
+7 @1 v8 c%1  v9 e%1  v10 e%1  v9 e%1  v8 e%1  v7 e%1  v6 e%1  v5 e%1 
+;tick count: 3821
+
+7 @1 v4 e%1  v3 e%1  v2 e%66  v1 e%1  v0 e%3 
+;tick count: 3893
+
+7 @1 v8 e%1  v9 d+%1  v10 d+%1  v9 d+%1  v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1 
+;tick count: 3901
+
+7 @1 v4 d+%1  v3 d+%1  v2 d+%66  v1 d+%1  v0 d+%3 
+;tick count: 3973
+
+7 @1 v8 d+%1  v9 d%1  v10 d%1  v9 d%1  v8 d%1  v7 d%1  v6 d%1  v5 d%1 
+;tick count: 3981
+
+7 @1 v4 d%1  v3 d%1  v2 d%66  v1 d%1  v0 d%3 
+;tick count: 4053
+
+7 @1 v8 c%1  v9 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1 
+;tick count: 4061
+
+7 @1 v4 c%1  v3 c%1  v2 c%65  v1 c%1  v0 c%4 
+;tick count: 4133
+
+7 @1 v9 e%1  v10 e%1  v9 e%1  v8 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%1 
+;tick count: 4141
+
+7 @1 v3 e%1  v2 e%66  v1 e%1  v0 e%3 
+;tick count: 4212
+
+7 @1 v8 e%1  v9 d+%1  v10 d+%1  v9 d+%1  v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1 
+;tick count: 4220
+
+7 @1 v4 d+%1  v3 d+%1  v2 d+%66  v1 d+%1  v0 d+%3 
+;tick count: 4292
+
+7 @1 v8 d+%1  v9 d%1  v10 d%1  v9 d%1  v8 d%1  v7 d%1  v6 d%1  v5 d%1 
+;tick count: 4300
+
+7 @1 v4 d%1  v3 d%1  v2 d%66  v1 d%1  v0 d%3 
+;tick count: 4372
+
+7 @1 v8 c%1  v9 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1 
+;tick count: 4380
+
+7 @1 v4 c%1  v3 c%1  v2 c%66  v1 c%1  v0 c%3 
+;tick count: 4452
+
+7 @1 v8 c%1  v9 e%1  v10 e%1  v9 e%1  v8 e%1  v7 e%1  v6 e%1  v5 e%1 
+;tick count: 4460
+
+7 @1 v4 e%1  v3 e%1  v2 e%66  v1 e%1  v0 e%3 
+;tick count: 4532
+
+7 @1 v8 e%1  v9 d+%1  v10 d+%1  v9 d+%1  v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1 
+;tick count: 4540
+
+7 @1 v4 d+%1  v3 d+%1  v2 d+%66  v1 d+%1  v0 d+%3 
+;tick count: 4612
+
+7 @1 v8 d+%1  v9 d%1  v10 d%1  v9 d%1  v8 d%1  v7 d%1  v6 d%1  v5 d%1 
+;tick count: 4620
+
+7 @1 v4 d%1  v3 d%1  v2 d%65  v1 d%1  v0 d%3 
+;tick count: 4691
+
+7 @1 v0 d%1 
+;tick count: 4692
+
+7 @1 v9 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1  v4 c%1 
+;tick count: 4700
+
+7 @1 v3 c%1  v2 c%66  v1 c%1  v0 c%3 
+;tick count: 4771
+
+7 @1 v8 c%1  v9 e%1  v10 e%1  v9 e%1  v8 e%1  v7 e%1  v6 e%1  v5 e%1 
+;tick count: 4779
+
+7 @1 v4 e%1  v3 e%1  v2 e%66  v1 e%1  v0 e%3 
+;tick count: 4851
+
+7 @1 v8 e%1  v9 d+%1  v10 d+%1  v9 d+%1  v8 d+%1  v7 d+%1  v6 d+%1  v5 d+%1 
+;tick count: 4859
+
+7 @1 v4 d+%1  v3 d+%1  v2 d+%66  v1 d+%1  v0 d+%3 
+;tick count: 4931
+
+7 @1 v8 d+%1  v9 d%1  v10 d%1  v9 d%1  v8 d%1  v7 d%1  v6 d%1  v5 d%1 
+;tick count: 4939
+
+7 @1 v4 d%1  v3 d%1  v2 d%66  v1 d%1  v0 d%3 
+;tick count: 5011
+
+7 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%15  v3 c%15  v2 c%15  v1 c%15  v0 c%3 
+;tick count: 5091
+
+7 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%15  v3 c%8  v8 c%1  v6 c%1  v5 c%8 
+;tick count: 5141
+
+7 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%13  v8 c%1  v6 c%1  v5 c%15  v4 c%15 
+;tick count: 5203
+
+7 @1 v3 c%15  v2 c%15  v1 c%15  v0 c%3 
+;tick count: 5251
+
+7 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%15  v3 c%8  v8 c%1  v6 c%1  v5 c%8 
+;tick count: 5301
+
+7 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%13  c%1  v5 c%1  v6 c%1  v5 c%1 
+;tick count: 5335
+
+7 @1 v4 c%1  v3 c%1  v1 c%1  v0 c%3 
+;tick count: 5341
+
+7 @1 v8 c%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%2  v5 a+%1  v4 a+%1  v3 a+%2 
+;tick count: 5351
+
+7 @1 v2 a+%15  v1 a+%1  v0 a+%4 
+;tick count: 5371
+
+7 @1 v8 a+%1  v10 a%1  v9 a%1  v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1 
+;tick count: 5379
+
+7 @1 v3 a%1  v2 a%26  v1 a%1  v0 a%4 
+;tick count: 5411
+
+7 @1 v9 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1 
+;tick count: 5419
+
+7 @1 v3 g%1  v2 g%16  v1 g%1  v0 g%4 
+;tick count: 5441
+
+7 @1 v9 e%1  v10 e%1  v9 e%1  v8 e%1  v7 e%1  v6 e%1  v5 e%1  v4 e%1 
+;tick count: 5449
+
+7 @1 v3 e%2  v2 e%40  e%5 
+;tick count: 5496
+
+7 @1 v1 e%1  v0 e%3 
+;tick count: 5500
+
+7 @1 v8 a+%1  v9 a+%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1  v6 a+%1  v5 a+%1 
+;tick count: 5508
+
+7 @1 v4 a+%1  v3 a+%1  v2 a+%16  v1 a+%1  v0 a+%3 
+;tick count: 5530
+
+7 @1 v8 a+%1  v9 a%1  v10 a%1  v9 a%1  v8 a%1  v7 a%1  v6 a%1  v5 a%1 
+;tick count: 5538
+
+7 @1 v4 a%1  v3 a%1  v2 a%26  v1 a%1  v0 a%3 
+;tick count: 5570
+
+7 @1 v0 a%1 
+;tick count: 5571
+
+7 @1 v9 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1 
+;tick count: 5579
+
+7 @1 v3 g%1  v2 g%16  v1 g%1  v0 g%3 
+;tick count: 5600
+
+7 @1 v8 g%1  v9 o5 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1 
+;tick count: 5608
+
+7 @1 v4 c%1  v3 c%1  v2 c%36  v1 c%1  v0 c%4 
+;tick count: 5651
+
+7 @1 v1 c%1  v2 c%1  v3 c%1  v4 c%1  v5 c%1  v6 c%1  v7 c%1  v8 c%1 
+;tick count: 5659
+
+7 @1 v9 c%1  v8 c%1  v9 o4 a+%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1  v6 a+%1 
+;tick count: 5667
+
+7 @1 v5 a+%1  v4 a+%1  v3 a+%1  v2 a+%16  v1 a+%1  v0 a+%3 
+;tick count: 5690
+
+7 @1 v8 a+%1  v9 a%1  v10 a%1  v9 a%1  v8 a%1  v7 a%1  v6 a%1  v5 a%1 
+;tick count: 5698
+
+7 @1 v4 a%1  v3 a%1  v2 a%26  v1 a%1  v0 a%3 
+;tick count: 5730
+
+7 @1 v8 a%1  v9 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1 
+;tick count: 5738
+
+7 @1 v4 g%1  v3 g%1  v2 g%16  v1 g%1  v0 g%3 
+;tick count: 5760
+
+7 @1 v8 g%1  v9 e%1  v10 e%1  v9 e%1  v8 e%1  v7 e%1  v6 e%1  v5 e%1 
+;tick count: 5768
+
+7 @1 v4 e%1  v3 e%1  v2 e%40  e%6 
+;tick count: 5816
+
+7 @1 v1 e%1  v0 e%3 
+;tick count: 5820
+
+7 @1 v8 a+%1  v9 a+%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1  v6 a+%1  v5 a+%1 
+;tick count: 5828
+
+7 @1 v4 a+%1  v3 a+%1  v2 a+%16  v1 a+%1  v0 a+%3 
+;tick count: 5850
+
+7 @1 v8 a+%1  v9 a%1  v10 a%1  v9 a%1  v8 a%1  v7 a%1  v6 a%1  v5 a%1 
+;tick count: 5858
+
+7 @1 v4 a%1  v3 a%1  v2 a%26  v1 a%1  v0 a%3 
+;tick count: 5890
+
+7 @1 v8 a%1  v9 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1 
+;tick count: 5898
+
+7 @1 v4 g%1  v3 g%1  v2 g%16  v1 g%1  v0 g%3 
+;tick count: 5920
+
+7 @1 v8 g%1  v9 o5 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1 
+;tick count: 5928
+
+7 @1 v4 c%1  v3 c%1  v2 c%36  v1 c%1  v0 c%3 
+;tick count: 5970
+
+7 @1 v8 o4 c%1 
+;tick count: 5971
+
+7 @1 v6 c%1  v5 c%15  v4 c%15  v3 c%15  v2 c%15  v1 c%15  v0 c%3 
+;tick count: 6050
+
+7 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%15  v3 c%8  v8 c%1  v6 c%1  v5 c%8 
+;tick count: 6100
+
+7 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%13  v8 c%1  v6 c%1  v5 c%15  v4 c%15 
+;tick count: 6162
+
+7 @1 v3 c%15  v2 c%15  v1 c%15  v0 c%3 
+;tick count: 6210
+
+7 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%15  v3 c%8  v8 c%1  v6 c%1  v5 c%8 
+;tick count: 6260
+
+7 @1 v8 c%1  v6 c%1  v5 c%15  v4 c%13  c%1  v5 c%1  v6 c%1  v5 c%1 
+;tick count: 6294
+
+7 @1 v4 c%1  v3 c%1  v2 c%1  v1 c%1  v0 c%2 
+;tick count: 6300
+
+7 @1 v8 c%1  v9 a+%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1  v6 a+%1  v5 a+%1 
+;tick count: 6308
+
+7 @1 v4 a+%1  v3 a+%1  v2 a+%16  v1 a+%1  v0 a+%3 
+;tick count: 6330
+
+7 @1 v8 a+%1  v9 a%1  v10 a%1  v9 a%1  v8 a%1  v7 a%1  v6 a%1  v5 a%1 
+;tick count: 6338
+
+7 @1 v4 a%1  v3 a%1  v2 a%26  v1 a%1  v0 a%3 
+;tick count: 6370
+
+7 @1 v8 a%1  v9 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1 
+;tick count: 6378
+
+7 @1 v4 g%1  v3 g%1  v2 g%16  v1 g%1  v0 g%3 
+;tick count: 6400
+
+7 @1 v8 g%1  v9 e%1  v10 e%1  v9 e%1  v8 e%1  v7 e%1  v6 e%1  v5 e%1 
+;tick count: 6408
+
+7 @1 v4 e%1  v3 e%1  v2 e%40  e%6 
+;tick count: 6456
+
+7 @1 v1 e%1  v0 e%3 
+;tick count: 6460
+
+7 @1 v8 a+%1  v9 a+%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1  v6 a+%1  v5 a+%1 
+;tick count: 6468
+
+7 @1 v4 a+%1  v3 a+%1  v2 a+%16  v1 a+%1  v0 a+%3 
+;tick count: 6490
+
+7 @1 v8 a+%1  v9 a%1  v10 a%1  v9 a%1  v8 a%1  v7 a%1  v6 a%1  v5 a%1 
+;tick count: 6498
+
+7 @1 v4 a%1  v3 a%1  v2 a%26  v1 a%1  v0 a%3 
+;tick count: 6530
+
+7 @1 v8 a%1  v9 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1 
+;tick count: 6538
+
+7 @1 v4 g%1  v3 g%1  v2 g%16  v1 g%1  v0 g%3 
+;tick count: 6560
+
+7 @1 v8 g%1  v9 o5 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1 
+;tick count: 6568
+
+7 @1 v4 c%1  v3 c%1  v2 c%36  v1 c%1  v0 c%3 
+;tick count: 6610
+
+7 @1 v0 c%1 
+;tick count: 6611
+
+7 @1 v1 c%1  v2 c%1  v3 c%1  v4 c%1  v5 c%1  v6 c%1  v7 c%1  v8 c%1 
+;tick count: 6619
+
+7 @1 v9 c%1  v8 c%1  v9 o4 a+%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1  v6 a+%1 
+;tick count: 6627
+
+7 @1 v5 a+%1  v4 a+%1  v3 a+%1  v2 a+%16  v1 a+%1  v0 a+%3 
+;tick count: 6650
+
+7 @1 v8 a+%1  v9 a%1  v10 a%1  v9 a%1  v8 a%1  v7 a%1  v6 a%1  v5 a%1 
+;tick count: 6658
+
+7 @1 v4 a%1  v3 a%1  v2 a%26  v1 a%1  v0 a%3 
+;tick count: 6690
+
+7 @1 v8 a%1  v9 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1 
+;tick count: 6698
+
+7 @1 v4 g%1  v3 g%1  v2 g%16  v1 g%1  v0 g%3 
+;tick count: 6720
+
+7 @1 v8 g%1  v9 e%1  v10 e%1  v9 e%1  v8 e%1  v7 e%1  v6 e%1  v5 e%1 
+;tick count: 6728
+
+7 @1 v4 e%1  v3 e%1  v2 e%40  e%5 
+;tick count: 6775
+
+7 @1 v1 e%1  v0 e%4 
+;tick count: 6780
+
+7 @1 v9 a+%1  v10 a+%1  v9 a+%1  v8 a+%1  v7 a+%1  v6 a+%1  v5 a+%1  v4 a+%1 
+;tick count: 6788
+
+7 @1 v3 a+%1  v2 a+%16  v1 a+%1  v0 a+%4 
+;tick count: 6810
+
+7 @1 v9 a%1  v10 a%1  v9 a%1  v8 a%1  v7 a%1  v6 a%1  v5 a%1  v4 a%1 
+;tick count: 6818
+
+7 @1 v3 a%1  v2 a%26  v1 a%1  v0 a%4 
+;tick count: 6850
+
+7 @1 v9 g%1  v10 g%1  v9 g%1  v8 g%1  v7 g%1  v6 g%1  v5 g%1  v4 g%1 
+;tick count: 6858
+
+7 @1 v3 g%1  v2 g%16  v1 g%1  v0 g%3 
+;tick count: 6879
+
+7 @1 v0 g%1 
+;tick count: 6880
+
+7 @1 v9 o5 c%1  v10 c%1  v9 c%1  v8 c%1  v7 c%1  v6 c%1  v5 c%1  v4 c%1 
+;tick count: 6888
+
+7 @1 v3 c%1  v2 c%36  v1 c%1  v0 c%4 
+;tick count: 6930
+
+7 @1 v7 o4 d%1  v6 d%15  v5 d%15  v4 d%15  v3 d%15  v2 d%15  v1 d%1  v0 d%2 
+;tick count: 7009
+
+7 @1 v8 d%1  v7 o3 b%1  v6 b%15  v5 b%13  v8 b%1  v7 o4 c%1  v6 c%15  v5 c%13 
+;tick count: 7069
+
+7 @1 v8 c%1  v7 d%1  v6 d%15  v5 d%3  v8 d%1  v7 d%1  v6 d%15  v5 d%15 
+;tick count: 7121
+
+7 @1 v4 d%15  v3 d%15  v2 d%15  v1 d%1  v0 d%2 
+;tick count: 7169
+
+7 @1 v8 d%1  v7 o3 b%1  v6 b%15  v5 b%13  v8 b%1  v7 o4 c%1  v6 c%15  v5 c%13 
+;tick count: 7229
+
+7 @1 v8 c%1  v7 d%1  v6 d%14  v5 d%4  v7 d%1  v6 d%15  v5 d%15  v4 d%15 
+;tick count: 7295
+
+7 @1 v3 d%15  v2 d%15  v1 d%1  v0 d%2 
+;tick count: 7328
+
+7 @1 v8 d%1  v7 o3 a+%1  v6 a+%15  v5 a+%13  v8 a+%1  v7 o4 d%1  v6 d%15  v5 d%13 
+;tick count: 7388
+
+7 @1 v8 d%1  v7 g%1  v6 g%15  v5 g%3  v8 g%1  v7 g%1  v6 g%15  v5 g%15 
+;tick count: 7440
+
+7 @1 v4 g%15  v3 g%15  v2 g%15  v1 g%1  v0 g%2 
+;tick count: 7488
+
+7 @1 v8 g%1  v7 f+%1  v6 f+%15  v5 f+%15  v4 f+%15  v3 f+%14  v2 f+%15  v1 f+%1 
+;tick count: 7565
+
+7 @1 v0 f+%3 
+;tick count: 7568
+
+7 @1 v7 d%1  v6 d%15  v5 d%13  v8 d%1  v7 o3 b%1  v6 b%15  v5 b%13  v8 b%1 
+;tick count: 7628
+
+7 @1 v7 o4 c%1  v6 c%15  v5 c%3  v8 c%1  v7 d%1  v6 d%15  v5 d%13  v8 d%1 
+;tick count: 7678
+
+7 @1 v7 g%1  v6 g%15  v5 g%13  v8 g%1  v7 d%1  v6 d%15  v5 d%3  v8 d%1 
+;tick count: 7728
+
+7 @1 v7 d%1  v6 d%15  v5 d%13  v8 d%1  v7 o3 b%1  v6 b%15  v5 b%13  v8 b%1 
+;tick count: 7788
+
+7 @1 v7 o4 c%1  v6 c%15  v5 c%3  v8 c%1  v7 d%1  v6 d%15  v5 d%13  v8 d%1 
+;tick count: 7838
+
+7 @1 v6 g%15  v5 g%14  v7 d%1  v6 d%15  v5 d%4  v7 d%1  v6 d%15  v5 d%13 
+;tick count: 7916
+
+7 @1 v8 d%1  v7 o3 a+%1  v6 a+%15  v5 a+%13  v8 a+%1  v7 o4 d%1  v6 d%15  v5 d%3 
+;tick count: 7966
+
+7 @1 v8 d%1  v7 g%1  v6 g%15  v5 g%13  v8 g%1  v7 a%1  v6 a%15  v5 a%13 
+;tick count: 8026
+
+7 @1 v8 a%1  v7 g%1  v6 g%15  v5 g%3  v8 g%1  v7 g%1  v6 g%15  v5 g%15 
+;tick count: 8078
+
+7 @1 v4 g%15  v3 g%15  v2 g%15  v1 g%1  v0 g%2 
+;tick count: 8126
+
+7 @1 v8 g%1  v7 f+%1  v6 f+%15  v5 f+%15  v4 f+%15  v3 f+%14  v2 f+%15  v1 f+%1 
+;tick count: 8203
+
+7 @1 v0 f+%2 
+;tick count: 8205
+
+7 @1 v0 f+%1 
+;tick count: 8206
+
+7 @1 v7 f%1  v6 f%15  v5 f%15  v4 f%15  v3 f%15  v2 f%15  v1 f%1  v0 f%2 
+;tick count: 8285
+
+7 @1 v8 f%1  v7 e%1  v6 e%15  v5 e%15  v4 e%15  v3 e%15  v2 e%15  v1 e%1 
+;tick count: 8363
+
+7 @1 v0 e%3 
+;tick count: 8366
+
+7 @1 v7 d%1  v6 d%16  v5 d%15  v4 d%15  v3 d%15  v2 d%15  v1 d%38  v0 d%5 
+;tick count: 8486
+
+;ch7 end: tick count: 8486
