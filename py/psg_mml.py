@@ -98,8 +98,19 @@ def _row_to_csv(row):
     return ','.join(str(v) for v in row)
 
 
-def process_psg_csv(input_path, output_dir):
-    """Main processing pipeline for PSG log CSV."""
+def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
+    """Main processing pipeline for PSG log CSV.
+
+    Args:
+        input_path  : path to ``*_log.psg.csv``
+        output_dir  : directory for output files
+        stem        : base name for output files (e.g. ``"02_StartingPoint_psg_log"``).
+                      When *None* (default) the stem is derived from *input_path*.
+        dump_passes : when True (default) write pass0-3 intermediate CSV files
+
+    Returns:
+        path to the generated ``*.psg.pass3.mml``
+    """
     # Read raw CSV lines into logBuffer per channel
     log_buffer = {}   # ch -> list of raw CSV line strings
     ch_list = []
@@ -116,13 +127,12 @@ def process_psg_csv(input_path, output_dir):
                 ch_list.append(ch)
             log_buffer[ch].append(line)
 
-    file_name_body = os.path.splitext(os.path.basename(input_path))[0]
-    # Remove _log.psg suffix if present
-    for suffix in ['.psg', '.scc', '_log']:
-        if file_name_body.endswith(suffix):
-            pass  # keep full stem for pass0
-    # output name body = file stem without last extension
-    output_name_body = file_name_body
+    if stem is not None:
+        output_name_body = stem
+    else:
+        # Derive stem from input filename: strip extensions like .psg.csv -> base
+        file_name_body = os.path.splitext(os.path.basename(input_path))[0]
+        output_name_body = file_name_body
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -145,12 +155,13 @@ def process_psg_csv(input_path, output_dir):
             temp_buffer0[ch].append(cols)
 
     # Write pass0.csv
-    pass0_path = os.path.join(output_dir, f"{output_name_body}.psg.pass0.csv")
-    with open(pass0_path, 'w', newline='\n') as f:
-        f.write(PSG_HEADER + '\n')
-        for ch in ch_list:
-            for row in temp_buffer0[ch]:
-                f.write(_row_to_csv(row) + '\n')
+    if dump_passes:
+        pass0_path = os.path.join(output_dir, f"{output_name_body}.psg.pass0.csv")
+        with open(pass0_path, 'w', newline='\n') as f:
+            f.write(PSG_HEADER + '\n')
+            for ch in ch_list:
+                for row in temp_buffer0[ch]:
+                    f.write(_row_to_csv(row) + '\n')
 
     # -------------------------------------------------------
     # Pass 1: compute l, v, f, fF, o, scale, mode, vDiff, etc.
@@ -266,12 +277,13 @@ def process_psg_csv(input_path, output_dir):
             temp_buffer1[ch].append(line_temp)
 
     # Write pass1.csv
-    pass1_path = os.path.join(output_dir, f"{output_name_body}.psg.pass1.csv")
-    with open(pass1_path, 'w', newline='\n') as f:
-        f.write(PSG_HEADER + '\n')
-        for ch in ch_list:
-            for row in temp_buffer1[ch]:
-                f.write(_row_to_csv(row) + '\n')
+    if dump_passes:
+        pass1_path = os.path.join(output_dir, f"{output_name_body}.psg.pass1.csv")
+        with open(pass1_path, 'w', newline='\n') as f:
+            f.write(PSG_HEADER + '\n')
+            for ch in ch_list:
+                for row in temp_buffer1[ch]:
+                    f.write(_row_to_csv(row) + '\n')
 
     # -------------------------------------------------------
     # Pass 2: filter rows
@@ -289,12 +301,13 @@ def process_psg_csv(input_path, output_dir):
                 temp_buffer2[ch].append(row)
 
     # Write pass2.csv
-    pass2_path = os.path.join(output_dir, f"{output_name_body}.psg.pass2.csv")
-    with open(pass2_path, 'w', newline='\n') as f:
-        f.write(PSG_HEADER + '\n')
-        for ch in ch_list:
-            for row in temp_buffer2[ch]:
-                f.write(_row_to_csv(row) + '\n')
+    if dump_passes:
+        pass2_path = os.path.join(output_dir, f"{output_name_body}.psg.pass2.csv")
+        with open(pass2_path, 'w', newline='\n') as f:
+            f.write(PSG_HEADER + '\n')
+            for ch in ch_list:
+                for row in temp_buffer2[ch]:
+                    f.write(_row_to_csv(row) + '\n')
 
     # -------------------------------------------------------
     # Pass 3: add lDiff, vDiff, oDiff, cnt columns
@@ -323,12 +336,13 @@ def process_psg_csv(input_path, output_dir):
             v_diff_stamp = v_diff
 
     # Write pass3.csv
-    pass3_csv_path = os.path.join(output_dir, f"{output_name_body}.psg.pass3.csv")
-    with open(pass3_csv_path, 'w', newline='\n') as f:
-        f.write(PSG_HEADER3 + '\n')
-        for ch in ch_list:
-            for row in temp_buffer3[ch]:
-                f.write(_row_to_csv(row) + '\n')
+    if dump_passes:
+        pass3_csv_path = os.path.join(output_dir, f"{output_name_body}.psg.pass3.csv")
+        with open(pass3_csv_path, 'w', newline='\n') as f:
+            f.write(PSG_HEADER3 + '\n')
+            for ch in ch_list:
+                for row in temp_buffer3[ch]:
+                    f.write(_row_to_csv(row) + '\n')
 
     # -------------------------------------------------------
     # Copy tempBuffer3 to workBuffer1 and generate MML

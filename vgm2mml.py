@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.join(_SCRIPT_DIR, 'py'))
 
 from vgm_reader import parse_vgm
 from scc_mml import process_scc_csv
+from psg_mml import process_psg_csv
 
 
 def main():
@@ -73,6 +74,16 @@ def main():
     mml_path = process_scc_csv(scc_csv, scc_out_dir,
                                 dump_passes=args.dump_passes)
     print(f"SCC MML:   {mml_path}")
+
+    # ── Step 3: PSG MML pipeline ─────────────────────────────────
+    # PSG currently uses the log CSV; the stem follows the same naming
+    # rule as SCC but substitutes "psg" for "scc".
+    psg_stem_suffix = base_name + '_psg_log'
+    psg_out_dir = os.path.join(out_root, psg_stem_suffix)
+    psg_mml_path = process_psg_csv(psg_log_csv, psg_out_dir,
+                                   stem=psg_stem_suffix,
+                                   dump_passes=args.dump_passes)
+    print(f"PSG MML:   {psg_mml_path}")
 
 
 if __name__ == '__main__':
