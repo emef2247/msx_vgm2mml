@@ -41,9 +41,10 @@ class _PsgState:
         self.envShape    = [0,  0, 0]
         self.ioParallel1 = [0,  0, 0]
         self.ioParallel2 = [0,  0, 0]
-        self.psgMode     = [0,  0, 0]
+        self.psgMode     = [self._calc_mode(ch, 187) for ch in range(self.NUM_CH)]
 
         self.log_buf = {ch: [] for ch in range(self.NUM_CH)}
+        self.trace_buf: list[str] = []   # chronological (all channels)
 
     # ── time ────────────────────────────────────────────────────
     def _update_time(self, time_s: float):
@@ -123,46 +124,66 @@ class _PsgState:
 
     def _set_fCtrlA(self, ch, v):
         self.fCtrlA[ch] = v
-        self.log_buf[ch].append(self._row(ch, 'fCA'))
+        row = self._row(ch, 'fCA')
+        self.log_buf[ch].append(row)
+        self.trace_buf.append(row)
 
     def _set_fCtrlB(self, ch, v):
         self.fCtrlB[ch] = v
-        self.log_buf[ch].append(self._row(ch, 'fCB'))
+        row = self._row(ch, 'fCB')
+        self.log_buf[ch].append(row)
+        self.trace_buf.append(row)
 
     def _set_wNCtrl(self, ch, v):
         self.wNCtrl[ch] = v
-        self.log_buf[ch].append(self._row(ch, 'wNC'))
+        row = self._row(ch, 'wNC')
+        self.log_buf[ch].append(row)
+        self.trace_buf.append(row)
 
     def _set_vVCtrl(self, ch, v):
         self.vVCtrl[ch] = v
         new_mode = self._calc_mode(ch, v)
         if new_mode != self.psgMode[ch]:
             self.psgMode[ch] = new_mode
-            self.log_buf[ch].append(self._row(ch, 'mode'))
+            row = self._row(ch, 'mode')
+            self.log_buf[ch].append(row)
+            self.trace_buf.append(row)
 
     def _set_aVCtrl(self, ch, v):
         self.aVCtrl[ch] = v
-        self.log_buf[ch].append(self._row(ch, 'aVC'))
+        row = self._row(ch, 'aVC')
+        self.log_buf[ch].append(row)
+        self.trace_buf.append(row)
 
     def _set_envPCtrlL(self, ch, v):
         self.envPCtrlL[ch] = v
-        self.log_buf[ch].append(self._row(ch, 'ePL'))
+        row = self._row(ch, 'ePL')
+        self.log_buf[ch].append(row)
+        self.trace_buf.append(row)
 
     def _set_envPCtrlM(self, ch, v):
         self.envPCtrlM[ch] = v
-        self.log_buf[ch].append(self._row(ch, 'evM'))
+        row = self._row(ch, 'evM')
+        self.log_buf[ch].append(row)
+        self.trace_buf.append(row)
 
     def _set_envShape(self, ch, v):
         self.envShape[ch] = v
-        self.log_buf[ch].append(self._row(ch, 'evS'))
+        row = self._row(ch, 'evS')
+        self.log_buf[ch].append(row)
+        self.trace_buf.append(row)
 
     def _set_ioParallel1(self, ch, v):
         self.ioParallel1[ch] = v
-        self.log_buf[ch].append(self._row(ch, 'ioP1'))
+        row = self._row(ch, 'ioP1')
+        self.log_buf[ch].append(row)
+        self.trace_buf.append(row)
 
     def _set_ioParallel2(self, ch, v):
         self.ioParallel2[ch] = v
-        self.log_buf[ch].append(self._row(ch, 'ioP2'))
+        row = self._row(ch, 'ioP2')
+        self.log_buf[ch].append(row)
+        self.trace_buf.append(row)
 
     # ── CSV output ───────────────────────────────────────────────
     def output_csv(self, out_path: str):
@@ -176,6 +197,17 @@ class _PsgState:
                 for row in self.log_buf[ch]:
                     fh.write(row + '\n')
                 fh.write('\n')
+
+    def output_trace_csv(self, out_path: str):
+        """Write chronological trace CSV (all channels interleaved by time)."""
+        hdr = ('#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,'
+               'oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,'
+               'fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,'
+               'envShape,ioParallel1,ioParallel2')
+        with open(out_path, 'w', newline='\n') as fh:
+            fh.write(hdr + '\n')
+            for row in self.trace_buf:
+                fh.write(row + '\n')
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -446,6 +478,7 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, s
     scc_trace_csv = os.path.join(output_dir, f"{base_name}_trace.scc.csv")
 
     psg.output_csv(psg_log_csv)
+    psg.output_trace_csv(psg_trace_csv)
     scc.output_csv(scc_log_csv)
     scc.output_trace_csv(scc_trace_csv)
     return psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv

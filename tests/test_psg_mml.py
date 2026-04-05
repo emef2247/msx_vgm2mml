@@ -137,6 +137,35 @@ def test_psg_mml_matches_golden():
                 "--- diff (expected vs got) ---\n" + diff)
 
 
+def test_psg_mml_has_notes_not_only_rests():
+    """PSG MML must contain actual note names (not only rests) after the fix."""
+    import re
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        mml_path = process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM,
+                                   dump_passes=False)
+        content = _read(mml_path)
+        # Look for note letters a-g (with optional sharp) followed by %
+        # e.g. "a+%2" or "b%4" - these are actual notes, not rests
+        note_pattern = re.compile(r'\b[a-g]\+?%\d+')
+        notes = note_pattern.findall(content)
+        assert len(notes) > 0, (
+            "PSG MML contains only rests (no actual notes found). "
+            "This likely means the frequency→scale mapping is broken.")
+
+
+def test_psg_trace_csv_is_written():
+    """parse_vgm must write the PSG trace CSV (chronological order)."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        _psg_log, _scc_log, psg_trace, _scc_trace = parse_vgm(VGM_FILE, tmp_dir)
+        assert os.path.isfile(psg_trace), (
+            f"PSG trace CSV not written: {psg_trace}")
+        # Must have more than just the header line
+        with open(psg_trace) as fh:
+            lines = [l for l in fh if not l.startswith('#') and l.strip()]
+        assert len(lines) > 10, "PSG trace CSV appears empty"
+
+
 def test_vgm_to_psg_mml_is_generated():
     """Full pipeline: VGM → PSG log CSV → PSG MML must produce a file."""
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -148,3 +177,20 @@ def test_vgm_to_psg_mml_is_generated():
                                    dump_passes=False)
         assert os.path.isfile(mml_path), (
             f"PSG MML not generated from VGM pipeline: {mml_path}")
+
+
+def test_vgm_to_psg_trace_mml_has_notes():
+    """Full pipeline using trace CSV: PSG MML must contain notes, not just rests."""
+    import re
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        _psg_log, _scc_log, psg_trace, _scc_trace = parse_vgm(VGM_FILE, tmp_dir)
+
+        stem = '02_StartingPoint_psg_trace'
+        out_dir = os.path.join(tmp_dir, stem)
+        mml_path = process_psg_csv(psg_trace, out_dir, stem=stem,
+                                   dump_passes=False)
+        content = _read(mml_path)
+        note_pattern = re.compile(r'\b[a-g]\+?%\d+')
+        notes = note_pattern.findall(content)
+        assert len(notes) > 0, (
+            "Trace-based PSG MML contains only rests - frequency mapping broken.")

@@ -164,21 +164,22 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
                     f.write(_row_to_csv(row) + '\n')
 
     # -------------------------------------------------------
-    # Pass 1: compute l, v, f, fF, o, scale, mode, vDiff, etc.
-    # (First loop only - mirrors Tcl first loop)
+    # Pass 1: compute l, v, f, o, scale, mode, vDiff, etc.
+    #
+    # Key principles (matching SCC snapshot approach):
+    #   - Same-tick fCA+fCB: skip fCA so fCB gives the complete 12-bit frequency
+    #   - scale/octave are computed from the CURRENT frequency f (not stale fF=0)
+    #   - audibility = (mode != 0) AND (volume > 0 OR hw_envelope_on)
+    #   - scale = 'r' when not audible
     # -------------------------------------------------------
     temp_buffer1 = {}
-    num_of_ch = 3
     for ch in ch_list:
         temp_buffer1[ch] = []
         buf = temp_buffer0[ch]
         n = len(buf)
         line_stamp = None
-        f_stamp = 0
         en_stamp = 0
         v_cnt = 0
-        v_stamp = 0
-        o_stamp = 1
 
         index = 0
         while index < n:
@@ -186,53 +187,66 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
             nxt = buf[index + 1] if index + 1 < n else None
 
             if line_stamp is not None:
-                line_temp = list(line_stamp)  # copy
+                # --- skip-ahead: if line is fCA and next is fCB at the same tick,
+                # advance line to fCB so the complete 12-bit frequency is used.
+                if nxt is not None:
+                    cur_type = line[COL_TYPE]
+                    nxt_type = nxt[COL_TYPE]
+                    next_l = _int(nxt[COL_TICKS]) - _int(line[COL_TICKS])
+                    if cur_type == 'fCA' and nxt_type == 'fCB' and next_l == 0:
+                        index += 1
+                        line = buf[index]
+                        nxt = buf[index + 1] if index + 1 < n else None
+
+                # --- process line_stamp ---
+                line_temp = list(line_stamp)
                 type_ = line_stamp[COL_TYPE]
 
                 # l = ticks(current) - ticks(lineStamp)
                 l = _int(line[COL_TICKS]) - _int(line_stamp[COL_TICKS])
                 line_temp[COL_L] = str(l)
 
-                # fL - NOTE: Tcl checks "fCtrlA"/"fCtrlB"/"aVCtrl" which never match
-                # PSG types ("fCA"/"fCB"/"aVC"), so fL is never set here.
-                # We leave col 5 as original (empty string from CSV).
-
                 # v = aVCtrl & 0xF
                 v = get_volume(line_stamp)
                 line_temp[COL_V] = str(v)
 
-                # f = fCtrlA + 256*fCtrlB
+                # f = fCtrlA + 256*fCtrlB (current complete frequency from this row)
                 f = get_frequency(line_stamp)
                 line_temp[COL_F] = str(f)
 
-                # fF = fStamp (previous frequency) - never updated for PSG type names
-                line_temp[COL_FF] = str(f_stamp)
+                # fF = same as f for PSG (no separate "previous" concept needed here)
+                line_temp[COL_FF] = str(f)
 
-                # o = get_octave(fF)
-                o = get_octave(f_stamp)
-                line_temp[COL_O] = str(o)
-
-                # scale = get_scale(fF)
-                scale = get_scale(f_stamp)
-                line_temp[COL_SCALE] = scale
-
-                # mode = PSG mode at col 12 (from original log CSV)
+                # mode from col 12 (set by vVCtrl events in the log)
                 mode = _int(line_stamp[COL_EN])
                 line_temp[COL_EN] = str(mode)
 
                 # fEn = enStamp
                 line_temp[COL_FEN] = str(en_stamp)
-                # fCtrlA/fCtrlB type check (never fires for PSG)
+                if type_ == 'mode':
+                    en_stamp = mode
 
-                # vDiff
-                next_v = get_volume(line) if nxt is None else get_volume(line)
+                # Audibility: mode must be non-zero AND (volume > 0 OR hw_envelope on)
+                hw_env_on = get_hw_envelope_on(line_stamp)
+                audible = (mode != 0) and (v > 0 or hw_env_on)
+
+                # o and scale from current frequency when audible, else rest
+                o = get_octave(f) if audible else 1
+                scale = get_scale(f) if audible else 'r'
+                line_temp[COL_O] = str(o)
+                line_temp[COL_SCALE] = scale
+
+                # vDiff = volume(next line) - volume(line_stamp)
+                next_v = get_volume(line)
                 v_diff = next_v - v
                 line_temp[COL_VDIFF] = str(v_diff)
 
                 # vCnt
+                if type_ == 'aVC':
+                    v_cnt += 1
                 line_temp[COL_VCNT] = str(v_cnt)
 
-                # oDiff
+                # oDiff = octave(next_f) - octave(f)
                 next_f = get_frequency(line)
                 next_o = get_octave(next_f)
                 o_diff = next_o - o
@@ -240,40 +254,37 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
 
                 temp_buffer1[ch].append(line_temp)
 
-                v_stamp = v
-                o_stamp = o
-
             line_stamp = line
             index += 1
 
-        # Last line (lineStamp = last element, line = last element)
+        # Last line (lineStamp = last element, l = 0)
         if line_stamp is not None and n > 0:
-            line = buf[n - 1]
             line_temp = list(line_stamp)
             type_ = line_stamp[COL_TYPE]
 
-            l = _int(line[COL_TICKS]) - _int(line_stamp[COL_TICKS])
+            l = 0
             line_temp[COL_L] = str(l)
 
             v = get_volume(line_stamp)
             line_temp[COL_V] = str(v)
             f = get_frequency(line_stamp)
             line_temp[COL_F] = str(f)
-            line_temp[COL_FF] = str(f_stamp)
-            o = get_octave(f_stamp)
-            line_temp[COL_O] = str(o)
-            line_temp[COL_SCALE] = get_scale(f_stamp)
+            line_temp[COL_FF] = str(f)
             mode = _int(line_stamp[COL_EN])
             line_temp[COL_EN] = str(mode)
             line_temp[COL_FEN] = str(en_stamp)
-            next_v = get_volume(line)
-            v_diff = next_v - v
+
+            hw_env_on = get_hw_envelope_on(line_stamp)
+            audible = (mode != 0) and (v > 0 or hw_env_on)
+            o = get_octave(f) if audible else 1
+            scale = get_scale(f) if audible else 'r'
+            line_temp[COL_O] = str(o)
+            line_temp[COL_SCALE] = scale
+
+            v_diff = 0
             line_temp[COL_VDIFF] = str(v_diff)
             line_temp[COL_VCNT] = str(v_cnt)
-            next_f = get_frequency(line)
-            next_o = get_octave(next_f)
-            o_diff = next_o - o
-            line_temp[COL_ODIFF] = str(o_diff)
+            line_temp[COL_ODIFF] = '0'
             temp_buffer1[ch].append(line_temp)
 
     # Write pass1.csv
@@ -287,8 +298,12 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
 
     # -------------------------------------------------------
     # Pass 2: filter rows
-    # Keep rows where l != 0, OR type in {mode, fCA, fCB}
+    # Keep rows where l != 0, OR type in important state-change types
+    # (keeps state-change events even when they occur at the same tick as
+    #  the following event, so that volume/mode/envelope changes are tracked)
     # -------------------------------------------------------
+    _KEEP_L0_TYPES = frozenset(
+        ('mode', 'fCA', 'fCB', 'aVC', 'evS', 'evM', 'ePL', 'wNC'))
     temp_buffer2 = {}
     for ch in ch_list:
         temp_buffer2[ch] = []
@@ -297,7 +312,7 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
             l = _int(row[COL_L])
             if l != 0:
                 temp_buffer2[ch].append(row)
-            elif type_ in ('mode', 'fCA', 'fCB'):
+            elif type_ in _KEEP_L0_TYPES:
                 temp_buffer2[ch].append(row)
 
     # Write pass2.csv
@@ -363,6 +378,7 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
         l_cnt = 0
         o_stamp = 0
         v_stamp = 0
+        mode_stamp = -1   # tracks previous mode so we can flush on mode change
 
         ch_start = f"\n\n;ch{ch + ch_offset} start"
         mml_buffer1[ch].append(ch_start)
@@ -372,7 +388,6 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
             l = _int(row[COL_L])
             v = _int(row[COL_V])
             f = _int(row[COL_F])
-            ff = _int(row[COL_FF])
             o = _int(row[COL_O])
             scale = row[COL_SCALE] if row[COL_SCALE] else 'r'
             mode = _int(row[COL_EN])
@@ -384,7 +399,14 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
 
             if l > 0:
                 length = l
-                ltmp = l
+
+                # Flush current MML group when mode changes mid-group so that
+                # the new header reflects the updated mode/noise/env settings.
+                if note_cnt > 0 and mode != mode_stamp:
+                    mml_buffer1[ch].append(mml)
+                    mml = ""
+                    mml_buffer1[ch].append(f"\n;tick count: {l_cnt}\n")
+                    note_cnt = 0
 
                 if note_cnt == 0:
                     if mode == 0:
@@ -400,9 +422,10 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
                 while length > 0:
                     ltmp = min(length, 255)
 
-                    if type_ in ('mode', 'fCA', 'fCB', 'aVC', 'wNC', 'vVC', 'ePL', 'evM ', 'evS'):
+                    if type_ in ('mode', 'fCA', 'fCB', 'aVC', 'wNC', 'ePL', 'evM', 'evS'):
                         if mode == 0:
                             v = 0
+                            scale = 'r'
                         if v != v_stamp and note_cnt != 0:
                             mml += f" v{v}"
                         if o != o_stamp:
@@ -426,6 +449,7 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
 
                 o_stamp = o
                 v_stamp = v
+                mode_stamp = mode
 
         if mml:
             mml_buffer1[ch].append(mml)

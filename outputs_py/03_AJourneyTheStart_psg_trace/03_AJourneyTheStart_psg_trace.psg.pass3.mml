@@ -902,34 +902,25 @@
 2 /0 v0 r%4
 ;tick count: 8
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 9
+
+2 /0 v0 r%3
+;tick count: 12
+
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 13
+
+2 /0 v0 r%3
 ;tick count: 16
 
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 17
 
-2 /0 v0 o1 r%1
-;tick count: 18
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 25
 
-2 /0 v0 r%1
-;tick count: 19
-
-2 /0 v0 r%1
-;tick count: 20
-
-2 /0 v0 r%1
-;tick count: 21
-
-2 /0 v0 r%1
-;tick count: 22
-
-2 /0 v0 r%1
-;tick count: 23
-
-2 /0 v0 r%1
-;tick count: 24
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 32
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -947,28 +938,10 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 49
 
-2 /0 v0 o1 r%1
-;tick count: 50
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 57
 
-2 /0 v0 r%1
-;tick count: 51
-
-2 /0 v0 r%1
-;tick count: 52
-
-2 /0 v0 r%1
-;tick count: 53
-
-2 /0 v0 r%1
-;tick count: 54
-
-2 /0 v0 r%1
-;tick count: 55
-
-2 /0 v0 r%1
-;tick count: 56
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 64
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -977,34 +950,19 @@
 2 /0 v0 r%4
 ;tick count: 72
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 73
+
+2 /0 v0 r%7
 ;tick count: 80
 
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 81
 
-2 /0 v0 o1 r%1
-;tick count: 82
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 89
 
-2 /0 v0 r%1
-;tick count: 83
-
-2 /0 v0 r%1
-;tick count: 84
-
-2 /0 v0 r%1
-;tick count: 85
-
-2 /0 v0 r%1
-;tick count: 86
-
-2 /0 v0 r%1
-;tick count: 87
-
-2 /0 v0 r%1
-;tick count: 88
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 96
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -1022,34 +980,13 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 113
 
-2 /0 v0 o1 r%1
-;tick count: 114
-
-2 /0 v0 r%1
-;tick count: 115
-
-2 /0 v0 r%1
-;tick count: 116
-
-2 /0 v0 r%1
-;tick count: 117
-
-2 /0 v0 r%1
-;tick count: 118
-
-2 /0 v0 r%1
-;tick count: 119
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 120
 
-2 /3 s10 m9440 n0 v10 f%1
+2 /3 s10 m9440 n0 v10 o1 f%1
 ;tick count: 121
 
-2 /0 v0 r%4
-;tick count: 125
-
-2 /0 v0 r%3
+2 /2 s10 m9440 n0 v8 f%4 v7 f%3
 ;tick count: 128
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -1058,34 +995,25 @@
 2 /0 v0 r%4
 ;tick count: 136
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 137
+
+2 /0 v0 r%3
+;tick count: 140
+
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 141
+
+2 /0 v0 r%3
 ;tick count: 144
 
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 145
 
-2 /0 v0 o1 r%1
-;tick count: 146
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 153
 
-2 /0 v0 r%1
-;tick count: 147
-
-2 /0 v0 r%1
-;tick count: 148
-
-2 /0 v0 r%1
-;tick count: 149
-
-2 /0 v0 r%1
-;tick count: 150
-
-2 /0 v0 r%1
-;tick count: 151
-
-2 /0 v0 r%1
-;tick count: 152
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 160
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -1103,28 +1031,10 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 177
 
-2 /0 v0 o1 r%1
-;tick count: 178
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 185
 
-2 /0 v0 r%1
-;tick count: 179
-
-2 /0 v0 r%1
-;tick count: 180
-
-2 /0 v0 r%1
-;tick count: 181
-
-2 /0 v0 r%1
-;tick count: 182
-
-2 /0 v0 r%1
-;tick count: 183
-
-2 /0 v0 r%1
-;tick count: 184
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 192
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -1133,34 +1043,19 @@
 2 /0 v0 r%4
 ;tick count: 200
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 201
+
+2 /0 v0 r%7
 ;tick count: 208
 
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 209
 
-2 /0 v0 o1 r%1
-;tick count: 210
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 217
 
-2 /0 v0 r%1
-;tick count: 211
-
-2 /0 v0 r%1
-;tick count: 212
-
-2 /0 v0 r%1
-;tick count: 213
-
-2 /0 v0 r%1
-;tick count: 214
-
-2 /0 v0 r%1
-;tick count: 215
-
-2 /0 v0 r%1
-;tick count: 216
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 224
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -1178,73 +1073,40 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 241
 
-2 /0 v0 o1 r%1
-;tick count: 242
-
-2 /0 v0 r%1
-;tick count: 243
-
-2 /0 v0 r%1
-;tick count: 244
-
-2 /0 v0 r%1
-;tick count: 245
-
-2 /0 v0 r%1
-;tick count: 246
-
-2 /0 v0 r%1
-;tick count: 247
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 248
 
-2 /3 s10 m9440 n0 v10 f%1
+2 /3 s10 m9440 n0 v10 o1 f%1
 ;tick count: 249
 
-2 /0 v0 r%4
-;tick count: 253
-
-2 /0 v0 r%3
-;tick count: 256
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n0 v8 f%4 v7 f%3 v2 o2 a%1
 ;tick count: 257
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 c+%1 o1 b%1 g+%1
 ;tick count: 260
 
 2 /0 v0 r%4
 ;tick count: 264
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 265
+
+2 /0 v0 r%3
+;tick count: 268
+
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 269
+
+2 /0 v0 r%3
 ;tick count: 272
 
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 273
 
-2 /0 v0 o1 r%1
-;tick count: 274
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 281
 
-2 /0 v0 r%1
-;tick count: 275
-
-2 /0 v0 r%1
-;tick count: 276
-
-2 /0 v0 r%1
-;tick count: 277
-
-2 /0 v0 r%1
-;tick count: 278
-
-2 /0 v0 r%1
-;tick count: 279
-
-2 /0 v0 r%1
-;tick count: 280
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 288
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -1262,28 +1124,10 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 305
 
-2 /0 v0 o1 r%1
-;tick count: 306
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 313
 
-2 /0 v0 r%1
-;tick count: 307
-
-2 /0 v0 r%1
-;tick count: 308
-
-2 /0 v0 r%1
-;tick count: 309
-
-2 /0 v0 r%1
-;tick count: 310
-
-2 /0 v0 r%1
-;tick count: 311
-
-2 /0 v0 r%1
-;tick count: 312
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 320
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -1292,34 +1136,19 @@
 2 /0 v0 r%4
 ;tick count: 328
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 329
+
+2 /0 v0 r%7
 ;tick count: 336
 
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 337
 
-2 /0 v0 o1 r%1
-;tick count: 338
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 345
 
-2 /0 v0 r%1
-;tick count: 339
-
-2 /0 v0 r%1
-;tick count: 340
-
-2 /0 v0 r%1
-;tick count: 341
-
-2 /0 v0 r%1
-;tick count: 342
-
-2 /0 v0 r%1
-;tick count: 343
-
-2 /0 v0 r%1
-;tick count: 344
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 352
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -1337,73 +1166,40 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 369
 
-2 /0 v0 o1 r%1
-;tick count: 370
-
-2 /0 v0 r%1
-;tick count: 371
-
-2 /0 v0 r%1
-;tick count: 372
-
-2 /0 v0 r%1
-;tick count: 373
-
-2 /0 v0 r%1
-;tick count: 374
-
-2 /0 v0 r%1
-;tick count: 375
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 376
 
-2 /3 s10 m9440 n0 v10 f%1
+2 /3 s10 m9440 n0 v10 o1 f%1
 ;tick count: 377
 
-2 /0 v0 r%4
-;tick count: 381
-
-2 /0 v0 r%3
-;tick count: 384
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n0 v8 f%4 v7 f%3 v2 o2 a%1
 ;tick count: 385
 
-2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
+2 /1 s9 m109850 v2 c+%1 o1 b%1 g+%1
 ;tick count: 388
 
 2 /0 v0 r%4
 ;tick count: 392
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 393
+
+2 /0 v0 r%3
+;tick count: 396
+
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 397
+
+2 /0 v0 r%3
 ;tick count: 400
 
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 401
 
-2 /0 v0 o1 r%1
-;tick count: 402
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 409
 
-2 /0 v0 r%1
-;tick count: 403
-
-2 /0 v0 r%1
-;tick count: 404
-
-2 /0 v0 r%1
-;tick count: 405
-
-2 /0 v0 r%1
-;tick count: 406
-
-2 /0 v0 r%1
-;tick count: 407
-
-2 /0 v0 r%1
-;tick count: 408
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 416
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -1421,28 +1217,10 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 433
 
-2 /0 v0 o1 r%1
-;tick count: 434
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 441
 
-2 /0 v0 r%1
-;tick count: 435
-
-2 /0 v0 r%1
-;tick count: 436
-
-2 /0 v0 r%1
-;tick count: 437
-
-2 /0 v0 r%1
-;tick count: 438
-
-2 /0 v0 r%1
-;tick count: 439
-
-2 /0 v0 r%1
-;tick count: 440
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 448
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -1451,37 +1229,19 @@
 2 /0 v0 r%4
 ;tick count: 456
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 457
+
+2 /0 v0 r%7
 ;tick count: 464
 
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 465
 
-2 /0 v0 o1 r%1
-;tick count: 466
-
-2 /0 v0 r%1
-;tick count: 467
-
-2 /0 v0 r%1
-;tick count: 468
-
-2 /0 v0 r%1
-;tick count: 469
-
-2 /0 v0 r%1
-;tick count: 470
-
-2 /0 v0 r%1
-;tick count: 471
-
-2 /0 v0 r%1
-;tick count: 472
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
 ;tick count: 473
 
-2 /0 v0 r%7
+2 /0 v0 o1 r%7
 ;tick count: 480
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -1502,34 +1262,13 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 497
 
-2 /0 v0 o1 r%1
-;tick count: 498
-
-2 /0 v0 r%1
-;tick count: 499
-
-2 /0 v0 r%1
-;tick count: 500
-
-2 /0 v0 r%1
-;tick count: 501
-
-2 /0 v0 r%1
-;tick count: 502
-
-2 /0 v0 r%1
-;tick count: 503
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 504
 
-2 /3 s10 m9440 n0 v10 f%1
+2 /3 s10 m9440 n0 v10 o1 f%1
 ;tick count: 505
 
-2 /0 v0 r%4
-;tick count: 509
-
-2 /0 v0 r%4
+2 /2 s10 m9440 n0 v8 f%4 v7 f%4
 ;tick count: 513
 
 2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
@@ -1538,34 +1277,25 @@
 2 /0 v0 r%4
 ;tick count: 520
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 521
+
+2 /0 v0 r%3
+;tick count: 524
+
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 525
+
+2 /0 v0 r%3
 ;tick count: 528
 
 2 /0 v0 r%1
 ;tick count: 529
 
-2 /0 v0 r%1
-;tick count: 530
+2 /2 s10 m9440 n8 v10 o3 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 537
 
-2 /0 v0 r%1
-;tick count: 531
-
-2 /0 v0 r%1
-;tick count: 532
-
-2 /0 v0 r%1
-;tick count: 533
-
-2 /0 v0 r%1
-;tick count: 534
-
-2 /0 v0 r%1
-;tick count: 535
-
-2 /0 v0 r%1
-;tick count: 536
-
-2 /0 v0 r%9
+2 /0 v0 o1 r%8
 ;tick count: 545
 
 2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
@@ -1580,28 +1310,10 @@
 2 /0 v0 r%5
 ;tick count: 561
 
-2 /0 v0 r%1
-;tick count: 562
-
-2 /0 v0 r%1
-;tick count: 563
-
-2 /0 v0 r%1
-;tick count: 564
-
-2 /0 v0 r%1
-;tick count: 565
-
-2 /0 v0 r%1
-;tick count: 566
-
-2 /0 v0 r%1
-;tick count: 567
-
-2 /0 v0 r%2
+2 /2 s10 m9440 n8 v10 o3 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%2
 ;tick count: 569
 
-2 /0 v0 r%7
+2 /0 v0 o1 r%7
 ;tick count: 576
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -1616,25 +1328,10 @@
 2 /1 s10 m9440 v10 o3 b%1
 ;tick count: 594
 
-2 /0 v0 o1 r%1
-;tick count: 595
-
-2 /0 v0 r%1
-;tick count: 596
-
-2 /0 v0 r%1
-;tick count: 597
-
-2 /0 v0 r%1
-;tick count: 598
-
-2 /0 v0 r%1
-;tick count: 599
-
-2 /0 v0 r%2
+2 /2 s10 m9440 n8 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%2
 ;tick count: 601
 
-2 /0 v0 r%8
+2 /0 v0 o1 r%8
 ;tick count: 609
 
 2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
@@ -1652,28 +1349,7 @@
 2 /1 s10 m9440 v10 o3 b%1
 ;tick count: 626
 
-2 /0 v0 o1 r%1
-;tick count: 627
-
-2 /0 v0 r%1
-;tick count: 628
-
-2 /0 v0 r%1
-;tick count: 629
-
-2 /0 v0 r%1
-;tick count: 630
-
-2 /0 v0 r%1
-;tick count: 631
-
-2 /0 v0 r%2
-;tick count: 633
-
-2 /0 v0 r%4
-;tick count: 637
-
-2 /0 v0 r%4
+2 /2 s10 m9440 n8 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%2 v8 o1 f%4 v7 f%4
 ;tick count: 641
 
 2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
@@ -1682,31 +1358,16 @@
 2 /0 v0 r%5
 ;tick count: 649
 
-2 /0 v0 r%8
+2 /0 v0 r%4
+;tick count: 653
+
+2 /0 v0 r%4
 ;tick count: 657
 
-2 /0 v0 r%1
-;tick count: 658
-
-2 /0 v0 r%1
-;tick count: 659
-
-2 /0 v0 r%1
-;tick count: 660
-
-2 /0 v0 r%1
-;tick count: 661
-
-2 /0 v0 r%1
-;tick count: 662
-
-2 /0 v0 r%1
-;tick count: 663
-
-2 /0 v0 r%2
+2 /2 s10 m9440 n8 v10 o3 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%2
 ;tick count: 665
 
-2 /0 v0 r%8
+2 /0 v0 o1 r%8
 ;tick count: 673
 
 2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
@@ -1724,25 +1385,10 @@
 2 /1 s10 m9440 v10 o3 b%1
 ;tick count: 690
 
-2 /0 v0 o1 r%1
-;tick count: 691
-
-2 /0 v0 r%1
-;tick count: 692
-
-2 /0 v0 r%1
-;tick count: 693
-
-2 /0 v0 r%1
-;tick count: 694
-
-2 /0 v0 r%1
-;tick count: 695
-
-2 /0 v0 r%2
+2 /2 s10 m9440 n8 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%2
 ;tick count: 697
 
-2 /0 v0 r%7
+2 /0 v0 o1 r%7
 ;tick count: 704
 
 2 /0 v0 r%1
@@ -1760,25 +1406,10 @@
 2 /1 s10 m9440 v10 o3 b%1
 ;tick count: 722
 
-2 /0 v0 o1 r%1
-;tick count: 723
-
-2 /0 v0 r%1
-;tick count: 724
-
-2 /0 v0 r%1
-;tick count: 725
-
-2 /0 v0 r%1
-;tick count: 726
-
-2 /0 v0 r%1
-;tick count: 727
-
-2 /0 v0 r%2
+2 /2 s10 m9440 n8 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%2
 ;tick count: 729
 
-2 /0 v0 r%8
+2 /0 v0 o1 r%8
 ;tick count: 737
 
 2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%2
@@ -1796,31 +1427,13 @@
 2 /1 s10 m9440 v10 o3 b%1
 ;tick count: 754
 
-2 /0 v0 o1 r%1
-;tick count: 755
-
-2 /0 v0 r%1
-;tick count: 756
-
-2 /0 v0 r%1
-;tick count: 757
-
-2 /0 v0 r%1
-;tick count: 758
-
-2 /0 v0 r%1
-;tick count: 759
-
-2 /0 v0 r%2
+2 /2 s10 m9440 n8 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%2
 ;tick count: 761
 
-2 /3 s10 m9440 n0 v8 f%1
+2 /3 s10 m9440 n0 v8 o1 f%1
 ;tick count: 762
 
-2 /0 v0 r%3
-;tick count: 765
-
-2 /0 v0 r%4
+2 /2 s10 m9440 n0 v8 f%3 v7 f%4
 ;tick count: 769
 
 2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
@@ -1829,31 +1442,19 @@
 2 /0 v0 r%5
 ;tick count: 777
 
-2 /0 v0 r%8
+2 /0 v0 r%4
+;tick count: 781
+
+2 /0 v0 r%4
 ;tick count: 785
 
 2 /1 s10 m9440 v10 o3 b%1
 ;tick count: 786
 
-2 /0 v0 o1 r%1
-;tick count: 787
-
-2 /0 v0 r%1
-;tick count: 788
-
-2 /0 v0 r%1
-;tick count: 789
-
-2 /0 v0 r%1
-;tick count: 790
-
-2 /0 v0 r%1
-;tick count: 791
-
-2 /0 v0 r%2
+2 /2 s10 m9440 n8 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%2
 ;tick count: 793
 
-2 /0 v0 r%8
+2 /0 v0 o1 r%8
 ;tick count: 801
 
 2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
@@ -1871,25 +1472,10 @@
 2 /1 s10 m9440 v10 o3 b%1
 ;tick count: 818
 
-2 /0 v0 o1 r%1
-;tick count: 819
-
-2 /0 v0 r%1
-;tick count: 820
-
-2 /0 v0 r%1
-;tick count: 821
-
-2 /0 v0 r%1
-;tick count: 822
-
-2 /0 v0 r%1
-;tick count: 823
-
-2 /0 v0 r%2
+2 /2 s10 m9440 n8 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%2
 ;tick count: 825
 
-2 /0 v0 r%7
+2 /0 v0 o1 r%7
 ;tick count: 832
 
 2 /0 v0 r%1
@@ -1907,25 +1493,10 @@
 2 /1 s10 m9440 v10 o3 b%1
 ;tick count: 850
 
-2 /0 v0 o1 r%1
-;tick count: 851
-
-2 /0 v0 r%1
-;tick count: 852
-
-2 /0 v0 r%1
-;tick count: 853
-
-2 /0 v0 r%1
-;tick count: 854
-
-2 /0 v0 r%1
-;tick count: 855
-
-2 /0 v0 r%2
+2 /2 s10 m9440 n8 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%2
 ;tick count: 857
 
-2 /0 v0 r%8
+2 /0 v0 o1 r%8
 ;tick count: 865
 
 2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%2
@@ -1943,31 +1514,13 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 882
 
-2 /0 v0 o1 r%1
-;tick count: 883
-
-2 /0 v0 r%1
-;tick count: 884
-
-2 /0 v0 r%1
-;tick count: 885
-
-2 /0 v0 r%1
-;tick count: 886
-
-2 /0 v0 r%1
-;tick count: 887
-
-2 /0 v0 r%2
+2 /2 s10 m9440 n8 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%2
 ;tick count: 889
 
-2 /3 s10 m9440 n0 v8 f%1
+2 /3 s10 m9440 n0 v8 o1 f%1
 ;tick count: 890
 
-2 /0 v0 r%3
-;tick count: 893
-
-2 /0 v0 r%4
+2 /2 s10 m9440 n0 v8 f%3 v7 f%4
 ;tick count: 897
 
 2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%2
@@ -1976,28 +1529,19 @@
 2 /0 v0 r%4
 ;tick count: 905
 
-2 /0 v0 r%8
+2 /0 v0 r%4
+;tick count: 909
+
+2 /0 v0 r%4
 ;tick count: 913
 
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 914
 
-2 /0 v0 o1 r%1
-;tick count: 915
-
-2 /0 v0 r%2
-;tick count: 917
-
-2 /0 v0 r%1
-;tick count: 918
-
-2 /0 v0 r%1
-;tick count: 919
-
-2 /0 v0 r%2
+2 /2 s10 m9440 n8 v9 b%1 v8 b%2 v6 b%1 v5 b%1 v4 b%2
 ;tick count: 921
 
-2 /0 v0 r%8
+2 /0 v0 o1 r%8
 ;tick count: 929
 
 2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%2
@@ -2015,22 +1559,10 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 946
 
-2 /0 v0 o1 r%1
-;tick count: 947
-
-2 /0 v0 r%2
-;tick count: 949
-
-2 /0 v0 r%1
-;tick count: 950
-
-2 /0 v0 r%1
-;tick count: 951
-
-2 /0 v0 r%2
+2 /2 s10 m9440 n8 v9 b%1 v8 b%2 v6 b%1 v5 b%1 v4 b%2
 ;tick count: 953
 
-2 /0 v0 r%8
+2 /0 v0 o1 r%8
 ;tick count: 961
 
 2 /1 s9 m109850 v2 o2 c+%1 o1 b%1 g+%1
@@ -2045,28 +1577,10 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 978
 
-2 /0 v0 o1 r%1
-;tick count: 979
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 986
 
-2 /0 v0 r%1
-;tick count: 980
-
-2 /0 v0 r%1
-;tick count: 981
-
-2 /0 v0 r%1
-;tick count: 982
-
-2 /0 v0 r%1
-;tick count: 983
-
-2 /0 v0 r%1
-;tick count: 984
-
-2 /0 v0 r%1
-;tick count: 985
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 993
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2084,58 +1598,19 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1010
 
-2 /0 v0 o1 r%1
-;tick count: 1011
-
-2 /0 v0 r%1
-;tick count: 1012
-
-2 /0 v0 r%1
-;tick count: 1013
-
-2 /0 v0 r%1
-;tick count: 1014
-
-2 /0 v0 r%1
-;tick count: 1015
-
-2 /0 v0 r%1
-;tick count: 1016
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1017
 
-2 /3 s10 m9440 n0 v10 f%1
+2 /3 s10 m9440 n0 v10 o1 f%1
 ;tick count: 1018
 
-2 /0 v0 r%4
-;tick count: 1022
-
-2 /0 v0 r%3
+2 /2 s10 m9440 n0 v8 f%4 v7 f%3
 ;tick count: 1025
 
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1026
 
-2 /0 v0 o1 r%1
-;tick count: 1027
-
-2 /0 v0 r%1
-;tick count: 1028
-
-2 /0 v0 r%1
-;tick count: 1029
-
-2 /0 v0 r%1
-;tick count: 1030
-
-2 /0 v0 r%1
-;tick count: 1031
-
-2 /0 v0 r%1
-;tick count: 1032
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1033
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2144,7 +1619,10 @@
 2 /0 v0 r%4
 ;tick count: 1041
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1042
+
+2 /0 v0 r%7
 ;tick count: 1049
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2156,25 +1634,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1058
 
-2 /0 v0 o1 r%1
-;tick count: 1059
-
-2 /0 v0 r%1
-;tick count: 1060
-
-2 /0 v0 r%1
-;tick count: 1061
-
-2 /0 v0 r%1
-;tick count: 1062
-
-2 /0 v0 r%1
-;tick count: 1063
-
-2 /0 v0 r%1
-;tick count: 1064
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1065
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2183,7 +1643,10 @@
 2 /0 v0 r%4
 ;tick count: 1073
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1074
+
+2 /0 v0 r%7
 ;tick count: 1081
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2195,25 +1658,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1090
 
-2 /0 v0 o1 r%1
-;tick count: 1091
-
-2 /0 v0 r%1
-;tick count: 1092
-
-2 /0 v0 r%1
-;tick count: 1093
-
-2 /0 v0 r%1
-;tick count: 1094
-
-2 /0 v0 r%1
-;tick count: 1095
-
-2 /0 v0 r%1
-;tick count: 1096
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1097
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2222,7 +1667,10 @@
 2 /0 v0 r%4
 ;tick count: 1105
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1106
+
+2 /0 v0 r%7
 ;tick count: 1113
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2234,52 +1682,16 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1122
 
-2 /0 v0 o1 r%1
-;tick count: 1123
-
-2 /0 v0 r%1
-;tick count: 1124
-
-2 /0 v0 r%1
-;tick count: 1125
-
-2 /0 v0 r%1
-;tick count: 1126
-
-2 /0 v0 r%1
-;tick count: 1127
-
-2 /0 v0 r%1
-;tick count: 1128
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1129
 
-2 /1 s10 m9440 v2 o3 b%1
+2 /1 s10 m9440 v2 b%1
 ;tick count: 1130
 
-2 /0 v0 o1 r%1
-;tick count: 1131
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 1138
 
-2 /0 v0 r%1
-;tick count: 1132
-
-2 /0 v0 r%1
-;tick count: 1133
-
-2 /0 v0 r%1
-;tick count: 1134
-
-2 /0 v0 r%1
-;tick count: 1135
-
-2 /0 v0 r%1
-;tick count: 1136
-
-2 /0 v0 r%1
-;tick count: 1137
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 1145
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2291,25 +1703,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1154
 
-2 /0 v0 o1 r%1
-;tick count: 1155
-
-2 /0 v0 r%1
-;tick count: 1156
-
-2 /0 v0 r%1
-;tick count: 1157
-
-2 /0 v0 r%1
-;tick count: 1158
-
-2 /0 v0 r%1
-;tick count: 1159
-
-2 /0 v0 r%1
-;tick count: 1160
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1161
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2318,7 +1712,10 @@
 2 /0 v0 r%4
 ;tick count: 1169
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1170
+
+2 /0 v0 r%7
 ;tick count: 1177
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2330,25 +1727,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1186
 
-2 /0 v0 o1 r%1
-;tick count: 1187
-
-2 /0 v0 r%1
-;tick count: 1188
-
-2 /0 v0 r%1
-;tick count: 1189
-
-2 /0 v0 r%1
-;tick count: 1190
-
-2 /0 v0 r%1
-;tick count: 1191
-
-2 /0 v0 r%1
-;tick count: 1192
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1193
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2357,7 +1736,10 @@
 2 /0 v0 r%4
 ;tick count: 1201
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1202
+
+2 /0 v0 r%7
 ;tick count: 1209
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2369,25 +1751,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1218
 
-2 /0 v0 o1 r%1
-;tick count: 1219
-
-2 /0 v0 r%1
-;tick count: 1220
-
-2 /0 v0 r%1
-;tick count: 1221
-
-2 /0 v0 r%1
-;tick count: 1222
-
-2 /0 v0 r%1
-;tick count: 1223
-
-2 /0 v0 r%1
-;tick count: 1224
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1225
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2396,7 +1760,10 @@
 2 /0 v0 r%4
 ;tick count: 1233
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1234
+
+2 /0 v0 r%7
 ;tick count: 1241
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2408,52 +1775,16 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1250
 
-2 /0 v0 o1 r%1
-;tick count: 1251
-
-2 /0 v0 r%1
-;tick count: 1252
-
-2 /0 v0 r%1
-;tick count: 1253
-
-2 /0 v0 r%1
-;tick count: 1254
-
-2 /0 v0 r%1
-;tick count: 1255
-
-2 /0 v0 r%1
-;tick count: 1256
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1257
 
-2 /1 s10 m9440 v2 o3 b%1
+2 /1 s10 m9440 v2 b%1
 ;tick count: 1258
 
-2 /0 v0 o1 r%1
-;tick count: 1259
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 1266
 
-2 /0 v0 r%1
-;tick count: 1260
-
-2 /0 v0 r%1
-;tick count: 1261
-
-2 /0 v0 r%1
-;tick count: 1262
-
-2 /0 v0 r%1
-;tick count: 1263
-
-2 /0 v0 r%1
-;tick count: 1264
-
-2 /0 v0 r%1
-;tick count: 1265
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 1273
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2465,25 +1796,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1282
 
-2 /0 v0 o1 r%1
-;tick count: 1283
-
-2 /0 v0 r%1
-;tick count: 1284
-
-2 /0 v0 r%1
-;tick count: 1285
-
-2 /0 v0 r%1
-;tick count: 1286
-
-2 /0 v0 r%1
-;tick count: 1287
-
-2 /0 v0 r%1
-;tick count: 1288
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1289
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2492,7 +1805,10 @@
 2 /0 v0 r%4
 ;tick count: 1297
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1298
+
+2 /0 v0 r%7
 ;tick count: 1305
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2504,25 +1820,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1314
 
-2 /0 v0 o1 r%1
-;tick count: 1315
-
-2 /0 v0 r%1
-;tick count: 1316
-
-2 /0 v0 r%1
-;tick count: 1317
-
-2 /0 v0 r%1
-;tick count: 1318
-
-2 /0 v0 r%1
-;tick count: 1319
-
-2 /0 v0 r%1
-;tick count: 1320
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1321
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2531,7 +1829,10 @@
 2 /0 v0 r%4
 ;tick count: 1329
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1330
+
+2 /0 v0 r%7
 ;tick count: 1337
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2543,25 +1844,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1346
 
-2 /0 v0 o1 r%1
-;tick count: 1347
-
-2 /0 v0 r%1
-;tick count: 1348
-
-2 /0 v0 r%1
-;tick count: 1349
-
-2 /0 v0 r%1
-;tick count: 1350
-
-2 /0 v0 r%1
-;tick count: 1351
-
-2 /0 v0 r%1
-;tick count: 1352
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1353
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2570,7 +1853,10 @@
 2 /0 v0 r%4
 ;tick count: 1361
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1362
+
+2 /0 v0 r%7
 ;tick count: 1369
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2582,52 +1868,16 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1378
 
-2 /0 v0 o1 r%1
-;tick count: 1379
-
-2 /0 v0 r%1
-;tick count: 1380
-
-2 /0 v0 r%1
-;tick count: 1381
-
-2 /0 v0 r%1
-;tick count: 1382
-
-2 /0 v0 r%1
-;tick count: 1383
-
-2 /0 v0 r%1
-;tick count: 1384
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1385
 
-2 /1 s10 m9440 v2 o3 b%1
+2 /1 s10 m9440 v2 b%1
 ;tick count: 1386
 
-2 /0 v0 o1 r%1
-;tick count: 1387
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 1394
 
-2 /0 v0 r%1
-;tick count: 1388
-
-2 /0 v0 r%1
-;tick count: 1389
-
-2 /0 v0 r%1
-;tick count: 1390
-
-2 /0 v0 r%1
-;tick count: 1391
-
-2 /0 v0 r%1
-;tick count: 1392
-
-2 /0 v0 r%1
-;tick count: 1393
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 1401
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2639,25 +1889,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1410
 
-2 /0 v0 o1 r%1
-;tick count: 1411
-
-2 /0 v0 r%1
-;tick count: 1412
-
-2 /0 v0 r%1
-;tick count: 1413
-
-2 /0 v0 r%1
-;tick count: 1414
-
-2 /0 v0 r%1
-;tick count: 1415
-
-2 /0 v0 r%1
-;tick count: 1416
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1417
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2666,7 +1898,10 @@
 2 /0 v0 r%4
 ;tick count: 1425
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1426
+
+2 /0 v0 r%7
 ;tick count: 1433
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2678,25 +1913,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1442
 
-2 /0 v0 o1 r%1
-;tick count: 1443
-
-2 /0 v0 r%1
-;tick count: 1444
-
-2 /0 v0 r%1
-;tick count: 1445
-
-2 /0 v0 r%1
-;tick count: 1446
-
-2 /0 v0 r%1
-;tick count: 1447
-
-2 /0 v0 r%1
-;tick count: 1448
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1449
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2705,7 +1922,10 @@
 2 /0 v0 r%4
 ;tick count: 1457
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1458
+
+2 /0 v0 r%7
 ;tick count: 1465
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2717,25 +1937,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1474
 
-2 /0 v0 o1 r%1
-;tick count: 1475
-
-2 /0 v0 r%1
-;tick count: 1476
-
-2 /0 v0 r%1
-;tick count: 1477
-
-2 /0 v0 r%1
-;tick count: 1478
-
-2 /0 v0 r%1
-;tick count: 1479
-
-2 /0 v0 r%1
-;tick count: 1480
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1481
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2744,7 +1946,10 @@
 2 /0 v0 r%4
 ;tick count: 1489
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1490
+
+2 /0 v0 r%7
 ;tick count: 1497
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2753,115 +1958,40 @@
 2 /0 v0 r%4
 ;tick count: 1505
 
-2 /0 v0 r%1
+2 /2 s9 m109850 n20 v9 g+%1
 ;tick count: 1506
 
 2 /1 s9 m109850 v9 o3 g+%1
 ;tick count: 1507
 
-2 /0 v0 o1 r%2
-;tick count: 1509
+2 /2 s9 m109850 n16 v5 g+%2 v4 g+%2 g+%1
+;tick count: 1512
 
-2 /0 v0 r%2
-;tick count: 1511
-
-2 /0 v0 r%2
+2 /0 v0 o1 r%1
 ;tick count: 1513
 
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1514
 
-2 /0 v0 o1 r%1
-;tick count: 1515
-
-2 /0 v0 r%1
-;tick count: 1516
-
-2 /0 v0 r%1
-;tick count: 1517
-
-2 /0 v0 r%1
-;tick count: 1518
-
-2 /0 v0 r%1
-;tick count: 1519
-
-2 /0 v0 r%1
-;tick count: 1520
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1521
 
-2 /1 s10 m9440 v2 o3 b%1
+2 /1 s10 m9440 v2 b%1
 ;tick count: 1522
 
-2 /0 v0 o1 r%1
-;tick count: 1523
-
-2 /0 v0 r%1
-;tick count: 1524
-
-2 /0 v0 r%1
-;tick count: 1525
-
-2 /0 v0 r%1
-;tick count: 1526
-
-2 /0 v0 r%1
-;tick count: 1527
-
-2 /0 v0 r%1
-;tick count: 1528
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1529
 
-2 /1 s10 m9440 v2 o3 b%1
+2 /1 s10 m9440 v2 b%1
 ;tick count: 1530
 
-2 /0 v0 o1 r%1
-;tick count: 1531
-
-2 /0 v0 r%1
-;tick count: 1532
-
-2 /0 v0 r%1
-;tick count: 1533
-
-2 /0 v0 r%1
-;tick count: 1534
-
-2 /0 v0 r%1
-;tick count: 1535
-
-2 /0 v0 r%1
-;tick count: 1536
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1537
 
-2 /1 s10 m9440 v2 o3 b%1
+2 /1 s10 m9440 v2 b%1
 ;tick count: 1538
 
-2 /0 v0 o1 r%1
-;tick count: 1539
-
-2 /0 v0 r%1
-;tick count: 1540
-
-2 /0 v0 r%1
-;tick count: 1541
-
-2 /0 v0 r%1
-;tick count: 1542
-
-2 /0 v0 r%1
-;tick count: 1543
-
-2 /0 v0 r%1
-;tick count: 1544
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1545
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2870,7 +2000,10 @@
 2 /0 v0 r%4
 ;tick count: 1553
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1554
+
+2 /0 v0 r%7
 ;tick count: 1561
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2882,25 +2015,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1570
 
-2 /0 v0 o1 r%1
-;tick count: 1571
-
-2 /0 v0 r%1
-;tick count: 1572
-
-2 /0 v0 r%1
-;tick count: 1573
-
-2 /0 v0 r%1
-;tick count: 1574
-
-2 /0 v0 r%1
-;tick count: 1575
-
-2 /0 v0 r%1
-;tick count: 1576
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1577
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2909,7 +2024,10 @@
 2 /0 v0 r%4
 ;tick count: 1585
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1586
+
+2 /0 v0 r%7
 ;tick count: 1593
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2921,25 +2039,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1602
 
-2 /0 v0 o1 r%1
-;tick count: 1603
-
-2 /0 v0 r%1
-;tick count: 1604
-
-2 /0 v0 r%1
-;tick count: 1605
-
-2 /0 v0 r%1
-;tick count: 1606
-
-2 /0 v0 r%1
-;tick count: 1607
-
-2 /0 v0 r%1
-;tick count: 1608
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1609
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2948,7 +2048,10 @@
 2 /0 v0 r%4
 ;tick count: 1617
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1618
+
+2 /0 v0 r%7
 ;tick count: 1625
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -2960,52 +2063,16 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1634
 
-2 /0 v0 o1 r%1
-;tick count: 1635
-
-2 /0 v0 r%1
-;tick count: 1636
-
-2 /0 v0 r%1
-;tick count: 1637
-
-2 /0 v0 r%1
-;tick count: 1638
-
-2 /0 v0 r%1
-;tick count: 1639
-
-2 /0 v0 r%1
-;tick count: 1640
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1641
 
-2 /1 s10 m9440 v2 o3 b%1
+2 /1 s10 m9440 v2 b%1
 ;tick count: 1642
 
-2 /0 v0 o1 r%1
-;tick count: 1643
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 1650
 
-2 /0 v0 r%1
-;tick count: 1644
-
-2 /0 v0 r%1
-;tick count: 1645
-
-2 /0 v0 r%1
-;tick count: 1646
-
-2 /0 v0 r%1
-;tick count: 1647
-
-2 /0 v0 r%1
-;tick count: 1648
-
-2 /0 v0 r%1
-;tick count: 1649
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 1657
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -3017,25 +2084,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1666
 
-2 /0 v0 o1 r%1
-;tick count: 1667
-
-2 /0 v0 r%1
-;tick count: 1668
-
-2 /0 v0 r%1
-;tick count: 1669
-
-2 /0 v0 r%1
-;tick count: 1670
-
-2 /0 v0 r%1
-;tick count: 1671
-
-2 /0 v0 r%1
-;tick count: 1672
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1673
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -3044,7 +2093,10 @@
 2 /0 v0 r%4
 ;tick count: 1681
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1682
+
+2 /0 v0 r%7
 ;tick count: 1689
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -3056,25 +2108,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1698
 
-2 /0 v0 o1 r%1
-;tick count: 1699
-
-2 /0 v0 r%1
-;tick count: 1700
-
-2 /0 v0 r%1
-;tick count: 1701
-
-2 /0 v0 r%1
-;tick count: 1702
-
-2 /0 v0 r%1
-;tick count: 1703
-
-2 /0 v0 r%1
-;tick count: 1704
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1705
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -3083,7 +2117,10 @@
 2 /0 v0 r%4
 ;tick count: 1713
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1714
+
+2 /0 v0 r%7
 ;tick count: 1721
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -3095,25 +2132,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1730
 
-2 /0 v0 o1 r%1
-;tick count: 1731
-
-2 /0 v0 r%1
-;tick count: 1732
-
-2 /0 v0 r%1
-;tick count: 1733
-
-2 /0 v0 r%1
-;tick count: 1734
-
-2 /0 v0 r%1
-;tick count: 1735
-
-2 /0 v0 r%1
-;tick count: 1736
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1737
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -3122,7 +2141,10 @@
 2 /0 v0 r%4
 ;tick count: 1745
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1746
+
+2 /0 v0 r%7
 ;tick count: 1753
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -3134,52 +2156,16 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1762
 
-2 /0 v0 o1 r%1
-;tick count: 1763
-
-2 /0 v0 r%1
-;tick count: 1764
-
-2 /0 v0 r%1
-;tick count: 1765
-
-2 /0 v0 r%1
-;tick count: 1766
-
-2 /0 v0 r%1
-;tick count: 1767
-
-2 /0 v0 r%1
-;tick count: 1768
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1769
 
-2 /1 s10 m9440 v2 o3 b%1
+2 /1 s10 m9440 v2 b%1
 ;tick count: 1770
 
-2 /0 v0 o1 r%1
-;tick count: 1771
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 1778
 
-2 /0 v0 r%1
-;tick count: 1772
-
-2 /0 v0 r%1
-;tick count: 1773
-
-2 /0 v0 r%1
-;tick count: 1774
-
-2 /0 v0 r%1
-;tick count: 1775
-
-2 /0 v0 r%1
-;tick count: 1776
-
-2 /0 v0 r%1
-;tick count: 1777
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 1785
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -3191,25 +2177,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1794
 
-2 /0 v0 o1 r%1
-;tick count: 1795
-
-2 /0 v0 r%1
-;tick count: 1796
-
-2 /0 v0 r%1
-;tick count: 1797
-
-2 /0 v0 r%1
-;tick count: 1798
-
-2 /0 v0 r%1
-;tick count: 1799
-
-2 /0 v0 r%1
-;tick count: 1800
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1801
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -3218,7 +2186,10 @@
 2 /0 v0 r%4
 ;tick count: 1809
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1810
+
+2 /0 v0 r%7
 ;tick count: 1817
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -3230,25 +2201,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1826
 
-2 /0 v0 o1 r%1
-;tick count: 1827
-
-2 /0 v0 r%1
-;tick count: 1828
-
-2 /0 v0 r%1
-;tick count: 1829
-
-2 /0 v0 r%1
-;tick count: 1830
-
-2 /0 v0 r%1
-;tick count: 1831
-
-2 /0 v0 r%1
-;tick count: 1832
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1833
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -3257,7 +2210,10 @@
 2 /0 v0 r%4
 ;tick count: 1841
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1842
+
+2 /0 v0 r%7
 ;tick count: 1849
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -3269,25 +2225,7 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1858
 
-2 /0 v0 o1 r%1
-;tick count: 1859
-
-2 /0 v0 r%1
-;tick count: 1860
-
-2 /0 v0 r%1
-;tick count: 1861
-
-2 /0 v0 r%1
-;tick count: 1862
-
-2 /0 v0 r%1
-;tick count: 1863
-
-2 /0 v0 r%1
-;tick count: 1864
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1865
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -3296,7 +2234,10 @@
 2 /0 v0 r%4
 ;tick count: 1873
 
-2 /0 v0 r%8
+2 /2 s9 m109850 n0 v9 g+%1
+;tick count: 1874
+
+2 /0 v0 r%7
 ;tick count: 1881
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -3308,52 +2249,16 @@
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1890
 
-2 /0 v0 o1 r%1
-;tick count: 1891
-
-2 /0 v0 r%1
-;tick count: 1892
-
-2 /0 v0 r%1
-;tick count: 1893
-
-2 /0 v0 r%1
-;tick count: 1894
-
-2 /0 v0 r%1
-;tick count: 1895
-
-2 /0 v0 r%1
-;tick count: 1896
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1897
 
-2 /1 s10 m9440 v2 o3 b%1
+2 /1 s10 m9440 v2 b%1
 ;tick count: 1898
 
-2 /0 v0 o1 r%1
-;tick count: 1899
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1 v9 b%1
+;tick count: 1906
 
-2 /0 v0 r%1
-;tick count: 1900
-
-2 /0 v0 r%1
-;tick count: 1901
-
-2 /0 v0 r%1
-;tick count: 1902
-
-2 /0 v0 r%1
-;tick count: 1903
-
-2 /0 v0 r%1
-;tick count: 1904
-
-2 /0 v0 r%1
-;tick count: 1905
-
-2 /0 v0 r%8
+2 /0 v0 o1 r%7
 ;tick count: 1913
 
 2 /1 s9 m109850 v2 o2 a%1 c+%1 o1 b%1 g+%1
@@ -3365,189 +2270,79 @@
 2 /3 s9 m109850 n0 v10 f%1
 ;tick count: 1922
 
-2 /0 v0 r%4
-;tick count: 1926
+2 /2 s9 m109850 n0 v8 f%4 v7 f%4 v6 f%4 v5 f%4
+;tick count: 1938
 
-2 /0 v0 r%4
-;tick count: 1930
-
-2 /0 v0 r%4
-;tick count: 1934
-
-2 /0 v0 r%19
+2 /0 v0 r%15
 ;tick count: 1953
 
-2 /0 v0 r%1
+2 /2 s9 m109850 n20 v9 f%1
 ;tick count: 1954
 
 2 /1 s9 m109850 v9 o3 g+%1
 ;tick count: 1955
 
-2 /0 v0 o1 r%2
-;tick count: 1957
+2 /2 s9 m109850 n16 v5 g+%2 v9 g+%1
+;tick count: 1958
 
-2 /0 v0 r%12
+2 /0 v0 o1 r%3
+;tick count: 1961
+
+2 /2 s9 m109850 n0 v9 o3 g+%1
+;tick count: 1962
+
+2 /0 v0 o1 r%3
+;tick count: 1965
+
+2 /2 s9 m109850 n0 v9 o3 g+%1
+;tick count: 1966
+
+2 /0 v0 o1 r%3
 ;tick count: 1969
 
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 1970
 
-2 /0 v0 o1 r%1
-;tick count: 1971
-
-2 /0 v0 r%1
-;tick count: 1972
-
-2 /0 v0 r%1
-;tick count: 1973
-
-2 /0 v0 r%1
-;tick count: 1974
-
-2 /0 v0 r%1
-;tick count: 1975
-
-2 /0 v0 r%1
-;tick count: 1976
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1977
 
-2 /1 s10 m9440 v2 o3 b%1
+2 /1 s10 m9440 v2 b%1
 ;tick count: 1978
 
-2 /0 v0 o1 r%1
-;tick count: 1979
-
-2 /0 v0 r%1
-;tick count: 1980
-
-2 /0 v0 r%1
-;tick count: 1981
-
-2 /0 v0 r%1
-;tick count: 1982
-
-2 /0 v0 r%1
-;tick count: 1983
-
-2 /0 v0 r%1
-;tick count: 1984
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 1985
 
-2 /3 s10 m9440 n0 v10 f%1
+2 /3 s10 m9440 n0 v10 o1 f%1
 ;tick count: 1986
 
-2 /0 v0 r%4
-;tick count: 1990
+2 /2 s10 m9440 n0 v8 f%4 v7 f%4 v6 f%4 v5 f%4
+;tick count: 2002
 
-2 /0 v0 r%4
-;tick count: 1994
-
-2 /0 v0 r%4
-;tick count: 1998
-
-2 /0 v0 r%19
+2 /0 v0 r%15
 ;tick count: 2017
 
 2 /1 s10 m9440 v2 o3 b%1
 ;tick count: 2018
 
-2 /0 v0 o1 r%1
-;tick count: 2019
-
-2 /0 v0 r%1
-;tick count: 2020
-
-2 /0 v0 r%1
-;tick count: 2021
-
-2 /0 v0 r%1
-;tick count: 2022
-
-2 /0 v0 r%1
-;tick count: 2023
-
-2 /0 v0 r%1
-;tick count: 2024
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 2025
 
-2 /1 s10 m9440 v2 o3 b%1
+2 /1 s10 m9440 v2 b%1
 ;tick count: 2026
 
-2 /0 v0 o1 r%1
-;tick count: 2027
-
-2 /0 v0 r%1
-;tick count: 2028
-
-2 /0 v0 r%1
-;tick count: 2029
-
-2 /0 v0 r%1
-;tick count: 2030
-
-2 /0 v0 r%1
-;tick count: 2031
-
-2 /0 v0 r%1
-;tick count: 2032
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 2033
 
-2 /1 s10 m9440 v2 o3 b%1
+2 /1 s10 m9440 v2 b%1
 ;tick count: 2034
 
-2 /0 v0 o1 r%1
-;tick count: 2035
-
-2 /0 v0 r%1
-;tick count: 2036
-
-2 /0 v0 r%1
-;tick count: 2037
-
-2 /0 v0 r%1
-;tick count: 2038
-
-2 /0 v0 r%1
-;tick count: 2039
-
-2 /0 v0 r%1
-;tick count: 2040
-
-2 /0 v0 r%1
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;tick count: 2041
 
-2 /1 s10 m9440 v2 o3 b%1
+2 /1 s10 m9440 v2 b%1
 ;tick count: 2042
 
-2 /0 v0 o1 r%1
-;tick count: 2043
-
-2 /0 v0 r%1
-;tick count: 2044
-
-2 /0 v0 r%1
-;tick count: 2045
-
-2 /0 v0 r%1
-;tick count: 2046
-
-2 /0 v0 r%1
-;tick count: 2047
-
-2 /0 v0 r%1
-;tick count: 2048
-
-2 /0 v0 r%1
-;tick count: 2049
-
+2 /2 s10 m9440 n8 v10 b%1 v9 b%1 v8 b%1 v7 b%1 v6 b%1 v5 b%1 v4 b%1
 ;ch2 end: tick count: 2049
 
 

@@ -4,7 +4,7 @@ vgm2mml.py - Top-level CLI: VGM binary → MGSDRV MML
 
 Usage:
     python vgm2mml.py <vgm_file> [--outdir <dir>] [--dump-passes]
-                      [--scc-input trace|log]
+                      [--scc-input trace|log] [--psg-input trace|log]
 
 Example:
     python vgm2mml.py inputs/02_StartingPoint/02_StartingPoint.vgm \
@@ -34,6 +34,9 @@ def main():
     parser.add_argument('--scc-input', choices=['trace', 'log'], default='trace',
                         help='SCC intermediate format: trace (default, chronological)'
                              ' or log (per-channel grouped)')
+    parser.add_argument('--psg-input', choices=['trace', 'log'], default='trace',
+                        help='PSG intermediate format: trace (default, chronological)'
+                             ' or log (per-channel grouped)')
     args = parser.parse_args()
 
     vgm_path = args.vgm
@@ -55,9 +58,10 @@ def main():
     os.makedirs(out_root, exist_ok=True)
 
     # ── Step 1: Parse VGM → SCC + PSG log/trace CSVs ─────────────
-    psg_log_csv, scc_log_csv, _psg_trace_csv, scc_trace_csv = parse_vgm(
+    psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv = parse_vgm(
         vgm_path, out_root)
     print(f"PSG log:   {psg_log_csv}")
+    print(f"PSG trace: {psg_trace_csv}")
     print(f"SCC log:   {scc_log_csv}")
     print(f"SCC trace: {scc_trace_csv}")
 
@@ -76,11 +80,17 @@ def main():
     print(f"SCC MML:   {mml_path}")
 
     # ── Step 3: PSG MML pipeline ─────────────────────────────────
-    # PSG currently uses the log CSV; the stem follows the same naming
-    # rule as SCC but substitutes "psg" for "scc".
-    psg_stem_suffix = base_name + '_psg_log'
+    # Default: use trace CSV (chronological order, same as SCC default).
+    # Use --psg-input log for the log-based variant (debug).
+    if args.psg_input == 'trace':
+        psg_csv = psg_trace_csv
+        psg_stem_suffix = base_name + '_psg_trace'
+    else:
+        psg_csv = psg_log_csv
+        psg_stem_suffix = base_name + '_psg_log'
+
     psg_out_dir = os.path.join(out_root, psg_stem_suffix)
-    psg_mml_path = process_psg_csv(psg_log_csv, psg_out_dir,
+    psg_mml_path = process_psg_csv(psg_csv, psg_out_dir,
                                    stem=psg_stem_suffix,
                                    dump_passes=args.dump_passes)
     print(f"PSG MML:   {psg_mml_path}")
