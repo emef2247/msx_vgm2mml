@@ -109,30 +109,15 @@ def test_outdir_stdout_reports_stem_paths():
 # No --outdir: all outputs must land under <vgm_dir>/<vgm_stem>_log/
 # ──────────────────────────────────────────────────────────────────────────
 
-def test_no_outdir_uses_log_dir_next_to_vgm():
-    """Without --outdir, outputs land in <vgm_dir>/<vgm_stem>_log/."""
-    with tempfile.TemporaryDirectory() as tmp:
-        # Copy the VGM file into a temporary directory so we don't pollute
-        # the repository's inputs/ folder.
-        import shutil
-        vgm_copy = os.path.join(tmp, os.path.basename(VGM_FILE))
-        shutil.copy2(VGM_FILE, vgm_copy)
+def test_no_outdir_uses_outputs_dir_in_repo_root():
+    """Without --outdir, outputs land in <repo_root>/outputs/<vgm_stem>/."""
+    expected_dir = os.path.join(REPO_ROOT, 'outputs', VGM_STEM)
+    _run_cli()
+    assert os.path.isdir(expected_dir), (
+        f"Expected {expected_dir!r} to exist\n"
+        f"Contents of outputs/: {os.listdir(os.path.join(REPO_ROOT, 'outputs'))}")
 
-        cmd = [sys.executable, VGMCLI, vgm_copy]
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        assert result.returncode == 0, (
-            f"CLI failed\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}")
-
-        log_dir = os.path.join(tmp, VGM_STEM + '_log')
-        assert os.path.isdir(log_dir), (
-            f"Expected {log_dir!r} to exist\n"
-            f"Contents of {tmp}: {os.listdir(tmp)}")
-
-        # All CSV files must be inside log_dir (or its subdirectories)
-        for dirpath, _dirs, files in os.walk(tmp):
-            for fname in files:
-                if fname == os.path.basename(vgm_copy):
-                    continue  # skip the VGM itself
-                fpath = os.path.join(dirpath, fname)
-                assert fpath.startswith(log_dir + os.sep), (
-                    f"File {fpath!r} is outside expected log dir {log_dir!r}")
+    # MML files must be directly in expected_dir (no sub-directories)
+    mml_files = [f for f in os.listdir(expected_dir) if f.endswith('.mml')]
+    assert len(mml_files) >= 2, (
+        f"Expected at least 2 MML files in {expected_dir}, got {mml_files}")

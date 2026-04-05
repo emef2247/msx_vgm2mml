@@ -27,7 +27,7 @@ INPUT_CSV = os.path.join(
 GOLDEN_MML = os.path.join(
     REPO_ROOT,
     'outputs', '02_StartingPoint_log',
-    '02_StartingPoint_log.scc.pass3.mml')
+    '02_StartingPoint.scc.mml')
 
 # ──────────────────────────────────────────────────────────────────────────
 # Paths – trace (chronological) pipeline
@@ -39,7 +39,7 @@ TRACE_CSV = os.path.join(
 GOLDEN_TRACE_MML = os.path.join(
     REPO_ROOT,
     'outputs', '02_StartingPoint_trace',
-    '02_StartingPoint_trace.scc.pass3.mml')
+    '02_StartingPoint.scc.mml')
 
 VGM_FILE = os.path.join(
     REPO_ROOT,
@@ -59,12 +59,12 @@ ABOVE_LOG_CSV = os.path.join(
 ABOVE_GOLDEN_TRACE_MML = os.path.join(
     REPO_ROOT,
     'outputs', '01_AbovetheHorizon_trace',
-    '01_AbovetheHorizon_trace.scc.pass3.mml')
+    '01_AbovetheHorizon.scc.mml')
 
 ABOVE_GOLDEN_LOG_MML = os.path.join(
     REPO_ROOT,
     'outputs', '01_AbovetheHorizon_log',
-    '01_AbovetheHorizon_log.scc.pass3.mml')
+    '01_AbovetheHorizon.scc.mml')
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -106,7 +106,8 @@ def test_scc_pass3_mml_matches_golden():
     """Generated pass3.mml must be byte-for-byte identical to the golden."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_dir = os.path.join(tmp_dir, '02_StartingPoint_log')
-        mml_path = process_scc_csv(INPUT_CSV, out_dir, dump_passes=False)
+        mml_path = process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                                   stem='02_StartingPoint')
 
         got      = _read(mml_path)
         expected = _read(GOLDEN_MML)
@@ -124,9 +125,10 @@ def test_scc_pass3_mml_dump_passes():
     """When dump_passes=True all four intermediate CSV files are written."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_dir = os.path.join(tmp_dir, '02_StartingPoint_log')
-        process_scc_csv(INPUT_CSV, out_dir, dump_passes=True)
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=True,
+                        stem='02_StartingPoint')
 
-        stem = '02_StartingPoint_log'
+        stem = '02_StartingPoint'
         for suffix in ('pass0.csv', 'pass1.csv', 'pass2.csv', 'pass3.csv'):
             expected_file = os.path.join(out_dir, f'{stem}.scc.{suffix}')
             assert os.path.isfile(expected_file), (
@@ -137,9 +139,10 @@ def test_scc_pass3_mml_no_dump():
     """When dump_passes=False no intermediate CSV files are written."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_dir = os.path.join(tmp_dir, '02_StartingPoint_log')
-        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False)
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                        stem='02_StartingPoint')
 
-        stem = '02_StartingPoint_log'
+        stem = '02_StartingPoint'
         for suffix in ('pass0.csv', 'pass1.csv', 'pass2.csv', 'pass3.csv'):
             unexpected = os.path.join(out_dir, f'{stem}.scc.{suffix}')
             assert not os.path.isfile(unexpected), (
@@ -150,7 +153,8 @@ def test_scc_mml_wavetable_header():
     """The generated MML must contain the correct @s wavetable definitions."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_dir = os.path.join(tmp_dir, '02_StartingPoint_log')
-        mml_path = process_scc_csv(INPUT_CSV, out_dir, dump_passes=False)
+        mml_path = process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                                   stem='02_StartingPoint')
 
         with open(mml_path) as fh:
             content = fh.read()
@@ -164,7 +168,8 @@ def test_scc_mml_ends_with_newline():
     """The generated MML file must end with a newline (POSIX convention)."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_dir = os.path.join(tmp_dir, '02_StartingPoint_log')
-        mml_path = process_scc_csv(INPUT_CSV, out_dir, dump_passes=False)
+        mml_path = process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                                   stem='02_StartingPoint')
 
         with open(mml_path, 'rb') as fh:
             data = fh.read()
@@ -193,7 +198,8 @@ def test_trace_csv_pass3_mml_matches_golden():
     """MML generated from Tcl trace CSV must match the committed golden."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_dir = os.path.join(tmp_dir, '02_StartingPoint_trace')
-        mml_path = process_scc_csv(TRACE_CSV, out_dir, dump_passes=False)
+        mml_path = process_scc_csv(TRACE_CSV, out_dir, dump_passes=False,
+                                   stem='02_StartingPoint')
 
         got      = _read(mml_path)
         expected = _read(GOLDEN_TRACE_MML)
@@ -215,7 +221,8 @@ def test_vgm_to_trace_mml_matches_golden():
 
         # Step 2: trace CSV → MML
         out_dir = os.path.join(tmp_dir, '02_StartingPoint_trace')
-        mml_path = process_scc_csv(scc_trace, out_dir, dump_passes=False)
+        mml_path = process_scc_csv(scc_trace, out_dir, dump_passes=False,
+                                   stem='02_StartingPoint')
 
         got      = _read(mml_path)
         expected = _read(GOLDEN_TRACE_MML)
@@ -309,7 +316,8 @@ def test_above_horizon_trace_mml_matches_golden():
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_dir = os.path.join(tmp_dir, '01_AbovetheHorizon_trace')
-        mml_path = process_scc_csv(ABOVE_TRACE_CSV, out_dir, dump_passes=False)
+        mml_path = process_scc_csv(ABOVE_TRACE_CSV, out_dir, dump_passes=False,
+                                   stem='01_AbovetheHorizon')
 
         got      = _read(mml_path)
         expected = _read(ABOVE_GOLDEN_TRACE_MML)

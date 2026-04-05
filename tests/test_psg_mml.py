@@ -1,7 +1,7 @@
 """
 test_psg_mml.py - Smoke tests for the PSG MML pipeline.
 
-Validates that process_psg_csv generates a .psg.pass3.mml file from the
+Validates that process_psg_csv generates a .psg.mml file from the
 committed golden input CSV, and checks basic properties of the output.
 """
 import os
@@ -25,13 +25,13 @@ PSG_LOG_CSV = os.path.join(
 GOLDEN_PSG_MML = os.path.join(
     REPO_ROOT,
     'outputs', '02_StartingPoint_psg_log',
-    '02_StartingPoint_psg_log.psg.pass3.mml')
+    '02_StartingPoint.psg.mml')
 
 VGM_FILE = os.path.join(
     REPO_ROOT,
     'inputs', '02_StartingPoint', '02_StartingPoint.vgm')
 
-PSG_STEM = '02_StartingPoint_psg_log'
+PSG_STEM = '02_StartingPoint'
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -54,13 +54,13 @@ def test_psg_log_csv_exists():
 
 
 def test_golden_psg_mml_exists():
-    """The committed golden PSG pass3.mml must exist."""
+    """The committed golden PSG MML must exist."""
     assert os.path.isfile(GOLDEN_PSG_MML), (
         f"Golden PSG MML not found: {GOLDEN_PSG_MML}")
 
 
 def test_psg_mml_file_is_generated():
-    """process_psg_csv must produce a .psg.pass3.mml file."""
+    """process_psg_csv must produce a .psg.mml file."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_dir = os.path.join(tmp_dir, PSG_STEM)
         mml_path = process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM,
@@ -116,7 +116,7 @@ def test_psg_mml_no_dump():
 
 
 def test_psg_mml_matches_golden():
-    """Generated PSG pass3.mml must be byte-for-byte identical to the golden."""
+    """Generated PSG MML must be byte-for-byte identical to the golden."""
     import difflib
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_dir = os.path.join(tmp_dir, PSG_STEM)
@@ -133,7 +133,7 @@ def test_psg_mml_matches_golden():
                 tofile=mml_path,
             ))
             pytest.fail(
-                "Generated PSG pass3.mml differs from the golden reference.\n"
+                "Generated PSG MML differs from the golden reference.\n"
                 "--- diff (expected vs got) ---\n" + diff)
 
 
@@ -171,7 +171,7 @@ def test_vgm_to_psg_mml_is_generated():
     with tempfile.TemporaryDirectory() as tmp_dir:
         psg_log, _scc_log, _psg_trace, _scc_trace = parse_vgm(VGM_FILE, tmp_dir)
 
-        stem = '02_StartingPoint_psg_log'
+        stem = '02_StartingPoint'
         out_dir = os.path.join(tmp_dir, stem)
         mml_path = process_psg_csv(psg_log, out_dir, stem=stem,
                                    dump_passes=False)
@@ -185,7 +185,7 @@ def test_vgm_to_psg_trace_mml_has_notes():
     with tempfile.TemporaryDirectory() as tmp_dir:
         _psg_log, _scc_log, psg_trace, _scc_trace = parse_vgm(VGM_FILE, tmp_dir)
 
-        stem = '02_StartingPoint_psg_trace'
+        stem = '02_StartingPoint'
         out_dir = os.path.join(tmp_dir, stem)
         mml_path = process_psg_csv(psg_trace, out_dir, stem=stem,
                                    dump_passes=False)

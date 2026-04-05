@@ -661,23 +661,28 @@ def _write_csv(path, header, ch_list, buf):
 # Main pipeline
 # ---------------------------------------------------------------------------
 
-def process_scc_csv(input_path, output_dir, dump_passes=True):
+def process_scc_csv(input_path, output_dir, dump_passes=True, stem=None):
     """Run the full SCC MML pipeline.
 
     Args:
         input_path  : path to ``*_log.scc.csv``
         output_dir  : directory for output files
         dump_passes : when True (default) write pass0-3 CSV files
+        stem        : base name for output files (e.g. ``"02_StartingPoint"``).
+                      When *None* (default) the stem is derived from *input_path*.
 
     Returns:
-        path to the generated ``*.scc.pass3.mml``
+        path to the generated ``*.scc.mml``
     """
-    # ---- Derive output name body from input filename ----
-    # Input: /some/path/02_StartingPoint_log.scc.csv
-    # Body : 02_StartingPoint_log
-    base = os.path.basename(input_path)           # 02_StartingPoint_log.scc.csv
-    root = os.path.splitext(base)[0]              # 02_StartingPoint_log.scc
-    file_name_body = os.path.splitext(root)[0]    # 02_StartingPoint_log
+    # ---- Derive output name body from input filename or stem ----
+    if stem is not None:
+        file_name_body = stem
+    else:
+        # Input: /some/path/02_StartingPoint_log.scc.csv
+        # Body : 02_StartingPoint_log
+        base = os.path.basename(input_path)           # 02_StartingPoint_log.scc.csv
+        root = os.path.splitext(base)[0]              # 02_StartingPoint_log.scc
+        file_name_body = os.path.splitext(root)[0]    # 02_StartingPoint_log
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -729,7 +734,7 @@ def process_scc_csv(input_path, output_dir, dump_passes=True):
 
     # ---- MML ----
     mml_text = _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker)
-    mml_path = os.path.join(output_dir, f'{file_name_body}.scc.pass3.mml')
+    mml_path = os.path.join(output_dir, f'{file_name_body}.scc.mml')
     with open(mml_path, 'w', newline='\n') as fh:
         fh.write(mml_text)
 
