@@ -161,7 +161,7 @@ def test_scc_mml_wavetable_header():
 
         assert '@s00 = {' in content, "Missing @s00 wavetable definition"
         assert ';[name=scc lpf=1]' in content, "Missing SCC header comment"
-        assert '#tempo 75' in content, "Missing tempo directive"
+        assert '#tempo 225' in content, "Missing tempo directive"
 
 
 def test_scc_mml_ends_with_newline():

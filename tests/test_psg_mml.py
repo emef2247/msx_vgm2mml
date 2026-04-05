@@ -88,7 +88,7 @@ def test_psg_mml_contains_header():
                                    dump_passes=False)
         content = _read(mml_path)
         assert ';[name=psg lpf=1]' in content, "Missing PSG header comment"
-        assert '#tempo 75' in content, "Missing tempo directive"
+        assert '#tempo 225' in content, "Missing tempo directive"
 
 
 def test_psg_mml_dump_passes():

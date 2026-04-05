@@ -247,6 +247,7 @@ def _generate_mml(segments: dict, stem: str) -> str:
         o_stamp = 0
         v_stamp = -1
         at_stamp = -1
+        is_first_group = True
         mml     = ''
         note_cnt = 0
 
@@ -267,7 +268,16 @@ def _generate_mml(segments: dict, stem: str) -> str:
 
                 if note_cnt == 0:
                     at_val = seg.inst
-                    mml = f'\n{track_id} @{at_val} v{v}'
+                    if is_first_group:
+                        mml = f'\n{track_id} @{at_val} v{v} o{octave} l64'
+                        o_stamp = octave
+                        is_first_group = False
+                    else:
+                        mml = f'\n{track_id}'
+                        if at_val != at_stamp:
+                            mml += f' @{at_val}'
+                        if v != v_stamp:
+                            mml += f' v{v}'
                     at_stamp = at_val
                     v_stamp  = v
 
@@ -307,7 +317,7 @@ def _generate_mml(segments: dict, stem: str) -> str:
     lines = []
     lines.append(';[name=opll]')
     lines.append('#opll_mode 1')
-    lines.append('#tempo 75')
+    lines.append('#tempo 225')
     lines.append(f'#title {{ "{stem}"}}')
     for ch in range(NUM_CH):
         ch_num   = ch + CH_OFFSET

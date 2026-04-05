@@ -162,15 +162,15 @@ def test_opll_mml_header_has_opll_mode():
 
 
 def test_opll_mml_header_has_tempo():
-    """Generated OPLL MML must contain '#tempo 75'."""
+    """Generated OPLL MML must contain '#tempo 225'."""
     with tempfile.TemporaryDirectory() as tmp:
         results = parse_vgm(VGM_FILE, tmp)
         opll_trace = results[5]
         out_dir = os.path.join(tmp, VGM_STEM)
         mml_path = process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
         content = _read(mml_path)
-        assert '#tempo 75' in content, (
-            f"OPLL MML missing '#tempo 75':\n{content[:500]}")
+        assert '#tempo 225' in content, (
+            f"OPLL MML missing '#tempo 225':\n{content[:500]}")
 
 
 def test_opll_mml_header_has_title():
