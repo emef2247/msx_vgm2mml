@@ -460,10 +460,10 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
     # Write pass3.mml
     pass3_mml_path = os.path.join(output_dir, f"{output_name_body}.psg.pass3.mml")
     with open(pass3_mml_path, 'w', newline='\n') as f:
-        f.write(';[name=scc lpf=1]\n')
+        f.write(';[name=psg lpf=1]\n')
         f.write('#opll_mode 1\n')
         f.write('#tempo 75\n')
-        f.write('#title { "psg example"}\n')
+        f.write(f'#title {{ "{output_name_body}"}}\n')
         for ch in ch_list:
             track = ch + ch_offset
             used = estimate_mml_used(mml_buffer1[ch])

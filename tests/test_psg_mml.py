@@ -87,7 +87,7 @@ def test_psg_mml_contains_header():
         mml_path = process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM,
                                    dump_passes=False)
         content = _read(mml_path)
-        assert ';[name=scc lpf=1]' in content, "Missing PSG header comment"
+        assert ';[name=psg lpf=1]' in content, "Missing PSG header comment"
         assert '#tempo 75' in content, "Missing tempo directive"
 
 
