@@ -380,6 +380,7 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
         o_stamp = 0
         v_stamp = 0
         mode_stamp = -1   # tracks previous mode so we can flush on mode change
+        is_first_group = True
 
         ch_start = f"\n\n;ch{ch + ch_offset} start"
         mml_buffer1[ch].append(ch_start)
@@ -412,13 +413,33 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
                 if note_cnt == 0:
                     if mode == 0:
                         v = 0
-                        mml = f"\n{ch + ch_offset} /0 v{v}"
+                        if is_first_group:
+                            mml = f"\n{ch + ch_offset} /0 v{v} o{o} l64"
+                            o_stamp = o
+                            is_first_group = False
+                        else:
+                            mml = f"\n{ch + ch_offset} /0 v{v}"
                     elif mode == 1:
-                        mml = f"\n{ch + ch_offset} /1 s{hw_env_shape} m{hw_env_period} v{v}"
+                        if is_first_group:
+                            mml = f"\n{ch + ch_offset} /1 s{hw_env_shape} m{hw_env_period} v{v} o{o} l64"
+                            o_stamp = o
+                            is_first_group = False
+                        else:
+                            mml = f"\n{ch + ch_offset} /1 s{hw_env_shape} m{hw_env_period} v{v}"
                     elif mode == 2:
-                        mml = f"\n{ch + ch_offset} /2 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v}"
+                        if is_first_group:
+                            mml = f"\n{ch + ch_offset} /2 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v} o{o} l64"
+                            o_stamp = o
+                            is_first_group = False
+                        else:
+                            mml = f"\n{ch + ch_offset} /2 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v}"
                     elif mode == 3:
-                        mml = f"\n{ch + ch_offset} /3 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v}"
+                        if is_first_group:
+                            mml = f"\n{ch + ch_offset} /3 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v} o{o} l64"
+                            o_stamp = o
+                            is_first_group = False
+                        else:
+                            mml = f"\n{ch + ch_offset} /3 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v}"
 
                 while length > 0:
                     ltmp = min(length, 255)
@@ -463,7 +484,7 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
     with open(pass3_mml_path, 'w', newline='\n') as f:
         f.write(';[name=psg lpf=1]\n')
         f.write('#opll_mode 1\n')
-        f.write('#tempo 75\n')
+        f.write('#tempo 225\n')
         f.write(f'#title {{ "{output_name_body}"}}\n')
         for ch in ch_list:
             track = ch + ch_offset

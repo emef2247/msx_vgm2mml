@@ -1,6 +1,6 @@
 ;[name=opll]
 #opll_mode 1
-#tempo 75
+#tempo 225
 #title { "02_StartingPoint"}
 #alloc 9=96
 #alloc a=96

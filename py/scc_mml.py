@@ -565,6 +565,8 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
         l_cnt     = 0
         o_stamp   = 0
         v_stamp   = 0
+        at_stamp  = -1
+        is_first_group = True
         mml       = ''
 
         ch_num = ch + CH_OFFSET
@@ -585,7 +587,20 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
                     ltmp = min(length, 255)
 
                     if note_cnt == 0:
-                        mml = f'\n{ch_num} @{wtb_index} v{v}'
+                        if is_first_group:
+                            mml = f'\n{ch_num} @{wtb_index} v{v} o{o} l64'
+                            at_stamp = wtb_index
+                            v_stamp  = v
+                            o_stamp  = o
+                            is_first_group = False
+                        else:
+                            mml = f'\n{ch_num}'
+                            if wtb_index != at_stamp:
+                                mml += f' @{wtb_index}'
+                                at_stamp = wtb_index
+                            if v != v_stamp:
+                                mml += f' v{v}'
+                                v_stamp = v
 
                     if v != v_stamp and note_cnt != 0:
                         mml += f' v{v}'
@@ -620,7 +635,7 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
     lines = []
     lines.append(f';[name=scc lpf=1]')
     lines.append('#opll_mode 1')
-    lines.append('#tempo 75')
+    lines.append('#tempo 225')
     lines.append(f'#title {{ "{file_name_body}"}}')
     for ch in ch_list:
         ch_num = ch + CH_OFFSET

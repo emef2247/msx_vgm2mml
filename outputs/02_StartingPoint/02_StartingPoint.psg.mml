@@ -1,6 +1,6 @@
 ;[name=psg lpf=1]
 #opll_mode 1
-#tempo 75
+#tempo 225
 #title { "02_StartingPoint"}
 #alloc 1=608
 #alloc 2=720
@@ -9,7 +9,7 @@
 
 
 ;ch1 start
-1 /0 v0 o1 r1r2r8r16r64
+1 /0 v0 o1 l64 r1r2r8r16r64
 ;tick count: 109
 
 1 /1 s0 m1573 v8 o2 a+32 b32 o3 c32 c+32 d32 o2 a+32 b32 o3 c32
@@ -46,7 +46,7 @@
 
 
 ;ch2 start
-2 /0 v0 o1 r1r2r8r16
+2 /0 v0 o1 l64 r1r2r8r16
 ;tick count: 108
 
 2 /1 s0 m1573 v8 o2 a+32 b32 o3 c32 c+32 d32 o2 a+32 b32 o3 c32
@@ -90,7 +90,7 @@
 
 
 ;ch3 start
-3 /1 s0 m1573 v10 o4 e16 o3 b16 o4 e16 f+16 o3 b16 o4 f+16 o5 e16 o4 b16
+3 /1 s0 m1573 v10 o4 l64 e16 o3 b16 o4 e16 f+16 o3 b16 o4 f+16 o5 e16 o4 b16
 ;tick count: 32
 
 3 /1 s0 m1573 v10 o5 e16 f+16 o4 b16 o5 f+16 o4 b16 o5 e16 f+16 b16
