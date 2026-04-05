@@ -147,3 +147,36 @@ def get_ticks(time_s):
     if ticks == 1:
         ticks = 0
     return ticks
+
+
+# Standard note lengths: (tick_count_per_note, mml_length_number)
+# Assumes l64 base: 1 tick == one 64th note.
+_NOTE_LEN_TABLE = [(64, 1), (32, 2), (16, 4), (8, 8), (4, 16), (2, 32), (1, 64)]
+
+
+def ticks_to_mml_length(ticks, scale):
+    """Convert a tick count to an MML note string (no '%' separator).
+
+    Assumes *l64* as the default note length (1 tick == one 64th note).
+    Decomposes *ticks* greedily into standard note lengths (1, 2, 4, 8, 16,
+    32, 64) and concatenates them as tied same-pitch notes.
+
+    Examples (scale='a'):
+        1   → 'a64'
+        2   → 'a32'
+        4   → 'a16'
+        3   → 'a32a64'
+        64  → 'a1'
+        128 → 'a1a1'
+    """
+    parts = []
+    remaining = ticks
+    for tick_val, mml_len in _NOTE_LEN_TABLE:
+        while remaining >= tick_val:
+            parts.append(f'{scale}{mml_len}')
+            remaining -= tick_val
+    if not parts:
+        # ticks == 0: caller should ensure a positive tick count;
+        # return a silent 64th note as a safe fallback.
+        return f'r64'
+    return ''.join(parts)

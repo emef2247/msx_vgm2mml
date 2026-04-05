@@ -20,7 +20,8 @@ import os
 import math
 
 sys.path.insert(0, os.path.dirname(__file__))
-from mml_utils import get_ticks, estimate_mml_used, estimate_alloc, track_id_to_mgsdrv
+from mml_utils import (get_ticks, estimate_mml_used, estimate_alloc,
+                       track_id_to_mgsdrv, ticks_to_mml_length)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -282,7 +283,7 @@ def _generate_mml(segments: dict, stem: str) -> str:
                     mml += f' o{octave}'
                     o_stamp = octave
 
-                mml += f' {scale}%{ltmp}'
+                mml += f' {ticks_to_mml_length(ltmp, scale)}'
                 l_cnt += ltmp
 
                 remaining -= ltmp

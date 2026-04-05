@@ -7,7 +7,9 @@ import sys
 import os
 
 sys.path.insert(0, os.path.dirname(__file__))
-from mml_utils import get_ticks, get_octave, get_scale, estimate_mml_used, estimate_alloc
+from mml_utils import (get_ticks, get_octave, get_scale,
+                       estimate_mml_used, estimate_alloc,
+                       ticks_to_mml_length)
 
 # ---------------------------------------------------------------------------
 # Column indices (28 columns, 0-27)
@@ -591,7 +593,7 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
                     if o != o_stamp:
                         mml += f' o{o}'
 
-                    mml += f' {scale}%{ltmp} '
+                    mml += f' {ticks_to_mml_length(ltmp, scale)} '
                     l_cnt += ltmp
 
                     length -= ltmp

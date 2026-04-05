@@ -8,7 +8,8 @@ import os
 import math
 
 sys.path.insert(0, os.path.dirname(__file__))
-from mml_utils import get_ticks, get_octave, get_scale, get_tone_frequency, estimate_mml_used, estimate_alloc
+from mml_utils import (get_ticks, get_octave, get_scale, get_tone_frequency,
+                       estimate_mml_used, estimate_alloc, ticks_to_mml_length)
 
 # PSG column indices
 COL_TYPE = 0
@@ -430,7 +431,7 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
                             mml += f" v{v}"
                         if o != o_stamp:
                             mml += f" o{o}"
-                        mml += f" {scale}%{ltmp}"
+                        mml += f" {ticks_to_mml_length(ltmp, scale)}"
                         l_cnt += ltmp
 
                     length -= ltmp
