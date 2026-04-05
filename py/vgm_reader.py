@@ -406,15 +406,132 @@ class _SccState:
 
 
 # ─────────────────────────────────────────────────────────────────
+# OPLL (YM2413) state machine  – melody channels 0..5 only
+# Rhythm mode (reg 0x0E) is detected and logged but not processed.
+# ─────────────────────────────────────────────────────────────────
+
+class _OpllState:
+    """Track YM2413 (OPLL) register state and emit a chronological trace CSV.
+
+    Registers handled per melody channel ch (0..5):
+      0x10+ch : F-number low 8 bits
+      0x20+ch : bit4=KeyOn, bits[3:1]=Block, bit0=Fnum MSB, bit5=Sustain
+      0x30+ch : bits[7:4]=INST, bits[3:0]=VOL
+
+    Registers 0x00-0x07 (user patch) and 0x0E (rhythm) are noted but not
+    decoded into melody tracks.
+
+    Trace CSV columns (9 cols):
+      type, time, ch, ticks, keyon, fnum, block, inst, vol
+    """
+
+    NUM_CH = 6
+
+    _HEADER = ('#type,time,ch,ticks,keyon,fnum,block,inst,vol')
+
+    def __init__(self):
+        self._global_time = 0.0
+        self._start_time: float | None = None   # None = not yet initialised
+        self._common_time = 0.0
+
+        self.fnum_low = [0] * self.NUM_CH   # 8-bit LSB of Fnum
+        self.key_blk  = [0] * self.NUM_CH   # raw reg 0x20+ch value
+        self.inst_vol = [0] * self.NUM_CH   # raw reg 0x30+ch value
+
+        self.log_buf   = {ch: [] for ch in range(self.NUM_CH)}
+        self.trace_buf: list[str] = []
+
+    # ── time ────────────────────────────────────────────────────
+    def _update_time(self, time_s: float):
+        self._global_time = time_s
+        if self._start_time is None:
+            self._start_time = time_s
+        self._common_time = time_s - self._start_time
+
+    # ── field decoders ──────────────────────────────────────────
+    def _fnum(self, ch: int) -> int:
+        """Assembled 9-bit F-number."""
+        return self.fnum_low[ch] | ((self.key_blk[ch] & 0x01) << 8)
+
+    def _block(self, ch: int) -> int:
+        return (self.key_blk[ch] >> 1) & 0x07
+
+    def _keyon(self, ch: int) -> int:
+        return (self.key_blk[ch] >> 4) & 0x01
+
+    def _inst(self, ch: int) -> int:
+        return (self.inst_vol[ch] >> 4) & 0x0F
+
+    def _vol(self, ch: int) -> int:
+        return self.inst_vol[ch] & 0x0F
+
+    # ── CSV row builder ─────────────────────────────────────────
+    def _row(self, ch: int, type_: str) -> str:
+        t     = self._common_time
+        ticks = get_ticks(t)
+        cols = [
+            type_, repr(t), str(ch), str(ticks),
+            str(self._keyon(ch)),
+            str(self._fnum(ch)),
+            str(self._block(ch)),
+            str(self._inst(ch)),
+            str(self._vol(ch)),
+        ]
+        return ','.join(cols)
+
+    def _log(self, ch: int, type_: str):
+        row = self._row(ch, type_)
+        self.log_buf[ch].append(row)
+        self.trace_buf.append(row)
+
+    # ── main write entry point ───────────────────────────────────
+    def write(self, time_s: float, address: int, value: int):
+        self._update_time(time_s)
+        a = address
+
+        if 0x10 <= a <= 0x15:
+            ch = a - 0x10
+            self.fnum_low[ch] = value & 0xFF
+            self._log(ch, 'fNumL')
+        elif 0x20 <= a <= 0x25:
+            ch = a - 0x20
+            self.key_blk[ch] = value & 0x3F
+            self._log(ch, 'keyBlk')
+        elif 0x30 <= a <= 0x35:
+            ch = a - 0x30
+            self.inst_vol[ch] = value & 0xFF
+            self._log(ch, 'instVol')
+        # 0x00-0x07: user patch, 0x0E: rhythm – not decoded into melody tracks
+
+    # ── CSV output ───────────────────────────────────────────────
+    def output_trace_csv(self, out_path: str):
+        """Write chronological trace CSV (all channels interleaved by time)."""
+        with open(out_path, 'w', newline='\n') as fh:
+            fh.write(self._HEADER + '\n')
+            for row in self.trace_buf:
+                fh.write(row + '\n')
+
+    def output_log_csv(self, out_path: str):
+        """Write per-channel grouped log CSV."""
+        with open(out_path, 'w', newline='\n') as fh:
+            fh.write(self._HEADER + '\n')
+            for ch in range(self.NUM_CH):
+                for row in self.log_buf[ch]:
+                    fh.write(row + '\n')
+                fh.write('\n')
+
+
+# ─────────────────────────────────────────────────────────────────
 # VGM parser
 # ─────────────────────────────────────────────────────────────────
 
-def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, str, str]:
+def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, str, str, str, str]:
     """
-    Parse a VGM file and write PSG and SCC log/trace CSVs.
+    Parse a VGM file and write PSG, SCC, and OPLL log/trace CSVs.
 
     Returns:
-        (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv)
+        (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
+         opll_log_csv, opll_trace_csv)
 
     Note: 0x77 and 0x7a wait commands are treated as 0-sample waits to match
     the reference Tcl vgm_read.tcl behaviour (see module docstring).
@@ -429,8 +546,9 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, s
     data_start = 0x34 + vgm_data_offset
 
     # ── Process data stream ──────────────────────────────────────
-    psg = _PsgState()
-    scc = _SccState()
+    psg  = _PsgState()
+    scc  = _SccState()
+    opll = _OpllState()
     global_time = 0.0
     pos = data_start
 
@@ -458,6 +576,10 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, s
             aa = raw[pos]; pos += 1
             dd = raw[pos]; pos += 1
             psg.write(global_time, aa, dd)
+        elif cmd == 0x51:
+            aa = raw[pos]; pos += 1
+            dd = raw[pos]; pos += 1
+            opll.write(global_time, aa, dd)
         elif cmd == 0xD2:
             pp = raw[pos]; pos += 1
             aa = raw[pos]; pos += 1
@@ -472,24 +594,32 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, s
         output_dir = os.path.dirname(os.path.abspath(vgm_path))
     os.makedirs(output_dir, exist_ok=True)
 
-    psg_log_csv   = os.path.join(output_dir, f"{base_name}_log.psg.csv")
-    scc_log_csv   = os.path.join(output_dir, f"{base_name}_log.scc.csv")
-    psg_trace_csv = os.path.join(output_dir, f"{base_name}_trace.psg.csv")
-    scc_trace_csv = os.path.join(output_dir, f"{base_name}_trace.scc.csv")
+    psg_log_csv    = os.path.join(output_dir, f"{base_name}_log.psg.csv")
+    scc_log_csv    = os.path.join(output_dir, f"{base_name}_log.scc.csv")
+    psg_trace_csv  = os.path.join(output_dir, f"{base_name}_trace.psg.csv")
+    scc_trace_csv  = os.path.join(output_dir, f"{base_name}_trace.scc.csv")
+    opll_log_csv   = os.path.join(output_dir, f"{base_name}_log.opll.csv")
+    opll_trace_csv = os.path.join(output_dir, f"{base_name}_trace.opll.csv")
 
     psg.output_csv(psg_log_csv)
     psg.output_trace_csv(psg_trace_csv)
     scc.output_csv(scc_log_csv)
     scc.output_trace_csv(scc_trace_csv)
-    return psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv
+    opll.output_log_csv(opll_log_csv)
+    opll.output_trace_csv(opll_trace_csv)
+
+    return (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
+            opll_log_csv, opll_trace_csv)
 
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print(f"Usage: python {sys.argv[0]} <vgm_file> [output_dir]")
         sys.exit(1)
-    p_log, s_log, p_trace, s_trace = parse_vgm(
+    p_log, s_log, p_trace, s_trace, o_log, o_trace = parse_vgm(
         sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
-    print(f"PSG log CSV:   {p_log}")
-    print(f"SCC log CSV:   {s_log}")
-    print(f"SCC trace CSV: {s_trace}")
+    print(f"PSG log CSV:    {p_log}")
+    print(f"SCC log CSV:    {s_log}")
+    print(f"SCC trace CSV:  {s_trace}")
+    print(f"OPLL log CSV:   {o_log}")
+    print(f"OPLL trace CSV: {o_trace}")
