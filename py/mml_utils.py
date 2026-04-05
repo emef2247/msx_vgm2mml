@@ -124,6 +124,48 @@ def get_tone_frequency(reg16):
     return int(111860.78125 / reg16)
 
 
+def emit_volume(v, v_prev=None):
+    """Return the shortest MML volume token for target volume *v*.
+
+    If *v_prev* is ``None`` (unknown / track start) the absolute token
+    ``vN`` is always returned.  Otherwise a relative token ``)<dv>`` or
+    ``(<abs(dv)>`` is returned when it is strictly shorter than ``vN``.
+    When both representations have equal length the absolute token is
+    kept for readability.
+    """
+    abs_token = f'v{v}'
+    if v_prev is None:
+        return abs_token
+    dv = v - v_prev
+    if dv == 0:
+        return abs_token
+    if 1 <= dv <= 15:
+        rel_token = f'){dv}'
+    elif -15 <= dv <= -1:
+        rel_token = f'({-dv}'
+    else:
+        return abs_token
+    return rel_token if len(rel_token) < len(abs_token) else abs_token
+
+
+def emit_octave(o, o_prev=None):
+    """Return the shortest MML octave token for target octave *o*.
+
+    If *o_prev* is ``None`` (unknown / track start) the absolute token
+    ``oN`` is always returned.  Otherwise ``>`` (repeated *do* times) or
+    ``<`` (repeated *-do* times) is returned when strictly shorter than
+    ``oN``.  When equal length the absolute token is kept for readability.
+    """
+    abs_token = f'o{o}'
+    if o_prev is None:
+        return abs_token
+    do = o - o_prev
+    if do == 0:
+        return abs_token
+    rel_token = ('>' * do) if do > 0 else ('<' * (-do))
+    return rel_token if len(rel_token) < len(abs_token) else abs_token
+
+
 def get_ticks(time_s):
     """Convert time in seconds to ticks (60fps), with Tcl quirk: ticks==1 -> 0."""
     ticks = int(math.ceil(time_s * 60))

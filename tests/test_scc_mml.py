@@ -331,3 +331,31 @@ def test_above_horizon_trace_mml_matches_golden():
                 "--- diff (expected vs got) ---\n" + diff)
 
 
+def test_scc_mml_relative_octave_tokens():
+    """SCC MML must use '>' or '<' for single-step octave changes (saves 1 char)."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, '02_StartingPoint_log')
+        mml_path = process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                                   stem='02_StartingPoint')
+        with open(mml_path) as fh:
+            content = fh.read()
+        # The SCC golden has many ±1 octave steps; they should appear as '>'/'<'.
+        assert '>' in content or '<' in content, (
+            "SCC MML contains no relative octave tokens ('>'/'<'); "
+            "compression may not be applied.")
+
+
+def test_scc_mml_relative_volume_tokens():
+    """SCC MML must use ')N' or '(N' when they are shorter than vN."""
+    import re
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, '02_StartingPoint_log')
+        mml_path = process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                                   stem='02_StartingPoint')
+        with open(mml_path) as fh:
+            content = fh.read()
+        # Look for ')N' or '(N' volume-change tokens (N is one or more digits).
+        rel_vol = re.findall(r'[)(]\d+', content)
+        assert rel_vol, (
+            "SCC MML contains no relative volume tokens (')N'/'(N'); "
+            "compression may not be applied.")

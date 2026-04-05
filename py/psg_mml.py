@@ -8,7 +8,9 @@ import os
 import math
 
 sys.path.insert(0, os.path.dirname(__file__))
-from mml_utils import get_ticks, get_octave, get_scale, get_tone_frequency, estimate_mml_used, estimate_alloc
+from mml_utils import (get_ticks, get_octave, get_scale, get_tone_frequency,
+                       estimate_mml_used, estimate_alloc,
+                       emit_volume, emit_octave)
 
 # PSG column indices
 COL_TYPE = 0
@@ -376,8 +378,8 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
         note_cnt = 0
         mml = ""
         l_cnt = 0
-        o_stamp = 0
-        v_stamp = 0
+        o_stamp = None
+        v_stamp = None
         mode_stamp = -1   # tracks previous mode so we can flush on mode change
 
         ch_start = f"\n\n;ch{ch + ch_offset} start"
@@ -427,9 +429,9 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
                             v = 0
                             scale = 'r'
                         if v != v_stamp and note_cnt != 0:
-                            mml += f" v{v}"
+                            mml += f" {emit_volume(v, v_stamp)}"
                         if o != o_stamp:
-                            mml += f" o{o}"
+                            mml += f" {emit_octave(o, o_stamp)}"
                         mml += f" {scale}%{ltmp}"
                         l_cnt += ltmp
 

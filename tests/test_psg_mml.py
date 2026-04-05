@@ -194,3 +194,32 @@ def test_vgm_to_psg_trace_mml_has_notes():
         notes = note_pattern.findall(content)
         assert len(notes) > 0, (
             "Trace-based PSG MML contains only rests - frequency mapping broken.")
+
+
+def test_psg_mml_relative_octave_tokens():
+    """PSG MML must use '>' or '<' for octave steps that are shorter than oN."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        mml_path = process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM,
+                                   dump_passes=False)
+        content = _read(mml_path)
+        # Relative octave tokens appear as standalone '>' or '<' between tokens.
+        # The PSG golden has many octave changes of ±1 which should be compressed.
+        assert '>' in content or '<' in content, (
+            "PSG MML contains no relative octave tokens ('>'/'<'); "
+            "compression may not be applied.")
+
+
+def test_psg_mml_relative_volume_tokens():
+    """PSG MML must use ')N' or '(N' for volume changes that save characters."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        mml_path = process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM,
+                                   dump_passes=False)
+        content = _read(mml_path)
+        import re
+        # Look for ')N' or '(N' volume-change tokens (N is one or more digits).
+        rel_vol = re.findall(r'[)(]\d+', content)
+        assert rel_vol, (
+            "PSG MML contains no relative volume tokens (')N'/'(N'); "
+            "compression may not be applied.")
