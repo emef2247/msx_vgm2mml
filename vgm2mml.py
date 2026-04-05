@@ -50,7 +50,7 @@ def main():
     # Determine output directory (always use <stem>_log/ as the root when
     # no --outdir is given; both log and trace CSVs live in the same dir)
     if args.outdir:
-        out_root = args.outdir
+        out_root = os.path.join(args.outdir, base_name)
     else:
         out_root = os.path.join(os.path.dirname(os.path.abspath(vgm_path)),
                                 base_name + '_log')
