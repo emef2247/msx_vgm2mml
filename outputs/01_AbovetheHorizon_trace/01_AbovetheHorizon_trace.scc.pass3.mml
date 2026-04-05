@@ -2,13 +2,10 @@
 #opll_mode 1
 #tempo 75
 #title { "01_AbovetheHorizon_trace"}
-#alloc 1=3100
-#alloc 2=3100
-#alloc 3=2400
-#alloc 4=2100
-#alloc 5=1100
-#alloc 6=1000
-#alloc 7=1000
+#alloc 4=21888
+#alloc 5=11296
+#alloc 6=10320
+#alloc 7=8656
 
 @s00 = {00f8f0e8e0d8d0c8c0b8b0a8a098908880787068605850484038302820181008}
 @s01 = {001931475a6a757d7f7d756a5a4731198090a0b0c0d0e0f00010203040506070}

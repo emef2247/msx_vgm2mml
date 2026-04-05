@@ -7,7 +7,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.dirname(__file__))
-from mml_utils import get_ticks, get_octave, get_scale
+from mml_utils import get_ticks, get_octave, get_scale, estimate_mml_used, estimate_alloc
 
 # ---------------------------------------------------------------------------
 # Column indices (28 columns, 0-27)
@@ -620,13 +620,11 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
     lines.append('#opll_mode 1')
     lines.append('#tempo 75')
     lines.append(f'#title {{ "{file_name_body}"}}')
-    lines.append('#alloc 1=3100')
-    lines.append('#alloc 2=3100')
-    lines.append('#alloc 3=2400')
-    lines.append('#alloc 4=2100')
-    lines.append('#alloc 5=1100')
-    lines.append('#alloc 6=1000')
-    lines.append('#alloc 7=1000')
+    for ch in ch_list:
+        ch_num = ch + CH_OFFSET
+        used = estimate_mml_used(mml_buffer[ch])
+        alloc = estimate_alloc(used)
+        lines.append(f'#alloc {ch_num}={alloc}')
     lines.append('')
 
     for i, wbytes in enumerate(wtb_tracker.bytes_list):
