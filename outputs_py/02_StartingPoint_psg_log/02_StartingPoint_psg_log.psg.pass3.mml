@@ -1,0 +1,176 @@
+;[name=scc lpf=1]
+#opll_mode 1
+#tempo 75
+#title { "psg example"}
+#alloc 1=3100
+#alloc 2=3100
+#alloc 3=2400
+#alloc 4=2100
+#alloc 5=1100
+#alloc 6=1000
+#alloc 7=1000
+
+
+
+;ch1 start
+1 /0 v0 o1 r%109
+;tick count: 109
+
+1 /1 s0 m1573 v8 o2 a+%2 b%2 o3 c%2 c+%2 d%2 o2 a+%2 b%2 o3 c%2
+;tick count: 125
+
+1 /1 s0 m1573 v8 c+%2 d%2 o2 b%2 o3 c%2 c+%2 d%2 d+%2 o2 b%2
+;tick count: 141
+
+1 /1 s0 m1573 v8 o3 c%2 c+%2 d%2 d+%2 c%2 c+%2 d%2 d+%2
+;tick count: 157
+
+1 /1 s0 m1573 v8 e%2 c%2 c+%2 d%2 d+%2 e%2 c+%2 d%2
+;tick count: 173
+
+1 /1 s0 m1573 v8 d+%2 e%2 f%2 c+%2 d%2 d+%2 e%2 f%3
+;tick count: 190
+
+1 /1 s0 m1573 v8 d%2 d+%2 e%2 f%2 f+%2 d%2 d+%2 e%2
+;tick count: 206
+
+1 /1 s0 m1573 v8 f%2 f+%2
+;tick count: 210
+
+1 /3 s0 m1573 n31 v12 g+%1 f+%1 e%1 c+%1 o2 g+%1 f%1 c+%1 o1 g+%1
+;tick count: 218
+
+1 /2 s0 m1573 n29 v12 g+%1 g+%1 g+%1 g+%1 g+%1 g+%1 g+%1 g+%1
+;tick count: 226
+
+1 /2 s0 m1573 n3 v12 g+%1 g+%1 v11 g+%7 v10 g+%7 v8 g+%7 v6 g+%7 v4 g+%7 v3 g+%7
+;tick count: 270
+
+;ch1 end: tick count: 270
+
+
+;ch2 start
+2 /0 v0 o1 r%108
+;tick count: 108
+
+2 /1 s0 m1573 v8 o2 a+%2 b%2 o3 c%2 c+%2 d%2 o2 a+%2 b%2 o3 c%2
+;tick count: 124
+
+2 /1 s0 m1573 v8 c+%2 d%2 o2 b%2 o3 c%2 c+%2 d%3 d+%1 o2 b%2
+;tick count: 140
+
+2 /1 s0 m1573 v8 o3 c%2 c+%2 d%2 d+%3 c%1 c+%2 d%2 d+%2
+;tick count: 156
+
+2 /1 s0 m1573 v8 e%2 c%3 c+%1 d%2 d+%3 e%1 c+%2 d%3
+;tick count: 173
+
+2 /1 s0 m1573 v8 d+%1 e%2 f%3 c+%2 d%2 d+%2 e%2 f%2
+;tick count: 189
+
+2 /1 s0 m1573 v8 d%2 d+%2 e%2 f%2 f+%2 d%2 d+%2 e%2
+;tick count: 205
+
+2 /1 s0 m1573 v8 f%2 f+%2 v14 c+%1 c%1 o2 g+%1 f+%1 f%1 c+%1
+;tick count: 215
+
+2 /1 s0 m1573 v14 o1 g+%1 f+%1 o3 c+%1 c%1 o2 g+%1 f+%1 f%1 c+%1
+;tick count: 223
+
+2 /1 s0 m1573 v14 o1 g+%1 f+%1 v12 o3 c+%1 c%1 o2 g+%1 f+%1 f%1 c+%1
+;tick count: 231
+
+2 /1 s0 m1573 v12 o1 g+%1 f+%1 o3 c+%1 c%1 o2 g+%1 f+%1 f%1 c+%1
+;tick count: 239
+
+2 /1 s0 m1573 v12 o1 g+%1 f+%1 v10 o3 c+%1 c%1 o2 g+%1 f+%1 f%1 c+%1
+;tick count: 247
+
+2 /1 s0 m1573 v10 o1 g+%1 f+%1 o3 c+%1 c%1 o2 g+%1 f+%1 f%1 c+%1
+;tick count: 255
+
+2 /1 s0 m1573 v10 o1 g+%1 f+%1
+;ch2 end: tick count: 257
+
+
+;ch3 start
+3 /1 s0 m1573 v10 o4 e%4 o3 b%4 o4 e%4 f+%4 o3 b%4 o4 f+%4 o5 e%4 o4 b%4
+;tick count: 32
+
+3 /1 s0 m1573 v10 o5 e%4 f+%4 o4 b%4 o5 f+%4 o4 b%4 o5 e%4 f+%4 b%4
+;tick count: 64
+
+3 /1 s0 m1573 v7 o4 b%4 o5 e%4 f+%4 b%4 v5 o4 b%4 o5 e%4 f+%4 b%9
+;tick count: 101
+
+3 /1 s0 m1573 v10 o1 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%1 v11 o2 c%1 v10 c%1 v9 c%1
+;tick count: 109
+
+3 /1 s0 m1573 v8 c%1 v7 c%1 v6 c%1 v11 o1 c%1 v10 c%1 v9 c%1 v8 c%1 v7 c%1
+;tick count: 117
+
+3 /1 s0 m1573 v6 c%1 v11 o2 c%1 v10 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%1 v11 o1 c%1
+;tick count: 125
+
+3 /1 s0 m1573 v10 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%1 v11 o2 c%1 v10 c%1 v9 c%1
+;tick count: 133
+
+3 /1 s0 m1573 v8 c%1 v7 c%1 v6 c%2 v10 o1 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%1
+;tick count: 142
+
+3 /1 s0 m1573 v11 o2 c%1 v10 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%2 v10 o1 c%1 v9 c%1
+;tick count: 151
+
+3 /1 s0 m1573 v8 c%1 v7 c%1 v6 c%2 v10 o2 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%2
+;tick count: 161
+
+3 /1 s0 m1573 v10 o1 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%2 v10 o2 c%1 v9 c%1 v8 c%1
+;tick count: 170
+
+3 /1 s0 m1573 v7 c%1 v6 c%2 v10 o1 c%2 v9 c%1 v8 c%1 v7 c%1 v6 c%1 v11 o2 c%1
+;tick count: 180
+
+3 /1 s0 m1573 v10 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%1 v11 o1 c%1 v10 c%1 v9 c%1
+;tick count: 188
+
+3 /1 s0 m1573 v8 c%1 v7 c%1 v6 c%1 v11 o2 c%1 v10 c%1 v9 c%1 v8 c%1 v7 c%1
+;tick count: 196
+
+3 /1 s0 m1573 v6 c%1 v11 o1 c%1 v10 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%1 v11 o2 c%1
+;tick count: 204
+
+3 /1 s0 m1573 v10 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%1 v11 o1 c%1 v10 c%1 v9 c%1
+;tick count: 212
+
+3 /1 s0 m1573 v8 c%1 v7 c%1 v6 c%1 v11 o2 c%1 v10 c%1 v9 c%1 v8 c%1 v7 c%1
+;tick count: 220
+
+3 /1 s0 m1573 v6 c%1 v11 o1 c%1 v10 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%1 v11 o2 c%1
+;tick count: 228
+
+3 /1 s0 m1573 v10 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%1 v11 o1 c%1 v10 c%1 v9 c%1
+;tick count: 236
+
+3 /1 s0 m1573 v8 c%1 v7 c%1 v6 c%1 v11 o2 c%1 v10 c%1 v9 c%1 v8 c%1 v7 c%1
+;tick count: 244
+
+3 /1 s0 m1573 v6 c%1 v11 o1 c%1 v10 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%1 v11 o2 c%1
+;tick count: 252
+
+3 /1 s0 m1573 v10 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%1 v11 o1 c%1 v10 c%1 v9 c%1
+;tick count: 260
+
+3 /1 s0 m1573 v8 c%1 v7 c%1 v6 c%1 v11 o2 c%1 v10 c%1 v9 c%1 v8 c%1 v7 c%1
+;tick count: 268
+
+3 /1 s0 m1573 v6 c%1 v11 o1 c%1 v10 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%1 v11 o2 c%1
+;tick count: 276
+
+3 /1 s0 m1573 v10 c%1 v9 c%1 v8 c%1 v7 c%1 v6 c%1 v11 o1 c%1 v10 c%1 v9 c%1
+;tick count: 284
+
+3 /1 s0 m1573 v8 c%1 v7 c%1 v6 c%1 v11 c%1 v10 c%1 v9 c%1 v8 c%1 v7 c%58
+;tick count: 349
+
+3 /1 s0 m1573 v6 c%1 v5 c%1 v4 c%1 v3 c%1
+;ch3 end: tick count: 353

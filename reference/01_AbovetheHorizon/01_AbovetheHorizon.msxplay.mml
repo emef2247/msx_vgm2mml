@@ -1,0 +1,617 @@
+ ;[name=scc lpf=1]
+#opll_mode 1
+#tempo 225
+#title { "Gradius2 Above the Horizon 0 -5372"}
+#alloc 4=6100
+#alloc 5=3100
+#alloc 6=3000
+#alloc 7=3000
+
+@s00 = {00f8f0e8e0d8d0c8c0b8b0a8a098908880787068605850484038302820181008}
+@s01 = {001931475a6a757d7f7d756a5a4731198090a0b0c0d0e0f00010203040506070}
+@s02 = {00407f4001c081c001407f4001c0014001e0012001f0011001ffffffff404040}
+@s03 = {003050607060503000d0b0a090a0b0d000406070604000c0a090a0c000700090}
+@s04 = {305050300000104060706030f0e0e000202010c0a090a0c00000d0b0b0d00000}
+
+; Total length count: ch4-ch5-ch6-ch7: 0-0-0-0
+
+
+4 @0 v3o1l64 
+4 a8a16a32a)a4)a4)a4a)a8a16a32a)a4)a4)a1a1a1a1a1a1a1a1a(a1a1a2a4a16 
+4 r32r 
+; Total length count: ch4-ch5-ch6-ch7: 807-807-807-807
+
+
+4 @1 v2o5l64 
+4 a16g+16g+g16gf+16f+f16fe16ed+16d+d16dc+16c+ 
+4 c16c<b16ba+16a+32a16g+16g+32g16f+16f+32 
+; Total length count: ch4-ch5-ch6-ch7: 887-887-887-887
+
+
+4 @2 v8o3l64 
+4 b(b32b(b32b(b32b(b32b 
+; Total length count: ch4-ch5-ch6-ch7: 901-901-888-888
+
+
+4 @2 v3o3l64 
+4 brb(b(b(b>c32v7c32c(c32c 
+4 (c32c(c32c(c32c(c(c(c32dv7d32d(d32d 
+4 (d32d(d32d(d32d(d(d(d32ev7e32e(e32e 
+4 (e16(e32e(e4e16e32e(e(e(ec32v7c32c(c32c 
+4 (c32c(c32c(c4c16c32c(c(c(ce32v7e32e(e32e 
+4 (e32e(e32e(e4e16e32e(e(e(ed32v7d32d(d32d 
+4 (d32d(d32d(d4d16d32d(d(d(d<b32v7b32b(b32b 
+4 (b32b(b32b(b4b16b32b(b(b(b>c32v7c32c(c32c 
+4 (c32c(c32c(c4c16c32c(c(c(cd32v7d32d(d32d 
+4 (d32d(d32d(d32d(d(d(de32v7e32e(e32e 
+4 (e32e(e32e(e2e4e8e16e32e(e(e(ed32v7d32d(d32d 
+4 (d32d(d32d(d4d16d32d(d(d(d<a32v7a32a(a32a 
+4 (a32a(a32a(a4a16a32a(a(a(ag32v7g32g(g32g 
+4 (g32g(g32g(g2g4g8g16g32g(g(g(g>c32v7c32c(c32c 
+4 (c32c(c32c(c2c4c8c16c32c(c(c(c32<bv7b32b(b32b 
+4 (b32b(b32b(b32b(b(b(b>c32v7c32c(c32c 
+4 (c32c(c32c(c32c(c(c(cd32v7d32d(d32d 
+4 (d32d(d32d(d32d(d(d(de32v7e32e(e32e 
+4 (e32e(e32e(e4e16e32e(e(e(ec32v7c32c(c32c 
+4 (c32c(c32c(c4c16c32c(c(c(ca32v7a32a(a32a 
+4 (a32a(a32a(a4a16a32a(a(a(a32ev7e32e(e32e 
+4 (e32e(e32e(e4e8(e(e(ed32v7d32d(d32d 
+4 (d32d(d32d(d4d16d32d(d(d(dc32v7c32c(c32c 
+4 (c32c(c32c(c4c16c32c(c(c(cd32v7d32d(d32d 
+4 (d32d(d32d(d32d(d(d(de32v7e32e(e32e 
+4 (e32e(e32e(e2e4e8e16e32e(e(e(ed32v7d32d(d32d 
+4 (d32d(d32d(d4d16d32d(d(d(d<a32v7a32a(a32a 
+4 (a32a(a32a(a4a16a32a(a(a(ag32v7g32g(g32g 
+4 (g32g(g32g(g4g16g32g(g(g(g>c32v7c32c(c32c 
+4 (c32c(c32c(c4c16c32c(c(c(ce32v7e32e(e32e 
+4 (e32e(e32e(e4e16e32e(e(e(eg32v7g32g(g32g 
+4 (g32g(g32g(g4g16gg32(g(g(g 
+; Total length count: ch4-ch5-ch6-ch7: 2168-2168-2168-2168
+
+
+4 @2 v8o4l64 
+4 r 
+; Total length count: ch4-ch5-ch6-ch7: 2169-2169-2169-2169
+
+
+4 @2 v8o4l64 
+4 g(g32g(g32g(g32g(g32g(g2g4g8g16g32g(g(g(g 
+4 f32v7f32f(f32f(f32f(f32f(f2f4f8f16f32f(f(f(f 
+4 e32v7e32e(e32e(e32e(e32e(e2e4e8e16e32e(e(e(e32 
+4 cv7c32c(c32c(c32c(c32c(c2c4c8c16c32c(c(c(c32 
+4 <a32v7a32(a32a(a16(a32a(a32a((a(a32b32 
+4 v7b32b(b32b(b32b(b32b(b32b(b(b(b>c32 
+4 v7c32c(c32c(c32c(c32c(c32c(c(c(cd32 
+4 v7d32d(d32d(d32d(d32d(d1d4d32d(d(d(d<a32 
+4 v7a32a(a32a(a32a(a32a(a32a(a(a(ab32 
+4 v7b32b(b32b(b32b(b32b(b32b(b(b(b>c32 
+4 v7c32c(c32c(c32c(c32c(c32c(c(c(cd32 
+4 v7d32d(d32d(d32d(d32d(d4d16d32d(d(d(dc32 
+4 v7c32c(c32c(c32c(c32c(c4c16c32c(c(c(c<b32 
+4 v7b32b(b32b(b32b(b32b(b32b(b(b(ba32 
+4 v7a32a(a32a(a32a(a32a(a2a4a8a16a32a(a(a(a>d32 
+4 v7d32d(d32d(d32d(d32d(d2d4d8d16d32d(d(d(de32 
+4 v7e32e(e32e(e32e(e32e(e1e1e8e16ee32(e(e(e32 
+; Total length count: ch4-ch5-ch6-ch7: 3130-3130-3130-3130
+
+
+4 @2 v8o2l64 
+4 a))a)a)a(a(a(a(a(a 
+4 (a(a(a(a4a16a32a(a(a(a32v8a)a 
+4 )a)a)a(a(a(a(a(a(a 
+4 (a(a(a4a16a32a(a(a(a32av9a)a)a 
+4 )a(a(a(a(a(a(a(a(a 
+4 (a4a16a32a(a(a(a32av9a)a)a)a(a 
+4 (a(a(a(a(a(a(a(a4a8(a 
+4 (a(a32v8a)a)a)a)a(a(a 
+4 (a(a(a(a(a(a(a4a16a32a(a(a 
+4 (a32v8a)a)a)a)a(a(a(a 
+4 (a(a(a(a(a(a4a16a32a(a(a(a32 
+4 v8a)a)a)a)a(a(a(a(a 
+4 (a(a(a(a(a4a16a32a(a(a(a32v8a 
+4 )a)a)a)a(a(a(a(a(a 
+4 f+))f+)f+)f+)f+(f+(f+(f+(f+ 
+4 (f+g))g)g)g)g(g(g(g 
+4 (g(gg+))g+)g+)g+)g+(g+(g+ 
+4 (g+(g+(g+a))a)a)a)a(a 
+4 (a(a(a(a(a(a(a(a4a16a32a(a 
+4 (a(a32v8a)a)a)a)a(a(a 
+4 (a(a(a(a(a(a(a4a16a32a(a(a 
+4 (a32v8a)a)a)a)a(a(a(a 
+4 (a(a(a(a(a(a4a16a32a(a(a(a32 
+4 v8a)a)a)a)a(a(a(a(a 
+4 (a(a(a(a(a4a16a32a(a(a(a32v8a 
+4 )a)a)a)a(a(a(a(a(a 
+4 (a(a(a(a4a16a32a(a(a(a32v8a)a 
+4 )a)a)a(a(a(a(a(a(a 
+4 (a(a(a4a16a32a(a(a(a32v8a)a)a 
+4 )a)a(a(a(a(a(a(a(a 
+4 (a(a4a16a32a(a(a(a32v8a)a)a)a 
+4 )a(a(a(a(a(af+))f+)f+ 
+4 )f+)f+(f+(f+(f+(f+(f+g))g 
+4 )g)g)g(g(g(g(g(gg+ 
+4 ))g+)g+)g+)g+(g+(g+(g+(g+(g+ 
+; Total length count: ch4-ch5-ch6-ch7: 3770-3770-3770-3770
+
+
+4 @2 v8o2l64 
+4 a32))a)a)a(a(a(a(a(a 
+4 (a(a(a(a4a16a32a(a(a(a32v8a)a 
+4 )a)a)a(a(a(a(a(a(a 
+4 (a(a(a4a16a32a(a(a(a32v8a)a)a 
+4 )a)a(a(a(a(a(a(a(a 
+4 (a(a4a16a32a(a(a(a32v8a)a)a)a 
+4 )a(a(a(a(a(a(a(a(a 
+4 (a4a16a32a(a(a(a32av9a)a)a)a(a 
+4 (a(a(a(a(a(a(a(a4a16a32a(a 
+4 (a(a32v8a)a)a)a)a(a(a 
+4 (a(a(a(a(a(a(a4a16a32a(a(a 
+4 (a32av9a)a)a)a(a(a(a(a 
+4 (a(a(a(a(a4a16a32a(a(a(a32av8a 
+4 )a)a)a)a(a((a(a(a32f+ 
+4 ))f+)f+)f+)f+(f+(f+(f+(f+(f+ 
+4 g))g)g)g)g(g(g(g(g 
+4 (gg+))g+)g+)g+)g+(g+(g+(g+ 
+4 (g+(g+ 
+; Total length count: ch4-ch5-ch6-ch7: 4091-4091-4091-4091
+
+
+4 @2 v8o2l64 
+4 a32))a)a)a(a(a(a(a(a 
+4 (a(a(a(a4a16a32a(a(a(a32v8a)a 
+4 )a)a)a(a(a(a(a(a(a 
+4 (a(a(a4a16a32a(a(a(a32v8a)a)a 
+4 )a)a(a(a(a(a(a(a(a 
+4 (a(a4a16a32a(a(a(a32v8a)a)a)a 
+4 )a(a(a(a(a(a(a(a(a 
+4 (a4a16a32a(a(a(a32v8a)a)a)a)a 
+4 (a(a(a(a(a(a(a(a(a4a16a32a 
+4 (a(a(a32v8a)a)a)a)a(a 
+4 (a(a(a(a(a(a(a(a4a16a32a(a 
+4 (a(a32v8a)a)a)a)a(a(a 
+4 (a(a(a(a(a(a(a4a16a32a(a(a 
+4 (a32v8a)a)a)a)a(a(a(a 
+4 (a(af+))f+)f+)f+)f+(f+(f+ 
+4 (f+(f+(f+g))g)g)g)g(g 
+4 (g(g(g(gg+))g+)g+)g+)g+ 
+4 (g+(g+(g+(g+(g+ 
+; Total length count: ch4-ch5-ch6-ch7: 4411-4411-4411-4411
+
+
+4 @2 v8o2l64 
+4 a32))a)a)a(a(a(a(a(a 
+4 (a(a(a(a4a16a32a(a(a(a32v8a)a 
+4 )a)a)a(a(a(a(a(a(a 
+4 (a(a(a4a16a32a(a(a(a32v8a)a)a 
+4 )a)a(a(a(a(a(a(a(a 
+4 (a(a4a16a32a(a(a(a32v8a)a)a)a 
+4 )a(a(a(a(a(a(a(a(a 
+4 (a4a16a32a(a(a(a32v8a)a)a)a)a 
+4 (a(a(a(a(a(a(a(a(a4a16a32a 
+4 (a(a(a32v8a)a)a)a)a(a 
+4 (a(a(a(a(a(a(a(a4a16a32a(a 
+4 (a(a32v8a)a)a)a)a(a(a 
+4 (a(a(a(a(a(a(a4a16a32a(a(a 
+4 (a32v8a)a)a)a)a(a(a(a 
+4 (a(af+))f+)f+)f+)f+(f+(f+ 
+4 (f+(f+(f+g))g)g)g)g(g 
+4 (g(g(g(gg+))g+)g+)g+)g+ 
+4 (g+(g+(g+(g+(g+32 
+; Total length count: ch4-ch5-ch6-ch7: 4732-4732-4732-4732
+
+
+4 @2 v8o2l64 
+4 a))a)a)a(a(a(a(a(a 
+4 (a(a(a(a4a16a32a(a(a(a32av9a)a 
+4 )a)a(a(a(a(a(a(a(a 
+4 (a(a4a16a32a(a(a(a32av9a32)a))a(a 
+4 (a(a(a(a(a(a(a(a4a8(a 
+4 (a(a32v8a)a)a)a)a(a(a 
+4 (a(a(a(a(a(a(a4a16a32a(a(a 
+4 (a32v8a)a)a)a)a(a(a(a 
+4 (a(a(a(a(a(a4a16a32a(a(a(a32 
+4 v8a)a)a)a)a(a(a(a(a 
+4 (a(a(a(a(a4a16a32a(a(a(a32v8a 
+4 )a)a)a)a(a(a(a(a(a 
+4 (a(a(a(a4a16a32a(a(a(a32v8a)a 
+4 )a)a)a(a(a(a(a(af+ 
+4 ))f+)f+)f+)f+(f+(f+(f+(f+(f+ 
+4 g))g)g)g)g(g(g(g(g 
+4 (gg+))g+)g+)g+)g+(g+(g+(g+ 
+4 (g+(g+ 
+; Total length count: ch4-ch5-ch6-ch7: 5052-5052-5052-5052
+
+
+4 @3 v8o4l64 
+4 g32(g32g(g32g(g32g(g32g(g2g4g8g16g32g(g(g(g 
+4 f32v7f32f(f32f(f32f(f32f(f2f4f8f16f32f(f(f(f 
+4 e32v7e32e(e32e(e32e(e32e(e2e4e8e16e32e(e(e(e 
+4 c32v7c32c(c32c(c32c(c32c(c2c4c8c16c32c(c(c(c 
+; Total length count: ch4-ch5-ch6-ch7: 5372-5372-5372-5372
+
+
+4 @3 v8o4l64 
+4 g32(g32g(g32g(g32g(g32g(g2g4g8g16g32g(g(g(g 
+4 f32v7f32f(f32f(f32f(f32f(f2f4f8f16f32f(f(f(f 
+4 e32v7e32e(e32e(e32e(e32e(e2e4e8e16e32e(e(e(e 
+4 c32v7c32c(c32c(c32c(c32c(c2c4c8c16c32c(c(c(c 
+; Total length count: ch4-ch5-ch6-ch7: 5372-5372-5372-5372
+
+5 @0 v1o1l64 
+5 a16a32a)a8)a8)a8)a8)a8)a8)a8a)a2a8a16a32a 
+5 a1a)a1a1a1a1(a1a1a1a1 
+5 (a1a2a4a16r32r 
+; Total length count: ch4-ch5-ch6-ch7: 807-807-807-807
+
+
+5 @1 v2o5l64 
+5 g+16g+16g+g16gg+16g+g+16g+g16gf+16f+f16fe16e 
+5 d+16d+32d16c+16c+32c16<b16b32a+16a16a32 
+; Total length count: ch4-ch5-ch6-ch7: 887-887-887-887
+
+
+5 @1 v2o4l64 
+5 g+16g16gf+16f+ 
+; Total length count: ch4-ch5-ch6-ch7: 901-901-888-888
+
+
+5 @1 v8o3l64 
+5 r 
+5 @2 v6o3l64b(b16(b8b16b32>c))c(c16(c8c16c32d))d 
+5 (d16(d8d16d32de))e(e32e(e2e32ec))c(c32c 
+5 (c2c32ce))e(e32e(e2e32ed))d(d32d(d2d32d 
+5 <b))b(b32b(b2b32b>c))c(c32c(c2c32cd 
+5 ))d(d32d(d8d16d32de))e(e32e(e1e8e32ed))d 
+5 (d32d(d2d32d<a))a(a32a(a2a32ag))g(g32g 
+5 (g1g8g32g>c))c(c32c(c1c8c32c<b))b(b32b(b8b16b32b 
+5 >c))c(c32c(c8c16c32cd))d(d32d(d8d16d32de 
+5 ))e(e32e(e2e32ec))c(c32c(c2c32ca))a 
+5 (a16(a2a32e))e(e16(e2e32ed))d(d32d 
+5 (d2d32dc))c(c32c(c2c32cd))d(d32d(d8d16d32d 
+5 e))e(e32e(e1e8e32ed))d(d32d(d2d32d<a 
+5 ))a(a32a(a2a32ag))g(g32g(g2g32g>c))c 
+5 (c32c(c2c32ce))e(e32e(e2e32eg))g(g32g 
+5 (g8g16g32gr16r 
+; Total length count: ch4-ch5-ch6-ch7: 2168-2168-2168-2168
+
+
+5 @2 v8o4l64 
+5 r 
+; Total length count: ch4-ch5-ch6-ch7: 2169-2169-2169-2169
+
+
+5 @2 v8o4l64 
+5 e((e32e(e32e(e32e(e1e16edv7d(d32d(d32d 
+5 (d32d(d1d16dcv7c(c32c(c32c(c32c(c1c16c32v7<a 
+5 (a32a(a32a(a32a(a1a16a32<a)))a(a(a32(a32 
+5 (a8a32((a32abv6b(b32(b32(b32(b8b(b 
+5 (b32>cv6c(c32(c32(c32(c8c(c(c32 
+5 dv6d(d32(d32(d32(d1d4d8d(d(d32a 
+5 v6a(a32a(a8a32v8a((a(a32a(a8a16a32ab))b 
+5 (b32b(b8b16b32b>c))c(c32c(c8c16c32cd))d(d32d 
+5 (d2d32dc))c(c32c(c2c32c<b))b(b32b(b8b16b32b 
+5 a))a(a32a(a1a8a32a>d))d(d32d(d1d8d32de 
+5 ))e(e32e(e1e1e16e32er16r32 
+; Total length count: ch4-ch5-ch6-ch7: 3130-3130-3130-3130
+
+
+5 @0 v8o5l64 
+5 e(e(e(e(e4e8e32ee16ee16ee16ee16e 
+5 e16ee16ee16ee16ee16(ee((e(e32 
+5 gv7g(g(g(g4g8g32gg16gg16gg16gg16g 
+5 g16gg16gg16gg16gg16g(g32((g(gf+32 
+5 v7f+(f+(f+(f+4f+8f+32f+f+16f+f+16f+f+16f+f+16f+f+16f+ 
+5 f+16f+f+16f+f+16f+f+16(f+f+((f+(f+f32 
+5 v7f(f(f(f4f8f32ff16ff16ff16ff16ff16f 
+5 f16ff16ff16ff16(ff((f(fe32 
+5 v7e(e(e(e4e8e32ee16ee16ee16ee16ee16e 
+5 e16ee16ee16ee16(ee((e(eg32 
+5 v7g(g(g(g4g8g32gg16gg16gg16gg16gg16g 
+5 g16gg16gg16gg16(gg((g(gf+32 
+5 v7f+(f+(f+(f+4f+8f+32f+f+16f+f+16f+f+16f+f+16f+f+16f+ 
+5 f+16f+f+16f+f+16f+f+16(f+f+((f+(f+f32 
+5 v7f(f(f(f4f8f32ff16ff16ff16ff16ff16f 
+5 f16ff16ff16ff16(ff((f(f 
+; Total length count: ch4-ch5-ch6-ch7: 3770-3770-3770-3770
+
+
+5 @3 v8o3l64 
+5 g32g(g(g(g(g(g(g(g 
+5 av9a(a(a(a(a(a(a(a 
+5 (abv9b(b(b(b(b(b(b 
+5 (b(b>cv9c(c(c(c(c(c 
+5 (c(c(cev9e(e(e(e(e4e8e32e 
+5 e16ee16ee16ee16ee16ee16ee16ee16ee16 
+5 (ee((e(egv9g(g(g(g 
+5 (g4g8g32gg16(gg((g(gf+v9f+(f+ 
+5 (f+(f+(f+4f+8f+32f+f+16f+f+16f+f+16f+f+16f+f+16f+f+16f+ 
+5 f+16f+f+16f+f+16(f+f+((f+(f+32v9f(f 
+5 (f(f(f4f16f(f(f(f(fgv9g 
+5 (g(g(g(g4g16g32(g(g(g(gf 
+5 v9f(f(f(f(f8f32f(f(f(f(f 
+; Total length count: ch4-ch5-ch6-ch7: 4091-4091-4091-4091
+
+
+5 @0 v8o5l64 
+5 e32(e(e(e(e4e8e32ee16ee16ee16ee16e 
+5 e16ee16ee16ee16ee16(ee((e(e 
+5 g32v7g(g(g(g4g8g32gg16gg16gg16gg16g 
+5 g16gg16gg16gg16gg16(gg((g(g 
+5 f+32v7f+(f+(f+(f+4f+8f+32f+f+16f+f+16f+f+16f+f+16f+ 
+5 f+16f+f+16f+f+16f+f+16f+f+16(f+f+((f+(f+ 
+5 f32v7f(f(f(f4f8f32ff16ff16ff16ff16f 
+5 f16ff16ff16ff16ff16(ff((f(f 
+; Total length count: ch4-ch5-ch6-ch7: 4411-4411-4411-4411
+
+5 @3 v8o3l64 
+5 g32g(g(g(g(g(g(g(g 
+5 av9a(a(a(a(a(a(a(a 
+5 (abv9b(b(b(b(b(b(b 
+5 (b(b>cv9c(c(c(c(c(c 
+5 (c(c(cev9e(e(e(e(e4e8e32e 
+5 e16ee16ee16ee16ee16ee16ee16ee16ee16 
+5 (ee((e(egv9g(g(g(g 
+5 (g4g8g32gg16(gg((g(gf+v9f+(f+ 
+5 (f+(f+(f+4f+8f+32f+f+16f+f+16f+f+16f+f+16f+f+16f+f+16f+ 
+5 f+16f+f+16f+f+16(f+f+((f+(f+fv9f 
+5 (f(f(f(f4f16f(f(f(f(fg 
+5 v9g(g(g(g(g4g16g(g(g(g(g 
+5 fv9f(f(f(f(f8f32f(f(f(f 
+5 (f32 
+; Total length count: ch4-ch5-ch6-ch7: 4732-4732-4732-4732
+
+
+5 @0 v8o5l64 
+5 e(e(e(e(e4e8e32ee16ee16ee16ee16e 
+5 e16ee16ee16ee16ee16(ee((e(e32 
+5 g32v7g((g(g4g8g32gg16gg16g32g16gg16gg16g 
+5 g16gg16gg16gg16(gg((g(gf+32 
+5 v7f+(f+(f+(f+4f+8f+32f+f+16f+f+16f+f+16f+f+16f+f+16f+ 
+5 f+16f+f+16f+f+16f+f+16(f+f+((f+(f+f32 
+5 v7f(f(f(f4f8f32ff16ff16ff16ff16ff16f 
+5 f16ff16ff16ff16(ff((f(f 
+; Total length count: ch4-ch5-ch6-ch7: 5052-5052-5052-5052
+
+
+5 @2 v8o4l64 
+5 e32((e32e(e32e(e32e(e1e16edv7d(d32d(d32d 
+5 (d32d(d1d16dcv7c(c32c(c32c(c32c(c1c16c<a 
+5 v7a(a32a(a32a(a32a(a1a16a 
+; Total length count: ch4-ch5-ch6-ch7: 5372-5372-5372-5372
+
+
+6 @0 v0o4l64 
+6 r4r8r16r32r)<<a4)a8)a8a)a1a1a1a1>>ev9e)ea 
+6 (a)a(a8a16a32a(a8a16a32a(a8a16a32a(a8a16a32a(a8a16a32a(a8a16a32a(a8a16a32a 
+6 (a1a1a16ev9e)eg(g)g(g8g16g32g(g8g16g32g 
+6 (g8g16g32g(g8g16g32g(g8g16g32g(g8g16g32g(g8g16g32g(g1g1g32g32g 
+; Total length count: ch4-ch5-ch6-ch7: 807-807-807-807
+
+
+6 @1 v8o5l64 
+6 e16d+16d+d16dc+16c+c16c<b16ba+16a+a16a32g+16 
+6 g16g32f+16f16f32e16d+16d+32d16c+16c+32 
+; Total length count: ch4-ch5-ch6-ch7: 887-887-887-887
+
+
+6 @1 v8o4l64 
+6 e 
+; Total length count: ch4-ch5-ch6-ch7: 901-901-901-888
+
+
+6 @1 v5o4l64 
+6 e8e16ere(e8e16e32e(e8e16e32e(e4(e1e4e8e16e32e(e32ev8e 
+6 ((e(e8e16e32e(e8e16e32e(e8e16e32e(e8e16e32e(e1e4e8e16e32e(e32ecv6c 
+6 (c8c16c32c(c8c16c32c(c8c16c32c(c8c16c32c(c1c4c8c16c32c(c32cv8c((c(c8c16c32c 
+6 (c8c16c32c(c8c16c32c(c8c16c32c(c1c4c8c16c32c(c16ev5e8e16e32e(e8e16e32e(e8e16e32e 
+6 (e8e16e32e(e1e4e8e16e32e(e16v6e(e8e16e32e(e8e16e32e(e4(e8e16e32e(e1e4e8e16e32e 
+6 (e32ecv6c(c8c16c32c(c8c16c32c(c8c16c32c(c8c16c32c(c1c4c8c16c32c(c32c 
+6 v8c((c(c8c16c32c(c8c16c32c(c8c16c32c(c8c16c32c(c1c4c8c16cc32(c32c 
+; Total length count: ch4-ch5-ch6-ch7: 2168-2168-2168-2168
+
+
+6 @1 v8o4l64 
+6 r 
+; Total length count: ch4-ch5-ch6-ch7: 2169-2169-2169-2169
+
+
+6 @1 v8o4l64 
+6 e(((e8e16e32e(e8e16e32e(e8e16e32e(e8e16e32e(e8e16e32e(e32efv6f 
+6 (f8f16f32f(f8f16f32f(f8v8f((f(f8)))f((f(f8f16f32f 
+6 (f8f16fe))e(e8e16e32e(e8e16e32e(e8e16e32e(e8e16e32e(e8e16e32e(e16 
+6 v6e(e8e16e32e(e8e16e32e(e8e)))e(e8e)e(e8e16e32e(e8e16e32 
+6 c))c(c8c16c32c(c32cd))d(d8d16d32d(d32de 
+6 ))e(e8e16e32e(e32ef))f(f8f16f32f(f8f16f32f(f8f16f32f(f8f16f 
+6 v8f((f(f8)))f((f(f8f16f32f(f8f16fc))c 
+6 (c8c16c32c(c32cd))d(d8d16d32d(d32de))e(e8e16e32e 
+6 (e32ef))f(f8f16f32f(f8f16f32f(f8f16f32f(f8f16fv8f((f 
+6 (f8)))f((f(f8f16f32f(f8f16fd))d(d8d16d32d(d8d16d32d 
+6 (d8d16d32d(d8d16d32d(d8d16d32d(d32df+v6f+(f+8f+16f+32f+(f+8f+16f+32f+(f+8f+16f+32f+ 
+6 (f+8f+16f+32f+(f+8f+16f+32f+(f+32f+ev6e(e8e16e32e(e8e16e32e(e8e16e32e(e8e16e32e 
+6 (e8e16e32e(e32ev8e((e(e8e16e32e(e8e16e32e(e8e16e32e(e8e16e32e(e8e16e 
+6 e32(e16 
+; Total length count: ch4-ch5-ch6-ch7: 3130-3130-3130-3130
+
+
+6 @3 v8o4l64 
+6 g(((g(g(g(g(g(g1g8g32v6>c(c 
+6 (c(c(c(c(c1c8c32<bv6b(b(b 
+6 (b(b(b(b1b8bav6a(a(a(a 
+6 (a(a(a1a8ag32v5g(g(g(g(g 
+6 (g1g8g>cv6c(c(c(c(c(c(c1c8c 
+6 <bv6b(b(b(b(b(b(b1b8ba 
+6 v6a(a(a(a(a(a(a1a8a 
+; Total length count: ch4-ch5-ch6-ch7: 3770-3770-3770-3770
+
+
+6 @3 v8o3l64 
+6 g32(g(g(g(g32g(g(ga32v7a 
+6 (a(a(a32a(a(ab32v7b(b(b 
+6 (b32b(b(b>c32v7c(c(c(c32c(c 
+6 (ce32v7e(e(e(e1e8e(e(eg32 
+6 v7g(g(g(g2g(g(gf+32v7f+(f+ 
+6 (f+(f+1f+8f+(f+(f+32fv7f(f(f(f4f16f32f 
+6 (f(fg32v7g(g(g(g4g8(g(g 
+6 f32v7f(f(f(f8f16f(f(f 
+; Total length count: ch4-ch5-ch6-ch7: 4091-4091-4091-4091
+
+
+6 @3 v8o3l64 
+6 g32))g)g(g(g(g(g(g(g 
+6 (g(g1g(g(g(g32>cv9c)c)c 
+6 (c(c(c(c(c(c(c(c1c(c 
+6 (c(c32<bv9b)b)b(b(b(b 
+6 (b(b(b(b(b1b(b(b(b32a 
+6 v9a)a)a(a(a(a(a(a(a 
+6 (a(a1a(a(a(a32 
+; Total length count: ch4-ch5-ch6-ch7: 4411-4411-4411-4411
+
+
+6 @3 v8o3l64 
+6 g32(g(g(g(g32g(g(ga32v7a 
+6 (a(a(a32a(a(ab32v7b(b(b 
+6 (b32b(b(b>c32v7c(c(c(c32c(c 
+6 (ce32v7e(e(e(e1e8e(e(eg32 
+6 v7g(g(g(g2g(g(gf+32v7f+(f+ 
+6 (f+(f+1f+8f+(f+(f+f32v7f(f(f(f4f16f32f 
+6 (f(fg32v7g(g(g(g4g16g32g(g(g 
+6 f32v7f(f(f(f8f16f(f(f32 
+; Total length count: ch4-ch5-ch6-ch7: 4732-4732-4732-4732
+
+
+6 @3 v8o3l64 
+6 g))g)g(g(g(g(g(g(g 
+6 (g(g1g(g(g(g32g>cv9c)cc 
+6 (c(c(c(c(c(c(c1c32(c(c 
+6 (c32<bv9b)b)b(b(b(b(b 
+6 (b(b(b(b1b(b(b(b32av9a 
+6 )a)a(a(a(a(a(a(a(a 
+6 (a1a(a(a(a32 
+; Total length count: ch4-ch5-ch6-ch7: 5052-5052-5052-5052
+
+
+6 @1 v8o4l64 
+6 e32(((e8e16e32e(e8e16e32e(e8e16e32e(e8e16e32e(e8e16e32e(e32efv6f 
+6 (f8f16f32f(f8f16f32f(f8v8f((f(f8)))f((f(f8f16f32f 
+6 (f8f16fe))e(e8e16e32e(e8e16e32e(e8e16e32e(e8e16e32e(e8e16e32e(e32e 
+6 v8e((e(e8e16e32e(e8e16e32e(e8v8e((e(e8)))e 
+6 ((e(e8e16e32e(e8e16e 
+; Total length count: ch4-ch5-ch6-ch7: 5372-5372-5372-5372
+
+
+7 @0 v0o1l64 
+7 r4r8r16r32rr2<a)a2a4a8a16a32a)a1a1a1a>ev9e)ea 
+7 (a)a(a8a16a32a(a8a16a32a(a8a16a32a(a8a16a32a(a8a16a32a(a8a16a32a(a8a16a32a 
+7 (a1a1a16ev9e)eg(g)g(g8g16g32g(g8g16g32g 
+7 (g8g16g32g(g8g16g32g(g8g16g32g(g8g16g32g(g8g16g32g(g1g1g32g32g 
+; Total length count: ch4-ch5-ch6-ch7: 807-807-807-807
+
+
+7 @1 v8o5l64 
+7 e16d+16d+d16de16ed+16d+d16d32c+16c16c32<b16 
+7 a+16a+32a16g+16g+32g16f+16f+32f16fe16e 
+; Total length count: ch4-ch5-ch6-ch7: 887-887-887-887
+
+
+7 @1 v8o4l64 
+7 c 
+; Total length count: ch4-ch5-ch6-ch7: 901-901-901-901
+
+
+7 @1 v5o4l64 
+7 c8c16crc(c8c16c32c(c8c16c32c(c4(c1c4c8c16c32c(c32cv8c 
+7 ((c(c8c16c32c(c8c16c32c(c8c16c32c(c8c16c32c(c1c4c8c16c32c(c32c<av6a 
+7 (a8a16a32a(a8a16a32a(a8a16a32a(a8a16a32a(a1a4a8a16a32a(a32agv6g(g8g16g32g 
+7 (g8g16g32g(g8g16g32g(g8g16g32g(g1g4g8g16g32g(g16>cv5c8c16c32c(c8c16c32c(c8c16c32c 
+7 (c8c16c32c(c1c4c8c16c32c(c16v6c(c8c16c32c(c8c16c32c(c4(c8c16c32c(c1c4c8c16c32c 
+7 (c32c<av6a(a8a16a32a(a8a16a32a(a8a16a32a(a8a16a32a(a1a4a8a16a32a(a32a 
+7 gv6g(g8g16g32g(g8g16g32g(g8g16g32g(g8g16g32g(g1g4g8g16gg32(g32g 
+; Total length count: ch4-ch5-ch6-ch7: 2168-2168-2168-2168
+
+
+7 @1 v8o4l64 
+7 r 
+; Total length count: ch4-ch5-ch6-ch7: 2169-2169-2169-2169
+
+
+7 @1 v8o4l64 
+7 c(((c8c16c32c(c8c16c32c(c8c16c32c(c8c16c32c(c8c16c32c(c32cv8c((c 
+7 (c8c16c32c(c8c16c32c(c8v8c((c(c8)))c((c(c8c16c32c 
+7 (c8c16cv8c((c(c8c16c32c(c8c16c32c(c8c16c32c(c8c16c32c(c8c16c32c(c16 
+7 v6c(c8c16c32c(c8c16c32c(c8c)))c(c8c)c(c8c16c32c(c8c16c32 
+7 <a))a(a8a16a32a(a32ab))b(b8b16b32b(b32b>c 
+7 ))c(c8c16c32c(c32cd))d(d8d16d32d(d8d16d32d(d8d16d32d(d8d16d 
+7 v8d((d(d8)))d((d(d8d16d32d(d8d16d<a))a 
+7 (a8a16a32a(a32ab))b(b8b16b32b(b32b>c))c(c8c16c32c 
+7 (c32cd))d(d8d16d32d(d8d16d32d(d8d16d32d(d8d16dv8d((d 
+7 (d8)))d((d(d8d16d32d(d8d16d<a))a(a8a16a32a(a8a16a32a 
+7 (a8a16a32a(a8a16a32a(a8a16a32a(a32a>dv6d(d8d16d32d(d8d16d32d(d8d16d32d 
+7 (d8d16d32d(d8d16d32d(d32d<bv6b(b8b16b32b(b8b16b32b(b8b16b32b(b8b16b32b 
+7 (b8b16b32b(b32bv8b((b(b8b16b32b(b8b16b32b(b8b16b32b(b8b16b32b(b8b16b 
+7 b32(b16 
+; Total length count: ch4-ch5-ch6-ch7: 3130-3130-3130-3130
+
+
+7 @1 v8o4l64 
+7 c))c(c(c(c(c(c(c(c 
+7 (c1c32(c(c16v9e)e(e(e(e(e 
+7 (e(e(e(e1e32e(e(e32ed+v9d+)d+ 
+7 (d+(d+(d+(d+(d+(d+(d+(d+1d+32(d+ 
+7 (d+32d+dv9d)d(d(d(d(d(d 
+7 (d(d(d1d32(d(d32dc32v10c(c(c 
+7 (c(c(c(c(c(c1c32(c(c32ce 
+7 v9e)e(e(e(e(e(e(e(e 
+7 (e1e32(e(e32ed+v9d+)d+(d+(d+(d+ 
+7 (d+(d+(d+(d+(d+1d+32(d+(d+32d+dv9d 
+7 )d(d(d(d(d(d(d(d(d1d32 
+7 (d(d32d 
+; Total length count: ch4-ch5-ch6-ch7: 3770-3770-3770-3770
+
+
+7 @1 v8o4l64 
+7 c32))c(c(c(c(c(c(c(c 
+7 (c1c32(c(c32cev9e)e(e(e(e 
+7 (e(e(e(e(e1e32(e(e16v9d+)d+ 
+7 (d+(d+(d+(d+(d+(d+(d+(d+1d+32(d+ 
+7 (d+16v9d)d(d(d(d(d(d(d 
+7 (d(d1d32d(d(d32d 
+; Total length count: ch4-ch5-ch6-ch7: 4091-4091-4091-4091
+
+
+7 @1 v8o4l64 
+7 c32))c(c(c(c(c(c(c(c 
+7 (c1c32(c(c32cev9e)e(e(e(e 
+7 (e(e(e(e(e1e32(e(e32ed+v9d+ 
+7 )d+(d+(d+(d+(d+(d+(d+(d+(d+1d+32 
+7 (d+(d+32d+dv9d)d(d(d(d(d 
+7 (d(d(d(d1d32(d(d32d 
+; Total length count: ch4-ch5-ch6-ch7: 4411-4411-4411-4411
+
+
+7 @1 v8o4l64 
+7 c32))c(c(c(c(c(c(c(c 
+7 (c1c32(c(c32cev9e)e(e(e(e 
+7 (e(e(e(e(e1e32(e(e32ed+v9d+ 
+7 )d+(d+(d+(d+(d+(d+(d+(d+(d+1d+32 
+7 (d+(d+32d+dv9d)d(d(d(d(d 
+7 (d(d(d(d1d32(d(d16 
+; Total length count: ch4-ch5-ch6-ch7: 4732-4732-4732-4732
+
+
+7 @1 v8o4l64 
+7 c))c(c(c(c(c(c(c(c 
+7 (c1c32(c(c16ev9e)e((e(e(e 
+7 (e(e(e(e1e32e(e(e32ed+v9d+)d+ 
+7 (d+(d+(d+(d+(d+(d+(d+(d+1d+32(d+ 
+7 (d+32d+dv9d)d(d(d(d(d(d 
+7 (d(d(d1d32(d(d32d 
+; Total length count: ch4-ch5-ch6-ch7: 5052-5052-5052-5052
+
+
+7 @1 v8o4l64 
+7 c32(((c8c16c32c(c8c16c32c(c8c16c32c(c8c16c32c(c8c16c32c(c32cv8c((c 
+7 (c8c16c32c(c8c16c32c(c8v8c((c(c8)))c((c(c8c16c32c 
+7 (c8c16cv8c((c(c8c16c32c(c8c16c32c(c8c16c32c(c8c16c32c(c8c16c32c(c32c 
+7 v8c((c(c8c16c32c(c8c16c32c(c8v8c((c(c8)))c 
+7 ((c(c8c16c32c(c8c16c 
+; Total length count: ch4-ch5-ch6-ch7: 5372-5372-5372-5372
