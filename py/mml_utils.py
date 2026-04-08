@@ -180,3 +180,123 @@ def ticks_to_mml_length(ticks, scale):
         # return a silent 64th note as a safe fallback.
         return f'r64'
     return ''.join(parts)
+
+
+# ---------------------------------------------------------------------------
+# MGS-format helpers (port of get_mml_MGS / get_volume_diff_in_mml in Tcl)
+# ---------------------------------------------------------------------------
+
+def mgs_length_to_str(scale: str, length: int) -> str:
+    """Convert a tick length to an MGS-format note string.
+
+    Uses the standard MGS length table:
+        64 → note1,  48 → note2.,  32 → note2,  16 → note4,
+        12 → note8., 8  → note8,   6  → note16., 4  → note16,
+        3  → note32., 2 → note32,  1  → note (bare, no number)
+
+    Unlike ``ticks_to_mml_length`` this never uses ``%ticks`` syntax.
+    """
+    result = ''
+    body = scale
+    while length > 0:
+        if length >= 64:
+            result += f'{body}1'
+            length -= 64
+        elif length >= 48:
+            result += f'{body}2.'
+            length -= 48
+        elif length >= 32:
+            result += f'{body}2'
+            length -= 32
+        elif length >= 16:
+            result += f'{body}4'
+            length -= 16
+        elif length >= 12:
+            result += f'{body}8.'
+            length -= 12
+        elif length >= 8:
+            result += f'{body}8'
+            length -= 8
+        elif length >= 6:
+            result += f'{body}16.'
+            length -= 6
+        elif length >= 4:
+            result += f'{body}16'
+            length -= 4
+        elif length == 3:
+            result += f'{body}32.'
+            length -= 3
+        elif length == 2:
+            result += f'{body}32'
+            length -= 2
+        elif length == 1:
+            result += body
+            length -= 1
+        else:
+            result += f'[{body}]{length}'
+            length = 0
+    return result
+
+
+def get_mgs_octave_prefix(o: int, o_stamp: int) -> str:
+    """Build the octave-adjustment prefix for an MGS note token.
+
+    Uses ``<``/``>`` for differences of 1-3 octaves; ``o{N}`` for larger jumps.
+    """
+    o_diff = o - o_stamp
+    if o_diff > 3 or o_diff < -3:
+        return f'o{o}'
+    if o_diff < 0:
+        return '<' * abs(o_diff)
+    if o_diff > 0:
+        return '>' * o_diff
+    return ''
+
+
+def get_mgs_vol_prefix(v: int, v_diff: int, cnt: int, v_stamp: int) -> str:
+    """Build the volume-adjustment prefix for an MGS note token.
+
+    When cnt==1 the absolute difference ``v - v_stamp`` is used (matching
+    Tcl's ``if {$cnt == 1} { set vDiff [expr {$v - $vStamp}] }``).
+
+    Uses ``(``/``)`` for differences of 1-3; ``v{N}`` for larger jumps.
+    '(' raises volume by 1 step, ')' lowers volume by 1 step.
+    """
+    if cnt == 1:
+        v_diff = v - v_stamp
+    if v_diff > 3 or v_diff < -3:
+        return f'v{v}'
+    if v_diff < 0:
+        return '(' * abs(v_diff)
+    if v_diff > 0:
+        return ')' * v_diff
+    return ''
+
+
+def get_mgs_note_token(l: int, v: int, v_diff: int, scale: str, cnt: int,
+                       o: int, o_stamp: int, v_stamp: int) -> str:
+    """Generate a complete MGS-format note token.
+
+    Combines octave prefix, volume prefix, and note body.
+    When cnt > 1 wraps the body in ``[...]cnt``.
+
+    Args:
+        l       : tick length of the note
+        v       : current volume (used when cnt==1 or |vDiff|>3)
+        v_diff  : row-stored volume difference (used when cnt>1 and |vDiff|<=3)
+        scale   : note letter (e.g. 'c', 'c+', 'r')
+        cnt     : repeat count (>=1)
+        o       : current octave
+        o_stamp : previous octave (for diff encoding)
+        v_stamp : previous volume (for diff encoding when cnt==1)
+
+    Returns:
+        MGS note token string.
+    """
+    o_prefix  = get_mgs_octave_prefix(o, o_stamp)
+    vol_prefix = get_mgs_vol_prefix(v, v_diff, cnt, v_stamp)
+    note_body = mgs_length_to_str(scale, l)
+    body = vol_prefix + note_body
+    if cnt > 1:
+        return f'{o_prefix}[{body}]{cnt}'
+    return f'{o_prefix}{body}'

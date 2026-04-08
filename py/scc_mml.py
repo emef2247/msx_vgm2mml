@@ -9,7 +9,7 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import (get_ticks, get_octave, get_scale,
                        estimate_mml_used, estimate_alloc,
-                       ticks_to_mml_length)
+                       ticks_to_mml_length, get_mgs_note_token)
 
 # ---------------------------------------------------------------------------
 # Column indices (28 columns, 0-27)
@@ -44,6 +44,9 @@ COL_VCTRL    = 26
 COL_ENCTRL   = 27
 
 NUM_COLS = 28
+
+# Pass-3 extended column for cnt (appended by _add_initial_cnt)
+SCC_COL_CNT = 28
 
 # CSV headers (matching Tcl scc.mml.tcl output exactly)
 _HEADER_COMMON = ("type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,"
@@ -663,8 +666,208 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
 
 
 # ---------------------------------------------------------------------------
-# Write helpers
+# SCC MGS-format MML generation
 # ---------------------------------------------------------------------------
+
+def _add_initial_cnt(temp_buf3, ch_list):
+    """Append cnt=1 to every row in temp_buf3, returning a new buffer.
+
+    The cnt column (SCC_COL_CNT = 28) is used by the MGS generation and
+    optimisation passes to track repeated note patterns.
+    """
+    result = {}
+    for ch in ch_list:
+        result[ch] = [list(row) + ['1'] for row in temp_buf3[ch]]
+    return result
+
+
+def _get_scc_cnt(row):
+    """Return cnt from an SCC work-buffer row (default 1 if absent)."""
+    if len(row) > SCC_COL_CNT:
+        try:
+            return int(row[SCC_COL_CNT])
+        except (ValueError, TypeError):
+            return 1
+    return 1
+
+
+# SCC event types included in MGS MML lines
+_SCC_MGS_TYPES = frozenset(('f1Ctrl', 'f2Ctrl', 'vCtrl', 'enBit'))
+
+
+def _generate_mml_mgs_scc(work_buffer, ch_list, file_name_body, wtb_tracker):
+    """Generate SCC MGS-format MML from work_buffer (pass-3 + cnt rows).
+
+    Mirrors Tcl mml.tcl ``generate_mml`` logic adapted for the MGS format:
+    octave/volume changes use ``<``/``>``/(``(``/``)``) and repeated notes
+    are wrapped in ``[...]cnt``.
+
+    Returns the MML text as a string.
+    """
+    mml_buffer = {}
+    for ch in ch_list:
+        mml_buffer[ch] = []
+
+    for ch in ch_list:
+        note_cnt = 0
+        l_cnt = 0
+        o_stamp = 0
+        v_stamp = 0
+        at_stamp = -1
+        is_first_group = True
+        mml = ''
+
+        ch_num = ch + CH_OFFSET
+        mml_buffer[ch].append(f'\n\n;ch{ch_num} start')
+
+        for row in work_buffer[ch]:
+            type_ = row[COL_TYPE]
+            l = _int(row[COL_L])
+            v = _get_volume(row)
+            o = _int(row[COL_O])
+            scale = row[COL_SCALE] if row[COL_SCALE] not in ('', EMPTY) else 'r'
+            en = _int(row[COL_EN])
+            wtb_index = _int(row[COL_WTBINDEX])
+            v_diff = _int(row[COL_VDIFF])
+            cnt = _get_scc_cnt(row)
+
+            if l > 0:
+                length = l
+                while length > 0:
+                    ltmp = min(length, 255)
+
+                    if note_cnt == 0:
+                        if is_first_group:
+                            mml = f'\n{ch_num} @{wtb_index} v{v} o{o} l64'
+                            at_stamp = wtb_index
+                            v_stamp = v
+                            o_stamp = o
+                            is_first_group = False
+                        else:
+                            mml = f'\n{ch_num}'
+                            if wtb_index != at_stamp:
+                                mml += f' @{wtb_index}'
+                                at_stamp = wtb_index
+                            if v != v_stamp:
+                                mml += f' v{v}'
+                                v_stamp = v
+
+                    note = get_mgs_note_token(ltmp, v, v_diff, scale, cnt,
+                                              o, o_stamp, v_stamp)
+                    mml = mml + note
+                    l_cnt += ltmp
+
+                    length -= ltmp
+                    if length > 0:
+                        mml_buffer[ch].append(mml)
+                        mml = ''
+
+                note_cnt += 1
+                if note_cnt == 8 or (type_ == 'enBit' and en == 0) or v == 0:
+                    mml_buffer[ch].append(mml)
+                    mml = ''
+                    mml_buffer[ch].append(f'\n;tick count: {l_cnt}\n')
+                    note_cnt = 0
+
+                o_stamp = o
+                v_stamp = v
+
+        if mml:
+            mml_buffer[ch].append(mml)
+
+        mml_buffer[ch].append(f'\n;ch{ch_num} end: tick count: {l_cnt}\n')
+
+    # Build header
+    lines = []
+    lines.append(';[name=scc lpf=1]')
+    lines.append('#opll_mode 1')
+    lines.append('#tempo 225')
+    lines.append(f'#title {{ "{file_name_body}"}}')
+    for ch in ch_list:
+        ch_num = ch + CH_OFFSET
+        used = estimate_mml_used(mml_buffer[ch])
+        alloc = estimate_alloc(used)
+        lines.append(f'#alloc {ch_num}={alloc}')
+    lines.append('')
+
+    for i, wbytes in enumerate(wtb_tracker.bytes_list):
+        lines.append(f'@s{i:02d} = {{{wbytes}}}')
+    lines.append('')
+    lines.append('')
+
+    header_text = '\n'.join(lines)
+    body_parts = [header_text]
+    for ch in ch_list:
+        for item in mml_buffer[ch]:
+            body_parts.append(item)
+
+    result = ''.join(body_parts)
+    if not result.endswith('\n'):
+        result += '\n'
+    return result
+
+
+def _update_and_optimize_cnt_scc(src_buffer, ch_list):
+    """Re-compute and optimise the cnt repeat counter for SCC.
+
+    Repeat detection requires type in (f1Ctrl, f2Ctrl, vCtrl) AND all of
+    f, l, o, vDiff to match the previous qualifying row.  Reset stamps when
+    type in (f1Ctrl, f2Ctrl) AND en == 0 (channel silenced).
+
+    Returns a new dict (ch -> list-of-rows) with updated cnt values.
+    """
+    dst_buffer = {ch: [] for ch in ch_list}
+
+    for ch in ch_list:
+        f_stamp = None
+        l_stamp = None
+        o_stamp = None
+        v_diff_stamp = 0
+        cnt_stamp = 0
+
+        for row in src_buffer[ch]:
+            row = list(row)  # working copy
+            type_ = row[COL_TYPE]
+            l = _int(row[COL_L])
+            f = _int(row[COL_F])
+            o = _int(row[COL_O])
+            v_diff = _int(row[COL_VDIFF])
+            en = _int(row[COL_EN])
+            cnt = _get_scc_cnt(row)
+
+            # Reset stamps when a f1Ctrl/f2Ctrl event silences the channel
+            if type_ in ('f1Ctrl', 'f2Ctrl') and en == 0:
+                f_stamp = None
+                l_stamp = None
+                o_stamp = None
+                v_diff_stamp = 0
+                cnt_stamp = 0
+
+            if l != 0:
+                if type_ in ('f1Ctrl', 'f2Ctrl', 'vCtrl'):
+                    if (f_stamp is not None and
+                            f == f_stamp and l == l_stamp and o == o_stamp and
+                            v_diff == v_diff_stamp):
+                        cnt_stamp += 1
+                        cnt = cnt_stamp
+                        row[SCC_COL_CNT] = str(cnt)
+                        # Replace last row in dst with updated current row
+                        if dst_buffer[ch]:
+                            dst_buffer[ch][-1] = row
+                    else:
+                        dst_buffer[ch].append(row)
+                else:
+                    dst_buffer[ch].append(row)
+
+                f_stamp = f
+                l_stamp = l
+                o_stamp = o
+                v_diff_stamp = v_diff
+                cnt_stamp = cnt
+            else:
+                dst_buffer[ch].append(row)
+
+    return dst_buffer
 
 def _write_csv(path, header, ch_list, buf):
     with open(path, 'w', newline='\n') as fh:
@@ -754,6 +957,30 @@ def process_scc_csv(input_path, output_dir, dump_passes=True, stem=None):
     mml_path = os.path.join(output_dir, f'{file_name_body}.scc.mml')
     with open(mml_path, 'w', newline='\n') as fh:
         fh.write(mml_text)
+
+    # ---- pass3.simple.mml  (same content as .scc.mml) ----
+    simple_mml_path = os.path.join(output_dir,
+                                   f'{file_name_body}.scc.pass3.simple.mml')
+    with open(simple_mml_path, 'w', newline='\n') as fh:
+        fh.write(mml_text)
+
+    # ---- pass3.simple.MGS.mml  (uncompressed MGS format) ----
+    work_buffer1 = _add_initial_cnt(temp_buf3, ch_list)
+    simple_mgs_text = _generate_mml_mgs_scc(
+        work_buffer1, ch_list, file_name_body, wtb_tracker)
+    simple_mgs_path = os.path.join(output_dir,
+                                   f'{file_name_body}.scc.pass3.simple.MGS.mml')
+    with open(simple_mgs_path, 'w', newline='\n') as fh:
+        fh.write(simple_mgs_text)
+
+    # ---- pass3.compress.MGS.mml  (cnt-optimised repeat compression) ----
+    work_buffer2 = _update_and_optimize_cnt_scc(work_buffer1, ch_list)
+    compress_mgs_text = _generate_mml_mgs_scc(
+        work_buffer2, ch_list, file_name_body, wtb_tracker)
+    compress_mgs_path = os.path.join(output_dir,
+                                     f'{file_name_body}.scc.pass3.compress.MGS.mml')
+    with open(compress_mgs_path, 'w', newline='\n') as fh:
+        fh.write(compress_mgs_text)
 
     return mml_path
 

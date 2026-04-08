@@ -194,3 +194,66 @@ def test_vgm_to_psg_trace_mml_has_notes():
         notes = note_pattern.findall(content)
         assert len(notes) > 0, (
             "Trace-based PSG MML contains only rests - frequency mapping broken.")
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# MGS-format variant tests
+# ──────────────────────────────────────────────────────────────────────────
+
+def test_psg_mgs_variants_are_generated():
+    """process_psg_csv must produce all three pass3 MML variants."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        for suffix in ('pass3.simple.mml',
+                       'pass3.simple.MGS.mml',
+                       'pass3.compress.MGS.mml'):
+            expected = os.path.join(out_dir, f'{PSG_STEM}.psg.{suffix}')
+            assert os.path.isfile(expected), (
+                f"Missing PSG MGS variant: {expected}")
+
+
+def test_psg_simple_mml_matches_main_mml():
+    """pass3.simple.mml must be byte-for-byte identical to the main .psg.mml."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        main_mml = _read(os.path.join(out_dir, f'{PSG_STEM}.psg.mml'))
+        simple = _read(os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.simple.mml'))
+        assert main_mml == simple, (
+            "pass3.simple.mml content differs from .psg.mml")
+
+
+def test_psg_mgs_simple_has_header():
+    """pass3.simple.MGS.mml must contain the standard PSG header."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        content = _read(os.path.join(out_dir,
+                                     f'{PSG_STEM}.psg.pass3.simple.MGS.mml'))
+        assert ';[name=psg lpf=1]' in content
+        assert '#tempo 225' in content
+
+
+def test_psg_mgs_compress_smaller_than_simple():
+    """pass3.compress.MGS.mml must be no larger than pass3.simple.MGS.mml."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        simple_size = os.path.getsize(
+            os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.simple.MGS.mml'))
+        compress_size = os.path.getsize(
+            os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.compress.MGS.mml'))
+        assert compress_size <= simple_size, (
+            f"compress ({compress_size}B) should be <= simple ({simple_size}B)")
+
+
+def test_psg_mgs_simple_ends_with_newline():
+    """pass3.simple.MGS.mml must end with a newline (POSIX convention)."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        with open(os.path.join(out_dir,
+                               f'{PSG_STEM}.psg.pass3.simple.MGS.mml'), 'rb') as fh:
+            data = fh.read()
+        assert data.endswith(b'\n')

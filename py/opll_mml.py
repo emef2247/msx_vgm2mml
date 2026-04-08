@@ -21,7 +21,8 @@ import math
 
 sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import (get_ticks, estimate_mml_used, estimate_alloc,
-                       track_id_to_mgsdrv, ticks_to_mml_length)
+                       track_id_to_mgsdrv, ticks_to_mml_length,
+                       get_mgs_note_token, mgs_length_to_str)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -342,6 +343,206 @@ def _generate_mml(segments: dict, stem: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# OPLL MGS-format MML generation
+# ---------------------------------------------------------------------------
+
+class _OpllSegmentExt:
+    """Segment with an additional repeat count for MGS generation."""
+    __slots__ = ('tick_start', 'tick_end', 'keyon', 'fnum', 'block',
+                 'inst', 'vol', 'cnt')
+
+    def __init__(self, seg, cnt=1):
+        self.tick_start = seg.tick_start
+        self.tick_end   = seg.tick_end
+        self.keyon      = seg.keyon
+        self.fnum       = seg.fnum
+        self.block      = seg.block
+        self.inst       = seg.inst
+        self.vol        = seg.vol
+        self.cnt        = cnt
+
+    def mml_vol(self):
+        return 15 - self.vol
+
+    def length(self):
+        return self.tick_end - self.tick_start
+
+
+def _add_initial_cnt_opll(segments: dict) -> dict:
+    """Return a new segments dict where every segment has cnt=1."""
+    return {ch: [_OpllSegmentExt(s) for s in segs]
+            for ch, segs in segments.items()}
+
+
+def _update_and_optimize_cnt_opll(segments: dict) -> dict:
+    """Re-compute and optimise the cnt repeat counter for OPLL.
+
+    Repeat detection: two consecutive keyon segments with the same fnum,
+    block, inst, vol, and length.  Rests (keyon==0) reset the counter.
+
+    Returns a new dict with extended segment lists where repeating segments
+    are merged (last wins, cnt accumulated).
+    """
+    result = {}
+    for ch, segs in segments.items():
+        ext_segs = [_OpllSegmentExt(s) for s in segs]
+        dst = []
+        fnum_stamp  = None
+        block_stamp = None
+        inst_stamp  = None
+        vol_stamp   = None
+        len_stamp   = None
+        cnt_stamp   = 0
+
+        for seg in ext_segs:
+            length = seg.length()
+            if not seg.keyon or seg.fnum == 0:
+                # Rest: reset stamps and append as-is
+                fnum_stamp  = None
+                block_stamp = None
+                inst_stamp  = None
+                vol_stamp   = None
+                len_stamp   = None
+                cnt_stamp   = 0
+                dst.append(seg)
+            else:
+                if (fnum_stamp is not None and
+                        seg.fnum == fnum_stamp and
+                        seg.block == block_stamp and
+                        seg.inst == inst_stamp and
+                        seg.vol == vol_stamp and
+                        length == len_stamp):
+                    cnt_stamp += 1
+                    seg.cnt = cnt_stamp
+                    if dst:
+                        dst[-1] = seg
+                else:
+                    dst.append(seg)
+                    cnt_stamp = 1
+
+                fnum_stamp  = seg.fnum
+                block_stamp = seg.block
+                inst_stamp  = seg.inst
+                vol_stamp   = seg.vol
+                len_stamp   = length
+
+        result[ch] = dst
+    return result
+
+
+def _generate_mml_mgs_opll(segments: dict, stem: str) -> str:
+    """Generate OPLL MGS-format MML from extended segment data.
+
+    Encodes octave/volume changes using ``<``/``>``/(``(``/``)``) and wraps
+    repeated notes in ``[...]cnt``.
+
+    Returns the MML text as a string.
+    """
+    mml_buffer: dict[int, list] = {ch: [] for ch in range(NUM_CH)}
+
+    for ch in range(NUM_CH):
+        ch_num   = ch + CH_OFFSET
+        track_id = track_id_to_mgsdrv(ch_num)
+        mml_buffer[ch].append(f'\n\n;ch{track_id} start')
+
+        segs     = segments[ch]
+        l_cnt    = 0
+        o_stamp  = 0
+        v_stamp  = -1
+        at_stamp = -1
+        is_first_group = True
+        mml      = ''
+        note_cnt = 0
+
+        for seg in segs:
+            length = seg.length()
+            if length <= 0:
+                continue
+
+            octave, scale = _opll_note(seg.fnum, seg.block)
+            v   = seg.mml_vol()
+            cnt = seg.cnt if hasattr(seg, 'cnt') else 1
+
+            if not seg.keyon or seg.fnum == 0:
+                scale = 'r'
+
+            # For repeated segments only the "last" is stored in the dst buffer.
+            # Use cnt==1 for rests (no [...]N wrapping).
+            note_cnt_use = cnt if scale != 'r' else 1
+
+            remaining = length
+            while remaining > 0:
+                ltmp = min(remaining, 255)
+
+                if note_cnt == 0:
+                    at_val = seg.inst
+                    if is_first_group:
+                        mml = f'\n{track_id} @{at_val} v{v} o{octave} l64'
+                        o_stamp = octave
+                        is_first_group = False
+                    else:
+                        mml = f'\n{track_id}'
+                        if at_val != at_stamp:
+                            mml += f' @{at_val}'
+                        if v != v_stamp:
+                            mml += f' v{v}'
+                    at_stamp = at_val
+                    v_stamp  = v
+
+                v_diff = v - v_stamp
+                note = get_mgs_note_token(ltmp, v, v_diff, scale, note_cnt_use,
+                                          octave, o_stamp, v_stamp)
+                mml = mml + note
+                l_cnt += ltmp
+
+                remaining -= ltmp
+                if remaining > 0:
+                    mml_buffer[ch].append(mml)
+                    mml = ''
+
+            note_cnt += 1
+            if note_cnt >= 8 or (not seg.keyon and v == 0):
+                mml_buffer[ch].append(mml)
+                mml = ''
+                mml_buffer[ch].append(f'\n;tick count: {l_cnt}\n')
+                note_cnt = 0
+
+            o_stamp = octave
+            v_stamp = v
+
+        if mml:
+            mml_buffer[ch].append(mml)
+
+        mml_buffer[ch].append(f'\n;ch{track_id} end: tick count: {l_cnt}\n')
+
+    # Build header
+    lines = []
+    lines.append(';[name=opll]')
+    lines.append('#opll_mode 1')
+    lines.append('#tempo 225')
+    lines.append(f'#title {{ "{stem}"}}')
+    for ch in range(NUM_CH):
+        ch_num   = ch + CH_OFFSET
+        track_id = track_id_to_mgsdrv(ch_num)
+        used  = estimate_mml_used(mml_buffer[ch])
+        alloc = estimate_alloc(used)
+        lines.append(f'#alloc {track_id}={alloc}')
+    lines.append('')
+    lines.append('')
+
+    header_text = '\n'.join(lines)
+    body_parts = [header_text]
+    for ch in range(NUM_CH):
+        for item in mml_buffer[ch]:
+            body_parts.append(item)
+
+    result = ''.join(body_parts)
+    if not result.endswith('\n'):
+        result += '\n'
+    return result
+
+
+# ---------------------------------------------------------------------------
 # Main pipeline
 # ---------------------------------------------------------------------------
 
@@ -388,6 +589,27 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     mml_path = os.path.join(output_dir, f'{stem}.opll.mml')
     with open(mml_path, 'w', newline='\n') as fh:
         fh.write(mml_text)
+
+    # ---- pass3.simple.mml  (same content as .opll.mml) ----
+    simple_mml_path = os.path.join(output_dir, f'{stem}.opll.pass3.simple.mml')
+    with open(simple_mml_path, 'w', newline='\n') as fh:
+        fh.write(mml_text)
+
+    # ---- pass3.simple.MGS.mml  (uncompressed MGS format) ----
+    ext_segs1 = _add_initial_cnt_opll(segments)
+    simple_mgs_text = _generate_mml_mgs_opll(ext_segs1, stem)
+    simple_mgs_path = os.path.join(output_dir,
+                                   f'{stem}.opll.pass3.simple.MGS.mml')
+    with open(simple_mgs_path, 'w', newline='\n') as fh:
+        fh.write(simple_mgs_text)
+
+    # ---- pass3.compress.MGS.mml  (cnt-optimised repeat compression) ----
+    ext_segs2 = _update_and_optimize_cnt_opll(ext_segs1)
+    compress_mgs_text = _generate_mml_mgs_opll(ext_segs2, stem)
+    compress_mgs_path = os.path.join(output_dir,
+                                     f'{stem}.opll.pass3.compress.MGS.mml')
+    with open(compress_mgs_path, 'w', newline='\n') as fh:
+        fh.write(compress_mgs_text)
 
     return mml_path
 

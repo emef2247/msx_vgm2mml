@@ -331,3 +331,69 @@ def test_above_horizon_trace_mml_matches_golden():
                 "--- diff (expected vs got) ---\n" + diff)
 
 
+# ──────────────────────────────────────────────────────────────────────────
+# MGS-format variant tests
+# ──────────────────────────────────────────────────────────────────────────
+
+def test_scc_mgs_variants_are_generated():
+    """process_scc_csv must produce all three pass3 MML variants."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, '02_StartingPoint')
+        stem = '02_StartingPoint'
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False, stem=stem)
+        for suffix in ('pass3.simple.mml',
+                       'pass3.simple.MGS.mml',
+                       'pass3.compress.MGS.mml'):
+            expected = os.path.join(out_dir, f'{stem}.scc.{suffix}')
+            assert os.path.isfile(expected), (
+                f"Missing SCC MGS variant: {expected}")
+
+
+def test_scc_simple_mml_matches_main_mml():
+    """pass3.simple.mml must be byte-for-byte identical to the main .scc.mml."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, '02_StartingPoint')
+        stem = '02_StartingPoint'
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False, stem=stem)
+        main_mml = _read(os.path.join(out_dir, f'{stem}.scc.mml'))
+        simple   = _read(os.path.join(out_dir, f'{stem}.scc.pass3.simple.mml'))
+        assert main_mml == simple, (
+            "pass3.simple.mml content differs from .scc.mml")
+
+
+def test_scc_mgs_simple_has_header():
+    """pass3.simple.MGS.mml must contain the standard SCC header."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, '02_StartingPoint')
+        stem = '02_StartingPoint'
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False, stem=stem)
+        content = _read(os.path.join(out_dir,
+                                     f'{stem}.scc.pass3.simple.MGS.mml'))
+        assert ';[name=scc lpf=1]' in content
+        assert '#tempo 225' in content
+
+
+def test_scc_mgs_compress_smaller_than_simple():
+    """pass3.compress.MGS.mml must be no larger than pass3.simple.MGS.mml."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, '02_StartingPoint')
+        stem = '02_StartingPoint'
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False, stem=stem)
+        simple_size = os.path.getsize(
+            os.path.join(out_dir, f'{stem}.scc.pass3.simple.MGS.mml'))
+        compress_size = os.path.getsize(
+            os.path.join(out_dir, f'{stem}.scc.pass3.compress.MGS.mml'))
+        assert compress_size <= simple_size, (
+            f"compress ({compress_size}B) should be <= simple ({simple_size}B)")
+
+
+def test_scc_mgs_simple_ends_with_newline():
+    """pass3.simple.MGS.mml must end with a newline (POSIX convention)."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, '02_StartingPoint')
+        stem = '02_StartingPoint'
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False, stem=stem)
+        with open(os.path.join(out_dir,
+                               f'{stem}.scc.pass3.simple.MGS.mml'), 'rb') as fh:
+            data = fh.read()
+        assert data.endswith(b'\n')

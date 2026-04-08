@@ -1,0 +1,233 @@
+;[name=scc lpf=1]
+#opll_mode 1
+#tempo 225
+#title { "02_StartingPoint"}
+#alloc 4=768
+#alloc 5=448
+#alloc 6=464
+#alloc 7=528
+
+@s00 = {001931475a6a757d7f7d756a5a47311900e7cfb9a6968b8380838b96a6b9cfe7}
+@s01 = {00407f4001c081c001407f4001c0014001e0012001f0011001ffffffff404040}
+@s02 = {00f0e0d0c0b0a090808080808080808080808080808080807f70605040302010}
+@s03 = {00407f400110202d37444e59636c73787c7f7c78736c594e44372d2010030201}
+
+
+
+;ch4 start
+4 @0 v10 o5 l64e16e16d+16d16c+16c16<b16a+16
+;tick count: 32
+
+4a16g+16g16f+16f4((e4((e8.((e8e
+;tick count: 101
+
+4 @1 v14<<c(c(c(c(cv15c>(c(c
+;tick count: 109
+
+4 v12c(c(cv15c<(c(c(c(c
+;tick count: 117
+
+4 v10cv15c>(c(c(c(c(cv15c
+;tick count: 125
+
+4 v14<c(c(c(c(cv15c>(c(c
+;tick count: 133
+
+4 v12c(c(cv15c<(c(c(c(c
+;tick count: 141
+
+4 v10cv15c>(c(c(c(c(cv15c
+;tick count: 149
+
+4 v14<c(c(c(c(cv15c>(c(c
+;tick count: 157
+
+4 v12c(c(cv15c<(c(c(c(c
+;tick count: 165
+
+4 v10cv15c>(c(c(c(c(cv15c
+;tick count: 173
+
+4 v14<c(c(c(c(cv15c>(c(c
+;tick count: 181
+
+4 v12c(c(cv15c<(c(c(c(c
+;tick count: 189
+
+4 v10cv15c>(c(c(c(c(cv15c
+;tick count: 197
+
+4 v14<c(c(c(c(cv15c>(c(c
+;tick count: 205
+
+4 v12c(c(cc<v14c(c(c(c
+;tick count: 213
+
+4 v10cv15c>(c(c(c(c(cv15c
+;tick count: 221
+
+4 v14<c(c(c(c(cv15c>(c(c
+;tick count: 229
+
+4 v12c(c(cv15c<(c(c(c(c
+;tick count: 237
+
+4 v10cv15c>(c(c(c(c(cv15c
+;tick count: 245
+
+4 v14<c(c(c(c(cv15c>(c(c
+;tick count: 253
+
+4 v12c(c(cv15c<(c(c(c(c
+;tick count: 261
+
+4 v10cv15c>(c(c(c(c(cv15c
+;tick count: 269
+
+4 v14<c(c(c(c(cv15c>(c(c
+;tick count: 277
+
+4 v12c(c(cv15c<(c(c(c(c
+;tick count: 285
+
+4 v10cv15c(c(c(c(c2.c8c32(c(c
+;tick count: 350
+
+4 v8c(c
+;ch4 end: tick count: 352
+
+
+;ch5 start
+5 @0 v7 o4 l64b16b16a+16a16g+16g16f+16f16
+;tick count: 32
+
+5e16d+16d16c+16c4<)b4((b8.((b8b
+;tick count: 101
+
+5 @3 v9>f)f)f(f(f(f(f(f
+;tick count: 109
+
+5 v5f(f(f4f16.f(f(fv8f)c)c
+;tick count: 139
+
+5 v11c(c(c(c(c(c(c(c
+;tick count: 147
+
+5 v3c4c16.c(c(cv8c)f)f)f(f
+;tick count: 177
+
+5 v9f(f(f(f(f(f(f4f16.f(f
+;tick count: 207
+
+5 v1ffv9a+)a+)a+(a+(a+(a+
+;tick count: 215
+
+5 v7a+(a+(a+(a+(a+4a+16.a+(a+(a+v8a+
+;tick count: 245
+
+5 v9>d+)d+)d+(d+(d+(d+(d+(d+
+;tick count: 253
+
+5 v5d+(d+(d+4d+16.d+(d+(d+v8d+)g+)g+
+;tick count: 283
+
+5 v11g+(g+(g+(g+(g+(g+(g+2.g+8.g+(g+
+;tick count: 351
+
+5 v3g+
+;ch5 end: tick count: 352
+
+
+;ch6 start
+6 @1 v10 o2 l64d8d32d4d8.d32e8e32d8d32(e8e32(e8e32(e8e32(e8e32.
+;tick count: 101
+
+6 @3 v9>>a+(a+(a+(a+(a+(a+(a+(a+
+;tick count: 109
+
+6 v1a+(a+32
+;tick count: 112
+
+6 v8a+)a+(a+(a+(a+(a+(a+(a+
+;tick count: 120
+
+6 v2a+(a+4a+8a+(a+32
+;tick count: 148
+
+6 v8a+)f(f(f(f(f(f(f
+;tick count: 156
+
+6 v2f(f4f8f(f32
+;tick count: 184
+
+6 v8f)a+(a+(a+(a+(a+(a+(a+
+;tick count: 192
+
+6 v2a+(a+4a+8a+(a+32
+;tick count: 220
+
+6 v8a+>)d+(d+(d+(d+(d+(d+(d+
+;tick count: 228
+
+6 v2d+(d+4d+8d+(d+32
+;tick count: 256
+
+6 v8d+)g+(g+(g+(g+(g+(g+(g+
+;tick count: 264
+
+6 v2g+(g+4g+8g+(g+32
+;tick count: 292
+
+6 v8g+>)c+(c+(c+(c+(c+(c+(c+2c+8.c+32.
+;tick count: 346
+
+6 v2c+(c+(c+16
+;tick count: 352
+
+;ch6 end: tick count: 352
+
+
+;ch7 start
+7 @2 v7 o4 l64e16e16<b16>e16f+16<b16>f+16>e16
+;tick count: 32
+
+7<b16>e16f+16<b16>f+16<b16>e16f+16
+;tick count: 64
+
+7 v5b16<b16>e16f+16(((b16<b16>e16f+8f+
+;tick count: 101
+
+7 @3 v9<a+)a+)a+(a+(a+(a+(a+(a+
+;tick count: 109
+
+7 v5a+(a+(a+4a+16.a+(a+(a+v8a+)f)f
+;tick count: 139
+
+7 v11f(f(f(f(f(f(f(f
+;tick count: 147
+
+7 v3f4f16.f(f(fv8f)a+)a+)a+(a+
+;tick count: 177
+
+7 v9a+(a+(a+(a+(a+(a+(a+4a+16.a+(a+
+;tick count: 207
+
+7 v1a+32>v9d+)d+)d+(d+(d+(d+(d+
+;tick count: 216
+
+7 v6d+(d+(d+(d+4d+16.d+(d+(d+v8d+)g+
+;tick count: 246
+
+7 v10g+)g+(g+(g+(g+(g+(g+(g+
+;tick count: 254
+
+7 v4g+(g+4g+16.g+(g+(g+v8g+>)c+)c+)c+
+;tick count: 284
+
+7 v10c+(c+(c+(c+(c+(c+2.c+8c+(c+(c+
+;tick count: 348
+
+7 v2c+(c+(c+32
+;tick count: 352
+
+;ch7 end: tick count: 352

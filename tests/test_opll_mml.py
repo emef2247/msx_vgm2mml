@@ -328,7 +328,8 @@ def test_opll_no_dump_no_pass_csv():
         opll_trace = results[5]
         out_dir = os.path.join(tmp, VGM_STEM)
         process_opll_csv(opll_trace, out_dir, stem=VGM_STEM, dump_passes=False)
-        pass_csvs = [f for f in os.listdir(out_dir) if 'pass' in f]
+        pass_csvs = [f for f in os.listdir(out_dir)
+                     if 'pass' in f and f.endswith('.csv')]
         assert pass_csvs == [], (
             f"Unexpected pass CSV files with dump_passes=False: {pass_csvs}")
 
@@ -349,3 +350,64 @@ def test_opll_mml_matches_golden():
         assert got == expected, (
             f"OPLL MML differs from golden reference.\n"
             f"Expected:\n{expected[:500]}\n\nGot:\n{got[:500]}")
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# MGS-format variant tests
+# ──────────────────────────────────────────────────────────────────────────
+
+def test_opll_mgs_variants_are_generated():
+    """process_opll_csv must produce all three pass3 MML variants."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM, dump_passes=False)
+        for suffix in ('pass3.simple.mml',
+                       'pass3.simple.MGS.mml',
+                       'pass3.compress.MGS.mml'):
+            expected = os.path.join(out_dir, f'{VGM_STEM}.opll.{suffix}')
+            assert os.path.isfile(expected), (
+                f"Missing OPLL MGS variant: {expected}")
+
+
+def test_opll_simple_mml_matches_main_mml():
+    """pass3.simple.mml must be byte-for-byte identical to the main .opll.mml."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM, dump_passes=False)
+        main_mml = _read(os.path.join(out_dir, f'{VGM_STEM}.opll.mml'))
+        simple   = _read(os.path.join(out_dir,
+                                      f'{VGM_STEM}.opll.pass3.simple.mml'))
+        assert main_mml == simple, (
+            "pass3.simple.mml content differs from .opll.mml")
+
+
+def test_opll_mgs_simple_has_header():
+    """pass3.simple.MGS.mml must contain the standard OPLL header."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM, dump_passes=False)
+        content = _read(os.path.join(out_dir,
+                                     f'{VGM_STEM}.opll.pass3.simple.MGS.mml'))
+        assert ';[name=opll]' in content
+        assert '#tempo 225' in content
+
+
+def test_opll_mgs_compress_smaller_than_or_equal_to_simple():
+    """pass3.compress.MGS.mml must be no larger than pass3.simple.MGS.mml."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM, dump_passes=False)
+        simple_size = os.path.getsize(
+            os.path.join(out_dir, f'{VGM_STEM}.opll.pass3.simple.MGS.mml'))
+        compress_size = os.path.getsize(
+            os.path.join(out_dir, f'{VGM_STEM}.opll.pass3.compress.MGS.mml'))
+        assert compress_size <= simple_size, (
+            f"compress ({compress_size}B) should be <= simple ({simple_size}B)")

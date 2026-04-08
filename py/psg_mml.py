@@ -9,7 +9,8 @@ import math
 
 sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import (get_ticks, get_octave, get_scale, get_tone_frequency,
-                       estimate_mml_used, estimate_alloc, ticks_to_mml_length)
+                       estimate_mml_used, estimate_alloc, ticks_to_mml_length,
+                       get_mgs_note_token)
 
 # PSG column indices
 COL_TYPE = 0
@@ -97,6 +98,226 @@ def get_hw_envelope_shape(row):
 
 def _row_to_csv(row):
     return ','.join(str(v) for v in row)
+
+
+# Pass-3 column indices (appended to the 34-column base)
+_COL_LDIFF = 34   # l - l_stamp
+_COL_ODIFF_EX = 35  # o_diff
+_COL_CNT = 36     # repeat count
+
+# Event types emitted in MGS MML lines (mirrors Tcl generate_mml_MGS condition)
+_MGS_TYPES = frozenset(
+    ('mode', 'fCA', 'fCB', 'aVC', 'wNC', 'vVC', 'ePL', 'evM', 'evS'))
+
+
+def _get_cnt(row):
+    """Return the cnt value from a pass-3 row (default 1 if not present)."""
+    if len(row) > _COL_CNT:
+        return _int(row[_COL_CNT])
+    return 1
+
+
+def _generate_mml_mgs_psg(work_buffer, ch_list, output_name_body, ch_offset=1):
+    """Generate PSG MGS-format MML from work_buffer (pass-3 rows).
+
+    Produces one line per mode segment (with /mode header) and encodes
+    octave/volume changes using </>/(/) and wraps repeated notes in [...]N.
+
+    Returns the MML text as a string.
+    """
+    mml_buffer = {ch: [] for ch in ch_list}
+
+    for ch in ch_list:
+        begin_flg = True
+        note_cnt = 0
+        ticks_count_flg = False
+        o_stamp = 0
+        v_stamp = 0
+        mml = ''
+
+        for row in work_buffer[ch]:
+            type_ = row[COL_TYPE]
+            ticks = _int(row[COL_TICKS])
+            l = _int(row[COL_L])
+            v = _int(row[COL_V])
+            o = _int(row[COL_O])
+            scale = row[COL_SCALE] if row[COL_SCALE] else 'r'
+            v_diff = _int(row[COL_VDIFF])
+            cnt = _get_cnt(row)
+
+            ch_int = _int(row[COL_CH])
+            vvctrl = _int(row[COL_VVCTRL])
+            mode = get_psg_mode(ch_int, vvctrl)
+            noise_period = get_noise_period(row)
+            hw_env_period = get_hw_envelope_frequency(row)
+            hw_env_shape = get_hw_envelope_shape(row)
+
+            if l != 0:
+                if type_ in _MGS_TYPES:
+                    ticks_count_flg = True
+                    if begin_flg or note_cnt == 0:
+                        if mml:
+                            mml_buffer[ch].append(mml)
+                        track = ch + ch_offset
+                        v_use = 0 if mode == 0 else v
+                        if mode == 0:
+                            mml = f'\n{track} /0 v{v_use}'
+                        elif mode == 1:
+                            mml = f'\n{track} /1 s{hw_env_shape} m{hw_env_period} v{v}'
+                        elif mode == 2:
+                            mml = (f'\n{track} /2 s{hw_env_shape}'
+                                   f' m{hw_env_period} n{noise_period} v{v}')
+                        elif mode == 3:
+                            mml = (f'\n{track} /3 s{hw_env_shape}'
+                                   f' m{hw_env_period} n{noise_period} v{v}')
+                        else:
+                            mml = f'\n{track} /0 v0'
+                        mml_buffer[ch].append(mml)
+                        o_stamp = o
+                        v_stamp = v
+                        begin_flg = False
+                        mml = ''
+
+                    note = get_mgs_note_token(l, v, v_diff, scale, cnt,
+                                             o, o_stamp, v_stamp)
+                    mml = mml + note
+                    note_cnt += 1
+
+                    if note_cnt > 8:
+                        mml_buffer[ch].append(mml)
+                        mml = ''
+                        note_cnt = 0
+
+                    if mode == 0:
+                        mml_buffer[ch].append(mml)
+                        tmp = f'; Ticks count: {ticks}'
+                        mml_buffer[ch].append(tmp)
+                        mml = ''
+                        note_cnt = 0
+                        ticks_count_flg = False
+
+                o_stamp = o
+                v_stamp = v
+            else:
+                if ticks_count_flg and mode == 0:
+                    tmp = f'; Ticks count: {ticks}'
+                    mml_buffer[ch].append(tmp)
+                    ticks_count_flg = False
+
+        mml_buffer[ch].append('')
+
+    # Build MML text
+    lines = []
+    lines.append(';[name=psg lpf=1]')
+    lines.append('#opll_mode 1')
+    lines.append('#tempo 225')
+    lines.append(f'#title {{ "{output_name_body}"}}')
+    for ch in ch_list:
+        track = ch + ch_offset
+        used = estimate_mml_used(mml_buffer[ch])
+        alloc = estimate_alloc(used)
+        lines.append(f'#alloc {track}={alloc}')
+    lines.append('')
+
+    header_text = '\n'.join(lines)
+    body_parts = [header_text]
+    for ch in ch_list:
+        for item in mml_buffer[ch]:
+            body_parts.append(item)
+
+    result = ''.join(body_parts)
+    if not result.endswith('\n'):
+        result += '\n'
+    return result
+
+
+def _update_and_optimize_cnt_psg(src_buffer, ch_list):
+    """Re-compute and optimise the cnt repeat counter for PSG.
+
+    Mirrors the Tcl ``update_and_optimize_cnt`` proc from psg.mml.tcl.
+
+    Repeat detection requires type in (fCA, fCB, aVC) AND all of
+    f, l, o, vDiff, mode, noisePeriod, hwEnvShape, hwEnvPeriod to match
+    the previous qualifying row.  The cnt value in the returned buffer's
+    last row is incremented rather than appending a new row.
+
+    Reset stamps when a fCA/fCB event silences the channel (mode == 0).
+
+    Returns a new dict (ch -> list-of-rows) with updated cnt values.
+    """
+    dst_buffer = {ch: [] for ch in ch_list}
+
+    for ch in ch_list:
+        f_stamp = None
+        l_stamp = None
+        o_stamp = None
+        v_diff_stamp = 0
+        mode_stamp = None
+        noise_period_stamp = None
+        hw_env_shape_stamp = None
+        hw_env_period_stamp = None
+        cnt_stamp = 0
+
+        for row in src_buffer[ch]:
+            row = list(row)  # working copy
+            type_ = row[COL_TYPE]
+            l = _int(row[COL_L])
+            f = _int(row[COL_F])
+            o = _int(row[COL_O])
+            v_diff = _int(row[COL_VDIFF])
+            cnt = _get_cnt(row)
+
+            ch_int = _int(row[COL_CH])
+            vvctrl = _int(row[COL_VVCTRL])
+            mode = get_psg_mode(ch_int, vvctrl)
+            noise_period = get_noise_period(row)
+            hw_env_shape = get_hw_envelope_shape(row)
+            hw_env_period = get_hw_envelope_frequency(row)
+
+            # Reset stamps when a fCA/fCB event silences the channel
+            if type_ in ('fCA', 'fCB') and mode == 0:
+                f_stamp = None
+                l_stamp = None
+                o_stamp = None
+                v_diff_stamp = 0
+                mode_stamp = None
+                noise_period_stamp = None
+                hw_env_shape_stamp = None
+                hw_env_period_stamp = None
+                cnt_stamp = 0
+
+            if l != 0:
+                if type_ in ('fCA', 'fCB', 'aVC'):
+                    if (f_stamp is not None and
+                            f == f_stamp and l == l_stamp and o == o_stamp and
+                            v_diff == v_diff_stamp and mode == mode_stamp and
+                            noise_period == noise_period_stamp and
+                            hw_env_shape == hw_env_shape_stamp and
+                            hw_env_period == hw_env_period_stamp):
+                        cnt_stamp += 1
+                        cnt = cnt_stamp
+                        row[_COL_CNT] = str(cnt)
+                        # Replace last row in dst with updated current row
+                        if dst_buffer[ch]:
+                            dst_buffer[ch][-1] = row
+                    else:
+                        dst_buffer[ch].append(row)
+                else:
+                    dst_buffer[ch].append(row)
+
+                f_stamp = f
+                l_stamp = l
+                o_stamp = o
+                v_diff_stamp = v_diff
+                mode_stamp = mode
+                noise_period_stamp = noise_period
+                hw_env_shape_stamp = hw_env_shape
+                hw_env_period_stamp = hw_env_period
+                cnt_stamp = cnt
+            else:
+                dst_buffer[ch].append(row)
+
+    return dst_buffer
 
 
 def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
@@ -479,7 +700,7 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
         info = f"\n;ch{ch + ch_offset} end: tick count: {l_cnt}\n"
         mml_buffer1[ch].append(info)
 
-    # Write pass3.mml
+    # Write pass3.mml (simple format, backward-compatible output)
     pass3_mml_path = os.path.join(output_dir, f"{output_name_body}.psg.mml")
     with open(pass3_mml_path, 'w', newline='\n') as f:
         f.write(';[name=psg lpf=1]\n')
@@ -495,6 +716,47 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
         for ch in ch_list:
             for item in mml_buffer1[ch]:
                 f.write(item)
+
+    # -------------------------------------------------------
+    # Generate .psg.pass3.simple.mml  (same content as .psg.mml)
+    # -------------------------------------------------------
+    simple_mml_path = os.path.join(output_dir,
+                                   f"{output_name_body}.psg.pass3.simple.mml")
+    with open(simple_mml_path, 'w', newline='\n') as f:
+        f.write(';[name=psg lpf=1]\n')
+        f.write('#opll_mode 1\n')
+        f.write('#tempo 225\n')
+        f.write(f'#title {{ "{output_name_body}"}}\n')
+        for ch in ch_list:
+            track = ch + ch_offset
+            used = estimate_mml_used(mml_buffer1[ch])
+            alloc = estimate_alloc(used)
+            f.write(f'#alloc {track}={alloc}\n')
+        f.write('\n')
+        for ch in ch_list:
+            for item in mml_buffer1[ch]:
+                f.write(item)
+
+    # -------------------------------------------------------
+    # Generate .psg.pass3.simple.MGS.mml  (uncompressed MGS format)
+    # -------------------------------------------------------
+    simple_mgs_text = _generate_mml_mgs_psg(
+        work_buffer1, ch_list, output_name_body, ch_offset)
+    simple_mgs_path = os.path.join(output_dir,
+                                   f"{output_name_body}.psg.pass3.simple.MGS.mml")
+    with open(simple_mgs_path, 'w', newline='\n') as f:
+        f.write(simple_mgs_text)
+
+    # -------------------------------------------------------
+    # Generate .psg.pass3.compress.MGS.mml  (cnt-optimised repeat compression)
+    # -------------------------------------------------------
+    work_buffer2 = _update_and_optimize_cnt_psg(work_buffer1, ch_list)
+    compress_mgs_text = _generate_mml_mgs_psg(
+        work_buffer2, ch_list, output_name_body, ch_offset)
+    compress_mgs_path = os.path.join(output_dir,
+                                     f"{output_name_body}.psg.pass3.compress.MGS.mml")
+    with open(compress_mgs_path, 'w', newline='\n') as f:
+        f.write(compress_mgs_text)
 
     return pass3_mml_path
 
