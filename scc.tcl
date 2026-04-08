@@ -622,7 +622,7 @@ namespace eval scc {
 
 		set time $::scc::commonTime
 		set ticks [get_ticks $time]
-		set line "$type,$time,$ch,$ticks,,,,,,,,,$enBit,,,,,,,,,$wtbOffset,$wtbLast,$wtblIndex,$f1Ctrl,$f2Ctrl,$vCtrl,$enCtrl"
+		set line "$type,$time,$ch,$ticks,,,,,,,,,$enBit,,,,,,,,,,$wtbOffset,$wtbLast,$wtblIndex,$f1Ctrl,$f2Ctrl,$vCtrl,$enCtrl"
 
 		lappend ::scc::bufferAccessLog($ch) $line
 		lappend ::scc::bufferAccessTrace $line
@@ -632,7 +632,7 @@ namespace eval scc {
 		set log_csv_file_name [format %s%s [file rootname $file_name] "_log.scc.csv"]
 		set log_csv_file_handle [open $log_csv_file_name "w"]
 	
-		set header "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtblIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl"
+		set header "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtblIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl"
 		puts $log_csv_file_handle $header
 		for {set ch 0} {$ch < $::scc::num_of_ch} {incr ch} {			
 			foreach line $::scc::bufferAccessLog($ch) {
@@ -647,7 +647,7 @@ namespace eval scc {
 		set trace_csv_file_name  [format %s%s [file rootname $file_name] "_trace.scc.csv"]
 		set trace_csv_file_handle [open $trace_csv_file_name "w"]
 	
-		set header "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtblIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl"
+		set header "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,cnt,envlpIndex,nE,nF,offset,data,wtblIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl"
 		puts $trace_csv_file_handle $header
 		foreach line $::scc::bufferAccessTrace {
 			puts $trace_csv_file_handle $line

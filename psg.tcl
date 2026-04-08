@@ -656,7 +656,7 @@ namespace eval psg {
 		set timbreIndex        [getTimbreIndex $timbre]
 
 
-		set line "$type,$time,$ch,$ticks,,,,,,,,,$mode,,,,,,,,,,,,$fCtrlA,$fCtrlB,$wNCtrl,$vVCtrl,$aVCtrl,$envPCtrlL,$envPCtrlM,$envShape,$ioParallel1,$ioParallel2"
+		set line "$type,$time,$ch,$ticks,,,,,,,,,$mode,,,,,,,,,,,,,$fCtrlA,$fCtrlB,$wNCtrl,$vVCtrl,$aVCtrl,$envPCtrlL,$envPCtrlM,$envShape,$ioParallel1,$ioParallel2"
 		lappend ::psg::bufferAccessLog($ch) $line
 		lappend ::psg::bufferAccessTrace $line
 		
@@ -668,7 +668,7 @@ namespace eval psg {
 		set log_csv_file_name [format %s%s [file rootname $file_name] "_log.psg.csv"]
 		set log_csv_file_handle [open $log_csv_file_name "w"]
 		
-		set header "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2"
+		set header "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2"
 
 		puts $log_csv_file_handle $header
 		for {set ch 0} {$ch < $::psg::num_of_ch} {incr ch} {			

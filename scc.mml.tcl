@@ -8,7 +8,7 @@ namespace eval mml_scc {
     #set script_dir ".\/$script_dir"
     set dir_path   [file dirname $script_dir]
     set csv_dir    ${dir_path}/csv
-    set output_dir ${dir_path}/output
+    set output_dir ${dir_path}/outputs_tcl
     set source_dir ${dir_path}/atrace_files
     set lib_dir    ${dir_path}/libs
 	
@@ -173,8 +173,8 @@ namespace eval mml_scc {
 	
 	proc get_enable {  line } {
 		#-----------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26    27      28
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
 		#------------------------------------------------------------------------------------------------------------------------------------------
 		set en [lindex $line 12]
 		
@@ -183,11 +183,11 @@ namespace eval mml_scc {
 	
 	proc get_frequency_from_line { line } {
 		#-----------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26    27     28
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
 		#------------------------------------------------------------------------------------------------------------------------------------------
-		set f1 [lindex $line 24]
-		set f2 [lindex $line 25]
+		set f1 [lindex $line 25]
+		set f2 [lindex $line 26]
 		set f [expr $f1 + (256*$f2)]
 		
 		return $f
@@ -195,21 +195,21 @@ namespace eval mml_scc {
 	
 	proc get_volume {  line } {
 		#-----------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26    27    28
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
 		#-----------------------------------------------------------------------------------------------------------------------------------------
-		set vCtrl    [lindex $line 26]
+		set vCtrl    [lindex $line 27]
 		set v [expr $vCtrl & 0xf ]
 		return $v
 	}
 	
 	proc get_wtbIndex_from_line {  line } {
 		#-----------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26    27    28
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
 		#-----------------------------------------------------------------------------------------------------------------------------------------
 		set wtbIndex 0
-		set wtbIndex [lindex $line 23]  
+		set wtbIndex [lindex $line 24]  
 
 		return $wtbIndex
 	}
@@ -277,8 +277,8 @@ namespace eval mml_scc {
         set buffer [regsub {^\x20+} $buffer {}]
 		
 		# file header: 
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27     28
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
 		set tmp [split $buffer ","]
 		set ch  [lindex $tmp 2]
 		
@@ -464,7 +464,7 @@ namespace eval mml_scc {
 		}
 		return $mml
 	}
-	
+
 	proc generate_mml {} {
 		variable chOffset
 		variable num_of_ch
@@ -490,8 +490,8 @@ namespace eval mml_scc {
 			
 			foreach line $workBuffer1($ch) {
 				#-----------------------------------------------------------------------------------------------------------------------------------------
-				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26    27  28
+				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
 				#-----------------------------------------------------------------------------------------------------------------------------------------
 				set type        [lindex $line 0]
 				set time        [lindex $line 1]
@@ -510,13 +510,14 @@ namespace eval mml_scc {
 				set vDiff       [lindex $line 14]
 				set vCnt        [lindex $line 15]
 				set oDiff       [lindex $line 16]
-				set envlp       [lindex $line 17]
-				set envlpIndex  [lindex $line 18]
-				set nE          [lindex $line 19]
-				set nF          [lindex $line 20]
-				set offset      [lindex $line 21]
-				set data        [lindex $line 22]
-				set wtbIndex   [lindex $line 23]
+				set cnt         [lindex $line 17]
+				set envlp       [lindex $line 18]
+				set envlpIndex  [lindex $line 19]
+				set nE          [lindex $line 20]
+				set nF          [lindex $line 21]
+				set offset      [lindex $line 22]
+				set data        [lindex $line 23]
+				set wtbIndex   [lindex $line 24]
 				if {$l > 0 } {		
 					set length $l
 					set ltmp $l
@@ -573,15 +574,143 @@ namespace eval mml_scc {
 		}
 	}
 
-	proc generate_mml2 {} {
+	proc get_mml_MGS { line oStamp vStamp} {			
+		#-----------------------------------------------------------------------------------------------------------------------------------------
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27    28
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+		#-----------------------------------------------------------------------------------------------------------------------------------------
+		set type        [lindex $line 0]
+		set time        [lindex $line 1]
+		set ch          [lindex $line 2]
+		set ticks       [lindex $line 3]
+		set l           [lindex $line 4]
+		set fL          [lindex $line 5]
+		set v           [lindex $line 6]
+		set fV          [lindex $line 7]
+		set f           [lindex $line 8]
+		set fF          [lindex $line 9]
+		set o           [lindex $line 10]
+		set scale       [lindex $line 11]
+		set en          [lindex $line 12]
+		set fEn         [lindex $line 13]
+		set vDiff       [lindex $line 14]
+		set vCnt        [lindex $line 15]
+		set oDiff       [lindex $line 16]
+		set cnt         [lindex $line 17]
+		set envlp       [lindex $line 18]
+		set envlpIndex  [lindex $line 19]
+		set nE          [lindex $line 20]
+		set nF          [lindex $line 21]
+		set offset      [lindex $line 22]
+		set data        [lindex $line 23]
+		set wtbIndex    [lindex $line 24]
+			
+			
+		set oMML ""
+		set oDiff [expr $o- $oStamp]
+		if {$oDiff > 3 || $oDiff < -3} {
+			set oMML "o$o"
+		} else {
+			if {$oDiff < 0 } {
+				while {$oDiff != 0 } {
+					# Up 1 in octave
+					set oMML "${oMML}\<"
+					set oDiff [expr $oDiff + 1]
+				}
+			} elseif {$oDiff > 0 } {
+				while {$oDiff != 0 } {
+					# Down 1 in volume
+					set oMML "${oMML}\>"
+					set oDiff [expr $oDiff - 1]
+				}
+			}
+		}
+		set mml ""
+		if {$cnt == 1 } { set vDiff [expr $v - $vStamp] }
+		if {$vDiff > 3 || $vDiff < -3} {
+			#puts -nonewline $::mml_util::fd "v$v"
+			set mml "${mml}v$v"
+		} else {
+			if {$vDiff < 0 } {
+				while {$vDiff != 0 } {
+					# Up 1 in volume
+					#puts -nonewline $::mml_util::fd "("
+					set mml "${mml}\("
+					set vDiff [expr $vDiff + 1]
+				}
+			} elseif {$vDiff > 0 } {
+				while {$vDiff != 0 } {
+					# Down 1 in volume
+					#puts -nonewline $::mml_util::fd ")"
+					set mml "${mml}\)"
+					set vDiff [expr $vDiff - 1]
+				}
+			}
+		}
+		
+		#set t [get_tone $f]
+		set body "${scale}"
+		set length $l
+		while {$length > 0} {
+		 	if {$length >= 64 } {
+		 		set mml "${mml}${body}1"
+		 		set length [expr $length - 64]
+			} elseif {$length >= 48 } {
+		 		set mml "${mml}${body}2."
+		 		set length [expr $length - 48]
+		 	} elseif {$length >= 32 } {
+		 		set mml "${mml}${body}2"
+		 		set length [expr $length - 32]
+		 	} elseif {$length >= 16 } {
+		 		set mml "${mml}${body}4"
+		 		set length [expr $length - 16]
+		 	} elseif {$length >= 12 } {
+		 		set mml "${mml}${body}8."
+		 		set length [expr $length - 12]
+		 	} elseif {$length >= 8 } {
+		 		set mml "${mml}${body}8"
+		 		set length [expr $length - 8]
+		 	} elseif {$length >= 6 } {
+		 		set mml "${mml}${body}16."
+		 		set length [expr $length - 6]		
+		 	} elseif {$length >= 4 } {
+		 		set mml "${mml}${body}16"
+		 		set length [expr $length - 4]		
+		 	} elseif {$length == 3 } {
+		 		set mml "${mml}${body}32."
+		 		set length [expr $length - 3]
+			} elseif {$length == 2 } {
+		 		set mml "${mml}${body}32"
+		 		set length [expr $length - 2]
+		 	} elseif {$length == 1 } {
+		 		set mml "${mml}${body}"
+		 		#puts -nonewline $::mml_util::fd $mml
+		 		set length [expr $length - 1]	
+		 	} else {
+		 		set mml "${mml}\[$body\]$length"
+		 		set length [expr $length - $length]
+		    }
+		 }
+
+		puts "---> get_mml_MGS: ---> body: $mml"
+		if {$cnt > 1} {
+			set mml "${oMML}\[${mml}\]$cnt"
+		} else {
+			set mml "${oMML}${mml}"
+		}
+		puts "---> get_mml_MGS: ---> mml: $mml"
+		return $mml
+	}
+	
+	proc generate_mml_MGS {workBufferName mmlBufferName} {
 		variable chOffset
 		variable num_of_ch
-		variable workBuffer1
-		variable workBuffer2
 		variable mmlBuffer1
 		variable mmlBuffer1F
-		
-		foreach ch $::mml_scc::chList {
+		upvar $workBufferName workBuffer
+		upvar $mmlBufferName mmlBuffer
+
+		for {set ch 0} {$ch < $num_of_ch} {incr ch} {
 			set beginFlg 1
 			set newLineFlg 0
 			set noteCnt 0
@@ -589,21 +718,14 @@ namespace eval mml_scc {
 			set mml ""
 			set lCnt 0
 			set ticksCountFlg 0
-			set lStamp 0
 			set oStamp 0
-			set vStamp 0
-			set fOStamp 0
-			set fVStamp 0
-			set envlp ",,"
-			set envlpIndex 0
-			set envlpIndexStamp 0
-			
-			set ch_start "\n\n;ch[expr $ch + $chOffset] start"
-			lappend mmlBuffer1($ch) $ch_start
-			foreach line $workBuffer1($ch) {
+			set vStamp    0
+			set cntStamp 0
+			set wtbIndexStamp 0
+			foreach line $workBuffer($ch) {
 				#-----------------------------------------------------------------------------------------------------------------------------------------
-				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27    28
+				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
 				#-----------------------------------------------------------------------------------------------------------------------------------------
 				set type        [lindex $line 0]
 				set time        [lindex $line 1]
@@ -622,106 +744,106 @@ namespace eval mml_scc {
 				set vDiff       [lindex $line 14]
 				set vCnt        [lindex $line 15]
 				set oDiff       [lindex $line 16]
-				set envlp       [lindex $line 17]
-				set envlpIndex  [lindex $line 18]
-				set nE          [lindex $line 19]
-				set nF          [lindex $line 20]
-				set offset      [lindex $line 21]
-				set data        [lindex $line 22]
-				set wtbIndex   [lindex $line 23]
-			
-				if {$fL > 0  && ($type == "f1Ctrl" || $type == "f2Ctrl")} {
-					set length $fL
-					set ltmp $fL
-					set o [::mml_util::get_octave $fF]
-					set scale [::mml_util::get_scale $fF]
-					while {$length > 0} {		
-						if { $length > 255} {
-							set ltmp 255
-						} else {
-							set ltmp $length
+				set cnt         [lindex $line 17]
+				set envlp       [lindex $line 18]
+				set envlpIndex  [lindex $line 19]
+				set nE          [lindex $line 20]
+				set nF          [lindex $line 21]
+				set offset      [lindex $line 22]
+				set data        [lindex $line 23]
+				set wtbIndex    [lindex $line 24]				
+				#set lCnt [expr $lCnt + $l]
+				set tmp "; $line"
+				puts $tmp
+				if {$l != 0 } {
+					if {$l != 0 && ($type == "f1Ctrl" || $type == "f2Ctrl" ||$type == "vCtrl" || $type == "enBit")} {
+						set ticksCountFlg 1
+						if {$beginFlg || $wtbIndex != $wtbIndexStamp} {
+							if {$mml != ""} {
+								lappend mmlBuffer($ch) $mml
+							}
+							set mml "\n[expr $ch + $chOffset] @$wtbIndex v${v}o${o}l64"
+							lappend mmlBuffer($ch) $mml
+							set oStamp $o
+							set vStamp $v
+							puts ";/*--------------------------------"
+							puts "; State of pre definition: $mml"
+							set beginFlg 0
+							set newLineFlg 1
 						}
-						#if {$en == 0 } {
-						#	set v 0
-						#}
 
-						if {$noteCnt == 0} {
-							set mml "\n[expr $ch + $chOffset] @${wtbIndex} v${fV}"
+						if {$newLineFlg} {
+							set newLineFlg 0
+							set mml "[expr $ch+$chOffset] "
 						}
 						
-						if {$fV != $fVStamp && $noteCnt != 0} {
-							set mml "${mml} v${fV}"
-						}
-						
-						if {$o != $oStamp} {
-							set mml "${mml} o${o}"
-						}
-						
-						set mml "${mml} ${scale}%${ltmp}"
-						set lCnt [expr $lCnt + $ltmp]
+				
+						set note [get_mml_MGS $line $oStamp $vStamp]
+						set mml ${mml}${note}					
 						incr noteCnt
-
-						set length [expr $length - $ltmp ]
+						
+						if {$noteCnt > 8 } {
+							lappend mmlBuffer($ch) $mml
+							set mml ""
+							set noteCnt 0
+							set newLineFlg 1
+						}
+						
+						if {$en == 0} {
+							lappend mmlBuffer($ch) $mml
+							set tmp "; Ticks count: $ticks"
+							puts $tmp
+							lappend mmlBuffer($ch) $tmp
+							set mml ""
+							set noteCnt 0
+							set newLineFlg 1
+							set ticksCountFlg 0
+						}
 					}
-					
-					if {$noteCnt >= 8 ||( $type == "enBit" && $fEn == 0) } {
-						lappend mmlBuffer1($ch) $mml
-						set mml ""
-						set noteCnt 0
-						set info "\n;ch[expr $ch + $chOffset] : tick count: $lCnt\n"
-						lappend mmlBuffer1($ch) $info
+					set oStamp $o
+					set vStamp $v
+					set cntStamp $cnt
+					set wtbIndexStamp $wtbIndex
+				} else {
+					if {$ticksCountFlg && $en == 0 } {
+						set tmp "; Ticks count: $ticks"
+						puts $tmp
+						lappend mmlBuffer($ch) $tmp
+						set ticksCountFlg 0
 					}
-					set fOStamp $o
-					set fVStamp $v
 				}
 			}
-			if {$mml != "" } {
-				lappend mmlBuffer1($ch) $mml
-			}
-			
-			# End of the ch 
-			set info "\n;ch[expr $ch + $chOffset] end: tick count: $lCnt\n"
-			lappend mmlBuffer1($ch) $info
-			incr lineNo
+			set tmp ""
+			lappend mmlBuffer($ch) $tmp
 		}
 	}
-	
-	proc generate_mml3 {} {
-		variable chOffset
+
+	proc update_and_optimize_cnt {srcWorkBufferName dstWorkBufferName} {
 		variable num_of_ch
-		variable workBuffer1
-		variable workBuffer2
-		variable mmlBuffer1
-		variable mmlBuffer1F
+
+		upvar $srcWorkBufferName srcBuffer
+		upvar $dstWorkBufferName dstBuffer
 		
-		init_envlp
-		
-		foreach ch $::mml_scc::chList {
-			set beginFlg 1
-			set newLineFlg 0
-			set noteCnt 0
+				
+		for {set ch 0} {$ch < $num_of_ch} {incr ch} {
 			set lineNo 0
-			set mml ""
-			set lCnt 0
-			set vCnt 0
-			set vCntStamp 0
-			set vLength 0
-			set vLengthStamp 0
-			set ticksCountFlg 0
-			set vStamp 0
-			set oStamp 0
-			set fVStamp    0
-			set envlp ",,"
-			set envlpIndex 0
-			set envlpIndexStamp 0
-			
-			set ch_start "\n\n;ch[expr $ch + $chOffset] start"
-			lappend mmlBuffer1($ch) $ch_start
-			
-			foreach line $workBuffer1($ch) {
+			set first_line_flg 1
+			set lineStamp ""
+			set typeStamp ""
+			set fStamp ""
+			set vStamp ""
+			set oStamp ""
+			set tStamp ""
+			set lStamp ""
+			set lCntStamp ""
+			set lineStamp ""
+			set vDiffStamp 0
+			set cntStamp 0
+			set repeatCntStamp 0
+			foreach line $srcBuffer($ch) {
 				#-----------------------------------------------------------------------------------------------------------------------------------------
-				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27    28
+				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
 				#-----------------------------------------------------------------------------------------------------------------------------------------
 				set type        [lindex $line 0]
 				set time        [lindex $line 1]
@@ -738,86 +860,73 @@ namespace eval mml_scc {
 				set en          [lindex $line 12]
 				set fEn         [lindex $line 13]
 				set vDiff       [lindex $line 14]
-				#set vCnt        [lindex $line 15]
+				set vCnt        [lindex $line 15]
 				set oDiff       [lindex $line 16]
-				set envlp       [lindex $line 17]
-				set envlpIndex  [lindex $line 18]
-				set nE          [lindex $line 19]
-				set nF          [lindex $line 20]
-				set offset      [lindex $line 21]
-				set data        [lindex $line 22]
-				set wtbIndex   [lindex $line 23]
-			
-				set envStart    0
-				set envEnd      0
-				set info ""
-				set envlpIndexStamp 0
-				#set debug_info "\n;$lineNo: $line "
-				#lappend mmlBuffer1($ch) $debug_info
-				if {$fL > 0  && ($type == "f1Ctrl" || $type == "f2Ctrl")} {
-					set length $fL
-					set ltmp $fL
-					set o [::mml_util::get_octave $fF]
-					set scale [::mml_util::get_scale $fF]
-					while {$length > 0} {		
-						if { $length > 255} {
-							set ltmp 255
-						} else {
-							set ltmp $length
-						}
-						#if {$en == 0 } {
-						#	set v 0
-						#}
-
-						if {$noteCnt == 0} {
-							set mml "\n[expr $ch + $chOffset] @${wtbIndex} v15 @e[format %02d ${envlpIndex}]"
-						}
-						
-						
-						if {$o != $oStamp} {
-							set mml "${mml} o${o}"
-						}
-						
-						if {$envlpIndex != $envlpIndexStamp} {
-							set mml "${mml} @e[format %02d ${envlpIndex}]"
-						}
-						
-						set mml "${mml} ${scale}%${ltmp}"
-						set lCnt [expr $lCnt + $ltmp]
-						incr noteCnt
-
-						set length [expr $length - $ltmp ]
-					}
-					
-					if {$noteCnt >= 8 ||( $type == "enBit" && $fEn == 0) } {
-						lappend mmlBuffer1($ch) $mml
-						set mml ""
-						set noteCnt 0
-						set info "\n;ch[expr $ch + $chOffset] : tick count: $lCnt\n"
-						lappend mmlBuffer1($ch) $info
-					}
-					
-					set fOStamp $o
-					set fVStamp $fV
-					set vStamp  $v
-					set envlpIndexStamp $envlpIndex
+				set cnt         [lindex $line 17]
+				set envlp       [lindex $line 18]
+				set envlpIndex  [lindex $line 19]
+				set nE          [lindex $line 20]
+				set nF          [lindex $line 21]
+				set offset      [lindex $line 22]
+				set data        [lindex $line 23]
+				set wtbIndex    [lindex $line 24]
+				
+				if {($type == "f1Ctrl" || $type == "f2Ctrl") && $en == 0} {
+					set lineStamp ""
+					set typeStamp ""
+					set fStamp ""
+					set vStamp ""
+					set oStamp ""
+					set scaleStamp ""
+					set lStamp ""
+					#set lCntStamp ""
+					set vDiffStamp 0
+					set cntStamp 0
 				}
+				
+				if {$l != 0 } {
+					if {$l != 0 && ($type == "f1Ctrl" || $type == "f2Ctrl" ||$type == "vCtrl" )} {
+						#puts $line
+						puts "$f:$fStamp | $l:$lStamp | $o:$oStamp | $vDiff:$vDiffStamp"
+						if { $f == $fStamp && $l == $lStamp && $o == $oStamp && $vDiff == $vDiffStamp} {
+							#set lCnt [expr     $lCntStamp + $l]
+							#set line [lreplace $line 8 8 $lCnt]
+							set cnt [incr cntStamp]
+							puts "cnt"
+							set line [lreplace $line 17 17 $cnt]
+							puts "Original: [lindex $dstBuffer($ch) end]"
+							puts "---->new: $line"
+							set dstBuffer($ch) [lreplace $dstBuffer($ch) end end $line]
+							puts  "Replaced: [lindex $dstBuffer($ch) end]"
+						} else {
+							lappend dstBuffer($ch) $line
+						}
+					} else {
+						lappend dstBuffer($ch) $line
+					}
+					
+					set lineStamp $line
+					set typeStamp $type
+					set fStamp $f
+					set vStamp $v
+					set oStamp $o
+					set scaleStamp $scale
+					set lStamp $l
+					#set lCntStamp $lCnt
+					set vDiffStamp $vDiff
+					set cntStamp $cnt
+				} else {
+					lappend dstBuffer($ch) $line
+				}
+				incr lineNo
 			}
-			if {$mml != "" } {
-				lappend mmlBuffer1($ch) $mml
-			}
-			
-			# End of the ch 
-			set info "\n;ch[expr $ch + $chOffset] end: tick count: $lCnt\n"
-			lappend mmlBuffer1($ch) $info
-			incr lineNo
 		}
 	}
 	
 	proc print_list {line} {
 				#-----------------------------------------------------------------------------------------------------------------------------------------
-				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27    28
+				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
 				#-----------------------------------------------------------------------------------------------------------------------------------------
 				set type        [lindex $line 0]
 				set time        [lindex $line 1]
@@ -836,16 +945,17 @@ namespace eval mml_scc {
 				set vDiff       [lindex $line 14]
 				set vCnt        [lindex $line 15]
 				set oDiff       [lindex $line 16]
-				set envlp       [lindex $line 17]
-				set envlpIndex  [lindex $line 18]
-				set nE          [lindex $line 19]
-				set nF          [lindex $line 20]
-				set offset      [lindex $line 21]
-				set data        [lindex $line 22]
-				set wtbIndex   [lindex $line 23]
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
-		puts "type:$type,time:$time,ch$:ch,ticks:$ticks,l:$l,fL:$fL,v:$v,fV:$fV,f:$f,fF:$fF,o:$o,scale:$scale,en:$en,fEn:$fEn,vDiff:$vDiff,vCnt:$vCnt,oDiff:$oDiff,envlp:$envlp,envlpIndex:$envlpIndex,nE:$nE,nF:$nF,offset:$offset,data:$data,wtbIndex:$wtbIndex"
+				set cnt         [lindex $line 17]
+				set envlp       [lindex $line 18]
+				set envlpIndex  [lindex $line 19]
+				set nE          [lindex $line 20]
+				set nF          [lindex $line 21]
+				set offset      [lindex $line 22]
+				set data        [lindex $line 23]
+				set wtbIndex    [lindex $line 24]
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27    28
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+		puts "type:$type,time:$time,ch$:ch,ticks:$ticks,l:$l,fL:$fL,v:$v,fV:$fV,f:$f,fF:$fF,o:$o,scale:$scale,en:$en,fEn:$fEn,vDiff:$vDiff,vCnt:$vCnt,oDiff:$oDiff,$cnt,envlp:$envlp,envlpIndex:$envlpIndex,nE:$nE,nF:$nF,offset:$offset,data:$data,wtbIndex:$wtbIndex"
 
 	}
 	
@@ -875,6 +985,45 @@ namespace eval mml_scc {
 		}
 		return 0
 	}
+
+	proc copy_registers {src dst } {
+		set offset    [lindex $src 22]
+		set dst  [lreplace $dst 22 22 $offset]
+						
+		set data      [lindex $src 23]
+		set dst  [lreplace $dst 23 23 $data]
+						
+		set f1Ctrl    [lindex $src 25]
+		set dst  [lreplace $dst 25 25 $f1Ctrl]
+						
+		set f2Ctrl    [lindex $src 26]
+		set dst  [lreplace $dst 26 26 $f2Ctrl]
+						
+		set vCtrl     [lindex $src 27]
+		set dst  [lreplace $dst 27 27 $vCtrl]
+						
+		set enCtrl    [lindex $src 28]
+		set dst  [lreplace $dst 28 28 $enCtrl]
+		
+		return $dst
+	}
+	
+	proc is_positive_to_negative { vDiff vDiffStamp } {
+		if { $vDiffStamp > 0 && $vDiff < 0 } {
+			return 1
+		} else {
+			return 0
+		}
+	}
+	
+	proc is_negative_to_positive { vDiff vDiffStamp } {
+		if { $vDiffStamp < 0 && $vDiff > 0 } {
+			return 1
+		} else {
+			return 0
+		}
+	}
+	
 	
     proc extrac_to_csv {directory file_name} {
 		variable fd
@@ -889,25 +1038,13 @@ namespace eval mml_scc {
 		variable mmlBuffer1F
 		
 		init
-
-		# eg. set path "inputs/01_AbovetheHorizon/01_AbovetheHorizon_log.scc.csv"
-		# eg. set base [file tail $path]          ;# → 01_AbovetheHorizon_log.scc.csv
-		# eg. set root [file rootname $base]      ;# → 01_AbovetheHorizon_log.scc
-		# eg. set root [file rootname $root]      ;# → 01_AbovetheHorizon_log
-
-		set path $file_name
-		set base [file tail $path] 
-		set root [file rootname $base]
-		set main [file rootname $root]
-		# Set up the file name body for output
-        set output_name_body $root
 		
 		# Set up the file name body for output
         set output_name_body [string range $file_name [expr [string last "/" $file_name ] + 1] [expr [string first "." $file_name ] -1]]
 		set ::mml_scc::fileNameBody $output_name_body
 		
 		# --- Prepare Output folder ---
-		set output_dir ${directory}/outputs/${output_name_body}
+		set output_dir ${directory}/output
 		if {[file exists $output_dir] != 1} {
 			file mkdir $output_dir
 			puts "$output_dir was created."
@@ -927,8 +1064,8 @@ namespace eval mml_scc {
 			set lineStamp ""
 			set lineNo 0
 			foreach line $logBuffer($ch) {
-				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl"
+				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26    27     28
+				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl"
 				set tmp  [split $line ","]
 				set type [lindex $tmp 0]
 				set time [lindex $tmp 1]
@@ -941,20 +1078,20 @@ namespace eval mml_scc {
 				# Update wave table
 				# --------------------------------------------
 				if {$type == "wtbNew" } {
-					set wtbLast   [lindex $tmp 22]
-					set wtbOffset [lindex $tmp 21]
+					set wtbLast   [lindex $tmp 23]
+					set wtbOffset [lindex $tmp 22]
 					::mml_scc::new_wavetable $ch $wtbLast
 				}
 				
 				if {$type == "wtbLast" } {
 					set ch [lindex $tmp 2]
-					set wtbLast   [lindex $tmp 22]
-					set wtbOffset [lindex $tmp 21]
+					set wtbLast   [lindex $tmp 23]
+					set wtbOffset [lindex $tmp 22]
 					set wtb_bytes [::mml_scc::append_wavetable $ch $wtbOffset $wtbLast]
 					puts "wtbLast: ch:$ch wtbOffset:$wtbOffset wtbLast:$wtbLast wtb_bytes:$wtb_bytes"
 					if {$wtbOffset == 31} {
 						set wtbIndex [get_wtbIndex $wtb_bytes]
-						set tmp [lreplace $tmp 23 23 $wtbIndex]
+						set tmp [lreplace $tmp 24 24 $wtbIndex]
 					}
 				}
 				
@@ -969,9 +1106,9 @@ namespace eval mml_scc {
 		set output_file_name ${::mml_scc::fileNameBody}.scc.pass0.csv
 		set fd [open ${output_dir}/${output_file_name} w]
 		
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
-		puts $fd "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl"
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26    27      28
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+		puts $fd "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl"
 		
 		foreach ch $::mml_scc::chList {
 			foreach line $tempBuffer0($ch) {
@@ -981,48 +1118,10 @@ namespace eval mml_scc {
 			}
 		}
 		close $fd
-		
-		proc copy_registers {src dst } {
-			set offset    [lindex $src 21]
-			set dst  [lreplace $dst 21 21 $offset]
-							
-			set data      [lindex $src 22]
-			set dst  [lreplace $dst 22 22 $data]
-							
-			set f1Ctrl    [lindex $src 24]
-			set dst  [lreplace $dst 24 24 $f1Ctrl]
-							
-			set f2Ctrl    [lindex $src 25]
-			set dst  [lreplace $dst 25 25 $f2Ctrl]
-							
-			set vCtrl     [lindex $src 26]
-			set dst  [lreplace $dst 26 26 $vCtrl]
-							
-			set enCtrl    [lindex $src 27]
-			set dst  [lreplace $dst 27 27 $enCtrl]
 			
-			return $dst
-		}
-		
-		proc is_positive_to_negative { vDiff vDiffStamp } {
-			if { $vDiffStamp > 0 && $vDiff < 0 } {
-				return 1
-			} else {
-				return 0
-			}
-		}
-		
-		proc is_negative_to_positive { vDiff vDiffStamp } {
-			if { $vDiffStamp < 0 && $vDiff > 0 } {
-				return 1
-			} else {
-				return 0
-			}
-		}
-	
-		# -------------------------------------------
-		# Pass 1 Add l (length)
-		# -------------------------------------------
+		# ----------------------------------------------------------------------------
+		# Pass 1 Update l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex
+		# ----------------------------------------------------------------------------
 		array set tempBuffer1 ""
 		foreach ch $::mml_scc::chList {
 			set bufferSize [llength $tempBuffer0($ch)]
@@ -1040,6 +1139,7 @@ namespace eval mml_scc {
 			set vDiffStamp 0
 			set oDiffStamp 0
 			set vCntStamp  0
+			set cntStamp 0
 			set fTickStamp 0
 			set fLStamp    0
 			set fVStamp    0
@@ -1050,8 +1150,8 @@ namespace eval mml_scc {
 				set next [lindex $tempBuffer0($ch) [expr $index + 1]]
 				if {$lineStamp != "" } {
 					#-----------------------------------------------------------------------------------------------------------------------------------------
-					# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-					#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+					# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26    27     28
+					#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
 					#-----------------------------------------------------------------------------------------------------------------------------------------
 					set lineTemp $lineStamp
 					set currentType [lindex $line 0]
@@ -1137,9 +1237,13 @@ namespace eval mml_scc {
 					set oDiff [expr $nextO - $o]
 					set lineTemp [lreplace $lineTemp 16 16 $oDiff]
 					
+					# cnt
+					set cnt 1
+					set lineTemp [lreplace $lineTemp 17 17 $cnt]
+					
 					# wtbIndex
 					set tim [get_wtbIndex_from_line $lineStamp ]
-					set lineTemp [lreplace $lineTemp 23 23 $tim]
+					set lineTemp [lreplace $lineTemp 24 24 $tim]
 					
 					# Push lineTemp into tempBuffer1($ch)
 					puts "Pass1: tempBuffer1($ch): $lineTemp"
@@ -1150,6 +1254,7 @@ namespace eval mml_scc {
 					set vDiffStamp $vDiff
 					set oDiffStamp $oDiff
 					set vCntStamp  $vCnt
+					set cntStamp $cnt
 				}
 				# fStamp
 				if {$type == "f1Ctrl" || $type == "f2Ctrl" } {
@@ -1160,8 +1265,8 @@ namespace eval mml_scc {
 			}
 			# Last line
 			#-----------------------------------------------------------------------------------------------------------------------------------------
-			# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-			#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+			# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26    27     28
+			#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
 			#-----------------------------------------------------------------------------------------------------------------------------------------
 			set lineTemp $line
 			set type     [lindex $lineStamp 0]
@@ -1225,10 +1330,14 @@ namespace eval mml_scc {
 			if {$type == "f1Ctrl" || $type == "f2Ctrl"} {
 				set enStamp $en
 			}
-					
+
+			# cnt
+			set cnt 1
+			set lineTemp [lreplace $lineTemp 17 17 $cnt]
+			
 			# wtbIndex
 			set tim [get_wtbIndex_from_line $lineStamp ]
-			set lineTemp [lreplace $lineTemp 23 23 $tim]
+			set lineTemp [lreplace $lineTemp 24 24 $tim]
 			
 			
 			# Push lineTemp into tempBuffer1($ch)
@@ -1238,7 +1347,7 @@ namespace eval mml_scc {
 		# Dump tempBuffer1($ch) into the file
 		set output_file_name ${output_name_body}.scc.pass1.csv
 		set fd [open ${output_dir}/${output_file_name} w]
-		puts $fd "type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl"
+		puts $fd "type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl"
 		foreach ch $::mml_scc::chList {
 			foreach line $tempBuffer1($ch) {
 				set tmp  [regsub -all " " $line ","]
@@ -1270,6 +1379,7 @@ namespace eval mml_scc {
 			set fTickStamp 0
 			set fLStamp    0
 			set fVStamp    0
+			set cntStamp   0
 			set lineStamp ""
 			set numOfBuffer [llength $tempBuffer1($ch)]
 			for {set index 0 } { $index < $numOfBuffer } { incr index} {
@@ -1277,8 +1387,8 @@ namespace eval mml_scc {
 				set next [lindex $tempBuffer1($ch) [expr $index + 1]]
 				if {$lineStamp != "" } {
 					#-----------------------------------------------------------------------------------------------------------------------------------------
-					# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-					#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+					# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26    27      28
+					#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
 					#-----------------------------------------------------------------------------------------------------------------------------------------
 					set lineTemp $lineStamp
 					# Push lineTemp into tempBuffer2($ch)
@@ -1349,6 +1459,10 @@ namespace eval mml_scc {
 						#set oDiff [lindex $line 16]
 						#set next [lreplace $next 16 16 $oDiff]
 					
+						# cnt
+						set cnt [lindex $line 17]
+						set next [lreplace $next 17 17 $cnt]
+						
 						# wtbIndex
 						set tim [lindex $line 23]
 						set next [lreplace $next 23 23 $tim]
@@ -1378,15 +1492,16 @@ namespace eval mml_scc {
 			}
 			
 			#-----------------------------------------------------------------------------------------------------------------------------------------
-			# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27
-			#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+			# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26    27    28
+			#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
 			#-----------------------------------------------------------------------------------------------------------------------------------------
 
 		}
+		
 		# Dump tempBuffer2($ch) into the file
 		set output_file_name ${output_name_body}.scc.pass2.csv
 		set fd [open ${output_dir}/${output_file_name} w]
-		puts $fd "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl"
+		puts $fd "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl"
 		foreach ch $::mml_scc::chList {
 			foreach line $tempBuffer2($ch) {
 				set tmp  [regsub -all " " $line ","]
@@ -1398,10 +1513,8 @@ namespace eval mml_scc {
 
 		array set tempBuffer3 ""
 		#------------------------------------------------------------------------
-		# Pass 3 (Add vDiff, o, oDiff,cnt)
+		# Pass 3 (init_envlp
 		#------------------------------------------------------------------------
-		init_envlp
-		
 		foreach ch $::mml_scc::chList {
 			set beginFlg 1
 			set newLineFlg 0
@@ -1449,13 +1562,14 @@ namespace eval mml_scc {
 				set vDiff       [lindex $line 14]
 				#set vCnt        [lindex $line 15]
 				set oDiff       [lindex $line 16]
-				#set envlp       [lindex $line 17]
-				#set envlpIndex  [lindex $line 18]
-				set nE          [lindex $line 19]
-				set nF          [lindex $line 20]
-				set offset      [lindex $line 21]
-				set data        [lindex $line 22]
-				set wtbIndex   [lindex $line 23]
+				set cnt         [lindex $line 17]
+				#set envlp       [lindex $line 18]
+				#set envlpIndex  [lindex $line 19]
+				set nE          [lindex $line 20]
+				set nF          [lindex $line 21]
+				set offset      [lindex $line 22]
+				set data        [lindex $line 23]
+				set wtbIndex   [lindex $line 24]
 			
 				set envStart    0
 				set envEnd      0
@@ -1472,13 +1586,13 @@ namespace eval mml_scc {
 						set envlp "F"
 					}
 					set envlpIndex [add_envlp $envlp]
-					set line  [lreplace $line 17 17 $envlp]
-					set line  [lreplace $line 18 18 $envlpIndex]
-
+					set line  [lreplace $line 18 18 $envlp]
+					set line  [lreplace $line 19 19 $envlpIndex]
+		
 				
 					set vCntSample $vCnt
 					set vCnt 1
-
+		
 					set vLengthStamp $vLength
 					set vLength $l
 					set vEnvlp ""
@@ -1487,7 +1601,7 @@ namespace eval mml_scc {
 					set envlpStamp $envlp
 					set envlp "[format %X ${v}]"
 				}
-
+		
 				if { $type == "vCtrl" || $type == "enBit"} {
 					if {$l > 0} {
 						incr vCnt
@@ -1516,7 +1630,7 @@ namespace eval mml_scc {
 						set vEnvlpTemp "${vEnvlp}"
 						set vLength $l
 					} 
-					set line  [lreplace $line 17 17 $vEnvlp]
+					set line  [lreplace $line 18 18 $vEnvlp]
 					
 				}
 				puts "Pass3: tempBuffer3($ch): $line"
@@ -1529,7 +1643,7 @@ namespace eval mml_scc {
 		# Dump tempBuffer3($ch) into the file
 		set output_file_name ${output_name_body}.scc.pass3.csv
 		set fd [open ${output_dir}/${output_file_name} w]
-		puts $fd "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl"
+		puts $fd "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl"
 		
 		foreach ch $::mml_scc::chList {
 			foreach line $tempBuffer3($ch) {
@@ -1539,17 +1653,20 @@ namespace eval mml_scc {
 		}
 		close $fd
 
+		#-------------------------------------------------------------
+		# Generate .scc.pass3.simple.mml
+		#-------------------------------------------------------------
 		# Copy tempBuffer3 to workBuffer1
 		foreach ch $::mml_scc::chList {
 			foreach line $tempBuffer3($ch) {
 				lappend workBuffer1($ch) $line
 			}
 		}
-		# generate_mml: Generate mml based on workBuffer2
+		# generate_mml: Generate mml based on workBuffer1
 		generate_mml
 		
 		# Dump mmlBuffer1($ch) into the file
-		set output_file_name ${output_name_body}.scc.pass3.mml
+		set output_file_name ${output_name_body}.scc.pass3.simple.mml
 		set fd [open ${output_dir}/${output_file_name} w]
 		
 		
@@ -1577,18 +1694,21 @@ namespace eval mml_scc {
 			}
 		}
 		close $fd
-
+		
+		#-------------------------------------------------------------
+		# Generate .scc.pass3.simple.MGS.mml
+		#-------------------------------------------------------------
 		# generate_mml: Read workBuffer2 and generate mml into mmlBuffer1
 		array unset  mmlBuffer1
-		generate_mml2
+		generate_mml_MGS workBuffer1 mmlBuffer1
 
 		# Dump mmlBuffer1($ch) into the file
-		set output_file_name ${output_name_body}.scc.pass3_2.mml
+		set output_file_name ${output_name_body}.scc.pass3.simple.MGS.mml
 		set fd [open ${output_dir}/${output_file_name} w]
 		
 		puts $fd ";\[name=scc lpf=1\]"
 		puts $fd "#opll_mode 1"
-		puts $fd "#tempo 75"
+		puts $fd "#tempo 225"
 		puts $fd "#title { \"$::mml_scc::fileNameBody\"}"
 		puts $fd "#alloc 1=3100"
 		puts $fd "#alloc 2=3100"
@@ -1605,12 +1725,13 @@ namespace eval mml_scc {
 		}
 		puts $fd ""
 
-		set index 0
-		foreach envlp $::mml_scc::envlpList {
-			puts $fd "\@e[format %02d $index] = \{,,$envlp\}"
-			incr index
-		}
-		puts $fd ""
+		# Envelop
+		# set index 0
+		# foreach envlp $::mml_scc::envlpList {
+		# 	puts $fd "\@e[format %02d $index] = \{,,$envlp\}"
+		# 	incr index
+		# }
+		#puts $fd ""
 
 		foreach ch $::mml_scc::chList {
 			foreach line $mmlBuffer1($ch) {
@@ -1619,17 +1740,23 @@ namespace eval mml_scc {
 		}
 		close $fd	
 
+		#------------------------------------------------------------------------
+		# Generate .scc.pass3.compress.MGS.mml
+		#------------------------------------------------------------------------		
+		# optimize_sw_envelope1: Read workBuffer1 and eliminate the line, update the cnt, store it into workBuffer2
+		update_and_optimize_cnt workBuffer1 workBuffer2
+		
 		# generate_mml: Read workBuffer2 and generate mml into mmlBuffer1
 		array unset  mmlBuffer1
-		generate_mml3
+		generate_mml_MGS workBuffer2 mmlBuffer1
 
 		# Dump mmlBuffer1($ch) into the file
-		set output_file_name ${output_name_body}.scc.pass3_3.mml
+		set output_file_name ${output_name_body}.scc.pass3.compress.MGS.mml
 		set fd [open ${output_dir}/${output_file_name} w]
 		
 		puts $fd ";\[name=scc lpf=1\]"
 		puts $fd "#opll_mode 1"
-		puts $fd "#tempo 75"
+		puts $fd "#tempo 225"
 		puts $fd "#title { \"$::mml_scc::fileNameBody\"}"
 		puts $fd "#alloc 1=3100"
 		puts $fd "#alloc 2=3100"
@@ -1646,12 +1773,13 @@ namespace eval mml_scc {
 		}
 		puts $fd ""
 
-		set index 0
-		foreach envlp $::mml_scc::envlpList {
-			puts $fd "\@e[format %02d $index] = \{,,$envlp\}"
-			incr index
-		}
-		puts $fd ""
+		# Envelop
+		#set index 0
+		#foreach envlp $::mml_scc::envlpList {
+		#	puts $fd "\@e[format %02d $index] = \{,,$envlp\}"
+		#	incr index
+		#}
+		#puts $fd ""
 
 		foreach ch $::mml_scc::chList {
 			foreach line $mmlBuffer1($ch) {
