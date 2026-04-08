@@ -232,9 +232,6 @@ def mgs_length_to_str(scale: str, length: int) -> str:
         elif length == 1:
             result += body
             length -= 1
-        else:
-            result += f'[{body}]{length}'
-            length = 0
     return result
 
 
