@@ -256,12 +256,17 @@ def test_psg_pass3_simple_mgs_uses_delta_tokens():
         assert '#tempo 225' in content, "pass3.simple.MGS.mml must use #tempo 225"
         # Must NOT contain bracket wrapping (cnt forced to 1 for simple variant)
         import re
-        # Allow [name=...] and ;[...] comment lines, but reject note-level [...]N
-        note_brackets = re.findall(r'(?<![;#])[^\n]*\[[^\]]+\]\d', content)
-        # Filter out lines that are purely header/comment
-        note_brackets = [b for b in note_brackets if not b.strip().startswith(';')]
-        assert not note_brackets, (
-            "pass3.simple.MGS.mml must NOT contain [...]N bracket wrapping")
+        # Check each non-header, non-comment line for [note]N bracket patterns
+        # A note-level bracket is identified by a note letter before the '['
+        for line in content.splitlines():
+            stripped = line.strip()
+            if stripped.startswith(';') or stripped.startswith('#') or not stripped:
+                continue
+            # Look for [...]N where N is a digit – note-level compression
+            if re.search(r'\[[^\]]+\]\d', stripped):
+                assert False, (
+                    f"pass3.simple.MGS.mml must NOT contain [...]N bracket wrapping, "
+                    f"found in: {line!r}")
 
 
 def test_psg_pass3_simple_mgs_uses_tempo_225():

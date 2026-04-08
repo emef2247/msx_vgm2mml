@@ -789,8 +789,7 @@ def _write_csv(path, header, ch_list, buf):
 def _update_and_optimize_cnt_scc(src_buf, ch_list):
     """Re-compute cnt for truly repeating notes in the SCC pass-3 buffer.
 
-    Port of the Tcl ``update_and_optimize_cnt`` / ``update_and_optimize_cnt``
-    logic for SCC data.  For each channel, consecutive rows of type
+    Port of the Tcl ``update_and_optimize_cnt`` logic for SCC data.  For each channel, consecutive rows of type
     ``f1Ctrl``, ``f2Ctrl``, or ``vCtrl`` where ``f``, ``l``, ``o``,
     ``vDiff`` all match the previous row are merged: the previous row's
     ``COL_VCNT`` (used as cnt) is incremented and the current row is
