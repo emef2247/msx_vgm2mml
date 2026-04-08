@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import (get_ticks, get_octave, get_scale,
                        estimate_mml_used, estimate_alloc,
                        ticks_to_mml_length, compress_mml_text,
-                       get_mgs_note_token)
+                       get_mgs_note_token, get_mgs_note_token_pct)
 
 # ---------------------------------------------------------------------------
 # Column indices (28 columns, 0-27)
@@ -843,11 +843,12 @@ def _update_and_optimize_cnt_scc(src_buf, ch_list):
     return dst_buf
 
 
-def _generate_mml_mgs(buf3, ch_list, file_name_body, wtb_tracker, use_cnt=False):
+def _generate_mml_mgs(buf3, ch_list, file_name_body, wtb_tracker, use_cnt=False, use_pct=False):
     """Generate MGS delta-token MML text from pass-3 SCC data.
 
     Implements the Tcl ``generate_mml_MGS`` behaviour for SCC:
-    * Group headers: ``ch_num @wtb v{v}`` on the first group (with ``o{o} l64``),
+    * Group headers: ``ch_num @wtb v{v}`` on the first group (with ``o{o} l64``
+      unless *use_pct* is True, in which case ``l64`` is omitted),
       subsequent groups: ``ch_num [@wtb] v{v}`` (absolute volume, no octave).
     * Within groups: ``<`` / ``>`` for small octave deltas, ``(`` / ``)`` for
       small volume deltas; ``oN`` / ``vN`` for larger deltas (abs > 3).
@@ -855,7 +856,11 @@ def _generate_mml_mgs(buf3, ch_list, file_name_body, wtb_tracker, use_cnt=False)
       :func:`_update_and_optimize_cnt_scc`), the note body is wrapped in
       ``[...]cnt`` with the octave prefix outside.  When ``use_cnt`` is False
       (default, for simple.MGS.mml) cnt is forced to 1 (no wrapping).
+    * When ``use_pct`` is True, note lengths are encoded as ``{scale}%{N}``
+      raw tick tokens and ``#tempo 75`` is used (MGS_pct variant).
     """
+    note_token_fn = get_mgs_note_token_pct if use_pct else get_mgs_note_token
+    tempo = 75 if use_pct else 225
     mml_buffer = {ch: [] for ch in ch_list}
 
     for ch in ch_list:
@@ -893,7 +898,10 @@ def _generate_mml_mgs(buf3, ch_list, file_name_body, wtb_tracker, use_cnt=False)
 
                     if note_cnt == 0:
                         if is_first_group:
-                            mml = f'\n{ch_num} @{wtb_index} v{v} o{o} l64'
+                            if use_pct:
+                                mml = f'\n{ch_num} @{wtb_index} v{v} o{o}'
+                            else:
+                                mml = f'\n{ch_num} @{wtb_index} v{v} o{o} l64'
                             at_stamp = wtb_index
                             v_stamp = v
                             o_stamp = o
@@ -906,7 +914,7 @@ def _generate_mml_mgs(buf3, ch_list, file_name_body, wtb_tracker, use_cnt=False)
                             mml += f' v{v}'
                             v_stamp = v
 
-                    note = get_mgs_note_token(
+                    note = note_token_fn(
                         ltmp, v, v_diff, scale, cnt, o, o_stamp, v_stamp)
                     mml += ' ' + note
                     l_cnt += ltmp
@@ -935,7 +943,7 @@ def _generate_mml_mgs(buf3, ch_list, file_name_body, wtb_tracker, use_cnt=False)
     lines = []
     lines.append(';[name=scc lpf=1]')
     lines.append('#opll_mode 1')
-    lines.append('#tempo 225')
+    lines.append(f'#tempo {tempo}')
     lines.append(f'#title {{ "{file_name_body}"}}')
     for ch in ch_list:
         ch_num = ch + CH_OFFSET
@@ -1066,6 +1074,20 @@ def process_scc_csv(input_path, output_dir, dump_passes=True, stem=None):
     compress_path = os.path.join(output_dir, f'{file_name_body}.scc.pass3.compress.MGS.mml')
     with open(compress_path, 'w', newline='\n') as fh:
         fh.write(compress_mgs_text)
+
+    # pass3.simple.MGS_pct.mml – MGS delta-token, raw tick (%) lengths, #tempo 75
+    simple_mgs_pct_text = _generate_mml_mgs(
+        temp_buf3, ch_list, file_name_body, wtb_tracker, use_cnt=False, use_pct=True)
+    simple_mgs_pct_path = os.path.join(output_dir, f'{file_name_body}.scc.pass3.simple.MGS_pct.mml')
+    with open(simple_mgs_pct_path, 'w', newline='\n') as fh:
+        fh.write(simple_mgs_pct_text)
+
+    # pass3.compress.MGS_pct.mml – cnt-optimised repeat + MGS delta-token + % lengths
+    compress_mgs_pct_text = _generate_mml_mgs(
+        compress_buf3, ch_list, file_name_body, wtb_tracker, use_cnt=True, use_pct=True)
+    compress_mgs_pct_path = os.path.join(output_dir, f'{file_name_body}.scc.pass3.compress.MGS_pct.mml')
+    with open(compress_mgs_pct_path, 'w', newline='\n') as fh:
+        fh.write(compress_mgs_pct_text)
 
     return mml_path
 

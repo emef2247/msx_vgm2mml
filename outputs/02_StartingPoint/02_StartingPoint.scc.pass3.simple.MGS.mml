@@ -5,7 +5,7 @@
 #alloc 4=768
 #alloc 5=448
 #alloc 6=464
-#alloc 7=528
+#alloc 7=544
 
 @s00 = {001931475a6a757d7f7d756a5a47311900e7cfb9a6968b8380838b96a6b9cfe7}
 @s01 = {00407f4001c081c001407f4001c0014001e0012001f0011001ffffffff404040}
@@ -33,65 +33,68 @@
 4 v14 <c (c (c (c (c v15c >(c (c
 ;tick count: 133
 
-4 v12 c (c (c32 <v14c (c (c (c (c
-;tick count: 142
-
-4 v15 c >(c (c (c (c (c32 <v14c (c
-;tick count: 151
-
-4 v12 c (c (c c >v14c (c (c (c
-;tick count: 159
-
-4 v10 c32 <v14c (c (c (c (c c >v14c
-;tick count: 168
-
-4 v13 c (c (c (c32 <v14c (c32 (c (c
-;tick count: 178
+4 v12 c (c (c v15c <(c (c (c (c
+;tick count: 141
 
 4 v10 c v15c >(c (c (c (c (c v15c
-;tick count: 186
+;tick count: 149
 
 4 v14 <c (c (c (c (c v15c >(c (c
-;tick count: 194
+;tick count: 157
 
 4 v12 c (c (c v15c <(c (c (c (c
-;tick count: 202
+;tick count: 165
 
 4 v10 c v15c >(c (c (c (c (c v15c
-;tick count: 210
+;tick count: 173
 
 4 v14 <c (c (c (c (c v15c >(c (c
-;tick count: 218
+;tick count: 181
 
 4 v12 c (c (c v15c <(c (c (c (c
-;tick count: 226
+;tick count: 189
 
 4 v10 c v15c >(c (c (c (c (c v15c
-;tick count: 234
+;tick count: 197
 
 4 v14 <c (c (c (c (c v15c >(c (c
-;tick count: 242
+;tick count: 205
 
-4 v12 c (c (c v15c <(c (c (c (c
-;tick count: 250
+4 v12 c (c (c c <v14c (c (c (c
+;tick count: 213
 
 4 v10 c v15c >(c (c (c (c (c v15c
-;tick count: 258
+;tick count: 221
 
 4 v14 <c (c (c (c (c v15c >(c (c
-;tick count: 266
+;tick count: 229
 
 4 v12 c (c (c v15c <(c (c (c (c
-;tick count: 274
+;tick count: 237
 
 4 v10 c v15c >(c (c (c (c (c v15c
-;tick count: 282
+;tick count: 245
 
-4 v14 <c (c (c (c (c v15c (c (c
-;tick count: 290
+4 v14 <c (c (c (c (c v15c >(c (c
+;tick count: 253
 
-4 v12 c (c2.c8c32 (c (c (c (c
-;ch4 end: tick count: 353
+4 v12 c (c (c v15c <(c (c (c (c
+;tick count: 261
+
+4 v10 c v15c >(c (c (c (c (c v15c
+;tick count: 269
+
+4 v14 <c (c (c (c (c v15c >(c (c
+;tick count: 277
+
+4 v12 c (c (c v15c <(c (c (c (c
+;tick count: 285
+
+4 v10 c v15c (c (c (c (c2.c8c32 (c (c
+;tick count: 350
+
+4 v8 c (c
+;ch4 end: tick count: 352
 
 
 ;ch5 start
@@ -104,32 +107,35 @@
 5 @3 v9 >f )f )f (f (f (f (f (f
 ;tick count: 109
 
-5 v5 f (f (f4f16.f (f (f32 v9c )c )c
-;tick count: 140
+5 v5 f (f (f4f16.f (f (f v8f )c )c
+;tick count: 139
 
-5 v10 c (c32 ((c (c (c (c (c4c16.c (c
-;tick count: 171
+5 v11 c (c (c (c (c (c (c (c
+;tick count: 147
 
-5 v1 c32 v8c )f )f )f (f (f (f
-;tick count: 180
+5 v3 c4c16.c (c (c v8c )f )f )f (f
+;tick count: 177
 
-5 v7 f (f (f (f (f4f16.f (f (f v8f
-;tick count: 210
+5 v9 f (f (f (f (f (f (f4f16.f (f
+;tick count: 207
 
-5 v9 a+ )a+ )a+ (a+ (a+ (a+ (a+ (a+
-;tick count: 218
+5 v1 f f v9a+ )a+ )a+ (a+ (a+ (a+
+;tick count: 215
 
-5 v5 a+ (a+ (a+4a+16.a+ (a+ (a+ v8a+ >)d+ )d+
-;tick count: 248
+5 v7 a+ (a+ (a+ (a+ (a+4a+16.a+ (a+ (a+ v8a+
+;tick count: 245
 
-5 v11 d+ (d+ (d+ (d+ (d+ (d+ (d+ (d+
-;tick count: 256
+5 v9 >d+ )d+ )d+ (d+ (d+ (d+ (d+ (d+
+;tick count: 253
 
-5 v3 d+4d+16.d+ (d+ (d+ v8d+ )g+ )g+ )g+ (g+
-;tick count: 286
+5 v5 d+ (d+ (d+4d+16.d+ (d+ (d+ v8d+ )g+ )g+
+;tick count: 283
 
-5 v9 g+ (g+ (g+ (g+ (g+2.g+8.g+ (g+ (g+
-;ch5 end: tick count: 353
+5 v11 g+ (g+ (g+ (g+ (g+ (g+ (g+2.g+8.g+ (g+
+;tick count: 351
+
+5 v3 g+
+;ch5 end: tick count: 352
 
 
 ;ch6 start
@@ -145,40 +151,40 @@
 6 v8 a+ )a+ (a+ (a+ (a+ (a+ (a+ (a+
 ;tick count: 120
 
-6 v2 a+ (a+4a+8a+ (a+32.
-;tick count: 149
+6 v2 a+ (a+4a+8a+ (a+32
+;tick count: 148
 
-6 v9 f (f (f (f (f32 ((f (f (f4f8f32
-;tick count: 183
+6 v8 a+ )f (f (f (f (f (f (f
+;tick count: 156
 
-6 v0 f32
-;tick count: 185
+6 v2 f (f4f8f (f32
+;tick count: 184
 
 6 v8 f )a+ (a+ (a+ (a+ (a+ (a+ (a+
-;tick count: 193
+;tick count: 192
 
 6 v2 a+ (a+4a+8a+ (a+32
-;tick count: 221
+;tick count: 220
 
 6 v8 a+ >)d+ (d+ (d+ (d+ (d+ (d+ (d+
-;tick count: 229
+;tick count: 228
 
 6 v2 d+ (d+4d+8d+ (d+32
-;tick count: 257
+;tick count: 256
 
 6 v8 d+ )g+ (g+ (g+ (g+ (g+ (g+ (g+
-;tick count: 265
+;tick count: 264
 
 6 v2 g+ (g+4g+8g+ (g+32
-;tick count: 293
+;tick count: 292
 
 6 v8 g+ >)c+ (c+ (c+ (c+ (c+ (c+ (c+2c+8.c+32.
-;tick count: 347
+;tick count: 346
 
 6 v2 c+ (c+ (c+16
-;tick count: 353
+;tick count: 352
 
-;ch6 end: tick count: 353
+;ch6 end: tick count: 352
 
 
 ;ch7 start
@@ -194,34 +200,34 @@
 7 @3 v9 <a+ )a+ )a+ (a+ (a+ (a+ (a+ (a+
 ;tick count: 109
 
-7 v5 a+ (a+ (a+4a+16.a+ (a+ (a+32 v9f )f )f
-;tick count: 140
+7 v5 a+ (a+ (a+4a+16.a+ (a+ (a+ v8a+ )f )f
+;tick count: 139
 
-7 v10 f (f32 ((f (f (f (f (f4f8 (f
-;tick count: 172
+7 v11 f (f (f (f (f (f (f (f
+;tick count: 147
 
-7 v1 f v8f )a+ )a+ )a+ (a+ (a+ (a+
-;tick count: 180
+7 v3 f4f16.f (f (f v8f )a+ )a+ )a+ (a+
+;tick count: 177
 
-7 v7 a+ (a+ (a+ (a+ (a+4a+16.a+ (a+ (a+ v8a+
-;tick count: 210
+7 v9 a+ (a+ (a+ (a+ (a+ (a+ (a+4a+16.a+ (a+
+;tick count: 207
 
-7 v9 >d+ )d+ )d+ (d+ (d+ (d+ (d+ (d+
-;tick count: 218
+7 v1 a+32 >v9d+ )d+ )d+ (d+ (d+ (d+ (d+
+;tick count: 216
 
-7 v5 d+ (d+ (d+4d+16.d+ (d+ (d+ v8d+ )g+ )g+
-;tick count: 248
+7 v6 d+ (d+ (d+ (d+4d+16.d+ (d+ (d+ v8d+ )g+
+;tick count: 246
 
-7 v11 g+ (g+ (g+ (g+ (g+ (g+ (g+ (g+
-;tick count: 256
+7 v10 g+ )g+ (g+ (g+ (g+ (g+ (g+ (g+
+;tick count: 254
 
-7 v3 g+4g+16.g+ (g+ (g+ v8g+ >)c+ )c+ )c+ (c+
-;tick count: 286
+7 v4 g+ (g+4g+16.g+ (g+ (g+ v8g+ >)c+ )c+ )c+
+;tick count: 284
 
-7 v9 c+ (c+ (c+ (c+ (c+2.c+8c+ (c+ (c+ (c+
-;tick count: 350
+7 v10 c+ (c+ (c+ (c+ (c+ (c+2.c+8c+ (c+ (c+
+;tick count: 348
 
-7 v1 c+ (c+32
-;tick count: 353
+7 v2 c+ (c+ (c+32
+;tick count: 352
 
-;ch7 end: tick count: 353
+;ch7 end: tick count: 352

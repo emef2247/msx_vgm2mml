@@ -327,6 +327,32 @@ def get_mgs_note_token(l, v, v_diff, scale, cnt, o, o_stamp, v_stamp):
     return f"{o_mml}{body}"
 
 
+def get_mgs_note_token_pct(l, v, v_diff, scale, cnt, o, o_stamp, v_stamp):
+    """Build one complete MGS note token using raw tick (%) length encoding.
+
+    Identical to :func:`get_mgs_note_token` except that the note length is
+    encoded as ``{scale}%{l}`` (raw tick count) instead of the dotted-note
+    divisor format produced by :func:`mgs_length_to_str`.  Intended for the
+    ``MGS_pct`` output variants that use ``#tempo 75``.
+
+    Args:
+        l:       note length in ticks (emitted verbatim as ``scale%l``)
+        v:       target volume
+        v_diff:  pre-computed volume diff from pass-3 data
+        scale:   note letter (e.g. ``'a'``, ``'c+'``, ``'r'``)
+        cnt:     repeat count (> 1 triggers bracket wrapping)
+        o:       target octave
+        o_stamp: previously stamped octave
+        v_stamp: previously stamped volume
+    """
+    o_mml = get_mgs_octave_prefix(o, o_stamp)
+    v_mml = get_mgs_vol_prefix(v, v_diff, cnt, v_stamp)
+    body = v_mml + f"{scale}%{l}"
+    if cnt > 1:
+        return f"{o_mml}[{body}]{cnt}"
+    return f"{o_mml}{body}"
+
+
 # ---------------------------------------------------------------------------
 # MML compression helpers
 # ---------------------------------------------------------------------------

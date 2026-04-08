@@ -290,3 +290,107 @@ def test_psg_pass3_compress_mgs_has_compressed_token():
         assert re.search(r'\[[^\]]+\]\d+', content), (
             "pass3.compress.MGS.mml must contain at least one [token]N compression")
 
+
+# ──────────────────────────────────────────────────────────────────────────
+# pass3 MGS_pct variant tests (MGS delta-token + raw tick % lengths)
+# ──────────────────────────────────────────────────────────────────────────
+
+def test_psg_pass3_simple_mgs_pct_mml_is_created():
+    """process_psg_csv must produce a .psg.pass3.simple.MGS_pct.mml file."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        pct_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.simple.MGS_pct.mml')
+        assert os.path.isfile(pct_path), (
+            f"pass3.simple.MGS_pct.mml not created: {pct_path}")
+
+
+def test_psg_pass3_compress_mgs_pct_mml_is_created():
+    """process_psg_csv must produce a .psg.pass3.compress.MGS_pct.mml file."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        pct_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.compress.MGS_pct.mml')
+        assert os.path.isfile(pct_path), (
+            f"pass3.compress.MGS_pct.mml not created: {pct_path}")
+
+
+def test_psg_pass3_simple_mgs_pct_uses_tempo_75():
+    """pass3.simple.MGS_pct.mml must use #tempo 75."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        pct_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.simple.MGS_pct.mml')
+        content = _read(pct_path)
+        assert '#tempo 75' in content, "pass3.simple.MGS_pct.mml must use #tempo 75"
+
+
+def test_psg_pass3_simple_mgs_pct_has_pct_lengths():
+    """pass3.simple.MGS_pct.mml must contain raw % tick length tokens."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        pct_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.simple.MGS_pct.mml')
+        content = _read(pct_path)
+        assert '%' in content, "pass3.simple.MGS_pct.mml must contain % length tokens"
+
+
+def test_psg_pass3_simple_mgs_pct_no_l64_in_track_lines():
+    """pass3.simple.MGS_pct.mml track state lines must not contain l64."""
+    import re
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        pct_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.simple.MGS_pct.mml')
+        content = _read(pct_path)
+        # Track state lines start with a digit (1-3 for PSG) followed by space
+        for line in content.splitlines():
+            stripped = line.strip()
+            if re.match(r'^[1-3]\s+/', stripped):
+                assert 'l64' not in stripped, (
+                    f"Track state line must not contain 'l64' in MGS_pct variant: {line!r}")
+
+
+def test_psg_pass3_simple_mgs_pct_has_delta_tokens():
+    """pass3.simple.MGS_pct.mml must contain octave or volume delta tokens."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        pct_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.simple.MGS_pct.mml')
+        content = _read(pct_path)
+        assert '<' in content or '>' in content or '(' in content or ')' in content, (
+            "pass3.simple.MGS_pct.mml must contain delta tokens '<', '>', '(' or ')'")
+
+
+def test_psg_pass3_compress_mgs_pct_uses_tempo_75():
+    """pass3.compress.MGS_pct.mml must use #tempo 75."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        pct_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.compress.MGS_pct.mml')
+        content = _read(pct_path)
+        assert '#tempo 75' in content, "pass3.compress.MGS_pct.mml must use #tempo 75"
+
+
+def test_psg_pass3_compress_mgs_pct_has_pct_lengths():
+    """pass3.compress.MGS_pct.mml must contain raw % tick length tokens."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        pct_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.compress.MGS_pct.mml')
+        content = _read(pct_path)
+        assert '%' in content, "pass3.compress.MGS_pct.mml must contain % length tokens"
+
+
+def test_psg_pass3_mgs_pct_ends_with_newline():
+    """Both MGS_pct files must end with a newline."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        for suffix in ('simple.MGS_pct', 'compress.MGS_pct'):
+            pct_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.{suffix}.mml')
+            with open(pct_path, 'rb') as fh:
+                data = fh.read()
+            assert data.endswith(b'\n'), (
+                f"pass3.{suffix}.mml does not end with newline")
+

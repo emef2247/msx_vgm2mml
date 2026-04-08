@@ -1,0 +1,130 @@
+;[name=scc lpf=1]
+#opll_mode 1
+#tempo 75
+#title { "02_StartingPoint"}
+#alloc 4=896
+#alloc 5=384
+#alloc 6=320
+#alloc 7=432
+
+@s00 = {001931475a6a757d7f7d756a5a47311900e7cfb9a6968b8380838b96a6b9cfe7}
+@s01 = {00407f4001c081c001407f4001c0014001e0012001f0011001ffffffff404040}
+@s02 = {00f0e0d0c0b0a090808080808080808080808080808080807f70605040302010}
+@s03 = {00407f400110202d37444e59636c73787c7f7c78736c594e44372d2010030201}
+
+
+
+;ch4 start
+4 @0 v10 o5 [e%4]2 e%4 d+%4 d%4 c+%4 c%4 <b%4 a+%4
+;tick count: 32
+
+4 v10 a%4 g+%4 g%4 f+%4 [((f%16]2 v6e%12 ((e%9 <<[(c%1]4
+;tick count: 86
+
+4 @1 v10 c%1 v15c%1 >[(c%1]4 v10c%1 v15c%1 <[(c%1]4 v10c%1 v15c%1
+;tick count: 94
+
+4 v14 >[(c%1]4 v10c%1 v15c%1 <[(c%1]4 v10c%1 v15c%1 >[(c%1]4 v10c%1
+;tick count: 102
+
+4 v15 c%1 <[(c%1]4 v10c%1 v15c%1 >[(c%1]4 v10c%1 v15c%1 <[(c%1]4
+;tick count: 110
+
+4 v10 c%1 v15c%1 >[(c%1]4 v10c%1 v15c%1 <[(c%1]4 v10c%1 v15c%1
+;tick count: 118
+
+4 v14 >[(c%1]4 v10c%1 v15c%1 <[(c%1]4 v10c%1 v15c%1 >[(c%1]4 v10c%1
+;tick count: 126
+
+4 v15 c%1 <[(c%1]4 v10c%1 v15c%1 >[(c%1]4 v10c%1 v15c%1 <[(c%1]4
+;tick count: 134
+
+4 v10 c%1 v15c%1 >[(c%1]4 v10c%1 c%1 <[(c%1]4 v10c%1 v15c%1
+;tick count: 142
+
+4 v14 >[(c%1]4 v10c%1 v15c%1 <[(c%1]4 v10c%1 v15c%1 >[(c%1]4 v10c%1
+;tick count: 150
+
+4 v15 c%1 <[(c%1]4 v10c%1 v15c%1 >[(c%1]4 v10c%1 v15c%1 <[(c%1]4
+;tick count: 158
+
+4 v10 c%1 v15c%1 >[(c%1]4 v10c%1 v15c%1 <[(c%1]4 v10c%1 v15c%1
+;tick count: 166
+
+4 v14 >[(c%1]4 v10c%1 v15c%1 <[(c%1]4 v10c%1 v15c%1 >[(c%1]4 v10c%1
+;tick count: 174
+
+4 v15 c%1 <[(c%1]4 v10c%1 [(c%1]4 v11c%58 [(c%1]3 (((c%1
+;ch4 end: tick count: 238
+
+
+;ch5 start
+5 @0 v7 o4 [b%4]2 b%4 a+%4 a%4 g+%4 g%4 f+%4 f%4
+;tick count: 32
+
+5 v7 e%4 d+%4 d%4 c+%4 c%16 <)b%16 ((b%12 ((b%9
+;tick count: 101
+
+5 @3 v9 >[)f%1]2 [(f%1]8 v3f%23 (f%1 (f%1 [)f%1]3 [(c%1]8 v3c%23
+;tick count: 153
+
+5 v2 c%1 (c%1 [)c%1]3 [(f%1]8 v3f%23 (f%1 (f%1 f%1
+;tick count: 183
+
+5 v9 [)a+%1]2 [(a+%1]8 v3a+%23 (a+%1 (a+%1 v8a+%1 >[)d+%1]2 [(d+%1]8
+;tick count: 213
+
+5 v3 d+%23 (d+%1 (d+%1 [)d+%1]3 [(g+%1]6 v5g+%61 (g+%1 (g+%1
+;tick count: 303
+
+;ch5 end: tick count: 303
+
+
+;ch6 start
+6 @1 v10 o2 [d%10]2 d%30 e%10 [(d%10]4 v6e%11 >>[(a+%1]9 v0a+%2
+;tick count: 74
+
+6 @3 v8 a+%1 [(a+%1]8 v1a+%25 (a+%2
+;tick count: 103
+
+6 v8 a+%1 [(f%1]8 v1f%25 (f%2
+;tick count: 132
+
+6 v8 f%1 [(a+%1]8 v1a+%25 (a+%2
+;tick count: 161
+
+6 v8 a+%1 >[(d+%1]8 v1d+%25 (d+%2
+;tick count: 190
+
+6 v8 d+%1 [(g+%1]8 v1g+%25 (g+%2
+;tick count: 219
+
+6 v8 g+%1 >[(c+%1]6 v3c+%47 [(c+%1]2 ((c+%4
+;tick count: 273
+
+;ch6 end: tick count: 273
+
+
+;ch7 start
+7 @2 v7 o4 [e%4]2 e%4 <b%4 >e%4 f+%4 <b%4 >f+%4 >e%4
+;tick count: 32
+
+7 v7 <b%4 >e%4 f+%4 <b%4 >f+%4 <b%4 >e%4 f+%4
+;tick count: 64
+
+7 v5 b%4 <b%4 >e%4 f+%4 (((b%4 <b%4 >e%4 f+%9
+;tick count: 101
+
+7 @3 v9 <[)a+%1]2 [(a+%1]8 v3a+%23 (a+%1 (a+%1 [)a+%1]3 [(f%1]8 v3f%23
+;tick count: 153
+
+7 v2 f%1 (f%1 [)f%1]3 [(a+%1]8 v3a+%23 (a+%1 (a+%2 >[)d+%1]2
+;tick count: 184
+
+7 v11 [(d+%1]8 v3d+%23 (d+%1 (d+%1 [)d+%1]3 [(g+%1]8 v3g+%23 (g+%1
+;tick count: 236
+
+7 v1 g+%1 v8g+%1 >[)c+%1]2 [(c+%1]6 v5c+%57 [(c+%1]4 v0c+%2
+;tick count: 300
+
+;ch7 end: tick count: 300

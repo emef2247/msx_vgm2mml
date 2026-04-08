@@ -2,10 +2,10 @@
 #opll_mode 1
 #tempo 225
 #title { "02_StartingPoint"}
-#alloc 4=688
-#alloc 5=368
+#alloc 4=672
+#alloc 5=352
 #alloc 6=336
-#alloc 7=432
+#alloc 7=416
 
 @s00 = {001931475a6a757d7f7d756a5a47311900e7cfb9a6968b8380838b96a6b9cfe7}
 @s01 = {00407f4001c081c001407f4001c0014001e0012001f0011001ffffffff404040}
@@ -24,38 +24,38 @@
 4 @1 v10 c v15c >[(c]4 v10c v15c <[(c]4 v10c v15c
 ;tick count: 94
 
-4 v14 >[(c]4 v10c v15c <[(c]4 v10c v15c >[(c]4 v10c32
-;tick count: 103
-
-4 v14 <[(c]4 v10c v15c >[(c]4 v10c32 <[(c]4 v10c c
-;tick count: 112
-
-4 v14 >[(c]4 v10c32 <[(c]4 v10c c >[(c]4 v10c32 <v14c
-;tick count: 122
-
-4 v13 c32 [(c]2 ((c v15c >[(c]4 v10c v15c <[(c]4
-;tick count: 131
-
-4 v10 c v15c >[(c]4 v10c v15c <[(c]4 v10c v15c
-;tick count: 139
-
 4 v14 >[(c]4 v10c v15c <[(c]4 v10c v15c >[(c]4 v10c
-;tick count: 147
+;tick count: 102
 
 4 v15 c <[(c]4 v10c v15c >[(c]4 v10c v15c <[(c]4
-;tick count: 155
+;tick count: 110
 
 4 v10 c v15c >[(c]4 v10c v15c <[(c]4 v10c v15c
-;tick count: 163
+;tick count: 118
 
 4 v14 >[(c]4 v10c v15c <[(c]4 v10c v15c >[(c]4 v10c
-;tick count: 171
+;tick count: 126
 
 4 v15 c <[(c]4 v10c v15c >[(c]4 v10c v15c <[(c]4
-;tick count: 179
+;tick count: 134
 
-4 v10 c [(c]4 v11c2.c8c32 [(c]3 (((c
-;ch4 end: tick count: 241
+4 v10 c v15c >[(c]4 v10c c <[(c]4 v10c v15c
+;tick count: 142
+
+4 v14 >[(c]4 v10c v15c <[(c]4 v10c v15c >[(c]4 v10c
+;tick count: 150
+
+4 v15 c <[(c]4 v10c v15c >[(c]4 v10c v15c <[(c]4
+;tick count: 158
+
+4 v10 c v15c >[(c]4 v10c v15c <[(c]4 v10c v15c
+;tick count: 166
+
+4 v14 >[(c]4 v10c v15c <[(c]4 v10c v15c >[(c]4 v10c
+;tick count: 174
+
+4 v15 c <[(c]4 v10c [(c]4 v11c2.c8c32 [(c]3 (((c
+;ch4 end: tick count: 238
 
 
 ;ch5 start
@@ -65,45 +65,44 @@
 5 v7 e16 d+16 d16 c+16 c4 <)b4 ((b8. ((b8b
 ;tick count: 101
 
-5 @3 v9 >[)f]2 [(f]8 v3f4f16.f (f (f32 [)c]2 [(c]2 ((c32
-;tick count: 133
+5 @3 v9 >[)f]2 [(f]8 v3f4f16.f (f (f [)f]3 [(c]8 v3c4c16.c
+;tick count: 153
 
-5 v7 [(c]4 v3c4c16.c (c (c32 [)c]3 [(f]8 v3f4f16.f (f
-;tick count: 186
+5 v2 c (c [)c]3 [(f]8 v3f4f16.f (f (f f
+;tick count: 183
 
-5 v1 f [)f]3 [(a+]8 v3a+4a+16.a+ (a+ (a+ v8a+ >[)d+]2
-;tick count: 216
+5 v9 [)a+]2 [(a+]8 v3a+4a+16.a+ (a+ (a+ v8a+ >[)d+]2 [(d+]8
+;tick count: 213
 
-5 v11 [(d+]8 v3d+4d+16.d+ (d+ (d+ [)d+]3 [(g+]6 v5g+2.g+8.g+ (g+
-;tick count: 306
+5 v3 d+4d+16.d+ (d+ (d+ [)d+]3 [(g+]6 v5g+2.g+8.g+ (g+ (g+
+;tick count: 303
 
-5 v3 g+
-;ch5 end: tick count: 307
+;ch5 end: tick count: 303
 
 
 ;ch6 start
 6 @1 v10 o2 l64 [d8d32]2 d4d8.d32 e8e32 [(d8d32]4 v6e8e32. >>[(a+]9 v0a+32
 ;tick count: 74
 
-6 @3 v8 a+ [(a+]8 v1a+4a+8a+ (a+32.
-;tick count: 104
+6 @3 v8 a+ [(a+]8 v1a+4a+8a+ (a+32
+;tick count: 103
 
-6 v9 [(f]4 v5f32 [(f]2 ((f4f8f32 (f32
-;tick count: 136
+6 v8 a+ [(f]8 v1f4f8f (f32
+;tick count: 132
 
 6 v8 f [(a+]8 v1a+4a+8a+ (a+32
-;tick count: 165
+;tick count: 161
 
 6 v8 a+ >[(d+]8 v1d+4d+8d+ (d+32
-;tick count: 194
+;tick count: 190
 
 6 v8 d+ [(g+]8 v1g+4g+8g+ (g+32
-;tick count: 223
+;tick count: 219
 
 6 v8 g+ >[(c+]6 v3c+2c+8.c+32. [(c+]2 ((c+16
-;tick count: 277
+;tick count: 273
 
-;ch6 end: tick count: 277
+;ch6 end: tick count: 273
 
 
 ;ch7 start
@@ -116,19 +115,16 @@
 7 v5 b16 <b16 >e16 f+16 (((b16 <b16 >e16 f+8f+
 ;tick count: 101
 
-7 @3 v9 <[)a+]2 [(a+]8 v3a+4a+16.a+ (a+ (a+32 [)f]2 [(f]2 ((f32
-;tick count: 133
+7 @3 v9 <[)a+]2 [(a+]8 v3a+4a+16.a+ (a+ (a+ [)a+]3 [(f]8 v3f4f16.f
+;tick count: 153
 
-7 v7 [(f]4 v3f4f8 (f (f [)f]3 [(a+]8 v3a+4a+16.a+ (a+
-;tick count: 186
+7 v2 f (f [)f]3 [(a+]8 v3a+4a+16.a+ (a+ (a+32 >[)d+]2
+;tick count: 184
 
-7 v1 a+ v8a+ >[)d+]2 [(d+]8 v3d+4d+16.d+ (d+ (d+ [)d+]3
-;tick count: 216
+7 v11 [(d+]8 v3d+4d+16.d+ (d+ (d+ [)d+]3 [(g+]8 v3g+4g+16.g+ (g+
+;tick count: 236
 
-7 v11 [(g+]8 v3g+4g+16.g+ (g+ (g+ v8g+ >[)c+]2 [(c+]6 v5c+2.c+8c+
-;tick count: 302
+7 v1 g+ v8g+ >[)c+]2 [(c+]6 v5c+2.c+8c+ [(c+]4 v0c+32
+;tick count: 300
 
-7 v4 [(c+]4 v0c+32
-;tick count: 305
-
-;ch7 end: tick count: 305
+;ch7 end: tick count: 300

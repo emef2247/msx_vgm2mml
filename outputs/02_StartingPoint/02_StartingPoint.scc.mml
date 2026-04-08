@@ -2,10 +2,10 @@
 #opll_mode 1
 #tempo 225
 #title { "02_StartingPoint"}
-#alloc 4=1536
+#alloc 4=1568
 #alloc 5=736
-#alloc 6=688
-#alloc 7=848
+#alloc 6=704
+#alloc 7=864
 
 @s00 = {001931475a6a757d7f7d756a5a47311900e7cfb9a6968b8380838b96a6b9cfe7}
 @s01 = {00407f4001c081c001407f4001c0014001e0012001f0011001ffffffff404040}
@@ -33,65 +33,68 @@
 4 v14 o2 c64  v13 c64  v12 c64  v11 c64  v10 c64  v15 c64  v14 o3 c64  v13 c64 
 ;tick count: 133
 
-4 v12 c64  v11 c64  v10 c32  v14 o2 c64  v13 c64  v12 c64  v11 c64  v10 c64 
-;tick count: 142
-
-4 v15 c64  v14 o3 c64  v13 c64  v12 c64  v11 c64  v10 c32  v14 o2 c64  v13 c64 
-;tick count: 151
-
-4 v12 c64  v11 c64  v10 c64  c64  v14 o3 c64  v13 c64  v12 c64  v11 c64 
-;tick count: 159
-
-4 v10 c32  v14 o2 c64  v13 c64  v12 c64  v11 c64  v10 c64  c64  v14 o3 c64 
-;tick count: 168
-
-4 v13 c64  v12 c64  v11 c64  v10 c32  v14 o2 c64  v13 c32  v12 c64  v11 c64 
-;tick count: 178
+4 v12 c64  v11 c64  v10 c64  v15 c64  v14 o2 c64  v13 c64  v12 c64  v11 c64 
+;tick count: 141
 
 4 v10 c64  v15 c64  v14 o3 c64  v13 c64  v12 c64  v11 c64  v10 c64  v15 c64 
-;tick count: 186
+;tick count: 149
 
 4 v14 o2 c64  v13 c64  v12 c64  v11 c64  v10 c64  v15 c64  v14 o3 c64  v13 c64 
-;tick count: 194
+;tick count: 157
 
 4 v12 c64  v11 c64  v10 c64  v15 c64  v14 o2 c64  v13 c64  v12 c64  v11 c64 
-;tick count: 202
+;tick count: 165
 
 4 v10 c64  v15 c64  v14 o3 c64  v13 c64  v12 c64  v11 c64  v10 c64  v15 c64 
-;tick count: 210
+;tick count: 173
 
 4 v14 o2 c64  v13 c64  v12 c64  v11 c64  v10 c64  v15 c64  v14 o3 c64  v13 c64 
-;tick count: 218
+;tick count: 181
 
 4 v12 c64  v11 c64  v10 c64  v15 c64  v14 o2 c64  v13 c64  v12 c64  v11 c64 
-;tick count: 226
+;tick count: 189
 
 4 v10 c64  v15 c64  v14 o3 c64  v13 c64  v12 c64  v11 c64  v10 c64  v15 c64 
-;tick count: 234
+;tick count: 197
 
 4 v14 o2 c64  v13 c64  v12 c64  v11 c64  v10 c64  v15 c64  v14 o3 c64  v13 c64 
-;tick count: 242
+;tick count: 205
 
-4 v12 c64  v11 c64  v10 c64  v15 c64  v14 o2 c64  v13 c64  v12 c64  v11 c64 
-;tick count: 250
+4 v12 c64  v11 c64  v10 c64  c64  v14 o2 c64  v13 c64  v12 c64  v11 c64 
+;tick count: 213
 
 4 v10 c64  v15 c64  v14 o3 c64  v13 c64  v12 c64  v11 c64  v10 c64  v15 c64 
-;tick count: 258
+;tick count: 221
 
 4 v14 o2 c64  v13 c64  v12 c64  v11 c64  v10 c64  v15 c64  v14 o3 c64  v13 c64 
-;tick count: 266
+;tick count: 229
 
 4 v12 c64  v11 c64  v10 c64  v15 c64  v14 o2 c64  v13 c64  v12 c64  v11 c64 
-;tick count: 274
+;tick count: 237
 
 4 v10 c64  v15 c64  v14 o3 c64  v13 c64  v12 c64  v11 c64  v10 c64  v15 c64 
-;tick count: 282
+;tick count: 245
 
-4 v14 o2 c64  v13 c64  v12 c64  v11 c64  v10 c64  v15 c64  v14 c64  v13 c64 
-;tick count: 290
+4 v14 o2 c64  v13 c64  v12 c64  v11 c64  v10 c64  v15 c64  v14 o3 c64  v13 c64 
+;tick count: 253
 
-4 v12 c64  v11 c2c4c8c32  v10 c64  v9 c64  v8 c64  v7 c64 
-;ch4 end: tick count: 353
+4 v12 c64  v11 c64  v10 c64  v15 c64  v14 o2 c64  v13 c64  v12 c64  v11 c64 
+;tick count: 261
+
+4 v10 c64  v15 c64  v14 o3 c64  v13 c64  v12 c64  v11 c64  v10 c64  v15 c64 
+;tick count: 269
+
+4 v14 o2 c64  v13 c64  v12 c64  v11 c64  v10 c64  v15 c64  v14 o3 c64  v13 c64 
+;tick count: 277
+
+4 v12 c64  v11 c64  v10 c64  v15 c64  v14 o2 c64  v13 c64  v12 c64  v11 c64 
+;tick count: 285
+
+4 v10 c64  v15 c64  v14 c64  v13 c64  v12 c64  v11 c2c4c8c32  v10 c64  v9 c64 
+;tick count: 350
+
+4 v8 c64  v7 c64 
+;ch4 end: tick count: 352
 
 
 ;ch5 start
@@ -104,32 +107,35 @@
 5 @3 v9 o4 f64  v10 f64  v11 f64  v10 f64  v9 f64  v8 f64  v7 f64  v6 f64 
 ;tick count: 109
 
-5 v5 f64  v4 f64  v3 f4f16f32f64  v2 f64  v1 f32  v9 c64  v10 c64  v11 c64 
-;tick count: 140
+5 v5 f64  v4 f64  v3 f4f16f32f64  v2 f64  v1 f64  v8 f64  v9 c64  v10 c64 
+;tick count: 139
 
-5 v10 c64  v9 c32  v7 c64  v6 c64  v5 c64  v4 c64  v3 c4c16c32c64  v2 c64 
-;tick count: 171
+5 v11 c64  v10 c64  v9 c64  v8 c64  v7 c64  v6 c64  v5 c64  v4 c64 
+;tick count: 147
 
-5 v1 c32  v8 c64  v9 f64  v10 f64  v11 f64  v10 f64  v9 f64  v8 f64 
-;tick count: 180
+5 v3 c4c16c32c64  v2 c64  v1 c64  v8 c64  v9 f64  v10 f64  v11 f64  v10 f64 
+;tick count: 177
 
-5 v7 f64  v6 f64  v5 f64  v4 f64  v3 f4f16f32f64  v2 f64  v1 f64  v8 f64 
-;tick count: 210
+5 v9 f64  v8 f64  v7 f64  v6 f64  v5 f64  v4 f64  v3 f4f16f32f64  v2 f64 
+;tick count: 207
 
-5 v9 a+64  v10 a+64  v11 a+64  v10 a+64  v9 a+64  v8 a+64  v7 a+64  v6 a+64 
-;tick count: 218
+5 v1 f64  f64  v9 a+64  v10 a+64  v11 a+64  v10 a+64  v9 a+64  v8 a+64 
+;tick count: 215
 
-5 v5 a+64  v4 a+64  v3 a+4a+16a+32a+64  v2 a+64  v1 a+64  v8 a+64  v9 o5 d+64  v10 d+64 
-;tick count: 248
+5 v7 a+64  v6 a+64  v5 a+64  v4 a+64  v3 a+4a+16a+32a+64  v2 a+64  v1 a+64  v8 a+64 
+;tick count: 245
 
-5 v11 d+64  v10 d+64  v9 d+64  v8 d+64  v7 d+64  v6 d+64  v5 d+64  v4 d+64 
-;tick count: 256
+5 v9 o5 d+64  v10 d+64  v11 d+64  v10 d+64  v9 d+64  v8 d+64  v7 d+64  v6 d+64 
+;tick count: 253
 
-5 v3 d+4d+16d+32d+64  v2 d+64  v1 d+64  v8 d+64  v9 g+64  v10 g+64  v11 g+64  v10 g+64 
-;tick count: 286
+5 v5 d+64  v4 d+64  v3 d+4d+16d+32d+64  v2 d+64  v1 d+64  v8 d+64  v9 g+64  v10 g+64 
+;tick count: 283
 
-5 v9 g+64  v8 g+64  v7 g+64  v6 g+64  v5 g+2g+4g+8g+16g+64  v4 g+64  v3 g+64 
-;ch5 end: tick count: 353
+5 v11 g+64  v10 g+64  v9 g+64  v8 g+64  v7 g+64  v6 g+64  v5 g+2g+4g+8g+16g+64  v4 g+64 
+;tick count: 351
+
+5 v3 g+64 
+;ch5 end: tick count: 352
 
 
 ;ch6 start
@@ -145,40 +151,40 @@
 6 v8 a+64  v9 a+64  v8 a+64  v7 a+64  v6 a+64  v5 a+64  v4 a+64  v3 a+64 
 ;tick count: 120
 
-6 v2 a+64  v1 a+4a+8a+64  v0 a+32a+64 
-;tick count: 149
+6 v2 a+64  v1 a+4a+8a+64  v0 a+32 
+;tick count: 148
 
-6 v9 f64  v8 f64  v7 f64  v6 f64  v5 f32  v3 f64  v2 f64  v1 f4f8f32 
-;tick count: 183
+6 v8 a+64  v9 f64  v8 f64  v7 f64  v6 f64  v5 f64  v4 f64  v3 f64 
+;tick count: 156
 
-6 v0 f32 
-;tick count: 185
+6 v2 f64  v1 f4f8f64  v0 f32 
+;tick count: 184
 
 6 v8 f64  v9 a+64  v8 a+64  v7 a+64  v6 a+64  v5 a+64  v4 a+64  v3 a+64 
-;tick count: 193
+;tick count: 192
 
 6 v2 a+64  v1 a+4a+8a+64  v0 a+32 
-;tick count: 221
+;tick count: 220
 
 6 v8 a+64  v9 o5 d+64  v8 d+64  v7 d+64  v6 d+64  v5 d+64  v4 d+64  v3 d+64 
-;tick count: 229
+;tick count: 228
 
 6 v2 d+64  v1 d+4d+8d+64  v0 d+32 
-;tick count: 257
+;tick count: 256
 
 6 v8 d+64  v9 g+64  v8 g+64  v7 g+64  v6 g+64  v5 g+64  v4 g+64  v3 g+64 
-;tick count: 265
+;tick count: 264
 
 6 v2 g+64  v1 g+4g+8g+64  v0 g+32 
-;tick count: 293
+;tick count: 292
 
 6 v8 g+64  v9 o6 c+64  v8 c+64  v7 c+64  v6 c+64  v5 c+64  v4 c+64  v3 c+2c+8c+16c+32c+64 
-;tick count: 347
+;tick count: 346
 
 6 v2 c+64  v1 c+64  v0 c+16 
-;tick count: 353
+;tick count: 352
 
-;ch6 end: tick count: 353
+;ch6 end: tick count: 352
 
 
 ;ch7 start
@@ -194,34 +200,34 @@
 7 @3 v9 o4 a+64  v10 a+64  v11 a+64  v10 a+64  v9 a+64  v8 a+64  v7 a+64  v6 a+64 
 ;tick count: 109
 
-7 v5 a+64  v4 a+64  v3 a+4a+16a+32a+64  v2 a+64  v1 a+32  v9 f64  v10 f64  v11 f64 
-;tick count: 140
+7 v5 a+64  v4 a+64  v3 a+4a+16a+32a+64  v2 a+64  v1 a+64  v8 a+64  v9 f64  v10 f64 
+;tick count: 139
 
-7 v10 f64  v9 f32  v7 f64  v6 f64  v5 f64  v4 f64  v3 f4f8  v2 f64 
-;tick count: 172
+7 v11 f64  v10 f64  v9 f64  v8 f64  v7 f64  v6 f64  v5 f64  v4 f64 
+;tick count: 147
 
-7 v1 f64  v8 f64  v9 a+64  v10 a+64  v11 a+64  v10 a+64  v9 a+64  v8 a+64 
-;tick count: 180
+7 v3 f4f16f32f64  v2 f64  v1 f64  v8 f64  v9 a+64  v10 a+64  v11 a+64  v10 a+64 
+;tick count: 177
 
-7 v7 a+64  v6 a+64  v5 a+64  v4 a+64  v3 a+4a+16a+32a+64  v2 a+64  v1 a+64  v8 a+64 
-;tick count: 210
+7 v9 a+64  v8 a+64  v7 a+64  v6 a+64  v5 a+64  v4 a+64  v3 a+4a+16a+32a+64  v2 a+64 
+;tick count: 207
 
-7 v9 o5 d+64  v10 d+64  v11 d+64  v10 d+64  v9 d+64  v8 d+64  v7 d+64  v6 d+64 
-;tick count: 218
+7 v1 a+32  v9 o5 d+64  v10 d+64  v11 d+64  v10 d+64  v9 d+64  v8 d+64  v7 d+64 
+;tick count: 216
 
-7 v5 d+64  v4 d+64  v3 d+4d+16d+32d+64  v2 d+64  v1 d+64  v8 d+64  v9 g+64  v10 g+64 
-;tick count: 248
+7 v6 d+64  v5 d+64  v4 d+64  v3 d+4d+16d+32d+64  v2 d+64  v1 d+64  v8 d+64  v9 g+64 
+;tick count: 246
 
-7 v11 g+64  v10 g+64  v9 g+64  v8 g+64  v7 g+64  v6 g+64  v5 g+64  v4 g+64 
-;tick count: 256
+7 v10 g+64  v11 g+64  v10 g+64  v9 g+64  v8 g+64  v7 g+64  v6 g+64  v5 g+64 
+;tick count: 254
 
-7 v3 g+4g+16g+32g+64  v2 g+64  v1 g+64  v8 g+64  v9 o6 c+64  v10 c+64  v11 c+64  v10 c+64 
-;tick count: 286
+7 v4 g+64  v3 g+4g+16g+32g+64  v2 g+64  v1 g+64  v8 g+64  v9 o6 c+64  v10 c+64  v11 c+64 
+;tick count: 284
 
-7 v9 c+64  v8 c+64  v7 c+64  v6 c+64  v5 c+2c+4c+8c+64  v4 c+64  v3 c+64  v2 c+64 
-;tick count: 350
+7 v10 c+64  v9 c+64  v8 c+64  v7 c+64  v6 c+64  v5 c+2c+4c+8c+64  v4 c+64  v3 c+64 
+;tick count: 348
 
-7 v1 c+64  v0 c+32 
-;tick count: 353
+7 v2 c+64  v1 c+64  v0 c+32 
+;tick count: 352
 
-;ch7 end: tick count: 353
+;ch7 end: tick count: 352
