@@ -1,0 +1,172 @@
+;[name=psg lpf=1]
+#opll_mode 1
+#tempo 225
+#title { "02_StartingPoint"}
+#alloc 1=512
+#alloc 2=576
+#alloc 3=1072
+
+
+
+;ch1 start
+1 /0 v0 o1 l64 r1r2r8.r
+;tick count: 109
+
+1 /1 s0 m1573 v8 >a+32 b32 >c32 c+32 d32 <a+32 b32 >c32
+;tick count: 125
+
+1 /1 s0 m1573 v8 c+32 d32 <b32 >c32 c+32 d32 d+32 <b32
+;tick count: 141
+
+1 /1 s0 m1573 v8 >c32 c+32 d32 d+32 c32 c+32 d32 d+32
+;tick count: 157
+
+1 /1 s0 m1573 v8 e32 c32 c+32 d32 d+32 e32 c+32 d32
+;tick count: 173
+
+1 /1 s0 m1573 v8 d+32 e32 f32 c+32 d32 d+32 e32 f32.
+;tick count: 190
+
+1 /1 s0 m1573 v8 d32 d+32 e32 f32 f+32 d32 d+32 e32
+;tick count: 206
+
+1 /1 s0 m1573 v8 f32 f+32
+;tick count: 210
+
+1 /3 s0 m1573 n31 v12 g+ f+ e c+ <g+ f c+ <g+
+;tick count: 218
+
+1 /2 s0 m1573 n29 v12 g+ g+ g+ g+ g+ g+ g+ g+
+;tick count: 226
+
+1 /2 s0 m1573 n3 v12 g+ g+ (g+16.g+ (g+16.g+ ((g+16.g+ ((g+16.g+ ((g+16.g+ (g+16.g+
+;tick count: 270
+
+;ch1 end: tick count: 270
+
+
+;ch2 start
+2 /0 v0 o1 l64 r1r2r8.
+;tick count: 108
+
+2 /1 s0 m1573 v8 >a+32 b32 >c32 c+32 d32 <a+32 b32 >c32
+;tick count: 124
+
+2 /1 s0 m1573 v8 c+32 d32 <b32 >c32 c+32 d32. d+ <b32
+;tick count: 140
+
+2 /1 s0 m1573 v8 >c32 c+32 d32 d+32. c c+32 d32 d+32
+;tick count: 156
+
+2 /1 s0 m1573 v8 e32 c32. c+ d32 d+32. e c+32 d32.
+;tick count: 173
+
+2 /1 s0 m1573 v8 d+ e32 f32. c+32 d32 d+32 e32 f32
+;tick count: 189
+
+2 /1 s0 m1573 v8 d32 d+32 e32 f32 f+32 d32 d+32 e32
+;tick count: 205
+
+2 /1 s0 m1573 v8 f32 f+32 v14c+ c <g+ f+ f c+
+;tick count: 215
+
+2 /1 s0 m1573 v14 <g+ f+ >>c+ c <g+ f+ f c+
+;tick count: 223
+
+2 /1 s0 m1573 v14 <g+ f+ >>((c+ c <g+ f+ f c+
+;tick count: 231
+
+2 /1 s0 m1573 v12 <g+ f+ >>c+ c <g+ f+ f c+
+;tick count: 239
+
+2 /1 s0 m1573 v12 <g+ f+ >>((c+ c <g+ f+ f c+
+;tick count: 247
+
+2 /1 s0 m1573 v10 <g+ f+ >>c+ c <g+ f+ f c+
+;tick count: 255
+
+2 /1 s0 m1573 v10 <g+ f+
+;ch2 end: tick count: 257
+
+
+;ch3 start
+3 /1 s0 m1573 v10 o4 l64 e16 <b16 >e16 f+16 <b16 >f+16 >e16 <b16
+;tick count: 32
+
+3 /1 s0 m1573 v10 >e16 f+16 <b16 >f+16 <b16 >e16 f+16 b16
+;tick count: 64
+
+3 /1 s0 m1573 v7 <b16 >e16 f+16 b16 <((b16 >e16 f+16 b8b
+;tick count: 101
+
+3 /1 s0 m1573 v10 o1c (c (c (c (c >v11c (c (c
+;tick count: 109
+
+3 /1 s0 m1573 v8 c (c (c <v11c (c (c (c (c
+;tick count: 117
+
+3 /1 s0 m1573 v6 c >v11c (c (c (c (c (c <v11c
+;tick count: 125
+
+3 /1 s0 m1573 v10 c (c (c (c (c >v11c (c (c
+;tick count: 133
+
+3 /1 s0 m1573 v8 c (c (c32 <v10c (c (c (c (c
+;tick count: 142
+
+3 /1 s0 m1573 v11 >c (c (c (c (c (c32 <v10c (c
+;tick count: 151
+
+3 /1 s0 m1573 v8 c (c (c32 >v10c (c (c (c (c32
+;tick count: 161
+
+3 /1 s0 m1573 v10 <c (c (c (c (c32 >v10c (c (c
+;tick count: 170
+
+3 /1 s0 m1573 v7 c (c32 <v10c32 (c (c (c (c >v11c
+;tick count: 180
+
+3 /1 s0 m1573 v10 c (c (c (c (c <v11c (c (c
+;tick count: 188
+
+3 /1 s0 m1573 v8 c (c (c >v11c (c (c (c (c
+;tick count: 196
+
+3 /1 s0 m1573 v6 c <v11c (c (c (c (c (c >v11c
+;tick count: 204
+
+3 /1 s0 m1573 v10 c (c (c (c (c <v11c (c (c
+;tick count: 212
+
+3 /1 s0 m1573 v8 c (c (c >v11c (c (c (c (c
+;tick count: 220
+
+3 /1 s0 m1573 v6 c <v11c (c (c (c (c (c >v11c
+;tick count: 228
+
+3 /1 s0 m1573 v10 c (c (c (c (c <v11c (c (c
+;tick count: 236
+
+3 /1 s0 m1573 v8 c (c (c >v11c (c (c (c (c
+;tick count: 244
+
+3 /1 s0 m1573 v6 c <v11c (c (c (c (c (c >v11c
+;tick count: 252
+
+3 /1 s0 m1573 v10 c (c (c (c (c <v11c (c (c
+;tick count: 260
+
+3 /1 s0 m1573 v8 c (c (c >v11c (c (c (c (c
+;tick count: 268
+
+3 /1 s0 m1573 v6 c <v11c (c (c (c (c (c >v11c
+;tick count: 276
+
+3 /1 s0 m1573 v10 c (c (c (c (c <v11c (c (c
+;tick count: 284
+
+3 /1 s0 m1573 v8 c (c (c v11c (c (c (c (c2.c8c32
+;tick count: 349
+
+3 /1 s0 m1573 v6 c (c (c (c
+;ch3 end: tick count: 353

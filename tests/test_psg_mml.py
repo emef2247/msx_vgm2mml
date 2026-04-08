@@ -194,3 +194,99 @@ def test_vgm_to_psg_trace_mml_has_notes():
         notes = note_pattern.findall(content)
         assert len(notes) > 0, (
             "Trace-based PSG MML contains only rests - frequency mapping broken.")
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# pass3 MML variant tests (simple / simple.MGS / compress.MGS)
+# ──────────────────────────────────────────────────────────────────────────
+
+def test_psg_pass3_simple_mml_is_created():
+    """process_psg_csv must produce a .psg.pass3.simple.mml file."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        simple_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.simple.mml')
+        assert os.path.isfile(simple_path), (
+            f"pass3.simple.mml not created: {simple_path}")
+
+
+def test_psg_pass3_simple_mgs_mml_is_created():
+    """process_psg_csv must produce a .psg.pass3.simple.MGS.mml file."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        mgs_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.simple.MGS.mml')
+        assert os.path.isfile(mgs_path), (
+            f"pass3.simple.MGS.mml not created: {mgs_path}")
+
+
+def test_psg_pass3_compress_mgs_mml_is_created():
+    """process_psg_csv must produce a .psg.pass3.compress.MGS.mml file."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        compress_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.compress.MGS.mml')
+        assert os.path.isfile(compress_path), (
+            f"pass3.compress.MGS.mml not created: {compress_path}")
+
+
+def test_psg_pass3_simple_mml_uses_tempo_75():
+    """pass3.simple.mml must use #tempo 75 (raw-tick format)."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        simple_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.simple.mml')
+        content = _read(simple_path)
+        assert '#tempo 75' in content, "pass3.simple.mml must use #tempo 75"
+        assert '%' in content, "pass3.simple.mml must contain raw %-tick notation"
+
+
+def test_psg_pass3_simple_mgs_uses_delta_tokens():
+    """pass3.simple.MGS.mml must contain '<'/'>' octave delta tokens (Tcl get_mml_MGS behaviour)."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        mgs_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.simple.MGS.mml')
+        content = _read(mgs_path)
+        # The sample input has octave changes within groups that must be encoded
+        # as '<' or '>' instead of 'oN'
+        assert '<' in content or '>' in content, (
+            "pass3.simple.MGS.mml must contain octave delta tokens '<' or '>'")
+        # Must use #tempo 225 (standard MGS format)
+        assert '#tempo 225' in content, "pass3.simple.MGS.mml must use #tempo 225"
+        # Must NOT contain bracket wrapping (cnt forced to 1 for simple variant)
+        import re
+        # Check each non-header, non-comment line for [note]N bracket patterns
+        # A note-level bracket is identified by a note letter before the '['
+        for line in content.splitlines():
+            stripped = line.strip()
+            if stripped.startswith(';') or stripped.startswith('#') or not stripped:
+                continue
+            # Look for [...]N where N is a digit – note-level compression
+            if re.search(r'\[[^\]]+\]\d', stripped):
+                assert False, (
+                    f"pass3.simple.MGS.mml must NOT contain [...]N bracket wrapping, "
+                    f"found in: {line!r}")
+
+
+def test_psg_pass3_simple_mgs_uses_tempo_225():
+    """pass3.simple.MGS.mml must use #tempo 225 (standard MGS format)."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        mgs_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.simple.MGS.mml')
+        content = _read(mgs_path)
+        assert '#tempo 225' in content, "pass3.simple.MGS.mml must use #tempo 225"
+
+
+def test_psg_pass3_compress_mgs_has_compressed_token():
+    """pass3.compress.MGS.mml must contain at least one [token]N compressed entry."""
+    import re
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        compress_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.compress.MGS.mml')
+        content = _read(compress_path)
+        assert re.search(r'\[[^\]]+\]\d+', content), (
+            "pass3.compress.MGS.mml must contain at least one [token]N compression")
+

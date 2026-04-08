@@ -9,7 +9,8 @@ import math
 
 sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import (get_ticks, get_octave, get_scale, get_tone_frequency,
-                       estimate_mml_used, estimate_alloc, ticks_to_mml_length)
+                       estimate_mml_used, estimate_alloc, ticks_to_mml_length,
+                       compress_mml_text, get_mgs_note_token)
 
 # PSG column indices
 COL_TYPE = 0
@@ -40,6 +41,11 @@ COL_ENVPCTRL_M = 30
 COL_ENVSHAPE = 31
 COL_IOPARALLEL1 = 32
 COL_IOPARALLEL2 = 33
+
+# Pass-3 extra columns (appended by the pass-3 loop)
+_PSG_COL_LDIFF = 34
+_PSG_COL_ODIFF3 = 35
+_PSG_COL_CNT = 36
 
 
 def _int(val):
@@ -367,134 +373,451 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
     for ch in ch_list:
         work_buffer1[ch] = list(temp_buffer3[ch])
 
-    mml_buffer1 = {}
-    for ch in ch_list:
-        mml_buffer1[ch] = []
+    def _build_psg_mml_buffer(raw_ticks=False):
+        """Build per-channel MML buffers from work_buffer1.
 
-    ch_offset = 1  # PSG channels displayed as 1-based
+        When *raw_ticks* is True, emit ``{scale}%{N}`` notation and omit
+        the ``l64`` default-length directive (pass3.simple.mml style).
+        When False (default), emit standard divisor notation with ``l64``
+        (pass3.simple.MGS.mml style, #tempo 225).
+        """
+        mml_buffer = {}
+        for ch in ch_list:
+            mml_buffer[ch] = []
 
-    for ch in ch_list:
-        note_cnt = 0
-        mml = ""
-        l_cnt = 0
-        o_stamp = 0
-        v_stamp = 0
-        mode_stamp = -1   # tracks previous mode so we can flush on mode change
-        is_first_group = True
+        ch_offset = 1  # PSG channels displayed as 1-based
 
-        ch_start = f"\n\n;ch{ch + ch_offset} start"
-        mml_buffer1[ch].append(ch_start)
+        for ch in ch_list:
+            note_cnt = 0
+            mml = ""
+            l_cnt = 0
+            o_stamp = 0
+            v_stamp = 0
+            mode_stamp = -1   # tracks previous mode so we can flush on mode change
+            is_first_group = True
 
-        for row in work_buffer1[ch]:
-            type_ = row[COL_TYPE]
-            l = _int(row[COL_L])
-            v = _int(row[COL_V])
-            f = _int(row[COL_F])
-            o = _int(row[COL_O])
-            scale = row[COL_SCALE] if row[COL_SCALE] else 'r'
-            mode = _int(row[COL_EN])
+            ch_start = f"\n\n;ch{ch + ch_offset} start"
+            mml_buffer[ch].append(ch_start)
 
-            noise_freq = get_noise_period(row)
-            hw_env_on = get_hw_envelope_on(row)
-            hw_env_period = get_hw_envelope_frequency(row)
-            hw_env_shape = get_hw_envelope_shape(row)
+            for row in work_buffer1[ch]:
+                type_ = row[COL_TYPE]
+                l = _int(row[COL_L])
+                v = _int(row[COL_V])
+                f = _int(row[COL_F])
+                o = _int(row[COL_O])
+                scale = row[COL_SCALE] if row[COL_SCALE] else 'r'
+                mode = _int(row[COL_EN])
 
-            if l > 0:
-                length = l
+                noise_freq = get_noise_period(row)
+                hw_env_on = get_hw_envelope_on(row)
+                hw_env_period = get_hw_envelope_frequency(row)
+                hw_env_shape = get_hw_envelope_shape(row)
 
-                # Flush current MML group when mode changes mid-group so that
-                # the new header reflects the updated mode/noise/env settings.
-                if note_cnt > 0 and mode != mode_stamp:
-                    mml_buffer1[ch].append(mml)
-                    mml = ""
-                    mml_buffer1[ch].append(f"\n;tick count: {l_cnt}\n")
-                    note_cnt = 0
+                if l > 0:
+                    length = l
 
-                if note_cnt == 0:
-                    if mode == 0:
-                        v = 0
-                        if is_first_group:
-                            mml = f"\n{ch + ch_offset} /0 v{v} o{o} l64"
-                            o_stamp = o
-                            is_first_group = False
+                    # Flush current MML group when mode changes mid-group so
+                    # that the new header reflects the updated mode/noise/env.
+                    if note_cnt > 0 and mode != mode_stamp:
+                        mml_buffer[ch].append(mml)
+                        mml = ""
+                        mml_buffer[ch].append(f"\n;tick count: {l_cnt}\n")
+                        note_cnt = 0
+
+                    if note_cnt == 0:
+                        if raw_ticks:
+                            # No l64; o emitted inline as needed
+                            if mode == 0:
+                                v = 0
+                                if is_first_group:
+                                    mml = f"\n{ch + ch_offset} /0 v{v}"
+                                    is_first_group = False
+                                else:
+                                    mml = f"\n{ch + ch_offset} /0 v{v}"
+                            elif mode == 1:
+                                if is_first_group:
+                                    mml = f"\n{ch + ch_offset} /1 s{hw_env_shape} m{hw_env_period} v{v}"
+                                    is_first_group = False
+                                else:
+                                    mml = f"\n{ch + ch_offset} /1 s{hw_env_shape} m{hw_env_period} v{v}"
+                            elif mode == 2:
+                                if is_first_group:
+                                    mml = f"\n{ch + ch_offset} /2 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v}"
+                                    is_first_group = False
+                                else:
+                                    mml = f"\n{ch + ch_offset} /2 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v}"
+                            elif mode == 3:
+                                if is_first_group:
+                                    mml = f"\n{ch + ch_offset} /3 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v}"
+                                    is_first_group = False
+                                else:
+                                    mml = f"\n{ch + ch_offset} /3 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v}"
                         else:
-                            mml = f"\n{ch + ch_offset} /0 v{v}"
-                    elif mode == 1:
-                        if is_first_group:
-                            mml = f"\n{ch + ch_offset} /1 s{hw_env_shape} m{hw_env_period} v{v} o{o} l64"
-                            o_stamp = o
-                            is_first_group = False
-                        else:
-                            mml = f"\n{ch + ch_offset} /1 s{hw_env_shape} m{hw_env_period} v{v}"
-                    elif mode == 2:
-                        if is_first_group:
-                            mml = f"\n{ch + ch_offset} /2 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v} o{o} l64"
-                            o_stamp = o
-                            is_first_group = False
-                        else:
-                            mml = f"\n{ch + ch_offset} /2 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v}"
-                    elif mode == 3:
-                        if is_first_group:
-                            mml = f"\n{ch + ch_offset} /3 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v} o{o} l64"
-                            o_stamp = o
-                            is_first_group = False
-                        else:
-                            mml = f"\n{ch + ch_offset} /3 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v}"
+                            if mode == 0:
+                                v = 0
+                                if is_first_group:
+                                    mml = f"\n{ch + ch_offset} /0 v{v} o{o} l64"
+                                    o_stamp = o
+                                    is_first_group = False
+                                else:
+                                    mml = f"\n{ch + ch_offset} /0 v{v}"
+                            elif mode == 1:
+                                if is_first_group:
+                                    mml = f"\n{ch + ch_offset} /1 s{hw_env_shape} m{hw_env_period} v{v} o{o} l64"
+                                    o_stamp = o
+                                    is_first_group = False
+                                else:
+                                    mml = f"\n{ch + ch_offset} /1 s{hw_env_shape} m{hw_env_period} v{v}"
+                            elif mode == 2:
+                                if is_first_group:
+                                    mml = f"\n{ch + ch_offset} /2 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v} o{o} l64"
+                                    o_stamp = o
+                                    is_first_group = False
+                                else:
+                                    mml = f"\n{ch + ch_offset} /2 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v}"
+                            elif mode == 3:
+                                if is_first_group:
+                                    mml = f"\n{ch + ch_offset} /3 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v} o{o} l64"
+                                    o_stamp = o
+                                    is_first_group = False
+                                else:
+                                    mml = f"\n{ch + ch_offset} /3 s{hw_env_shape} m{hw_env_period} n{noise_freq} v{v}"
 
-                while length > 0:
-                    ltmp = min(length, 255)
+                    while length > 0:
+                        ltmp = min(length, 255)
 
-                    if type_ in ('mode', 'fCA', 'fCB', 'aVC', 'wNC', 'ePL', 'evM', 'evS'):
+                        if type_ in ('mode', 'fCA', 'fCB', 'aVC', 'wNC', 'ePL', 'evM', 'evS'):
+                            if mode == 0:
+                                v = 0
+                                scale = 'r'
+                            if v != v_stamp and note_cnt != 0:
+                                mml += f" v{v}"
+                            if o != o_stamp:
+                                mml += f" o{o}"
+                            if raw_ticks:
+                                mml += f" {scale}%{ltmp}"
+                            else:
+                                mml += f" {ticks_to_mml_length(ltmp, scale)}"
+                            l_cnt += ltmp
+
+                        length -= ltmp
+
+                        if length >= 0:
+                            mml_buffer[ch].append(mml)
+                            mml = ""
+
+                    note_cnt += 1
+                    if note_cnt == 8 or mode == 0:
+                        mml_buffer[ch].append(mml)
+                        mml = ""
+                        info = f"\n;tick count: {l_cnt}\n"
+                        mml_buffer[ch].append(info)
+                        note_cnt = 0
+
+                    o_stamp = o
+                    v_stamp = v
+                    mode_stamp = mode
+
+            if mml:
+                mml_buffer[ch].append(mml)
+
+            info = f"\n;ch{ch + ch_offset} end: tick count: {l_cnt}\n"
+            mml_buffer[ch].append(info)
+
+        return mml_buffer
+
+    def _write_psg_mml(mml_buffer, path, title, raw_ticks=False):
+        """Serialise a PSG mml_buffer to *path* with the appropriate header."""
+        tempo = 75 if raw_ticks else 225
+        ch_offset = 1
+        with open(path, 'w', newline='\n') as fh:
+            fh.write(';[name=psg lpf=1]\n')
+            fh.write('#opll_mode 1\n')
+            fh.write(f'#tempo {tempo}\n')
+            fh.write(f'#title {{ "{title}"}}\n')
+            for ch in ch_list:
+                track = ch + ch_offset
+                used = estimate_mml_used(mml_buffer[ch])
+                alloc = estimate_alloc(used)
+                fh.write(f'#alloc {track}={alloc}\n')
+            fh.write('\n')
+            for ch in ch_list:
+                for item in mml_buffer[ch]:
+                    fh.write(item)
+
+    def _update_and_optimize_cnt_psg(src_buffer):
+        """Re-compute cnt for truly repeating notes in the PSG work buffer.
+
+        Port of the Tcl ``update_and_optimize_cnt`` procedure.  For each
+        channel, consecutive rows of type ``fCA``, ``fCB``, or ``aVC`` where
+        ``f``, ``l``, ``o``, ``vDiff``, mode, noise period, hw-envelope shape
+        and hw-envelope period all match the previous row's values, the ``cnt``
+        column (index :data:`_PSG_COL_CNT`) of the *previous* row in the output
+        buffer is incremented and the current row is discarded.
+
+        Returns a new buffer dict with the same structure as *src_buffer*.
+        """
+        dst_buffer = {ch: [] for ch in ch_list}
+
+        for ch in ch_list:
+            f_stamp = None
+            l_stamp = None
+            o_stamp = None
+            vdiff_stamp = None
+            mode_stamp = None
+            noise_stamp = None
+            env_shape_stamp = None
+            env_period_stamp = None
+            cnt_stamp = 0
+
+            for row in src_buffer[ch]:
+                type_ = row[COL_TYPE]
+                l = _int(row[COL_L])
+                f = _int(row[COL_F])
+                o = _int(row[COL_O])
+                v_diff = _int(row[COL_VDIFF])
+                mode = _int(row[COL_EN])
+                noise_period = get_noise_period(row)
+                hw_env_shape = get_hw_envelope_shape(row)
+                hw_env_period = get_hw_envelope_frequency(row)
+                cnt = _int(row[_PSG_COL_CNT]) if len(row) > _PSG_COL_CNT else 1
+
+                # Reset stamps on silent fCA/fCB events
+                if type_ in ('fCA', 'fCB') and mode == 0:
+                    f_stamp = None
+                    l_stamp = None
+                    o_stamp = None
+                    vdiff_stamp = None
+                    mode_stamp = None
+                    noise_stamp = None
+                    env_shape_stamp = None
+                    env_period_stamp = None
+                    cnt_stamp = 0
+
+                if l != 0:
+                    if type_ in ('fCA', 'fCB', 'aVC'):
+                        if (f == f_stamp and l == l_stamp and o == o_stamp
+                                and v_diff == vdiff_stamp
+                                and mode == mode_stamp
+                                and noise_period == noise_stamp
+                                and hw_env_shape == env_shape_stamp
+                                and hw_env_period == env_period_stamp):
+                            # Merge into previous row: increment its cnt
+                            cnt_stamp += 1
+                            prev = list(dst_buffer[ch][-1])
+                            while len(prev) <= _PSG_COL_CNT:
+                                prev.append('0')
+                            prev[_PSG_COL_CNT] = str(cnt_stamp)
+                            dst_buffer[ch][-1] = prev
+                            # Skip appending current row (it is absorbed)
+                        else:
+                            new_row = list(row)
+                            while len(new_row) <= _PSG_COL_CNT:
+                                new_row.append('0')
+                            new_row[_PSG_COL_CNT] = '1'  # reset to 1
+                            dst_buffer[ch].append(new_row)
+                            cnt_stamp = 1  # First occurrence is always 1
+                    else:
+                        new_row = list(row)
+                        while len(new_row) <= _PSG_COL_CNT:
+                            new_row.append('0')
+                        new_row[_PSG_COL_CNT] = '1'  # reset to 1
+                        dst_buffer[ch].append(new_row)
+                        cnt_stamp = 1  # First occurrence is always 1
+
+                    f_stamp = f
+                    l_stamp = l
+                    o_stamp = o
+                    vdiff_stamp = v_diff
+                    mode_stamp = mode
+                    noise_stamp = noise_period
+                    env_shape_stamp = hw_env_shape
+                    env_period_stamp = hw_env_period
+                else:
+                    dst_buffer[ch].append(list(row))
+
+        return dst_buffer
+
+    def _build_psg_mml_mgs_buffer(work_buf, use_cnt=False):
+        """Build PSG MML buffers using MGS delta-token octave/volume style.
+
+        Implements the Tcl ``generate_mml_MGS`` behaviour:
+        * Group headers include ``v{v}`` (absolute volume) and, on the very
+          first group only, ``o{o} l64`` to initialise the octave register.
+        * Within each group the octave and volume are expressed using delta
+          tokens (``<`` / ``>`` for octave, ``(`` / ``)`` for volume) when
+          the absolute difference is ≤ 3; otherwise an absolute ``oN`` / ``vN``
+          token is used.
+        * When ``use_cnt`` is True and ``cnt > 1`` (after
+          :func:`_update_and_optimize_cnt_psg`), the note body is wrapped in
+          ``[...]cnt`` with the octave prefix placed outside the bracket
+          (Tcl behaviour for compress.MGS.mml).
+        * When ``use_cnt`` is False (default, for simple.MGS.mml) each row is
+          treated as a single note (cnt forced to 1, no bracket wrapping).
+
+        The ``o_stamp`` is *not* reset at the start of each new group so that
+        inter-group octave transitions are correctly encoded as delta tokens.
+        The ``v_stamp`` is reset to the group header's volume at the start of
+        each new group (since the header declares the volume explicitly).
+
+        Args:
+            work_buf: per-channel list of pass-3 rows (same structure as
+                      ``work_buffer1``).
+            use_cnt:  when True, use the ``cnt`` column for ``[...]cnt``
+                      bracket wrapping (compress.MGS variant).  When False
+                      (default) each row is emitted as a single note.
+
+        Returns:
+            dict mapping channel → list of MML fragment strings.
+        """
+        mml_buffer = {ch: [] for ch in ch_list}
+        ch_offset = 1
+
+        for ch in ch_list:
+            note_cnt = 0
+            mml = ""
+            l_cnt = 0
+            o_stamp = 0
+            v_stamp = 0
+            mode_stamp = -1
+            is_first_group = True
+
+            mml_buffer[ch].append(f"\n\n;ch{ch + ch_offset} start")
+
+            for row in work_buf[ch]:
+                type_ = row[COL_TYPE]
+                l = _int(row[COL_L])
+                v = _int(row[COL_V])
+                o = _int(row[COL_O])
+                scale = row[COL_SCALE] if row[COL_SCALE] else 'r'
+                mode = _int(row[COL_EN])
+                v_diff = _int(row[COL_VDIFF])
+                if use_cnt:
+                    cnt = _int(row[_PSG_COL_CNT]) if len(row) > _PSG_COL_CNT else 1
+                    if cnt < 1:
+                        cnt = 1
+                else:
+                    cnt = 1
+
+                noise_freq = get_noise_period(row)
+                hw_env_period = get_hw_envelope_frequency(row)
+                hw_env_shape = get_hw_envelope_shape(row)
+
+                if l > 0:
+                    length = l
+
+                    # Flush current group on mode change
+                    if note_cnt > 0 and mode != mode_stamp:
+                        mml_buffer[ch].append(mml)
+                        mml = ""
+                        mml_buffer[ch].append(f"\n;tick count: {l_cnt}\n")
+                        note_cnt = 0
+
+                    if note_cnt == 0:
                         if mode == 0:
                             v = 0
-                            scale = 'r'
-                        if v != v_stamp and note_cnt != 0:
-                            mml += f" v{v}"
-                        if o != o_stamp:
-                            mml += f" o{o}"
-                        mml += f" {ticks_to_mml_length(ltmp, scale)}"
-                        l_cnt += ltmp
+                            if is_first_group:
+                                mml = f"\n{ch + ch_offset} /0 v{v} o{o} l64"
+                                o_stamp = o
+                                is_first_group = False
+                            else:
+                                mml = f"\n{ch + ch_offset} /0 v{v}"
+                            v_stamp = v
+                        elif mode == 1:
+                            if is_first_group:
+                                mml = (f"\n{ch + ch_offset} /1"
+                                       f" s{hw_env_shape} m{hw_env_period}"
+                                       f" v{v} o{o} l64")
+                                o_stamp = o
+                                is_first_group = False
+                            else:
+                                mml = (f"\n{ch + ch_offset} /1"
+                                       f" s{hw_env_shape} m{hw_env_period}"
+                                       f" v{v}")
+                            v_stamp = v
+                        elif mode == 2:
+                            if is_first_group:
+                                mml = (f"\n{ch + ch_offset} /2"
+                                       f" s{hw_env_shape} m{hw_env_period}"
+                                       f" n{noise_freq} v{v} o{o} l64")
+                                o_stamp = o
+                                is_first_group = False
+                            else:
+                                mml = (f"\n{ch + ch_offset} /2"
+                                       f" s{hw_env_shape} m{hw_env_period}"
+                                       f" n{noise_freq} v{v}")
+                            v_stamp = v
+                        elif mode == 3:
+                            if is_first_group:
+                                mml = (f"\n{ch + ch_offset} /3"
+                                       f" s{hw_env_shape} m{hw_env_period}"
+                                       f" n{noise_freq} v{v} o{o} l64")
+                                o_stamp = o
+                                is_first_group = False
+                            else:
+                                mml = (f"\n{ch + ch_offset} /3"
+                                       f" s{hw_env_shape} m{hw_env_period}"
+                                       f" n{noise_freq} v{v}")
+                            v_stamp = v
 
-                    length -= ltmp
+                    while length > 0:
+                        ltmp = min(length, 255)
 
-                    if length >= 0:
-                        mml_buffer1[ch].append(mml)
+                        if type_ in ('mode', 'fCA', 'fCB', 'aVC', 'wNC',
+                                     'ePL', 'evM', 'evS'):
+                            if mode == 0:
+                                v = 0
+                                scale = 'r'
+                            note = get_mgs_note_token(
+                                ltmp, v, v_diff, scale, cnt, o,
+                                o_stamp, v_stamp)
+                            mml += " " + note
+                            l_cnt += ltmp
+
+                        length -= ltmp
+
+                        if length >= 0:
+                            mml_buffer[ch].append(mml)
+                            mml = ""
+
+                    note_cnt += 1
+                    if note_cnt == 8 or mode == 0:
+                        mml_buffer[ch].append(mml)
                         mml = ""
+                        mml_buffer[ch].append(f"\n;tick count: {l_cnt}\n")
+                        note_cnt = 0
 
-                note_cnt += 1
-                if note_cnt == 8 or mode == 0:
-                    mml_buffer1[ch].append(mml)
-                    mml = ""
-                    info = f"\n;tick count: {l_cnt}\n"
-                    mml_buffer1[ch].append(info)
-                    note_cnt = 0
+                    o_stamp = o
+                    v_stamp = v
+                    mode_stamp = mode
 
-                o_stamp = o
-                v_stamp = v
-                mode_stamp = mode
+            if mml:
+                mml_buffer[ch].append(mml)
 
-        if mml:
-            mml_buffer1[ch].append(mml)
+            mml_buffer[ch].append(f"\n;ch{ch + ch_offset} end: tick count: {l_cnt}\n")
 
-        info = f"\n;ch{ch + ch_offset} end: tick count: {l_cnt}\n"
-        mml_buffer1[ch].append(info)
+        return mml_buffer
 
-    # Write pass3.mml
+    # ---- Primary .psg.mml (divisor notation, #tempo 225) ----
+    mml_buffer1 = _build_psg_mml_buffer(raw_ticks=False)
     pass3_mml_path = os.path.join(output_dir, f"{output_name_body}.psg.mml")
-    with open(pass3_mml_path, 'w', newline='\n') as f:
-        f.write(';[name=psg lpf=1]\n')
-        f.write('#opll_mode 1\n')
-        f.write('#tempo 225\n')
-        f.write(f'#title {{ "{output_name_body}"}}\n')
-        for ch in ch_list:
-            track = ch + ch_offset
-            used = estimate_mml_used(mml_buffer1[ch])
-            alloc = estimate_alloc(used)
-            f.write(f'#alloc {track}={alloc}\n')
-        f.write('\n')
-        for ch in ch_list:
-            for item in mml_buffer1[ch]:
-                f.write(item)
+    _write_psg_mml(mml_buffer1, pass3_mml_path, output_name_body, raw_ticks=False)
+
+    # ---- pass3.simple.mml (raw tick notation, #tempo 75) ----
+    raw_buf = _build_psg_mml_buffer(raw_ticks=True)
+    simple_raw_path = os.path.join(output_dir, f"{output_name_body}.psg.pass3.simple.mml")
+    _write_psg_mml(raw_buf, simple_raw_path, output_name_body, raw_ticks=True)
+
+    # ---- pass3.simple.MGS.mml (MGS delta-token notation, #tempo 225) ----
+    simple_mgs_buf = _build_psg_mml_mgs_buffer(work_buffer1, use_cnt=False)
+    simple_mgs_path = os.path.join(output_dir, f"{output_name_body}.psg.pass3.simple.MGS.mml")
+    _write_psg_mml(simple_mgs_buf, simple_mgs_path, output_name_body, raw_ticks=False)
+
+    # ---- pass3.compress.MGS.mml (cnt-optimised repeat + MGS delta-token) ----
+    work_buffer2 = _update_and_optimize_cnt_psg(work_buffer1)
+    compress_mgs_buf = _build_psg_mml_mgs_buffer(work_buffer2, use_cnt=True)
+    compress_path = os.path.join(output_dir, f"{output_name_body}.psg.pass3.compress.MGS.mml")
+    _write_psg_mml(compress_mgs_buf, compress_path, output_name_body, raw_ticks=False)
 
     return pass3_mml_path
 

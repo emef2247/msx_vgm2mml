@@ -836,6 +836,299 @@ namespace eval ::mml_psg {
 		lappend mmlBuffer1($ch) $info
 	}
 	
+	# Compute PSG mode (0=silent,1=tone,2=noise,3=tone+noise) from vVCtrl register.
+	proc get_psg_mode { line } {
+		set ch     [lindex $line 2]
+		set vVCtrl [lindex $line 27]
+		set mask   [expr {1 << $ch}]
+		set noiseMute [expr {(($vVCtrl >> 3) & $mask) != 0}]
+		set toneMute  [expr {($vVCtrl & $mask) != 0}]
+		return [lindex {3 2 1 0} [expr {$noiseMute * 2 + $toneMute}]]
+	}
+
+	# Generate a single MGS-format note token from a workBuffer row.
+	# cnt is at index 37 (appended by pass3).
+	proc get_mml_MGS { line oStamp vStamp } {
+		set l     [lindex $line 4]
+		set v     [lindex $line 6]
+		set o     [lindex $line 10]
+		set scale [lindex $line 11]
+		set vDiff [lindex $line 14]
+		set cnt   [lindex $line 37]
+
+		set oMML ""
+		set oDiff [expr {$o - $oStamp}]
+		if {$oDiff > 3 || $oDiff < -3} {
+			set oMML "o$o"
+		} else {
+			if {$oDiff < 0} {
+				while {$oDiff != 0} {
+					set oMML "${oMML}\<"
+					set oDiff [expr {$oDiff + 1}]
+				}
+			} elseif {$oDiff > 0} {
+				while {$oDiff != 0} {
+					set oMML "${oMML}\>"
+					set oDiff [expr {$oDiff - 1}]
+				}
+			}
+		}
+
+		set mml ""
+		if {$cnt == 1} { set vDiff [expr {$v - $vStamp}] }
+		if {$vDiff > 3 || $vDiff < -3} {
+			set mml "${mml}v$v"
+		} else {
+			if {$vDiff < 0} {
+				while {$vDiff != 0} {
+					set mml "${mml}\("
+					set vDiff [expr {$vDiff + 1}]
+				}
+			} elseif {$vDiff > 0} {
+				while {$vDiff != 0} {
+					set mml "${mml}\)"
+					set vDiff [expr {$vDiff - 1}]
+				}
+			}
+		}
+
+		set body "${scale}"
+		set length $l
+		while {$length > 0} {
+			if {$length >= 64} {
+				set mml "${mml}${body}1"
+				set length [expr {$length - 64}]
+			} elseif {$length >= 48} {
+				set mml "${mml}${body}2."
+				set length [expr {$length - 48}]
+			} elseif {$length >= 32} {
+				set mml "${mml}${body}2"
+				set length [expr {$length - 32}]
+			} elseif {$length >= 16} {
+				set mml "${mml}${body}4"
+				set length [expr {$length - 16}]
+			} elseif {$length >= 12} {
+				set mml "${mml}${body}8."
+				set length [expr {$length - 12}]
+			} elseif {$length >= 8} {
+				set mml "${mml}${body}8"
+				set length [expr {$length - 8}]
+			} elseif {$length >= 6} {
+				set mml "${mml}${body}16."
+				set length [expr {$length - 6}]
+			} elseif {$length >= 4} {
+				set mml "${mml}${body}16"
+				set length [expr {$length - 4}]
+			} elseif {$length == 3} {
+				set mml "${mml}${body}32."
+				set length [expr {$length - 3}]
+			} elseif {$length == 2} {
+				set mml "${mml}${body}32"
+				set length [expr {$length - 2}]
+			} elseif {$length == 1} {
+				set mml "${mml}${body}"
+				set length [expr {$length - 1}]
+			} else {
+				set mml "${mml}\[$body\]$length"
+				set length 0
+			}
+		}
+
+		puts "---> get_mml_MGS: ---> body: $mml"
+		if {$cnt > 1} {
+			set mml "${oMML}\[${mml}\]$cnt"
+		} else {
+			set mml "${oMML}${mml}"
+		}
+		puts "---> get_mml_MGS: ---> mml: $mml"
+		return $mml
+	}
+
+	# Generate MGS-format MML (with [...]N repeat compression) from a workBuffer.
+	proc generate_mml_MGS {workBufferName mmlBufferName} {
+		variable chOffset
+		variable num_of_ch
+		upvar $workBufferName workBuffer
+		upvar $mmlBufferName mmlBuffer
+
+		for {set ch 0} {$ch < $num_of_ch} {incr ch} {
+			set beginFlg 1
+			set newLineFlg 0
+			set noteCnt 0
+			set lineNo 0
+			set mml ""
+			set lCnt 0
+			set ticksCountFlg 0
+			set oStamp 0
+			set vStamp 0
+			set cntStamp 0
+			foreach line $workBuffer($ch) {
+				set type        [lindex $line 0]
+				set ticks       [lindex $line 3]
+				set l           [lindex $line 4]
+				set v           [lindex $line 6]
+				set o           [lindex $line 10]
+				set scale       [lindex $line 11]
+				set cnt         [lindex $line 37]
+				set mode        [get_psg_mode $line]
+				set noisePeriod [get_noise_period $line]
+				set hwEnvOn     [get_hw_envelope_on $line]
+				set hwEnvPeriod [get_hw_envelope_freqency $line]
+				set hwEnvShape  [get_hw_envelope_shape $line]
+				# Fix: define noiseFreq before the switch to avoid undefined-variable error
+				set noiseFreq   $noisePeriod
+
+				puts "; $line"
+				if {$l != 0} {
+					if {($type == "mode" || $type == "fCA" || $type == "fCB" || $type == "aVC" || $type == "wNC" || $type == "vVC" || $type == "ePL" || $type == "evM" || $type == "evS")} {
+						set ticksCountFlg 1
+						if {$beginFlg || $noteCnt == 0} {
+							if {$mml != ""} {
+								lappend mmlBuffer($ch) $mml
+							}
+							switch $mode {
+								0 {set v 0; set mml "\n[expr {$ch + $chOffset}] \/0 v${v}"}
+								1 {set mml "\n[expr {$ch + $chOffset}] \/1 s${hwEnvShape} m${hwEnvPeriod} v${v}"}
+								2 {set mml "\n[expr {$ch + $chOffset}] \/2 s${hwEnvShape} m${hwEnvPeriod} n${noiseFreq} v${v}"}
+								3 {set mml "\n[expr {$ch + $chOffset}] \/3 s${hwEnvShape} m${hwEnvPeriod} n${noiseFreq} v${v}"}
+							}
+							puts "after note noteCnt:$noteCnt mml:$mml"
+							lappend mmlBuffer($ch) $mml
+							set oStamp $o
+							set vStamp $v
+							set beginFlg 0
+							set newLineFlg 1
+						}
+
+						set note [get_mml_MGS $line $oStamp $vStamp]
+						set mml ${mml}${note}
+						incr noteCnt
+
+						if {$noteCnt > 8} {
+							lappend mmlBuffer($ch) $mml
+							set mml ""
+							set noteCnt 0
+							set newLineFlg 1
+						}
+
+						if {$mode == 0} {
+							lappend mmlBuffer($ch) $mml
+							set tmp "; Ticks count: $ticks"
+							puts $tmp
+							lappend mmlBuffer($ch) $tmp
+							set mml ""
+							set noteCnt 0
+							set newLineFlg 1
+							set ticksCountFlg 0
+						}
+					}
+					set oStamp $o
+					set vStamp $v
+					set cntStamp $cnt
+				} else {
+					if {$ticksCountFlg && $mode == 0} {
+						set tmp "; Ticks count: $ticks"
+						puts $tmp
+						lappend mmlBuffer($ch) $tmp
+						set ticksCountFlg 0
+					}
+				}
+			}
+			set tmp ""
+			lappend mmlBuffer($ch) $tmp
+		}
+	}
+
+	# Re-compute and optimise the cnt repeat counter in workBuffer rows.
+	# cnt is stored at index 37.  Repeat detection requires that type, f, l, o,
+	# vDiff, mode, noisePeriod, hwEnvShape and hwEnvPeriod all match the
+	# previous qualifying row.  Only fCA/fCB/aVC event types are considered.
+	proc update_and_optimize_cnt {srcWorkBufferName dstWorkBufferName} {
+		variable num_of_ch
+
+		upvar $srcWorkBufferName srcBuffer
+		upvar $dstWorkBufferName dstBuffer
+
+		for {set ch 0} {$ch < $num_of_ch} {incr ch} {
+			set lineNo 0
+			set lineStamp ""
+			set fStamp ""
+			set lStamp ""
+			set oStamp ""
+			set scaleStamp ""
+			set vDiffStamp 0
+			set modeStamp ""
+			set noisePeriodStamp ""
+			set hwEnvShapeStamp ""
+			set hwEnvPeriodStamp ""
+			set cntStamp 0
+			foreach line $srcBuffer($ch) {
+				set type  [lindex $line 0]
+				set l     [lindex $line 4]
+				set f     [lindex $line 8]
+				set o     [lindex $line 10]
+				set scale [lindex $line 11]
+				set vDiff [lindex $line 14]
+				set cnt   [lindex $line 37]
+				set mode        [get_psg_mode $line]
+				set noisePeriod [get_noise_period $line]
+				set hwEnvShape  [get_hw_envelope_shape $line]
+				set hwEnvPeriod [get_hw_envelope_freqency $line]
+
+				# Reset stamps when a fCA/fCB event silences the channel
+				if {($type == "fCA" || $type == "fCB") && $mode == 0} {
+					set lineStamp ""
+					set fStamp ""
+					set lStamp ""
+					set oStamp ""
+					set scaleStamp ""
+					set vDiffStamp 0
+					set modeStamp ""
+					set noisePeriodStamp ""
+					set hwEnvShapeStamp ""
+					set hwEnvPeriodStamp ""
+					set cntStamp 0
+				}
+
+				if {$l != 0} {
+					if {$type == "fCA" || $type == "fCB" || $type == "aVC"} {
+						puts "$f:$fStamp | $l:$lStamp | $o:$oStamp | $vDiff:$vDiffStamp | $mode:$modeStamp | $noisePeriod:$noisePeriodStamp"
+						if {$f == $fStamp && $l == $lStamp && $o == $oStamp && $vDiff == $vDiffStamp && \
+							$mode == $modeStamp && $noisePeriod == $noisePeriodStamp && \
+							$hwEnvShape == $hwEnvShapeStamp && $hwEnvPeriod == $hwEnvPeriodStamp} {
+							set cnt [incr cntStamp]
+							puts "cnt"
+							set line [lreplace $line 37 37 $cnt]
+							puts "Original: [lindex $dstBuffer($ch) end]"
+							puts "---->new: $line"
+							set dstBuffer($ch) [lreplace $dstBuffer($ch) end end $line]
+							puts "Replaced: [lindex $dstBuffer($ch) end]"
+						} else {
+							lappend dstBuffer($ch) $line
+						}
+					} else {
+						lappend dstBuffer($ch) $line
+					}
+
+					set lineStamp $line
+					set fStamp $f
+					set lStamp $l
+					set oStamp $o
+					set scaleStamp $scale
+					set vDiffStamp $vDiff
+					set modeStamp $mode
+					set noisePeriodStamp $noisePeriod
+					set hwEnvShapeStamp $hwEnvShape
+					set hwEnvPeriodStamp $hwEnvPeriod
+					set cntStamp $cnt
+				} else {
+					lappend dstBuffer($ch) $line
+				}
+				incr lineNo
+			}
+		}
+	}
+
 	proc print_list {line} {
 		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
@@ -1487,7 +1780,58 @@ namespace eval ::mml_psg {
 				puts $fd $line
 			}
 		}
-		close $fd	
+		close $fd
+
+		# Generate .pass3.simple.MGS.mml (uncompressed MGS format)
+		array unset mmlBuffer1
+		generate_mml_MGS workBuffer1 mmlBuffer1
+
+		set output_file_name ${output_name_body}.psg.pass3.simple.MGS.mml
+		set fd [open ${output_dir}/${output_file_name} w]
+		puts $fd ";\[name=psg lpf=1\]"
+		puts $fd "#opll_mode 1"
+		puts $fd "#tempo 75"
+		puts $fd "#title { \"$::mml_psg::fileNameBody\"}"
+		puts $fd "#alloc 1=3100"
+		puts $fd "#alloc 2=3100"
+		puts $fd "#alloc 3=2400"
+		puts $fd "#alloc 4=2100"
+		puts $fd "#alloc 5=1100"
+		puts $fd "#alloc 6=1000"
+		puts $fd "#alloc 7=1000"
+		puts $fd ""
+		foreach ch $::mml_psg::chList {
+			foreach line $mmlBuffer1($ch) {
+				puts $fd $line
+			}
+		}
+		close $fd
+
+		# Generate .pass3.compress.MGS.mml (cnt-optimised [...]N repeat compression)
+		update_and_optimize_cnt workBuffer1 workBuffer2
+		array unset mmlBuffer1
+		generate_mml_MGS workBuffer2 mmlBuffer1
+
+		set output_file_name ${output_name_body}.psg.pass3.compress.MGS.mml
+		set fd [open ${output_dir}/${output_file_name} w]
+		puts $fd ";\[name=psg lpf=1\]"
+		puts $fd "#opll_mode 1"
+		puts $fd "#tempo 75"
+		puts $fd "#title { \"$::mml_psg::fileNameBody\"}"
+		puts $fd "#alloc 1=3100"
+		puts $fd "#alloc 2=3100"
+		puts $fd "#alloc 3=2400"
+		puts $fd "#alloc 4=2100"
+		puts $fd "#alloc 5=1100"
+		puts $fd "#alloc 6=1000"
+		puts $fd "#alloc 7=1000"
+		puts $fd ""
+		foreach ch $::mml_psg::chList {
+			foreach line $mmlBuffer1($ch) {
+				puts $fd $line
+			}
+		}
+		close $fd
     }
 }
 
