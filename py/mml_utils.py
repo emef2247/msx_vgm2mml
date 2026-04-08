@@ -180,3 +180,78 @@ def ticks_to_mml_length(ticks, scale):
         # return a silent 64th note as a safe fallback.
         return f'r64'
     return ''.join(parts)
+
+
+# ---------------------------------------------------------------------------
+# MML compression helpers
+# ---------------------------------------------------------------------------
+
+def _rle_compress_tokens(tokens, min_repeat=2):
+    """Run-length encode a list of tokens.
+
+    Consecutive identical tokens that appear *min_repeat* or more times are
+    replaced with the MGSDRV loop notation ``[token]N``.
+
+    Example::
+
+        ['g+64', 'g+64', 'g+64', 'g+64'] → ['[g+64]4']
+        ['c64', 'd64', 'c64']             → ['c64', 'd64', 'c64']  (no run)
+    """
+    if not tokens:
+        return list(tokens)
+    result = []
+    i = 0
+    while i < len(tokens):
+        tok = tokens[i]
+        count = 1
+        while i + count < len(tokens) and tokens[i + count] == tok:
+            count += 1
+        if count >= min_repeat:
+            result.append(f'[{tok}]{count}')
+        else:
+            result.extend([tok] * count)
+        i += count
+    return result
+
+
+def compress_mml_text(mml_text):
+    """Apply token-level RLE compression to an MML text block.
+
+    For every channel data line (a line whose first non-whitespace character
+    is a valid MGSDRV track designator – a digit ``1``-``9`` or a letter
+    ``a``-``h`` – followed by a space), consecutive identical tokens after
+    the channel designator are compressed with the MGSDRV loop syntax
+    ``[token]N``.
+
+    Comment lines (``; …``), directive lines (``# …``), wavetable lines
+    (``@ …``), and blank lines are passed through unchanged.
+
+    Example::
+
+        '1 /2 s0 m1573 n29 v12 g+64 g+64 g+64 g+64 g+64 g+64 g+64 g+64'
+        → '1 /2 s0 m1573 n29 v12 [g+64]8'
+    """
+    lines = mml_text.splitlines(keepends=True)
+    result = []
+    for line in lines:
+        stripped = line.lstrip()
+        if not stripped:
+            result.append(line)
+            continue
+        first = stripped[0]
+        # Channel data lines start with a single track designator (1-9, a-h)
+        # followed by a space.
+        if ((first.isdigit() or ('a' <= first <= 'h'))
+                and len(stripped) > 1 and stripped[1] == ' '):
+            tokens = stripped.split()
+            if len(tokens) > 1:
+                ch_tok = tokens[0]
+                rest = _rle_compress_tokens(tokens[1:])
+                compressed = ch_tok + ' ' + ' '.join(rest)
+                # Preserve original leading whitespace
+                leading = len(line) - len(line.lstrip())
+                # Preserve original line ending
+                trailing = line[len(line.rstrip('\r\n')):]
+                line = line[:leading] + compressed + trailing
+        result.append(line)
+    return ''.join(result)

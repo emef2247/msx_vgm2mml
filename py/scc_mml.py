@@ -9,7 +9,7 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import (get_ticks, get_octave, get_scale,
                        estimate_mml_used, estimate_alloc,
-                       ticks_to_mml_length)
+                       ticks_to_mml_length, compress_mml_text)
 
 # ---------------------------------------------------------------------------
 # Column indices (28 columns, 0-27)
@@ -555,6 +555,117 @@ def _pass3(temp_buf2, ch_list):
 # MML generation  (mirrors scc_mml.tcl generate_mml)
 # ---------------------------------------------------------------------------
 
+def _generate_simple_raw_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
+    """Generate simple raw-tick MML text (pass3.simple.mml variant).
+
+    Uses ``{scale}%{N}`` tick notation and ``#tempo 75``.  No ``l64``
+    default-length directive is emitted; the octave is declared as an
+    inline ``o{N}`` token whenever it changes.
+    """
+    mml_buffer = {}
+
+    for ch in ch_list:
+        mml_buffer[ch] = []
+        note_cnt  = 0
+        l_cnt     = 0
+        o_stamp   = 0
+        v_stamp   = 0
+        at_stamp  = -1
+        is_first_group = True
+        mml       = ''
+
+        ch_num = ch + CH_OFFSET
+        mml_buffer[ch].append(f'\n\n;ch{ch_num} start')
+
+        for row in temp_buf3[ch]:
+            type_      = row[COL_TYPE]
+            l          = _int(row[COL_L])
+            v          = _get_volume(row)
+            o          = _int(row[COL_O])
+            scale      = row[COL_SCALE] if row[COL_SCALE] not in ('', EMPTY) else 'r'
+            en         = _int(row[COL_EN])
+            wtb_index  = _int(row[COL_WTBINDEX])
+
+            if l > 0:
+                length = l
+                while length > 0:
+                    ltmp = min(length, 255)
+
+                    if note_cnt == 0:
+                        if is_first_group:
+                            mml = f'\n{ch_num} @{wtb_index} v{v}'
+                            at_stamp = wtb_index
+                            v_stamp  = v
+                            is_first_group = False
+                        else:
+                            mml = f'\n{ch_num}'
+                            if wtb_index != at_stamp:
+                                mml += f' @{wtb_index}'
+                                at_stamp = wtb_index
+                            if v != v_stamp:
+                                mml += f' v{v}'
+                                v_stamp = v
+
+                    if v != v_stamp and note_cnt != 0:
+                        mml += f' v{v}'
+
+                    if o != o_stamp:
+                        mml += f' o{o}'
+
+                    mml += f' {scale}%{ltmp} '
+                    l_cnt += ltmp
+
+                    length -= ltmp
+                    if length > 0:
+                        mml_buffer[ch].append(mml)
+                        mml = ''
+
+                note_cnt += 1
+                if note_cnt == 8 or (type_ == 'enBit' and en == 0) or v == 0:
+                    mml_buffer[ch].append(mml)
+                    mml = ''
+                    mml_buffer[ch].append(f'\n;tick count: {l_cnt}\n')
+                    note_cnt = 0
+
+                o_stamp = o
+                v_stamp = v
+
+        if mml:
+            mml_buffer[ch].append(mml)
+
+        mml_buffer[ch].append(f'\n;ch{ch_num} end: tick count: {l_cnt}\n')
+
+    # --- Build final MML text ---
+    lines = []
+    lines.append(';[name=scc lpf=1]')
+    lines.append('#opll_mode 1')
+    lines.append('#tempo 75')
+    lines.append(f'#title {{ "{file_name_body}"}}')
+    for ch in ch_list:
+        ch_num = ch + CH_OFFSET
+        used = estimate_mml_used(mml_buffer[ch])
+        alloc = estimate_alloc(used)
+        lines.append(f'#alloc {ch_num}={alloc}')
+    lines.append('')
+
+    for i, wbytes in enumerate(wtb_tracker.bytes_list):
+        lines.append(f'@s{i:02d} = {{{wbytes}}}')
+    lines.append('')
+    lines.append('')
+
+    header_text = '\n'.join(lines)
+
+    body_parts = [header_text]
+    for ch in ch_list:
+        for item in mml_buffer[ch]:
+            body_parts.append(item)
+
+    result = ''.join(body_parts)
+    if not result.endswith('\n'):
+        result += '\n'
+    return result
+
+
 def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
     """Generate MML text from pass-3 data."""
     mml_buffer = {}
@@ -754,6 +865,28 @@ def process_scc_csv(input_path, output_dir, dump_passes=True, stem=None):
     mml_path = os.path.join(output_dir, f'{file_name_body}.scc.mml')
     with open(mml_path, 'w', newline='\n') as fh:
         fh.write(mml_text)
+
+    # ---- Additional MML variants (pass3.simple / pass3.simple.MGS / pass3.compress.MGS) ----
+
+    # pass3.simple.mml – raw tick (%N) notation, #tempo 75
+    simple_raw_text = _generate_simple_raw_mml(
+        temp_buf3, ch_list, file_name_body, wtb_tracker)
+    simple_raw_path = os.path.join(output_dir, f'{file_name_body}.scc.pass3.simple.mml')
+    with open(simple_raw_path, 'w', newline='\n') as fh:
+        fh.write(simple_raw_text)
+
+    # pass3.simple.MGS.mml – standard note-length notation, #tempo 225
+    # (same content as the primary .scc.mml)
+    simple_mgs_path = os.path.join(output_dir, f'{file_name_body}.scc.pass3.simple.MGS.mml')
+    with open(simple_mgs_path, 'w', newline='\n') as fh:
+        fh.write(mml_text)
+
+    # pass3.compress.MGS.mml – standard note-length notation with token-level
+    # RLE compression applied (consecutive identical tokens → [token]N)
+    compress_text = compress_mml_text(mml_text)
+    compress_path = os.path.join(output_dir, f'{file_name_body}.scc.pass3.compress.MGS.mml')
+    with open(compress_path, 'w', newline='\n') as fh:
+        fh.write(compress_text)
 
     return mml_path
 

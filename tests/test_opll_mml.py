@@ -328,7 +328,10 @@ def test_opll_no_dump_no_pass_csv():
         opll_trace = results[5]
         out_dir = os.path.join(tmp, VGM_STEM)
         process_opll_csv(opll_trace, out_dir, stem=VGM_STEM, dump_passes=False)
-        pass_csvs = [f for f in os.listdir(out_dir) if 'pass' in f]
+        # Only intermediate CSV debug files (*.pass*.csv) must not be written;
+        # the new *.pass3.*.mml MML variant files are expected output files.
+        pass_csvs = [f for f in os.listdir(out_dir)
+                     if 'pass' in f and f.endswith('.csv')]
         assert pass_csvs == [], (
             f"Unexpected pass CSV files with dump_passes=False: {pass_csvs}")
 

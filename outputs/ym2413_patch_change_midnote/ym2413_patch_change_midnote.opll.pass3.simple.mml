@@ -1,0 +1,37 @@
+;[name=opll]
+#opll_mode 1
+#tempo 75
+#title { "ym2413_patch_change_midnote"}
+#alloc 9=128
+#alloc a=112
+#alloc b=96
+#alloc c=96
+#alloc d=96
+#alloc e=96
+
+
+
+;ch9 start
+9 @1 v15 o4 a%60 @2 a%90
+;ch9 end: tick count: 150
+
+
+;cha start
+a @3 v13 o5 c%45
+;cha end: tick count: 45
+
+
+;chb start
+;chb end: tick count: 0
+
+
+;chc start
+;chc end: tick count: 0
+
+
+;chd start
+;chd end: tick count: 0
+
+
+;che start
+;che end: tick count: 0

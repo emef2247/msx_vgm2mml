@@ -74,7 +74,10 @@ def main():
 
     mml_path = process_scc_csv(scc_csv, song_dir, stem=base_name,
                                 dump_passes=args.dump_passes)
-    print(f"SCC MML:    {mml_path}")
+    print(f"SCC MML:              {mml_path}")
+    print(f"SCC pass3.simple:     {os.path.splitext(mml_path)[0].replace('.scc', '.scc.pass3.simple')}.mml")
+    print(f"SCC pass3.simple.MGS: {os.path.splitext(mml_path)[0].replace('.scc', '.scc.pass3.simple.MGS')}.mml")
+    print(f"SCC pass3.compress:   {os.path.splitext(mml_path)[0].replace('.scc', '.scc.pass3.compress.MGS')}.mml")
 
     # ── Step 3: PSG MML pipeline ─────────────────────────────────
     # Default: use trace CSV (chronological order, same as SCC default).
@@ -83,12 +86,18 @@ def main():
 
     psg_mml_path = process_psg_csv(psg_csv, song_dir, stem=base_name,
                                    dump_passes=args.dump_passes)
-    print(f"PSG MML:    {psg_mml_path}")
+    print(f"PSG MML:              {psg_mml_path}")
+    print(f"PSG pass3.simple:     {os.path.splitext(psg_mml_path)[0].replace('.psg', '.psg.pass3.simple')}.mml")
+    print(f"PSG pass3.simple.MGS: {os.path.splitext(psg_mml_path)[0].replace('.psg', '.psg.pass3.simple.MGS')}.mml")
+    print(f"PSG pass3.compress:   {os.path.splitext(psg_mml_path)[0].replace('.psg', '.psg.pass3.compress.MGS')}.mml")
 
     # ── Step 4: OPLL MML pipeline ────────────────────────────────
     opll_mml_path = process_opll_csv(opll_trace_csv, song_dir, stem=base_name,
                                      dump_passes=args.dump_passes)
-    print(f"OPLL MML:   {opll_mml_path}")
+    print(f"OPLL MML:             {opll_mml_path}")
+    print(f"OPLL pass3.simple:    {os.path.splitext(opll_mml_path)[0].replace('.opll', '.opll.pass3.simple')}.mml")
+    print(f"OPLL pass3.simple.MGS:{os.path.splitext(opll_mml_path)[0].replace('.opll', '.opll.pass3.simple.MGS')}.mml")
+    print(f"OPLL pass3.compress:  {os.path.splitext(opll_mml_path)[0].replace('.opll', '.opll.pass3.compress.MGS')}.mml")
 
 
 if __name__ == '__main__':
