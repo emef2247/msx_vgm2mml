@@ -10,7 +10,8 @@ import math
 sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import (get_ticks, get_octave, get_scale, get_tone_frequency,
                        estimate_mml_used, estimate_alloc, ticks_to_mml_length,
-                       compress_mml_text, get_mgs_note_token)
+                       compress_mml_text, get_mgs_note_token,
+                       get_mgs_note_token_pct)
 
 # PSG column indices
 COL_TYPE = 0
@@ -638,12 +639,13 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
 
         return dst_buffer
 
-    def _build_psg_mml_mgs_buffer(work_buf, use_cnt=False):
+    def _build_psg_mml_mgs_buffer(work_buf, use_cnt=False, use_pct=False):
         """Build PSG MML buffers using MGS delta-token octave/volume style.
 
         Implements the Tcl ``generate_mml_MGS`` behaviour:
         * Group headers include ``v{v}`` (absolute volume) and, on the very
-          first group only, ``o{o} l64`` to initialise the octave register.
+          first group only, ``o{o} l64`` to initialise the octave register
+          (``l64`` is omitted when *use_pct* is True).
         * Within each group the octave and volume are expressed using delta
           tokens (``<`` / ``>`` for octave, ``(`` / ``)`` for volume) when
           the absolute difference is ≤ 3; otherwise an absolute ``oN`` / ``vN``
@@ -654,6 +656,9 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
           (Tcl behaviour for compress.MGS.mml).
         * When ``use_cnt`` is False (default, for simple.MGS.mml) each row is
           treated as a single note (cnt forced to 1, no bracket wrapping).
+        * When ``use_pct`` is True, note lengths are encoded as
+          ``{scale}%{N}`` raw tick tokens instead of the divisor notation
+          produced by :func:`mgs_length_to_str` (MGS_pct variant).
 
         The ``o_stamp`` is *not* reset at the start of each new group so that
         inter-group octave transitions are correctly encoded as delta tokens.
@@ -666,10 +671,13 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
             use_cnt:  when True, use the ``cnt`` column for ``[...]cnt``
                       bracket wrapping (compress.MGS variant).  When False
                       (default) each row is emitted as a single note.
+            use_pct:  when True, emit ``{scale}%{N}`` tick lengths and omit
+                      ``l64`` from group headers (MGS_pct variant).
 
         Returns:
             dict mapping channel → list of MML fragment strings.
         """
+        note_token_fn = get_mgs_note_token_pct if use_pct else get_mgs_note_token
         mml_buffer = {ch: [] for ch in ch_list}
         ch_offset = 1
 
@@ -717,7 +725,10 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
                         if mode == 0:
                             v = 0
                             if is_first_group:
-                                mml = f"\n{ch + ch_offset} /0 v{v} o{o} l64"
+                                if use_pct:
+                                    mml = f"\n{ch + ch_offset} /0 v{v} o{o}"
+                                else:
+                                    mml = f"\n{ch + ch_offset} /0 v{v} o{o} l64"
                                 o_stamp = o
                                 is_first_group = False
                             else:
@@ -725,9 +736,14 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
                             v_stamp = v
                         elif mode == 1:
                             if is_first_group:
-                                mml = (f"\n{ch + ch_offset} /1"
-                                       f" s{hw_env_shape} m{hw_env_period}"
-                                       f" v{v} o{o} l64")
+                                if use_pct:
+                                    mml = (f"\n{ch + ch_offset} /1"
+                                           f" s{hw_env_shape} m{hw_env_period}"
+                                           f" v{v} o{o}")
+                                else:
+                                    mml = (f"\n{ch + ch_offset} /1"
+                                           f" s{hw_env_shape} m{hw_env_period}"
+                                           f" v{v} o{o} l64")
                                 o_stamp = o
                                 is_first_group = False
                             else:
@@ -737,9 +753,14 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
                             v_stamp = v
                         elif mode == 2:
                             if is_first_group:
-                                mml = (f"\n{ch + ch_offset} /2"
-                                       f" s{hw_env_shape} m{hw_env_period}"
-                                       f" n{noise_freq} v{v} o{o} l64")
+                                if use_pct:
+                                    mml = (f"\n{ch + ch_offset} /2"
+                                           f" s{hw_env_shape} m{hw_env_period}"
+                                           f" n{noise_freq} v{v} o{o}")
+                                else:
+                                    mml = (f"\n{ch + ch_offset} /2"
+                                           f" s{hw_env_shape} m{hw_env_period}"
+                                           f" n{noise_freq} v{v} o{o} l64")
                                 o_stamp = o
                                 is_first_group = False
                             else:
@@ -749,9 +770,14 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
                             v_stamp = v
                         elif mode == 3:
                             if is_first_group:
-                                mml = (f"\n{ch + ch_offset} /3"
-                                       f" s{hw_env_shape} m{hw_env_period}"
-                                       f" n{noise_freq} v{v} o{o} l64")
+                                if use_pct:
+                                    mml = (f"\n{ch + ch_offset} /3"
+                                           f" s{hw_env_shape} m{hw_env_period}"
+                                           f" n{noise_freq} v{v} o{o}")
+                                else:
+                                    mml = (f"\n{ch + ch_offset} /3"
+                                           f" s{hw_env_shape} m{hw_env_period}"
+                                           f" n{noise_freq} v{v} o{o} l64")
                                 o_stamp = o
                                 is_first_group = False
                             else:
@@ -768,7 +794,7 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
                             if mode == 0:
                                 v = 0
                                 scale = 'r'
-                            note = get_mgs_note_token(
+                            note = note_token_fn(
                                 ltmp, v, v_diff, scale, cnt, o,
                                 o_stamp, v_stamp)
                             mml += " " + note
@@ -818,6 +844,16 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True):
     compress_mgs_buf = _build_psg_mml_mgs_buffer(work_buffer2, use_cnt=True)
     compress_path = os.path.join(output_dir, f"{output_name_body}.psg.pass3.compress.MGS.mml")
     _write_psg_mml(compress_mgs_buf, compress_path, output_name_body, raw_ticks=False)
+
+    # ---- pass3.simple.MGS_pct.mml (MGS delta-token, raw tick % lengths, #tempo 75) ----
+    simple_mgs_pct_buf = _build_psg_mml_mgs_buffer(work_buffer1, use_cnt=False, use_pct=True)
+    simple_mgs_pct_path = os.path.join(output_dir, f"{output_name_body}.psg.pass3.simple.MGS_pct.mml")
+    _write_psg_mml(simple_mgs_pct_buf, simple_mgs_pct_path, output_name_body, raw_ticks=True)
+
+    # ---- pass3.compress.MGS_pct.mml (cnt-optimised repeat + MGS delta-token + % lengths) ----
+    compress_mgs_pct_buf = _build_psg_mml_mgs_buffer(work_buffer2, use_cnt=True, use_pct=True)
+    compress_mgs_pct_path = os.path.join(output_dir, f"{output_name_body}.psg.pass3.compress.MGS_pct.mml")
+    _write_psg_mml(compress_mgs_pct_buf, compress_mgs_pct_path, output_name_body, raw_ticks=True)
 
     return pass3_mml_path
 

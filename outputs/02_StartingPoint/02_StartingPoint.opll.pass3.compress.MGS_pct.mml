@@ -1,0 +1,35 @@
+;[name=opll]
+#opll_mode 1
+#tempo 75
+#title { "02_StartingPoint"}
+#alloc 9=96
+#alloc a=96
+#alloc b=96
+#alloc c=96
+#alloc d=96
+#alloc e=96
+
+
+
+;ch9 start
+;ch9 end: tick count: 0
+
+
+;cha start
+;cha end: tick count: 0
+
+
+;chb start
+;chb end: tick count: 0
+
+
+;chc start
+;chc end: tick count: 0
+
+
+;chd start
+;chd end: tick count: 0
+
+
+;che start
+;che end: tick count: 0

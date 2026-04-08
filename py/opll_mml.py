@@ -22,7 +22,8 @@ import math
 sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import (get_ticks, estimate_mml_used, estimate_alloc,
                        track_id_to_mgsdrv, ticks_to_mml_length,
-                       compress_mml_text)
+                       compress_mml_text, get_mgs_octave_prefix,
+                       get_mgs_vol_prefix, get_mgs_note_token_pct)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -359,6 +360,119 @@ def _generate_mml(segments: dict, stem: str) -> str:
     return _generate_mml_impl(segments, stem, raw_ticks=False)
 
 
+def _generate_mml_mgs_pct(segments: dict, stem: str) -> str:
+    """Generate OPLL MML with MGS delta-token octave/volume and raw tick (%) lengths.
+
+    Applies the same ``<``/``>``/``(``/``)`` delta-token logic as
+    :func:`get_mgs_note_token_pct` (±3 threshold):  emits relative octave
+    and volume changes when the difference fits in ±3, otherwise emits
+    absolute ``oN``/``vN`` tokens.  Note lengths are encoded as
+    ``{scale}%{N}`` (raw ticks).  Uses ``#tempo 75``.
+
+    This is the OPLL equivalent of the PSG/SCC ``MGS_pct`` variants.
+    """
+    mml_buffer: dict[int, list] = {ch: [] for ch in range(NUM_CH)}
+
+    for ch in range(NUM_CH):
+        ch_num   = ch + CH_OFFSET
+        track_id = track_id_to_mgsdrv(ch_num)
+        mml_buffer[ch].append(f'\n\n;ch{track_id} start')
+
+        segs    = segments[ch]
+        l_cnt   = 0
+        o_stamp = 0
+        v_stamp = 0
+        at_stamp = -1
+        is_first_group = True
+        mml     = ''
+        note_cnt = 0
+
+        for seg in segs:
+            length = seg.tick_end - seg.tick_start
+            if length <= 0:
+                continue
+
+            octave, scale = _opll_note(seg.fnum, seg.block)
+            v   = seg.mml_vol()
+
+            if not seg.keyon or seg.fnum == 0:
+                scale = 'r'
+                octave = o_stamp if o_stamp != 0 else 1
+
+            remaining = length
+            while remaining > 0:
+                ltmp = min(remaining, 255)
+
+                if note_cnt == 0:
+                    at_val = seg.inst
+                    if is_first_group:
+                        mml = f'\n{track_id} @{at_val} v{v} o{octave}'
+                        at_stamp = at_val
+                        v_stamp  = v
+                        o_stamp  = octave
+                        is_first_group = False
+                    else:
+                        mml = f'\n{track_id}'
+                        if at_val != at_stamp:
+                            mml += f' @{at_val}'
+                            at_stamp = at_val
+                        mml += f' v{v}'
+                        v_stamp = v
+
+                # Build note token with delta-token logic (cnt always 1 for OPLL)
+                note = get_mgs_note_token_pct(
+                    ltmp, v, v - v_stamp, scale, 1, octave, o_stamp, v_stamp)
+                mml += ' ' + note
+                l_cnt += ltmp
+
+                o_stamp = octave
+                v_stamp = v
+
+                remaining -= ltmp
+                if remaining > 0:
+                    mml_buffer[ch].append(mml)
+                    mml = ''
+
+            note_cnt += 1
+            if note_cnt >= 8 or (not seg.keyon and v == 0):
+                mml_buffer[ch].append(mml)
+                mml = ''
+                mml_buffer[ch].append(f'\n;tick count: {l_cnt}\n')
+                note_cnt = 0
+
+        if mml:
+            mml_buffer[ch].append(mml)
+
+        mml_buffer[ch].append(f'\n;ch{track_id} end: tick count: {l_cnt}\n')
+
+    # Build header
+    lines = []
+    lines.append(';[name=opll]')
+    lines.append('#opll_mode 1')
+    lines.append('#tempo 75')
+    lines.append(f'#title {{ "{stem}"}}')
+    for ch in range(NUM_CH):
+        ch_num   = ch + CH_OFFSET
+        track_id = track_id_to_mgsdrv(ch_num)
+        used  = estimate_mml_used(mml_buffer[ch])
+        alloc = estimate_alloc(used)
+        lines.append(f'#alloc {track_id}={alloc}')
+    lines.append('')
+    lines.append('')
+
+    header_text = '\n'.join(lines)
+
+    body_parts = [header_text]
+    for ch in range(NUM_CH):
+        for item in mml_buffer[ch]:
+            body_parts.append(item)
+
+    result = ''.join(body_parts)
+    if not result.endswith('\n'):
+        result += '\n'
+    return result
+
+
 # ---------------------------------------------------------------------------
 # Main pipeline
 # ---------------------------------------------------------------------------
@@ -424,6 +538,17 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     compress_path = os.path.join(output_dir, f'{stem}.opll.pass3.compress.MGS.mml')
     with open(compress_path, 'w', newline='\n') as fh:
         fh.write(compress_mml_text(mml_text))
+
+    # pass3.simple.MGS_pct.mml – MGS delta-token, raw tick (%) lengths, #tempo 75
+    simple_mgs_pct_text = _generate_mml_mgs_pct(segments, stem)
+    simple_mgs_pct_path = os.path.join(output_dir, f'{stem}.opll.pass3.simple.MGS_pct.mml')
+    with open(simple_mgs_pct_path, 'w', newline='\n') as fh:
+        fh.write(simple_mgs_pct_text)
+
+    # pass3.compress.MGS_pct.mml – MGS delta-token + % lengths with token-level RLE
+    compress_mgs_pct_path = os.path.join(output_dir, f'{stem}.opll.pass3.compress.MGS_pct.mml')
+    with open(compress_mgs_pct_path, 'w', newline='\n') as fh:
+        fh.write(compress_mml_text(simple_mgs_pct_text))
 
     return mml_path
 

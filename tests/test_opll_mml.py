@@ -418,3 +418,112 @@ def test_opll_pass3_simple_mgs_matches_primary():
         assert _read(mml_path) == _read(mgs_path), (
             "pass3.simple.MGS.mml must be identical to the primary .opll.mml")
 
+
+# ──────────────────────────────────────────────────────────────────────────
+# pass3 MGS_pct variant tests (MGS delta-token + raw tick % lengths)
+# ──────────────────────────────────────────────────────────────────────────
+
+def test_opll_pass3_simple_mgs_pct_mml_is_created():
+    """process_opll_csv must produce a .opll.pass3.simple.MGS_pct.mml file."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
+        pct_path = os.path.join(out_dir, f'{VGM_STEM}.opll.pass3.simple.MGS_pct.mml')
+        assert os.path.isfile(pct_path), (
+            f"pass3.simple.MGS_pct.mml not created: {pct_path}")
+
+
+def test_opll_pass3_compress_mgs_pct_mml_is_created():
+    """process_opll_csv must produce a .opll.pass3.compress.MGS_pct.mml file."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
+        pct_path = os.path.join(out_dir, f'{VGM_STEM}.opll.pass3.compress.MGS_pct.mml')
+        assert os.path.isfile(pct_path), (
+            f"pass3.compress.MGS_pct.mml not created: {pct_path}")
+
+
+def test_opll_pass3_simple_mgs_pct_uses_tempo_75():
+    """pass3.simple.MGS_pct.mml must use #tempo 75."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
+        pct_path = os.path.join(out_dir, f'{VGM_STEM}.opll.pass3.simple.MGS_pct.mml')
+        content = _read(pct_path)
+        assert '#tempo 75' in content, "pass3.simple.MGS_pct.mml must use #tempo 75"
+
+
+def test_opll_pass3_simple_mgs_pct_has_pct_lengths():
+    """pass3.simple.MGS_pct.mml must contain raw % tick length tokens."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
+        pct_path = os.path.join(out_dir, f'{VGM_STEM}.opll.pass3.simple.MGS_pct.mml')
+        content = _read(pct_path)
+        assert '%' in content, "pass3.simple.MGS_pct.mml must contain % length tokens"
+
+
+def test_opll_pass3_simple_mgs_pct_no_l64_in_track_lines():
+    """pass3.simple.MGS_pct.mml track state lines must not contain l64."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
+        pct_path = os.path.join(out_dir, f'{VGM_STEM}.opll.pass3.simple.MGS_pct.mml')
+        content = _read(pct_path)
+        # Track state lines start with track_id (9,a,b,c,d,e) followed by space and @
+        for line in content.splitlines():
+            stripped = line.strip()
+            if re.match(r'^[9a-e]\s+@', stripped):
+                assert 'l64' not in stripped, (
+                    f"Track state line must not contain 'l64' in MGS_pct variant: {line!r}")
+
+
+def test_opll_pass3_compress_mgs_pct_uses_tempo_75():
+    """pass3.compress.MGS_pct.mml must use #tempo 75."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
+        pct_path = os.path.join(out_dir, f'{VGM_STEM}.opll.pass3.compress.MGS_pct.mml')
+        content = _read(pct_path)
+        assert '#tempo 75' in content, "pass3.compress.MGS_pct.mml must use #tempo 75"
+
+
+def test_opll_pass3_compress_mgs_pct_has_pct_lengths():
+    """pass3.compress.MGS_pct.mml must contain raw % tick length tokens."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
+        pct_path = os.path.join(out_dir, f'{VGM_STEM}.opll.pass3.compress.MGS_pct.mml')
+        content = _read(pct_path)
+        assert '%' in content, "pass3.compress.MGS_pct.mml must contain % length tokens"
+
+
+def test_opll_pass3_mgs_pct_ends_with_newline():
+    """Both MGS_pct files must end with a newline."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
+        for suffix in ('simple.MGS_pct', 'compress.MGS_pct'):
+            pct_path = os.path.join(out_dir, f'{VGM_STEM}.opll.pass3.{suffix}.mml')
+            with open(pct_path, 'rb') as fh:
+                data = fh.read()
+            assert data.endswith(b'\n'), (
+                f"pass3.{suffix}.mml does not end with newline")
+
+

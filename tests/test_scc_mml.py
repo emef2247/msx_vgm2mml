@@ -278,6 +278,117 @@ def test_scc_pass3_compress_mgs_has_compressed_token():
             "pass3.compress.MGS.mml must contain at least one [token]N compression")
 
 
+# ──────────────────────────────────────────────────────────────────────────
+# pass3 MGS_pct variant tests (MGS delta-token + raw tick % lengths)
+# ──────────────────────────────────────────────────────────────────────────
+
+SCC_STEM = '02_StartingPoint'
+
+
+def test_scc_pass3_simple_mgs_pct_mml_is_created():
+    """process_scc_csv must produce a .scc.pass3.simple.MGS_pct.mml file."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False, stem=SCC_STEM)
+        pct_path = os.path.join(out_dir, f'{SCC_STEM}.scc.pass3.simple.MGS_pct.mml')
+        assert os.path.isfile(pct_path), (
+            f"pass3.simple.MGS_pct.mml not created: {pct_path}")
+
+
+def test_scc_pass3_compress_mgs_pct_mml_is_created():
+    """process_scc_csv must produce a .scc.pass3.compress.MGS_pct.mml file."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False, stem=SCC_STEM)
+        pct_path = os.path.join(out_dir, f'{SCC_STEM}.scc.pass3.compress.MGS_pct.mml')
+        assert os.path.isfile(pct_path), (
+            f"pass3.compress.MGS_pct.mml not created: {pct_path}")
+
+
+def test_scc_pass3_simple_mgs_pct_uses_tempo_75():
+    """pass3.simple.MGS_pct.mml must use #tempo 75."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False, stem=SCC_STEM)
+        pct_path = os.path.join(out_dir, f'{SCC_STEM}.scc.pass3.simple.MGS_pct.mml')
+        with open(pct_path) as fh:
+            content = fh.read()
+        assert '#tempo 75' in content, "pass3.simple.MGS_pct.mml must use #tempo 75"
+
+
+def test_scc_pass3_simple_mgs_pct_has_pct_lengths():
+    """pass3.simple.MGS_pct.mml must contain raw % tick length tokens."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False, stem=SCC_STEM)
+        pct_path = os.path.join(out_dir, f'{SCC_STEM}.scc.pass3.simple.MGS_pct.mml')
+        with open(pct_path) as fh:
+            content = fh.read()
+        assert '%' in content, "pass3.simple.MGS_pct.mml must contain % length tokens"
+
+
+def test_scc_pass3_simple_mgs_pct_no_l64_in_track_lines():
+    """pass3.simple.MGS_pct.mml track state lines must not contain l64."""
+    import re
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False, stem=SCC_STEM)
+        pct_path = os.path.join(out_dir, f'{SCC_STEM}.scc.pass3.simple.MGS_pct.mml')
+        with open(pct_path) as fh:
+            content = fh.read()
+        # Track state lines start with ch_num (4-7 for SCC) followed by space and @
+        for line in content.splitlines():
+            stripped = line.strip()
+            if re.match(r'^[4-7]\s+@', stripped):
+                assert 'l64' not in stripped, (
+                    f"Track state line must not contain 'l64' in MGS_pct variant: {line!r}")
+
+
+def test_scc_pass3_simple_mgs_pct_has_delta_tokens():
+    """pass3.simple.MGS_pct.mml must contain octave or volume delta tokens."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False, stem=SCC_STEM)
+        pct_path = os.path.join(out_dir, f'{SCC_STEM}.scc.pass3.simple.MGS_pct.mml')
+        with open(pct_path) as fh:
+            content = fh.read()
+        assert '<' in content or '>' in content or '(' in content or ')' in content, (
+            "pass3.simple.MGS_pct.mml must contain delta tokens '<', '>', '(' or ')'")
+
+
+def test_scc_pass3_compress_mgs_pct_uses_tempo_75():
+    """pass3.compress.MGS_pct.mml must use #tempo 75."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False, stem=SCC_STEM)
+        pct_path = os.path.join(out_dir, f'{SCC_STEM}.scc.pass3.compress.MGS_pct.mml')
+        with open(pct_path) as fh:
+            content = fh.read()
+        assert '#tempo 75' in content, "pass3.compress.MGS_pct.mml must use #tempo 75"
+
+
+def test_scc_pass3_compress_mgs_pct_has_pct_lengths():
+    """pass3.compress.MGS_pct.mml must contain raw % tick length tokens."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False, stem=SCC_STEM)
+        pct_path = os.path.join(out_dir, f'{SCC_STEM}.scc.pass3.compress.MGS_pct.mml')
+        with open(pct_path) as fh:
+            content = fh.read()
+        assert '%' in content, "pass3.compress.MGS_pct.mml must contain % length tokens"
+
+
+def test_scc_pass3_mgs_pct_ends_with_newline():
+    """Both MGS_pct files must end with a newline."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False, stem=SCC_STEM)
+        for suffix in ('simple.MGS_pct', 'compress.MGS_pct'):
+            pct_path = os.path.join(out_dir, f'{SCC_STEM}.scc.pass3.{suffix}.mml')
+            with open(pct_path, 'rb') as fh:
+                data = fh.read()
+            assert data.endswith(b'\n'), (
+                f"pass3.{suffix}.mml does not end with newline")
 
 
 def test_trace_csv_exists():
