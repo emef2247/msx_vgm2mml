@@ -1,110 +1,65 @@
-# MSX VGM to MML Converter
+# vgm2mml
 
-Python port of the Tcl VGM→MGSDRV MML conversion pipeline.
-Converts a VGM binary file into SCC (and PSG) intermediate CSVs, then
-generates MGSDRV-compatible MML through a multi-pass CSV pipeline.
+MSX-Music（OPLL）および SCC の VGM ファイルから、MGSDRV 用 MML を生成するスクリプトです。  
+生成した MML は https://msxplay.com/editor.html にコピー＆ペーストすることで、そのまま再生できます。
 
-## Pipeline Overview
+---
 
-```
-VGM binary  ──►  *_trace.scc.csv  ──►  pass0…pass3.csv  ──►  pass3.mml
-               (chronological)        (MML pipeline)
-               *_log.scc.csv          (per-channel grouped,
-               (per-channel)           alternative input)
-```
+## 機能概要
 
-**VGM is the true input.**  The primary SCC intermediate format is
-`*_trace.scc.csv` (events in VGM-stream order, all channels interleaved).
-This matches the Tcl pipeline's `*_trace.scc.csv` convention and is the
-default when running `vgm2mml.py`.
+- VGM（MSX-Music / SCC）を解析し、MGSDRV 形式の MML を自動生成  
+- レジスタアクセスに忠実な MML を出力  
+- 中間ファイルやデバッグ情報の出力にも対応  
 
-The `*_log.scc.csv` format (events grouped per channel) is also produced
-and can be used as input to the MML pipeline via `--scc-input log`.
+---
 
-## Requirements
+## 使い方
 
-- Python 3.8+
-- No third-party packages required for the core pipeline
-- `pytest` for running the test suite
+### コマンド
+usage: vgm2mml.py [-h] [--outdir OUTDIR] [--dump-passes] [--debug] [--scc-input {trace,log}] [--psg-input {trace,log}] vgm
+vgm2mml.py: error: the following arguments are required: vgm
 
-## Quick Start
+### 基本例
+python vgm2mml.py 02_StartingPoint.vgm
 
-### Full pipeline (VGM → trace → MML)  *(default)*
+出力例：
+outputs/02_StartingPoint/02_StartingPoint.mml
 
-```bash
-python vgm2mml.py inputs/02_StartingPoint/02_StartingPoint.vgm \
-    --outdir outputs_py --dump-passes
-```
+---
 
-This command:
-1. Parses the VGM binary and writes both CSV variants:
-   - `outputs_py/02_StartingPoint_trace.scc.csv` (chronological trace, primary)
-   - `outputs_py/02_StartingPoint_log.scc.csv`   (per-channel log, secondary)
-   - `outputs_py/02_StartingPoint_log.psg.csv`   (PSG log)
-2. Runs the SCC MML pipeline from the trace CSV →
-   `outputs_py/02_StartingPoint_trace/02_StartingPoint_trace.scc.pass3.mml`
+## オプション
 
-With `--dump-passes` the intermediate CSV files are also written:
-- `…_trace.scc.pass0.csv` – ticks recalculated, wavetable indices resolved
-- `…_trace.scc.pass1.csv` – note lengths, frequencies, volumes computed
-- `…_trace.scc.pass2.csv` – redundant rows removed, merged events
-- `…_trace.scc.pass3.csv` – volume envelope strings computed
+| オプション | 説明 |
+|-----------|------|
+| `--outdir OUTDIR` | MML ファイルの出力先ディレクトリを指定 |
+| `--dump-passes` | 中間ファイル（intermediate files）を出力 |
+| `--debug` | デバッグ用ファイルを出力 |
+| `--scc-input {trace,log}` | SCC の入力形式を指定 |
+| `--psg-input {trace,log}` | PSG の入力形式を指定 |
 
-### Full pipeline using log CSV as intermediate
+---
+## 制限事項 
+- `#allocate` に設定されている値はchごとの文字数です。Compile後のバッファサイズに合うよう調整してください
+- OPLLは現状ノートの展開のみに対応しています。音色指定は現状未対応です
 
-```bash
-python vgm2mml.py inputs/02_StartingPoint/02_StartingPoint.vgm \
-    --outdir outputs_py --scc-input log
-```
+## 注意事項 
+MGSDRV の MML は **コンパイル後、全チャンネルのバッファサイズ合計が 16KB 以内**である必要があります。 しかし **本スクリプトはこの制限を考慮しません**。
+そのため、生成された MML が大きすぎる場合は、以下のような調整を行ってください：
+- `#allocate` の値を手動で調整  
+- マクロ化してデータ量を削減  
+- 不要なコマンドの整理  
 
-Output: `outputs_py/02_StartingPoint_log/02_StartingPoint_log.scc.pass3.mml`
+---
 
-### SCC MML pipeline only (from an existing trace or log CSV)
+## このスクリプトを作った動機
+- 音楽的な素養がなくても MML を楽しめるようにしたい  
+- 耳コピ不要で、VGM から **レジスタアクセスに忠実な MML** を生成できる  
+- バッファ制限を考慮していないため、完璧な MML ではないが、  
+  **ユーザー側の工夫で調整しながら使える柔軟な素材**を提供したい  
+- 音楽経験者にとっても、  
+  **VGM に忠実な MML を創作のスタートポイントとして活用してほしい**
 
-```bash
-# From trace CSV (default convention)
-python py/scc_mml.py inputs/02_StartingPoint/02_StartingPoint_trace.scc.csv \
-    outputs/02_StartingPoint_trace
+---
 
-# From log CSV
-python py/scc_mml.py inputs/02_StartingPoint/02_StartingPoint_log.scc.csv \
-    outputs/02_StartingPoint_log
-```
-
-## Running Tests
-
-```bash
-python -m pytest tests/ -v
-```
-
-The regression tests (`tests/test_scc_mml.py`) verify:
-- Log CSV → MML matches the golden reference at
-  `outputs/02_StartingPoint_log/02_StartingPoint_log.scc.pass3.mml`
-- Trace CSV → MML matches the golden reference at
-  `outputs/02_StartingPoint_trace/02_StartingPoint_trace.scc.pass3.mml`
-- Python-generated trace CSV is byte-for-byte identical to the Tcl-generated
-  `inputs/02_StartingPoint/02_StartingPoint_trace.scc.csv`
-- Full VGM → trace → MML pipeline matches the golden trace MML
-
-## Repository Layout
-
-```
-py/
-  vgm_reader.py   – VGM binary parser → SCC + PSG log/trace CSVs
-  scc_mml.py      – SCC CSV → pass0…pass3 CSVs + pass3.mml  (port of scc.mml.tcl)
-  psg_mml.py      – PSG log CSV → MML                        (port of psg.mml.tcl)
-  mml_utils.py    – Tone-table and note/octave helpers        (port of mml_utils.tcl)
-vgm2mml.py        – Top-level CLI entry point
-tests/
-  test_scc_mml.py – Regression tests for the SCC MML pipeline
-inputs/           – Sample VGM files and Tcl-generated log/trace CSVs
-outputs/          – Committed golden MML reference outputs
-```
-
-## Tcl Compatibility Note
-
-The Python VGM reader intentionally replicates a Tcl `vgm_read.tcl` quirk:
-VGM wait commands `0x77` (8 samples) and `0x7a` (11 samples) are treated as
-zero-sample waits. This matches the Tcl reference output and ensures the
-Python-generated trace CSV is identical to the Tcl-generated trace CSV.
-
+## ライセンス
+MIT License
