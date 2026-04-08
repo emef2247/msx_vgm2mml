@@ -1,7 +1,7 @@
 ;[name=psg lpf=1]
 #opll_mode 1
 #tempo 225
-#title { "02_StartingPoint"}
+#title { "02_StartingPoint_log.psg"}
 #alloc 1=624
 #alloc 2=736
 #alloc 3=1728

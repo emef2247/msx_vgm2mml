@@ -183,6 +183,151 @@ def ticks_to_mml_length(ticks, scale):
 
 
 # ---------------------------------------------------------------------------
+# MGS delta-token helpers  (port of psg.mml.tcl  get_mml_MGS logic)
+# ---------------------------------------------------------------------------
+
+def mgs_length_to_str(scale, length):
+    """Convert a tick count to an MGS note string with dotted-note support.
+
+    Matches the length encoding used by the Tcl ``get_mml_MGS`` procedure:
+    greedy decomposition into standard (and dotted) note lengths, where a
+    single-tick remainder is emitted as a bare scale letter (relies on
+    ``l64`` being the current default note length in the MGSDRV player).
+
+    Examples (scale='a'):
+        64  → 'a1'
+        48  → 'a2.'
+        32  → 'a2'
+        16  → 'a4'
+        12  → 'a8.'
+         8  → 'a8'
+         6  → 'a16.'
+         4  → 'a16'
+         3  → 'a32.'
+         2  → 'a32'
+         1  → 'a'
+        33  → 'a1a'
+    """
+    result = ""
+    while length > 0:
+        if length >= 64:
+            result += scale + "1"
+            length -= 64
+        elif length >= 48:
+            result += scale + "2."
+            length -= 48
+        elif length >= 32:
+            result += scale + "2"
+            length -= 32
+        elif length >= 16:
+            result += scale + "4"
+            length -= 16
+        elif length >= 12:
+            result += scale + "8."
+            length -= 12
+        elif length >= 8:
+            result += scale + "8"
+            length -= 8
+        elif length >= 6:
+            result += scale + "16."
+            length -= 6
+        elif length >= 4:
+            result += scale + "16"
+            length -= 4
+        elif length == 3:
+            result += scale + "32."
+            length -= 3
+        elif length == 2:
+            result += scale + "32"
+            length -= 2
+        elif length == 1:
+            result += scale   # bare note letter = one 64th with l64 default
+            length -= 1
+        else:
+            result += f"[{scale}]{length}"
+            length = 0
+    return result if result else f"{scale}64"
+
+
+def get_mgs_octave_prefix(o, o_stamp):
+    """Compute the octave-change MML token string.
+
+    Matches the Tcl ``get_mml_MGS`` octave logic:
+    * abs(diff) > 3 → absolute ``oN``
+    * diff < 0      → repeated ``<`` (one per semitave, i.e. one per octave step)
+    * diff > 0      → repeated ``>``
+    * diff == 0     → empty string
+
+    Args:
+        o:       target octave
+        o_stamp: previously stamped octave
+    """
+    diff = o - o_stamp
+    if abs(diff) > 3:
+        return f"o{o}"
+    if diff < 0:
+        return "<" * (-diff)
+    if diff > 0:
+        return ">" * diff
+    return ""
+
+
+def get_mgs_vol_prefix(v, v_diff, cnt, v_stamp):
+    """Compute the volume-change MML token string.
+
+    Matches the Tcl ``get_mml_MGS`` volume logic:
+    * When ``cnt == 1``, ``v_diff`` is recomputed as ``v - v_stamp``.
+    * abs(diff) > 3 → absolute ``vN``
+    * diff < 0      → repeated ``(``
+    * diff > 0      → repeated ``)``
+    * diff == 0     → empty string
+
+    Args:
+        v:       target volume
+        v_diff:  pre-computed volume diff from pass-3 data (used when cnt > 1)
+        cnt:     repeat count from pass-3 data
+        v_stamp: previously stamped volume
+    """
+    if cnt == 1:
+        v_diff = v - v_stamp
+    if abs(v_diff) > 3:
+        return f"v{v}"
+    if v_diff < 0:
+        return "(" * (-v_diff)
+    if v_diff > 0:
+        return ")" * v_diff
+    return ""
+
+
+def get_mgs_note_token(l, v, v_diff, scale, cnt, o, o_stamp, v_stamp):
+    """Build one complete MGS note token (octave prefix + volume prefix + lengths).
+
+    Implements the full ``get_mml_MGS`` procedure from ``psg.mml.tcl``:
+    * Computes octave prefix via :func:`get_mgs_octave_prefix`.
+    * Computes volume prefix via :func:`get_mgs_vol_prefix`.
+    * Encodes note length(s) via :func:`mgs_length_to_str`.
+    * When ``cnt > 1``, wraps the volume+note body in ``[...]cnt`` with the
+      octave prefix placed *before* the bracket (matches the Tcl behaviour).
+
+    Args:
+        l:       note length in ticks
+        v:       target volume
+        v_diff:  pre-computed volume diff from pass-3 data
+        scale:   note letter (e.g. ``'a'``, ``'c+'``, ``'r'``)
+        cnt:     repeat count (> 1 triggers bracket wrapping)
+        o:       target octave
+        o_stamp: previously stamped octave
+        v_stamp: previously stamped volume
+    """
+    o_mml = get_mgs_octave_prefix(o, o_stamp)
+    v_mml = get_mgs_vol_prefix(v, v_diff, cnt, v_stamp)
+    body = v_mml + mgs_length_to_str(scale, l)
+    if cnt > 1:
+        return f"{o_mml}[{body}]{cnt}"
+    return f"{o_mml}{body}"
+
+
+# ---------------------------------------------------------------------------
 # MML compression helpers
 # ---------------------------------------------------------------------------
 

@@ -241,15 +241,37 @@ def test_psg_pass3_simple_mml_uses_tempo_75():
         assert '%' in content, "pass3.simple.mml must contain raw %-tick notation"
 
 
-def test_psg_pass3_simple_mgs_matches_primary():
-    """pass3.simple.MGS.mml must be identical to the primary .psg.mml."""
+def test_psg_pass3_simple_mgs_uses_delta_tokens():
+    """pass3.simple.MGS.mml must contain '<'/'>' octave delta tokens (Tcl get_mml_MGS behaviour)."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_dir = os.path.join(tmp_dir, PSG_STEM)
-        mml_path = process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM,
-                                   dump_passes=False)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
         mgs_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.simple.MGS.mml')
-        assert _read(mml_path) == _read(mgs_path), (
-            "pass3.simple.MGS.mml must be identical to the primary .psg.mml")
+        content = _read(mgs_path)
+        # The sample input has octave changes within groups that must be encoded
+        # as '<' or '>' instead of 'oN'
+        assert '<' in content or '>' in content, (
+            "pass3.simple.MGS.mml must contain octave delta tokens '<' or '>'")
+        # Must use #tempo 225 (standard MGS format)
+        assert '#tempo 225' in content, "pass3.simple.MGS.mml must use #tempo 225"
+        # Must NOT contain bracket wrapping (cnt forced to 1 for simple variant)
+        import re
+        # Allow [name=...] and ;[...] comment lines, but reject note-level [...]N
+        note_brackets = re.findall(r'(?<![;#])[^\n]*\[[^\]]+\]\d', content)
+        # Filter out lines that are purely header/comment
+        note_brackets = [b for b in note_brackets if not b.strip().startswith(';')]
+        assert not note_brackets, (
+            "pass3.simple.MGS.mml must NOT contain [...]N bracket wrapping")
+
+
+def test_psg_pass3_simple_mgs_uses_tempo_225():
+    """pass3.simple.MGS.mml must use #tempo 225 (standard MGS format)."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, PSG_STEM)
+        process_psg_csv(PSG_LOG_CSV, out_dir, stem=PSG_STEM, dump_passes=False)
+        mgs_path = os.path.join(out_dir, f'{PSG_STEM}.psg.pass3.simple.MGS.mml')
+        content = _read(mgs_path)
+        assert '#tempo 225' in content, "pass3.simple.MGS.mml must use #tempo 225"
 
 
 def test_psg_pass3_compress_mgs_has_compressed_token():
