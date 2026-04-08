@@ -1,5 +1,5 @@
 # vgm2mml
-MSX-Music（OPLL）および SCC の VGM ファイルから、MGSDRV 用 MML を生成するスクリプトです。  
+MSX-Music（PSG, OPLL）および SCC の VGM ファイルから、MGSDRV 用 MML を生成するスクリプトです。  
 生成した MML は https://msxplay.com/editor.html にコピー＆ペーストすることで、そのまま再生できます。
 
 ---
@@ -12,11 +12,14 @@ MSX-Music（OPLL）および SCC の VGM ファイルから、MGSDRV 用 MML を
 ## 使い方
 
 ### コマンド
-usage: vgm2mml.py [-h] [--outdir OUTDIR] [--dump-passes] [--debug] [--scc-input {trace,log}] [--psg-input {trace,log}] vgm
-vgm2mml.py: error: the following arguments are required: vgm
+```bash
+vgm2mml.py [-h] [--outdir OUTDIR] [--dump-passes] [--debug] [--scc-input {trace,log}] [--psg-input {trace,log}] vgm
+```
 
 ### 基本例
+```
 python vgm2mml.py 02_StartingPoint.vgm
+```
 
 出力例：
 outputs/02_StartingPoint/02_StartingPoint.mml
@@ -51,24 +54,22 @@ MIT License
 
 ---
 
-# English Translation
-
-## Title/Description
-This repository provides tools for converting VGM (Video Game Music) files to MML (Music Macro Language).
+# vgm2mml
+A script that converts VGM files for MSX-Music (PSG, OPLL) and SCC into MML for MGSDRV.
+The generated MML can be copied and pasted directly into https://msxplay.com/editor.html for playback.
 
 ## Overview
-- Easy conversion of VGM files to MML.
-- Supports various audio formats.
-- Provides options for fine-tuning output.
+- Automatic conversion: Parses VGM (MSX-Music / SCC) and generates MGSDRV-style MML
+- Register-accurate output: Produces MML that closely reflects the original register writes
 
 ## Usage
 To convert a VGM file to MML, use the following command:
 ```bash
-vgm2mml <input.vgm> <output.mml>
+vgm2mml.py [-h] [--outdir OUTDIR] [--dump-passes] [--debug] [--scc-input {trace,log}] [--psg-input {trace,log}] vgm
 ```
 ### Example
 To convert a stem file:
-```bash
+```
 vgm2mml sound.vgm sounds/stem.mml
 ```
 The output will be saved in `sounds/<stem>.mml`.
@@ -81,12 +82,15 @@ The output will be saved in `sounds/<stem>.mml`.
 | -d     | Enable debug mode. |
 
 ## Limitations
-- Note allocation is limited.
-- OPLL note expansion is only supported for specific cases.
+- The value set in `#alloc` is the character count per channel. You may need to adjust it to fit the buffer size after compilation.
+- OPLL support is currently limited to note expansion only. Tone (instrument) assignment is not yet supported.
 
 ## Notes
-- MGSDRV has a 16KB limit that users should be aware of.
-- It's advised to use optimized sound files to prevent issues.
+MGSDRV MML must satisfy the constraint that the total buffer size of all channels after compilation is within 16 KB.
+However, this script does not take that limitation into account.
 
+If the generated MML is too large, you may need to:
+- Manually adjust the `#alloc` values
+- Use macros to reduce data size
 ## License
 MIT License
