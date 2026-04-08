@@ -96,7 +96,7 @@ def main():
                                      dump_passes=args.dump_passes)
     print(f"OPLL MML:             {opll_mml_path}")
     print(f"OPLL pass3.simple:    {os.path.splitext(opll_mml_path)[0].replace('.opll', '.opll.pass3.simple')}.mml")
-    print(f"OPLL pass3.simple.MGS:{os.path.splitext(opll_mml_path)[0].replace('.opll', '.opll.pass3.simple.MGS')}.mml")
+    print(f"OPLL pass3.simple.MGS: {os.path.splitext(opll_mml_path)[0].replace('.opll', '.opll.pass3.simple.MGS')}.mml")
     print(f"OPLL pass3.compress:  {os.path.splitext(opll_mml_path)[0].replace('.opll', '.opll.pass3.compress.MGS')}.mml")
 
 
