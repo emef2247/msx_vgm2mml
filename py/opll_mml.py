@@ -21,7 +21,8 @@ import math
 
 sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import (get_ticks, estimate_mml_used, estimate_alloc,
-                       track_id_to_mgsdrv, ticks_to_mml_length)
+                       track_id_to_mgsdrv, ticks_to_mml_length,
+                       compress_mml_text)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -233,8 +234,13 @@ def _build_segments(trace_path: str) -> dict:
 # MML generation
 # ---------------------------------------------------------------------------
 
-def _generate_mml(segments: dict, stem: str) -> str:
-    """Generate MGSDRV MML text from per-channel segment data."""
+def _generate_mml_impl(segments: dict, stem: str, raw_ticks: bool = False) -> str:
+    """Generate MGSDRV MML text from per-channel segment data.
+
+    When *raw_ticks* is True, emit ``{scale}%{N}`` tick notation and use
+    ``#tempo 75`` (pass3.simple.mml style).  When False (default), emit
+    standard divisor notation with ``#tempo 225``.
+    """
     mml_buffer: dict[int, list] = {ch: [] for ch in range(NUM_CH)}
 
     for ch in range(NUM_CH):
@@ -269,8 +275,11 @@ def _generate_mml(segments: dict, stem: str) -> str:
                 if note_cnt == 0:
                     at_val = seg.inst
                     if is_first_group:
-                        mml = f'\n{track_id} @{at_val} v{v} o{octave} l64'
-                        o_stamp = octave
+                        if raw_ticks:
+                            mml = f'\n{track_id} @{at_val} v{v}'
+                        else:
+                            mml = f'\n{track_id} @{at_val} v{v} o{octave} l64'
+                            o_stamp = octave
                         is_first_group = False
                     else:
                         mml = f'\n{track_id}'
@@ -293,7 +302,10 @@ def _generate_mml(segments: dict, stem: str) -> str:
                     mml += f' o{octave}'
                     o_stamp = octave
 
-                mml += f' {ticks_to_mml_length(ltmp, scale)}'
+                if raw_ticks:
+                    mml += f' {scale}%{ltmp}'
+                else:
+                    mml += f' {ticks_to_mml_length(ltmp, scale)}'
                 l_cnt += ltmp
 
                 remaining -= ltmp
@@ -314,10 +326,11 @@ def _generate_mml(segments: dict, stem: str) -> str:
         mml_buffer[ch].append(f'\n;ch{track_id} end: tick count: {l_cnt}\n')
 
     # Build header
+    tempo = 75 if raw_ticks else 225
     lines = []
     lines.append(';[name=opll]')
     lines.append('#opll_mode 1')
-    lines.append('#tempo 225')
+    lines.append(f'#tempo {tempo}')
     lines.append(f'#title {{ "{stem}"}}')
     for ch in range(NUM_CH):
         ch_num   = ch + CH_OFFSET
@@ -339,6 +352,11 @@ def _generate_mml(segments: dict, stem: str) -> str:
     if not result.endswith('\n'):
         result += '\n'
     return result
+
+
+def _generate_mml(segments: dict, stem: str) -> str:
+    """Generate MGSDRV MML text from per-channel segment data."""
+    return _generate_mml_impl(segments, stem, raw_ticks=False)
 
 
 # ---------------------------------------------------------------------------
@@ -388,6 +406,24 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     mml_path = os.path.join(output_dir, f'{stem}.opll.mml')
     with open(mml_path, 'w', newline='\n') as fh:
         fh.write(mml_text)
+
+    # ---- Additional MML variants ----
+
+    # pass3.simple.mml – raw tick (%N) notation, #tempo 75
+    simple_raw_text = _generate_mml_impl(segments, stem, raw_ticks=True)
+    simple_raw_path = os.path.join(output_dir, f'{stem}.opll.pass3.simple.mml')
+    with open(simple_raw_path, 'w', newline='\n') as fh:
+        fh.write(simple_raw_text)
+
+    # pass3.simple.MGS.mml – same as primary .opll.mml
+    simple_mgs_path = os.path.join(output_dir, f'{stem}.opll.pass3.simple.MGS.mml')
+    with open(simple_mgs_path, 'w', newline='\n') as fh:
+        fh.write(mml_text)
+
+    # pass3.compress.MGS.mml – divisor notation with token-level RLE compression
+    compress_path = os.path.join(output_dir, f'{stem}.opll.pass3.compress.MGS.mml')
+    with open(compress_path, 'w', newline='\n') as fh:
+        fh.write(compress_mml_text(mml_text))
 
     return mml_path
 

@@ -328,7 +328,10 @@ def test_opll_no_dump_no_pass_csv():
         opll_trace = results[5]
         out_dir = os.path.join(tmp, VGM_STEM)
         process_opll_csv(opll_trace, out_dir, stem=VGM_STEM, dump_passes=False)
-        pass_csvs = [f for f in os.listdir(out_dir) if 'pass' in f]
+        # Only intermediate CSV debug files (*.pass*.csv) must not be written;
+        # the new *.pass3.*.mml MML variant files are expected output files.
+        pass_csvs = [f for f in os.listdir(out_dir)
+                     if 'pass' in f and f.endswith('.csv')]
         assert pass_csvs == [], (
             f"Unexpected pass CSV files with dump_passes=False: {pass_csvs}")
 
@@ -349,3 +352,69 @@ def test_opll_mml_matches_golden():
         assert got == expected, (
             f"OPLL MML differs from golden reference.\n"
             f"Expected:\n{expected[:500]}\n\nGot:\n{got[:500]}")
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# pass3 MML variant tests (simple / simple.MGS / compress.MGS)
+# ──────────────────────────────────────────────────────────────────────────
+
+def test_opll_pass3_simple_mml_is_created():
+    """process_opll_csv must produce a .opll.pass3.simple.mml file."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
+        simple_path = os.path.join(out_dir, f'{VGM_STEM}.opll.pass3.simple.mml')
+        assert os.path.isfile(simple_path), (
+            f"pass3.simple.mml not created: {simple_path}")
+
+
+def test_opll_pass3_simple_mgs_mml_is_created():
+    """process_opll_csv must produce a .opll.pass3.simple.MGS.mml file."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
+        mgs_path = os.path.join(out_dir, f'{VGM_STEM}.opll.pass3.simple.MGS.mml')
+        assert os.path.isfile(mgs_path), (
+            f"pass3.simple.MGS.mml not created: {mgs_path}")
+
+
+def test_opll_pass3_compress_mgs_mml_is_created():
+    """process_opll_csv must produce a .opll.pass3.compress.MGS.mml file."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
+        compress_path = os.path.join(out_dir, f'{VGM_STEM}.opll.pass3.compress.MGS.mml')
+        assert os.path.isfile(compress_path), (
+            f"pass3.compress.MGS.mml not created: {compress_path}")
+
+
+def test_opll_pass3_simple_mml_uses_tempo_75():
+    """pass3.simple.mml must use #tempo 75 (raw-tick format)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
+        simple_path = os.path.join(out_dir, f'{VGM_STEM}.opll.pass3.simple.mml')
+        content = _read(simple_path)
+        assert '#tempo 75' in content, "pass3.simple.mml must use #tempo 75"
+        assert '%' in content, "pass3.simple.mml must contain raw %-tick notation"
+
+
+def test_opll_pass3_simple_mgs_matches_primary():
+    """pass3.simple.MGS.mml must be identical to the primary .opll.mml."""
+    with tempfile.TemporaryDirectory() as tmp:
+        results = parse_vgm(VGM_FILE, tmp)
+        opll_trace = results[5]
+        out_dir = os.path.join(tmp, VGM_STEM)
+        mml_path = process_opll_csv(opll_trace, out_dir, stem=VGM_STEM)
+        mgs_path = os.path.join(out_dir, f'{VGM_STEM}.opll.pass3.simple.MGS.mml')
+        assert _read(mml_path) == _read(mgs_path), (
+            "pass3.simple.MGS.mml must be identical to the primary .opll.mml")
+

@@ -178,8 +178,95 @@ def test_scc_mml_ends_with_newline():
 
 
 # ──────────────────────────────────────────────────────────────────────────
-# Trace CSV pipeline tests
+# pass3 MML variant tests (simple / simple.MGS / compress.MGS)
 # ──────────────────────────────────────────────────────────────────────────
+
+def test_scc_pass3_simple_mml_is_created():
+    """process_scc_csv must produce a .scc.pass3.simple.mml file."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                        stem='02_StartingPoint')
+        simple_path = os.path.join(out_dir, '02_StartingPoint.scc.pass3.simple.mml')
+        assert os.path.isfile(simple_path), (
+            f"pass3.simple.mml not created: {simple_path}")
+
+
+def test_scc_pass3_simple_mgs_mml_is_created():
+    """process_scc_csv must produce a .scc.pass3.simple.MGS.mml file."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                        stem='02_StartingPoint')
+        mgs_path = os.path.join(out_dir, '02_StartingPoint.scc.pass3.simple.MGS.mml')
+        assert os.path.isfile(mgs_path), (
+            f"pass3.simple.MGS.mml not created: {mgs_path}")
+
+
+def test_scc_pass3_compress_mgs_mml_is_created():
+    """process_scc_csv must produce a .scc.pass3.compress.MGS.mml file."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                        stem='02_StartingPoint')
+        compress_path = os.path.join(out_dir, '02_StartingPoint.scc.pass3.compress.MGS.mml')
+        assert os.path.isfile(compress_path), (
+            f"pass3.compress.MGS.mml not created: {compress_path}")
+
+
+def test_scc_pass3_simple_mml_uses_tempo_75():
+    """pass3.simple.mml must use #tempo 75 (raw-tick format)."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                        stem='02_StartingPoint')
+        simple_path = os.path.join(out_dir, '02_StartingPoint.scc.pass3.simple.mml')
+        with open(simple_path) as fh:
+            content = fh.read()
+        assert '#tempo 75' in content, "pass3.simple.mml must use #tempo 75"
+        assert '%' in content, "pass3.simple.mml must contain raw %-tick notation"
+
+
+def test_scc_pass3_simple_mgs_matches_primary():
+    """pass3.simple.MGS.mml must be identical to the primary .scc.mml."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        mml_path = process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                                   stem='02_StartingPoint')
+        mgs_path = os.path.join(out_dir, '02_StartingPoint.scc.pass3.simple.MGS.mml')
+        primary = _read(mml_path)
+        simple_mgs = _read(mgs_path)
+        assert primary == simple_mgs, (
+            "pass3.simple.MGS.mml must be identical to the primary .scc.mml")
+
+
+def test_scc_pass3_compress_mgs_uses_tempo_225():
+    """pass3.compress.MGS.mml must use #tempo 225 (standard MGS format)."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                        stem='02_StartingPoint')
+        compress_path = os.path.join(out_dir, '02_StartingPoint.scc.pass3.compress.MGS.mml')
+        with open(compress_path) as fh:
+            content = fh.read()
+        assert '#tempo 225' in content, "pass3.compress.MGS.mml must use #tempo 225"
+
+
+def test_scc_pass3_compress_mgs_has_compressed_token():
+    """pass3.compress.MGS.mml must contain at least one [token]N compressed entry."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        out_dir = os.path.join(tmp_dir, 'test')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                        stem='02_StartingPoint')
+        compress_path = os.path.join(out_dir, '02_StartingPoint.scc.pass3.compress.MGS.mml')
+        import re
+        with open(compress_path) as fh:
+            content = fh.read()
+        assert re.search(r'\[[^\]]+\]\d+', content), (
+            "pass3.compress.MGS.mml must contain at least one [token]N compression")
+
+
+
 
 def test_trace_csv_exists():
     """The committed Tcl-generated trace CSV must exist."""
