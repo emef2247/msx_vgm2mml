@@ -8,7 +8,6 @@ namespace eval mml_scc {
     #set script_dir ".\/$script_dir"
     set dir_path   [file dirname $script_dir]
     set csv_dir    ${dir_path}/csv
-    set output_dir ${dir_path}/outputs_tcl
     set source_dir ${dir_path}/atrace_files
     set lib_dir    ${dir_path}/libs
 	
@@ -1028,7 +1027,6 @@ namespace eval mml_scc {
     proc extrac_to_csv {directory file_name} {
 		variable fd
 		variable logBuffer
-		variable output_dir
 		variable output_name_body
 		variable output_file_name
 		variable num_of_ch
@@ -1044,7 +1042,7 @@ namespace eval mml_scc {
 		set ::mml_scc::fileNameBody $output_name_body
 		
 		# --- Prepare Output folder ---
-		set output_dir ${directory}/output
+		set output_dir ${directory}/outputs_tcl
 		if {[file exists $output_dir] != 1} {
 			file mkdir $output_dir
 			puts "$output_dir was created."
