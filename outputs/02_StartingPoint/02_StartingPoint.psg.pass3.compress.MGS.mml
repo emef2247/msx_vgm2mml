@@ -2,174 +2,129 @@
 #opll_mode 1
 #tempo 225
 #title { "02_StartingPoint"}
-#alloc 1=608
-#alloc 2=720
-#alloc 3=1776
+#alloc 1=512
+#alloc 2=576
+#alloc 3=752
 
 
 
 ;ch1 start
-1 /0 v0 o1 l64 r1r2r8r16r64
+1 /0 v0 o1 l64 r1r2r8.r
 ;tick count: 109
 
-1 /1 s0 m1573 v8 o2 a+32 b32 o3 c32 c+32 d32 o2 a+32 b32 o3 c32
+1 /1 s0 m1573 v8 >a+32 b32 >c32 c+32 d32 <a+32 b32 >c32
 ;tick count: 125
 
-1 /1 s0 m1573 v8 c+32 d32 o2 b32 o3 c32 c+32 d32 d+32 o2 b32
+1 /1 s0 m1573 v8 c+32 d32 <b32 >c32 c+32 d32 d+32 <b32
 ;tick count: 141
 
-1 /1 s0 m1573 v8 o3 c32 c+32 d32 d+32 c32 c+32 d32 d+32
+1 /1 s0 m1573 v8 >c32 c+32 d32 d+32 c32 c+32 d32 d+32
 ;tick count: 157
 
 1 /1 s0 m1573 v8 e32 c32 c+32 d32 d+32 e32 c+32 d32
 ;tick count: 173
 
-1 /1 s0 m1573 v8 d+32 e32 f32 c+32 d32 d+32 e32 f32
-;tick count: 189
+1 /1 s0 m1573 v8 d+32 e32 f32 c+32 d32 d+32 e32 f32.
+;tick count: 190
 
 1 /1 s0 m1573 v8 d32 d+32 e32 f32 f+32 d32 d+32 e32
-;tick count: 205
+;tick count: 206
 
 1 /1 s0 m1573 v8 f32 f+32
-;tick count: 209
+;tick count: 210
 
-1 /3 s0 m1573 n31 v12 g+64 f+64 e64 c+64 o2 g+64 f64 c+64 o1 g+64
-;tick count: 217
+1 /3 s0 m1573 n31 v12 g+ f+ e c+ <g+ f c+ <g+
+;tick count: 218
 
-1 /2 s0 m1573 n29 v12 [g+64]8
-;tick count: 225
+1 /2 s0 m1573 n29 v12 g+ g+ g+ g+ g+ g+ g+ g+
+;tick count: 226
 
-1 /2 s0 m1573 n3 v12 [g+64]2 v11 g+16g+32g+64 v10 g+16g+32g+64 v8 g+16g+32g+64 v6 g+16g+32g+64 v4 g+16g+32g+64 v3 g+16g+32g+64
-;tick count: 269
+1 /2 s0 m1573 n3 v12 g+ g+ (g+16.g+ (g+16.g+ ((g+16.g+ ((g+16.g+ ((g+16.g+ (g+16.g+
+;tick count: 270
 
-;ch1 end: tick count: 269
+;ch1 end: tick count: 270
 
 
 ;ch2 start
-2 /0 v0 o1 l64 r1r2r8r16
+2 /0 v0 o1 l64 r1r2r8.
 ;tick count: 108
 
-2 /1 s0 m1573 v8 o2 a+32 b32 o3 c32 c+32 d32 o2 a+32 b32 o3 c32
+2 /1 s0 m1573 v8 >a+32 b32 >c32 c+32 d32 <a+32 b32 >c32
 ;tick count: 124
 
-2 /1 s0 m1573 v8 c+32 d32 o2 b32 o3 c32 c+32 d32 d+32 o2 b32
+2 /1 s0 m1573 v8 c+32 d32 <b32 >c32 c+32 d32. d+ <b32
 ;tick count: 140
 
-2 /1 s0 m1573 v8 o3 c32 c+32 d32 d+32 c32 c+32 d32 d+32
+2 /1 s0 m1573 v8 >c32 c+32 d32 d+32. c c+32 d32 d+32
 ;tick count: 156
 
-2 /1 s0 m1573 v8 e32 c32 c+32 d32 d+32 e32 c+32 d32
-;tick count: 172
+2 /1 s0 m1573 v8 e32 c32. c+ d32 d+32. e c+32 d32.
+;tick count: 173
 
-2 /1 s0 m1573 v8 d+32 e32 f32 c+32 d32 d+32 e32 f32
-;tick count: 188
+2 /1 s0 m1573 v8 d+ e32 f32. c+32 d32 d+32 e32 f32
+;tick count: 189
 
 2 /1 s0 m1573 v8 d32 d+32 e32 f32 f+32 d32 d+32 e32
-;tick count: 204
+;tick count: 205
 
-2 /1 s0 m1573 v8 f32 f+32 v14 c+64 c64 o2 g+64 f+64 f64 c+64
-;tick count: 214
+2 /1 s0 m1573 v8 f32 f+32 v14c+ c <g+ f+ f c+
+;tick count: 215
 
-2 /1 s0 m1573 v14 o1 g+64 f+64 o3 c+64 c64 o2 g+64 f+64 f64 c+64
-;tick count: 222
+2 /1 s0 m1573 v14 <g+ f+ >>c+ c <g+ f+ f c+
+;tick count: 223
 
-2 /1 s0 m1573 v14 o1 g+64 f+64 v12 o3 c+64 c64 o2 g+64 f+64 f64 c+64
-;tick count: 230
+2 /1 s0 m1573 v14 <g+ f+ >>((c+ c <g+ f+ f c+
+;tick count: 231
 
-2 /1 s0 m1573 v12 o1 g+64 f+64 o3 c+64 c64 o2 g+64 f+64 f64 c+64
-;tick count: 238
+2 /1 s0 m1573 v12 <g+ f+ >>c+ c <g+ f+ f c+
+;tick count: 239
 
-2 /1 s0 m1573 v12 o1 g+64 f+64 v10 o3 c+64 c64 o2 g+64 f+64 f64 c+64
-;tick count: 246
+2 /1 s0 m1573 v12 <g+ f+ >>((c+ c <g+ f+ f c+
+;tick count: 247
 
-2 /1 s0 m1573 v10 o1 g+64 f+64 o3 c+64 c64 o2 g+64 f+64 f64 c+64
-;tick count: 254
+2 /1 s0 m1573 v10 <g+ f+ >>c+ c <g+ f+ f c+
+;tick count: 255
 
-2 /1 s0 m1573 v10 o1 g+64 f+64
-;ch2 end: tick count: 256
+2 /1 s0 m1573 v10 <g+ f+
+;ch2 end: tick count: 257
 
 
 ;ch3 start
-3 /1 s0 m1573 v10 o4 l64 e16 o3 b16 o4 e16 f+16 o3 b16 o4 f+16 o5 e16 o4 b16
+3 /1 s0 m1573 v10 o4 l64 e16 <b16 >e16 f+16 <b16 >f+16 >e16 <b16
 ;tick count: 32
 
-3 /1 s0 m1573 v10 o5 e16 f+16 o4 b16 o5 f+16 o4 b16 o5 e16 f+16 b16
+3 /1 s0 m1573 v10 >e16 f+16 <b16 >f+16 <b16 >e16 f+16 b16
 ;tick count: 64
 
-3 /1 s0 m1573 v7 o4 b16 o5 e16 f+16 b16 v5 o4 b16 o5 e16 f+16 b8b64
+3 /1 s0 m1573 v7 <b16 >e16 f+16 b16 <((b16 >e16 f+16 b8b
 ;tick count: 101
 
-3 /1 s0 m1573 v10 o1 c64 v9 c64 v8 c64 v7 c64 v6 c64 v11 o2 c64 v10 c64 v9 c64
+3 /1 s0 m1573 v10 o1[(c]4 v6c >[(c]5 v6c <[(c]5 v6c >[(c]5 v6c
 ;tick count: 109
 
-3 /1 s0 m1573 v8 c64 v7 c64 v6 c64 v11 o1 c64 v10 c64 v9 c64 v8 c64 v7 c64
-;tick count: 117
+3 /1 s0 m1573 v11 <[(c]5 v6c >[(c]5 v6c32 <[(c]4 v6c >[(c]5 v6c32
+;tick count: 119
 
-3 /1 s0 m1573 v6 c64 v11 o2 c64 v10 c64 v9 c64 v8 c64 v7 c64 v6 c64 v11 o1 c64
-;tick count: 125
+3 /1 s0 m1573 v10 <[(c]4 v6c32 >[(c]4 v6c32 <[(c]4 v6c32 >[(c]4 v6c32
+;tick count: 131
 
-3 /1 s0 m1573 v10 c64 v9 c64 v8 c64 v7 c64 v6 c64 v11 o2 c64 v10 c64 v9 c64
-;tick count: 133
+3 /1 s0 m1573 v10 <c32 [(c]3 (((c >[(c]5 v6c <[(c]5 v6c >[(c]5
+;tick count: 140
 
-3 /1 s0 m1573 v8 c64 v7 c64 v6 c64 v11 o1 c64 v10 c64 v9 c64 v8 c64 v7 c64
-;tick count: 141
+3 /1 s0 m1573 v6 c <[(c]5 v6c >[(c]5 v6c <v11c [(c]4 v6c
+;tick count: 148
 
-3 /1 s0 m1573 v6 c64 v11 o2 c64 v10 c64 v9 c64 v8 c64 v7 c64 v6 c64 v11 o1 c64
-;tick count: 149
+3 /1 s0 m1573 v11 >[(c]3 (((c (c (c <v11c (c (c (c
+;tick count: 156
 
-3 /1 s0 m1573 v10 c64 v9 c64 v8 c64 v7 c64 v6 c64 v11 o2 c64 v10 c64 v9 c64
-;tick count: 157
+3 /1 s0 m1573 v7 c (c >v11c [(c]4 v6c <[(c]2 [(c]3 (((c
+;tick count: 164
 
-3 /1 s0 m1573 v8 c64 v7 c64 v6 c64 v11 o1 c64 v10 c64 v9 c64 v8 c64 v7 c64
-;tick count: 165
+3 /1 s0 m1573 v11 >[(c]3 [(c]2 ((c <[(c]4 v7c (c >[(c]5 v6c
+;tick count: 172
 
-3 /1 s0 m1573 v6 c64 v11 o2 c64 v10 c64 v9 c64 v8 c64 v7 c64 v6 c64 v11 o1 c64
-;tick count: 173
+3 /1 s0 m1573 v11 <[(c]5 v6c >[(c]5 v6c <[(c]5 v6c >[(c]5 v6c
+;tick count: 180
 
-3 /1 s0 m1573 v10 c64 v9 c64 v8 c64 v7 c64 v6 c64 v11 o2 c64 v10 c64 v9 c64
-;tick count: 181
-
-3 /1 s0 m1573 v8 c64 v7 c64 v6 c64 v11 o1 c64 v10 c64 v9 c64 v8 c64 v7 c64
-;tick count: 189
-
-3 /1 s0 m1573 v6 c64 v11 o2 c64 v10 c64 v9 c64 v8 c64 v7 c64 v6 c64 v11 o1 c64
-;tick count: 197
-
-3 /1 s0 m1573 v10 c64 v9 c64 v8 c64 v7 c64 v6 c64 v11 o2 c64 v10 c64 v9 c64
-;tick count: 205
-
-3 /1 s0 m1573 v8 c64 v7 c64 v6 c64 v11 o1 c64 v10 c64 v9 c64 v8 c64 v7 c64
-;tick count: 213
-
-3 /1 s0 m1573 v6 c64 v11 o2 c64 v10 c64 v9 c64 v8 c64 v7 c64 v6 c64 v11 o1 c64
-;tick count: 221
-
-3 /1 s0 m1573 v10 c64 v9 c64 v8 c64 v7 c64 v6 c64 v11 o2 c64 v10 c64 v9 c64
-;tick count: 229
-
-3 /1 s0 m1573 v8 c64 v7 c64 v6 c64 v11 o1 c64 v10 c64 v9 c64 v8 c64 v7 c64
-;tick count: 237
-
-3 /1 s0 m1573 v6 c64 v11 o2 c64 v10 c64 v9 c64 v8 c64 v7 c64 v6 c64 v11 o1 c64
-;tick count: 245
-
-3 /1 s0 m1573 v10 c64 v9 c64 v8 c64 v7 c64 v6 c64 v11 o2 c64 v10 c64 v9 c64
-;tick count: 253
-
-3 /1 s0 m1573 v8 c64 v7 c64 v6 c64 v11 o1 c64 v10 c64 v9 c64 v8 c64 v7 c64
-;tick count: 261
-
-3 /1 s0 m1573 v6 c64 v11 o2 c64 v10 c64 v9 c64 v8 c64 v7 c64 v6 c64 v11 o1 c64
-;tick count: 269
-
-3 /1 s0 m1573 v10 c64 v9 c64 v8 c64 v7 c64 v6 c64 v11 o2 c64 v10 c64 v9 c64
-;tick count: 277
-
-3 /1 s0 m1573 v8 c64 v7 c64 v6 c64 v11 o1 c64 v10 c64 v9 c64 v8 c64 v7 c64
-;tick count: 285
-
-3 /1 s0 m1573 v6 c64 v11 c64 v10 c64 v9 c64 v8 c64 v7 c2c4c8c32 v6 c64 v5 c64
-;tick count: 350
-
-3 /1 s0 m1573 v4 c64 v3 c64
-;ch3 end: tick count: 352
+3 /1 s0 m1573 v11 <[(c]5 v6c [(c]4 v7c2.c8c32 [(c]3 (((c
+;ch3 end: tick count: 243

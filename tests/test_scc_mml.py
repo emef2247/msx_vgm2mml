@@ -227,17 +227,29 @@ def test_scc_pass3_simple_mml_uses_tempo_75():
         assert '%' in content, "pass3.simple.mml must contain raw %-tick notation"
 
 
-def test_scc_pass3_simple_mgs_matches_primary():
-    """pass3.simple.MGS.mml must be identical to the primary .scc.mml."""
+def test_scc_pass3_simple_mgs_uses_delta_tokens():
+    """pass3.simple.MGS.mml must contain '<'/'>' or '('/')' delta tokens (Tcl get_mml_MGS behaviour)."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_dir = os.path.join(tmp_dir, 'test')
-        mml_path = process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
-                                   stem='02_StartingPoint')
+        process_scc_csv(INPUT_CSV, out_dir, dump_passes=False,
+                        stem='02_StartingPoint')
         mgs_path = os.path.join(out_dir, '02_StartingPoint.scc.pass3.simple.MGS.mml')
-        primary = _read(mml_path)
-        simple_mgs = _read(mgs_path)
-        assert primary == simple_mgs, (
-            "pass3.simple.MGS.mml must be identical to the primary .scc.mml")
+        with open(mgs_path) as fh:
+            content = fh.read()
+        # The sample input has octave and volume changes that must be encoded
+        # as delta tokens instead of repeated 'oN'/'vN'
+        assert '<' in content or '>' in content or '(' in content or ')' in content, (
+            "pass3.simple.MGS.mml must contain delta tokens '<', '>', '(' or ')'")
+        # Must use #tempo 225 (standard MGS format)
+        assert '#tempo 225' in content, "pass3.simple.MGS.mml must use #tempo 225"
+        # Must NOT contain bracket wrapping (cnt forced to 1 for simple variant)
+        import re
+        note_lines = [l for l in content.splitlines()
+                      if not l.strip().startswith(';') and not l.strip().startswith('#')]
+        for line in note_lines:
+            assert not re.search(r'\[[^\]]+\]\d', line), (
+                f"pass3.simple.MGS.mml must NOT contain [...]N bracket wrapping, "
+                f"found in: {line!r}")
 
 
 def test_scc_pass3_compress_mgs_uses_tempo_225():
