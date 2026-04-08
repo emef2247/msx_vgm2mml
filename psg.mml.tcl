@@ -8,7 +8,6 @@ namespace eval ::mml_psg {
     #set script_dir ".\/$script_dir"
     set dir_path   [file dirname $script_dir]
     set csv_dir    ${dir_path}/csv
-    set output_dir ${dir_path}/output
     set source_dir ${dir_path}/atrace_files
     set lib_dir    ${dir_path}/libs
 	
@@ -42,6 +41,7 @@ namespace eval ::mml_psg {
 	set command_pid_list ""
 	set command_list ""
 	
+	variable envlpList ""
 	set timbreList ""
 	
 	variable num_of_ch 3
@@ -159,12 +159,12 @@ namespace eval ::mml_psg {
 	}
 	
 	proc is_voise_enabled {  line } {
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26     27     28     29        30        31        32         33         34
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		set ch     [lindex $line 2]
-		set vVCtrl [lindex $line 27]
+		set vVCtrl [lindex $line 28]
 		set voiceMute [expr $vVCtrl & 0x7]
 		 
 		set mask 1
@@ -183,12 +183,12 @@ namespace eval ::mml_psg {
 	}
 	
 	proc is_noise_enabled {  line } {
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26     27     28     29        30        31        32         33         34
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		set ch     [lindex $line 2]
-		set vVCtrl [lindex $line 27]
+		set vVCtrl [lindex $line 29]
 		set noiseMute [expr ($vVCtrl / 8) & 0x7]
 		 
 		set mask 1
@@ -221,39 +221,39 @@ namespace eval ::mml_psg {
 	}
 	
 	proc get_frequency_from_line { line } {
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		set fCtrlA [lindex $line 24]
-		set fCtrlB [lindex $line 25]
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26     27     28     29        30        31        32         33         34
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		set fCtrlA [lindex $line 25]
+		set fCtrlB [lindex $line 26]
 		puts ""
 		set f [expr $fCtrlA + (256*$fCtrlB)]
 		return $f
 	}
 	
 	proc get_volume {  line } {
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		set aVCtrl    [lindex $line 28]
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26     27     28     29        30        31        32         33         34
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		set aVCtrl    [lindex $line 29]
 		set v [expr $aVCtrl & 0xf ]
 		return $v
 	}
 	
 	proc get_timbre_index {  line } {
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26     27     28     29        30        31        32         33         34
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		set timbreIndex 0
-		set wNCtrl    [lindex $line 26]  
-		set vVCtrl    [lindex $line 27]
-		set aVCtrl    [lindex $line 28]
-		set envPCtrlL [lindex $line 29]
-		set envPCtrlM [lindex $line 30]
-		set envShape  [lindex $line 31]
+		set wNCtrl    [lindex $line 27]  
+		set vVCtrl    [lindex $line 28]
+		set aVCtrl    [lindex $line 29]
+		set envPCtrlL [lindex $line 30]
+		set envPCtrlM [lindex $line 31]
+		set envShape  [lindex $line 32]
 		
 		set mode         [expr $vVCtrl/64]
 		set noisePeriod  [expr $wNCtrl & 0x1f]
@@ -313,33 +313,33 @@ namespace eval ::mml_psg {
 	}
 	
 	proc get_noise_period { line } {
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		set wNCtrl [lindex $line 26]
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26     27     28     29        30        31        32         33         34
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		set wNCtrl [lindex $line 27]
 		set noisePeriod  [expr $wNCtrl & 0x1f]
 		return $noisePeriod
 	}
 	
 	proc get_hw_envelope_on { line } {
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		set aVCtrl [lindex $line 28]
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26     27     28     29        30        31        32         33         34
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		set aVCtrl [lindex $line 29]
 		set hwENvOn [expr $aVCtrl / 16]
 		
 		return $hwENvOn
 	}
 	
 	proc get_hw_envelope_freqency { line } {
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		set envPCtrlL [lindex $line 29]
-		set envPCtrlM [lindex $line 30]
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26     27     28     29        30        31        32         33         34
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		set envPCtrlL [lindex $line 30]
+		set envPCtrlM [lindex $line 31]
 		set envPeriod [expr ($envPCtrlM *256) + $envPCtrlL]
 		
 				
@@ -348,13 +348,14 @@ namespace eval ::mml_psg {
 		
 		return $envFrequency
 	}
-	
+
 	proc get_hw_envelope_shape { line } {
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		set envShape  [expr [lindex $line 31] & 0xf]
+
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26     27     28     29        30        31        32         33         34
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		set envShape  [expr [lindex $line 32] & 0xf]
 		
 		return $envShape
 	}
@@ -406,10 +407,10 @@ namespace eval ::mml_psg {
 		# Remove multiple spaces starts from begning of line.
         set buffer [regsub {^\x20+} $buffer {}]
 		
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22   23      24     25     26     27     28     29        30        31        32         33         34
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+		#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		set tmp [split $buffer ","]
 		set ch  [lindex $tmp 2]
 		
@@ -447,6 +448,46 @@ namespace eval ::mml_psg {
 			puts $fd ""
 	}
 
+	proc get_envlpIndex {target} {
+		set index 0
+
+		foreach envlp $::mml_psg::envlpList {
+			if {$target == $envlp} {
+				return $index
+			}
+			incr index
+		}
+		return -1
+	}
+	
+	proc is_envlp_exist {target} {
+		set isExist 0
+				
+		foreach envlp $::mml_psg::envlpList {
+			if {[string equal $target $envlp]} {
+				set isExist 1
+				return $isExist
+			}
+		}
+		return $isExist
+	}
+	
+	proc add_envlp {target } {
+		if {[is_envlp_exist $target]} {
+			return [get_envlpIndex $target]
+		} else {
+			lappend ::mml_psg::envlpList $target
+			set length [llength $::mml_psg::envlpList]
+			return [expr $length -1]
+		}
+	}
+	
+	proc init_envlp { } {
+		set first_envlp "F"
+		set index [add_envlp $first_envlp]
+	}
+	
+	
 	proc get_volume_diff_in_mml { v vStamp } {
 		set mml ""
 		set vDiff [expr $vStamp - $v]
@@ -499,10 +540,10 @@ namespace eval ::mml_psg {
 			lappend mmlBuffer1($ch) $ch_start
 			
 			foreach line $workBuffer1($ch) {
-				#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-				#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+				#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18         19     20      21        22           23          24     25     26     27     28     29        30        31      32           33          34
+				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,Timbre,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+				#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 				set type       [lindex $line 0]
 				set time       [lindex $line 1]
 				set ch         [lindex $line 2]
@@ -520,10 +561,9 @@ namespace eval ::mml_psg {
 				set vDiff      [lindex $line 14]
 				set vCnt       [lindex $line 15]
 				set oDiff      [lindex $line 16]
-				set envlp      [lindex $line 17]
-				set envlpIndex [lindex $line 18]
-				set nE         [lindex $line 19]
-				set nF         [lindex $line 20]
+				set cnt        [lindex $line 17]
+				set envlp      [lindex $line 18]
+				set envlpIndex [lindex $line 19]
 				set noisePeriod [get_noise_period $line]
 				set hwEnvOn     [get_hw_envelope_on $line]
 				set hwEnvPeriod [get_hw_envelope_freqency $line]
@@ -596,251 +636,355 @@ namespace eval ::mml_psg {
 		lappend mmlBuffer1($ch) $info
 	}
 
-	proc generate_mml2 {} {
-		variable chOffset
-		variable num_of_ch
-		variable workBuffer1
-		variable workBuffer2
-		variable mmlBuffer1
-		variable mmlBuffer1F
-		
-		foreach ch $::mml_psg::chList {
-			set beginFlg 1
-			set newLineFlg 0
-			set noteCnt 0
-			set lineNo 0
-			set mml ""
-			set lCnt 0
-			set ticksCountFlg 0
-			set oStamp 0
-			set vStamp    0
-			set wtbIStamp 0
+	proc get_mml_MGS { line oStamp vStamp} {			
+		#-----------------------------------------------------------------------------------------------------------------------------------------
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27    28
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+		#-----------------------------------------------------------------------------------------------------------------------------------------
+		set type        [lindex $line 0]
+		set time        [lindex $line 1]
+		set ch          [lindex $line 2]
+		set ticks       [lindex $line 3]
+		set l           [lindex $line 4]
+		set fL          [lindex $line 5]
+		set v           [lindex $line 6]
+		set fV          [lindex $line 7]
+		set f           [lindex $line 8]
+		set fF          [lindex $line 9]
+		set o           [lindex $line 10]
+		set scale       [lindex $line 11]
+		set en          [lindex $line 12]
+		set fEn         [lindex $line 13]
+		set vDiff       [lindex $line 14]
+		set vCnt        [lindex $line 15]
+		set oDiff       [lindex $line 16]
+		set cnt         [lindex $line 17]
+		set envlp       [lindex $line 18]
+		set envlpIndex  [lindex $line 19]
+		set noisePeriod [get_noise_period $line]
+		set hwEnvOn     [get_hw_envelope_on $line]
+		set hwEnvPeriod [get_hw_envelope_freqency $line]
+		set hwEnvShape  [get_hw_envelope_shape $line]
 			
-			set ch_start "\n\n;ch[expr $ch + $chOffset] start"
-			lappend mmlBuffer1($ch) $ch_start
-			
-			foreach line $workBuffer1($ch) {
-				#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-				#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-				set type       [lindex $line 0]
-				set time       [lindex $line 1]
-				set ch         [lindex $line 2]
-				set ticks      [lindex $line 3]
-				set l          [lindex $line 4]
-				set fL         [lindex $line 5]
-				set v          [lindex $line 6]
-				set fV         [lindex $line 7]
-				set f          [lindex $line 8]
-				set fF         [lindex $line 9]
-				set o          [lindex $line 10]
-				set scale      [lindex $line 11]
-				set mode       [lindex $line 12]
-				set fMode      [lindex $line 13]
-				set vDiff      [lindex $line 14]
-				set vCnt       [lindex $line 15]
-				set oDiff      [lindex $line 16]
-				set envlp      [lindex $line 17]
-				set envlpIndex [lindex $line 18]
-				set nE         [lindex $line 19]
-				set nF         [lindex $line 20]
-				set noisePeriod [get_noise_period $line]
-				set hwEnvOn     [get_hw_envelope_on $line]
-				set hwEnvPeriod [get_hw_envelope_freqency $line]
-				set hwEnvShape  [get_hw_envelope_shape $line]
-
-				
-				if {$fL > 0  && ($type == "fCA" || $type == "fCB" || $type == "mode")} {		
-					set length $fL
-					set ltmp $fL
-					set noiseFreq    [get_noise_period $line]
-					
-					if {$noteCnt == 0} {
-						switch $mode {
-							0 {set mml "\n[expr $ch + $chOffset] \/0 v${v}"}
-							1 {set mml "\n[expr $ch + $chOffset] \/1 s${hwEnvShape} m${hwEnvPeriod} v${v}"}
-							2 {set mml "\n[expr $ch + $chOffset] \/2 s${hwEnvShape} m${hwEnvPeriod} n${noiseFreq} v${v}"} 
-							3 {set mml "\n[expr $ch + $chOffset] \/3 s${hwEnvShape} m${hwEnvPeriod} n${noiseFreq} v${v}"}
-						}
-						puts "after node noteCnt:$noteCnt mml:$mml"
-					}
-						
-					while {$length > 0} {
-						if { $length > 255} {
-							set ltmp 255
-						} else {
-							set ltmp $length
-						}
-							
-						if {$mode == 0} {
-							set v 0
-						}
-
-						if {$v != $vStamp && $noteCnt != 0} {
-							set mml "${mml} v${v}"
-						}
-						
-						if {$o != $oStamp} {
-							set mml "${mml} o${o}"
-						}
-						
-						set mml "${mml} ${scale}%${ltmp}"
-						set lCnt [expr $lCnt + $ltmp]
-						incr noteCnt
-						
-						set length [expr $length - $ltmp ]
-
-						set oStamp $o
-						set vStamp $v
-
-					}
-					if {$noteCnt == 8 || $mode == 0 } {
-						lappend mmlBuffer1($ch) $mml
-						set mml ""
-						set info "\n;tick count: $lCnt\n"
-						lappend mmlBuffer1($ch) $info
-						set noteCnt 0
-					}
-					set oStamp $o
-					set vStamp $v
+		set oMML ""
+		set oDiff [expr $o- $oStamp]
+		if {$oDiff > 3 || $oDiff < -3} {
+			set oMML "o$o"
+		} else {
+			if {$oDiff < 0 } {
+				while {$oDiff != 0 } {
+					# Up 1 in octave
+					set oMML "${oMML}\<"
+					set oDiff [expr $oDiff + 1]
+				}
+			} elseif {$oDiff > 0 } {
+				while {$oDiff != 0 } {
+					# Down 1 in volume
+					set oMML "${oMML}\>"
+					set oDiff [expr $oDiff - 1]
+				}
+			}
+		}
+		set mml ""
+		if {$cnt == 1 } { set vDiff [expr $v - $vStamp] }
+		if {$vDiff > 3 || $vDiff < -3} {
+			#puts -nonewline $::mml_util::fd "v$v"
+			set mml "${mml}v$v"
+		} else {
+			if {$vDiff < 0 } {
+				while {$vDiff != 0 } {
+					# Up 1 in volume
+					#puts -nonewline $::mml_util::fd "("
+					set mml "${mml}\("
+					set vDiff [expr $vDiff + 1]
+				}
+			} elseif {$vDiff > 0 } {
+				while {$vDiff != 0 } {
+					# Down 1 in volume
+					#puts -nonewline $::mml_util::fd ")"
+					set mml "${mml}\)"
+					set vDiff [expr $vDiff - 1]
 				}
 			}
 		}
 		
-		if {$mml != "" } {
-			lappend mmlBuffer1($ch) $mml
+		#set t [get_tone $f]
+		set body "${scale}"
+		set length $l
+		while {$length > 0} {
+		 	if {$length >= 64 } {
+		 		set mml "${mml}${body}1"
+		 		set length [expr $length - 64]
+			} elseif {$length >= 48 } {
+		 		set mml "${mml}${body}2."
+		 		set length [expr $length - 48]
+		 	} elseif {$length >= 32 } {
+		 		set mml "${mml}${body}2"
+		 		set length [expr $length - 32]
+		 	} elseif {$length >= 16 } {
+		 		set mml "${mml}${body}4"
+		 		set length [expr $length - 16]
+		 	} elseif {$length >= 12 } {
+		 		set mml "${mml}${body}8."
+		 		set length [expr $length - 12]
+		 	} elseif {$length >= 8 } {
+		 		set mml "${mml}${body}8"
+		 		set length [expr $length - 8]
+		 	} elseif {$length >= 6 } {
+		 		set mml "${mml}${body}16."
+		 		set length [expr $length - 6]		
+		 	} elseif {$length >= 4 } {
+		 		set mml "${mml}${body}16"
+		 		set length [expr $length - 4]		
+		 	} elseif {$length == 3 } {
+		 		set mml "${mml}${body}32."
+		 		set length [expr $length - 3]
+			} elseif {$length == 2 } {
+		 		set mml "${mml}${body}32"
+		 		set length [expr $length - 2]
+		 	} elseif {$length == 1 } {
+		 		set mml "${mml}${body}"
+		 		#puts -nonewline $::mml_util::fd $mml
+		 		set length [expr $length - 1]	
+		 	} else {
+		 		set mml "${mml}\[$body\]$length"
+		 		set length [expr $length - $length]
+		    }
+		 }
+
+		puts "---> get_mml_MGS: ---> body: $mml"
+		if {$cnt > 1} {
+			set mml "${oMML}\[${mml}\]$cnt"
+		} else {
+			set mml "${oMML}${mml}"
 		}
-			
-		set info "\n;ch[expr $ch + $chOffset] end: tick count: $lCnt\n"
-		lappend mmlBuffer1($ch) $info
-	}
-
-	proc generate_mml3 {} {
-		variable chOffset
-		variable num_of_ch
-		variable workBuffer1
-		variable workBuffer2
-		variable mmlBuffer1
-		variable mmlBuffer1F
-		
-		foreach ch $::mml_psg::chList {
-			set beginFlg 1
-			set newLineFlg 0
-			set noteCnt 0
-			set lineNo 0
-			set mml ""
-			set lCnt 0
-			set ticksCountFlg 0
-			set oStamp 0
-			set vStamp    0
-			set wtbIStamp 0
-			
-			set ch_start "\n\n;ch[expr $ch + $chOffset] start"
-			lappend mmlBuffer1($ch) $ch_start
-			
-			foreach line $workBuffer1($ch) {
-				#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-				#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-				set type       [lindex $line 0]
-				set time       [lindex $line 1]
-				set ch         [lindex $line 2]
-				set ticks      [lindex $line 3]
-				set l          [lindex $line 4]
-				set fL         [lindex $line 5]
-				set v          [lindex $line 6]
-				set fV         [lindex $line 7]
-				set f          [lindex $line 8]
-				set fF         [lindex $line 9]
-				set o          [lindex $line 10]
-				set scale      [lindex $line 11]
-				set mode       [lindex $line 12]
-				set fMode      [lindex $line 13]
-				set vDiff      [lindex $line 14]
-				set vCnt       [lindex $line 15]
-				set oDiff      [lindex $line 16]
-				set envlp      [lindex $line 17]
-				set envlpIndex [lindex $line 18]
-				set nE         [lindex $line 19]
-				set nF         [lindex $line 20]
-				set noisePeriod [get_noise_period $line]
-				set hwEnvOn     [get_hw_envelope_on $line]
-				set hwEnvPeriod [get_hw_envelope_freqency $line]
-				set hwEnvShape  [get_hw_envelope_shape $line]
-
-				
-				if {$fL > 0  && ($type == "fCA" || $type == "fCB" || $type == "mode")} {		
-					set length $fL
-					set ltmp $fL
-					set noiseFreq    [get_noise_period $line]
-					
-					if {$noteCnt == 0} {
-						switch $mode {
-							0 {set mml "\n[expr $ch + $chOffset] \/0 v${v}"}
-							1 {set mml "\n[expr $ch + $chOffset] \/1 s${hwEnvShape} m${hwEnvPeriod} v${v}"}
-							2 {set mml "\n[expr $ch + $chOffset] \/2 s${hwEnvShape} m${hwEnvPeriod} n${noiseFreq} v${v}"} 
-							3 {set mml "\n[expr $ch + $chOffset] \/3 s${hwEnvShape} m${hwEnvPeriod} n${noiseFreq} v${v}"}
-						}
-						puts "after node noteCnt:$noteCnt mml:$mml"
-					}
-						
-					while {$length > 0} {
-						if { $length > 255} {
-							set ltmp 255
-						} else {
-							set ltmp $length
-						}
-							
-						if {$mode == 0} {
-							set v 0
-						}
-
-						if {$v != $vStamp && $noteCnt != 0} {
-							set mml "${mml} v${v}"
-						}
-						
-						if {$o != $oStamp} {
-							set mml "${mml} o${o}"
-						}
-						
-						set mml "${mml} ${scale}%${ltmp}"
-						set lCnt [expr $lCnt + $ltmp]
-						incr noteCnt
-						
-						set length [expr $length - $ltmp ]
-
-						set oStamp $o
-						set vStamp $v
-
-					}
-					if {$noteCnt == 8 || $en == 0 } {
-						lappend mmlBuffer1($ch) $mml
-						set mml ""
-						set info "\n;tick count: $lCnt\n"
-						lappend mmlBuffer1($ch) $info
-						set noteCnt 0
-					}
-					set oStamp $o
-					set vStamp $v
-				}
-			}
-		}
-		
-		if {$mml != "" } {
-			lappend mmlBuffer1($ch) $mml
-		}
-			
-		set info "\n;ch[expr $ch + $chOffset] end: tick count: $lCnt\n"
-		lappend mmlBuffer1($ch) $info
+		puts "---> get_mml_MGS: ---> mml: $mml"
+		return $mml
 	}
 	
+	proc generate_mml_MGS {workBufferName mmlBufferName} {
+		variable chOffset
+		variable num_of_ch
+		variable mmlBuffer1
+		variable mmlBuffer1F
+		upvar $workBufferName workBuffer
+		upvar $mmlBufferName mmlBuffer
+
+		for {set ch 0} {$ch < $num_of_ch} {incr ch} {
+			set beginFlg 1
+			set newLineFlg 0
+			set noteCnt 0
+			set lineNo 0
+			set mml ""
+			set lCnt 0
+			set ticksCountFlg 0
+			set oStamp 0
+			set vStamp    0
+			set cntStamp 0
+			set wtbIndexStamp 0
+			foreach line $workBuffer($ch) {
+				#-----------------------------------------------------------------------------------------------------------------------------------------
+				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26    27    28
+				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,f1Ctrl,f2Ctrl,vCtrl,enCtrl
+				#-----------------------------------------------------------------------------------------------------------------------------------------
+				set type        [lindex $line 0]
+				set time        [lindex $line 1]
+				set ch          [lindex $line 2]
+				set ticks       [lindex $line 3]
+				set l           [lindex $line 4]
+				set fL          [lindex $line 5]
+				set v           [lindex $line 6]
+				set fV          [lindex $line 7]
+				set f           [lindex $line 8]
+				set fF          [lindex $line 9]
+				set o           [lindex $line 10]
+				set scale       [lindex $line 11]
+				set mode        [lindex $line 12]
+				set fEn         [lindex $line 13]
+				set vDiff       [lindex $line 14]
+				set vCnt        [lindex $line 15]
+				set oDiff       [lindex $line 16]
+				set cnt         [lindex $line 17]
+				set envlp       [lindex $line 18]
+				set envlpIndex  [lindex $line 19]
+				set noisePeriod [get_noise_period $line]
+				set hwEnvOn     [get_hw_envelope_on $line]
+				set hwEnvPeriod [get_hw_envelope_freqency $line]
+				set hwEnvShape  [get_hw_envelope_shape $line]			
+				#set lCnt [expr $lCnt + $l]
+				set tmp "; $line"
+				puts $tmp
+				if {$l != 0 } {
+					if {($type == "mode" || $type == "fCA" || $type == "fCB" || $type == "aVC" || $type == "wNC" || $type == "vVC" || $type == "ePL" || $type == "evM " || $type == "evS")} {
+						set ticksCountFlg 1
+						if {$beginFlg || $noteCnt == 0} {
+							if {$mml != ""} {
+								lappend mmlBuffer($ch) $mml
+							}
+							
+							switch $mode {
+								0 {set v 0;set mml "\n[expr $ch + $chOffset] \/0 v${v}"}
+								1 {set mml "\n[expr $ch + $chOffset] \/1 s${hwEnvShape} m${hwEnvPeriod} v${v}"}
+								2 {set mml "\n[expr $ch + $chOffset] \/2 s${hwEnvShape} m${hwEnvPeriod} n${noiseFreq} v${v}"} 
+								3 {set mml "\n[expr $ch + $chOffset] \/3 s${hwEnvShape} m${hwEnvPeriod} n${noiseFreq} v${v}"}
+							}
+							puts "after node noteCnt:$noteCnt mml:$mml"
+							
+							lappend mmlBuffer($ch) $mml
+							set oStamp $o
+							set vStamp $v
+							puts ";/*--------------------------------"
+							puts "; State of pre definition: $mml"
+							set beginFlg 0
+							set newLineFlg 1
+						}
+
+						set note [get_mml_MGS $line $oStamp $vStamp]
+						set mml ${mml}${note}					
+						incr noteCnt
+						
+						if {$noteCnt > 8 } {
+							lappend mmlBuffer($ch) $mml
+							set mml ""
+							set noteCnt 0
+							set newLineFlg 1
+						}
+						
+						if {$mode == 0} {
+							lappend mmlBuffer($ch) $mml
+							set tmp "; Ticks count: $ticks"
+							puts $tmp
+							lappend mmlBuffer($ch) $tmp
+							set mml ""
+							set noteCnt 0
+							set newLineFlg 1
+							set ticksCountFlg 0
+						}
+					}
+					set oStamp $o
+					set vStamp $v
+					set cntStamp $cnt
+				} else {
+					if {$ticksCountFlg && $mode == 0 } {
+						set tmp "; Ticks count: $ticks"
+						puts $tmp
+						lappend mmlBuffer($ch) $tmp
+						set ticksCountFlg 0
+					}
+				}
+			}
+			set tmp ""
+			lappend mmlBuffer($ch) $tmp
+		}
+	}
+
+
+	proc update_and_optimize_cnt {srcWorkBufferName dstWorkBufferName} {
+		variable num_of_ch
+
+		upvar $srcWorkBufferName srcBuffer
+		upvar $dstWorkBufferName dstBuffer
+		
+				
+		for {set ch 0} {$ch < $num_of_ch} {incr ch} {
+			set lineNo 0
+			set first_line_flg 1
+			set lineStamp ""
+			set typeStamp ""
+			set fStamp ""
+			set vStamp ""
+			set oStamp ""
+			set tStamp ""
+			set lStamp ""
+			set lCntStamp ""
+			set lineStamp ""
+			set vDiffStamp 0
+			set cntStamp 0
+			set repeatCntStamp 0
+			foreach line $srcBuffer($ch) {
+				#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18         19     20      21        22           23          24     25     26     27     28     29        30        31      32           33          34
+				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,Timbre,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+				#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+				set type        [lindex $line 0]
+				set time        [lindex $line 1]
+				set ch          [lindex $line 2]
+				set ticks       [lindex $line 3]
+				set l           [lindex $line 4]
+				set fL          [lindex $line 5]
+				set v           [lindex $line 6]
+				set fV          [lindex $line 7]
+				set f           [lindex $line 8]
+				set fF          [lindex $line 9]
+				set o           [lindex $line 10]
+				set scale       [lindex $line 11]
+				set mode        [lindex $line 12]
+				set fEn         [lindex $line 13]
+				set vDiff       [lindex $line 14]
+				set vCnt        [lindex $line 15]
+				set oDiff       [lindex $line 16]
+				set cnt         [lindex $line 17]
+				set envlp       [lindex $line 18]
+				set envlpIndex  [lindex $line 19]
+				
+				if {($type == "fCA" || $type == "fCB") && $mode == 0} {
+					set lineStamp ""
+					set typeStamp ""
+					set fStamp ""
+					set vStamp ""
+					set oStamp ""
+					set scaleStamp ""
+					set lStamp ""
+					#set lCntStamp ""
+					set vDiffStamp 0
+					set cntStamp 0
+				}
+				
+				if {$l != 0 } {
+					if {$l != 0 && ($type == "fCA" || $type == "fCB" ||$type == "aVC" )} {
+						#puts $line
+						puts "$f:$fStamp | $l:$lStamp | $o:$oStamp | $vDiff:$vDiffStamp"
+						if { $f == $fStamp && $l == $lStamp && $o == $oStamp && $vDiff == $vDiffStamp} {
+							#set lCnt [expr     $lCntStamp + $l]
+							#set line [lreplace $line 8 8 $lCnt]
+							set cnt [incr cntStamp]
+							puts "cnt"
+							set line [lreplace $line 17 17 $cnt]
+							puts "Original: [lindex $dstBuffer($ch) end]"
+							puts "---->new: $line"
+							set dstBuffer($ch) [lreplace $dstBuffer($ch) end end $line]
+							puts  "Replaced: [lindex $dstBuffer($ch) end]"
+						} else {
+							lappend dstBuffer($ch) $line
+						}
+					} else {
+						lappend dstBuffer($ch) $line
+					}
+					
+					set lineStamp $line
+					set typeStamp $type
+					set fStamp $f
+					set vStamp $v
+					set oStamp $o
+					set scaleStamp $scale
+					set lStamp $l
+					#set lCntStamp $lCnt
+					set vDiffStamp $vDiff
+					set cntStamp $cnt
+				} else {
+					lappend dstBuffer($ch) $line
+				}
+				incr lineNo
+			}
+		}
+	}
+
 	proc print_list {line} {
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18         19     20      21        22           23          24     25     26     27     28     29        30        31      32           33          34
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,Timbre,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+		#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		puts $fd "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,Timbre,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2"
 		set type       [lindex $line 0]
 		set time       [lindex $line 1]
 		set ch         [lindex $line 2]
@@ -858,19 +1002,17 @@ namespace eval ::mml_psg {
 		set vDiff      [lindex $line 14]
 		set vCnt       [lindex $line 15]
 		set oDiff      [lindex $line 16]
-		set envlp      [lindex $line 17]
-		set envlpIndex [lindex $line 18]
-		set nE         [lindex $line 19]
-		set nF         [lindex $line 20]
+		set cnt        [lindex $line 17]
+		set envlp      [lindex $line 18]
+		set envlpIndex [lindex $line 19]
 		set noisePeriod [get_noise_period $line]
 		set hwEnvOn     [get_hw_envelope_on $line]
 		set hwEnvPeriod [get_hw_envelope_freqency $line]
 		set hwEnvShape  [get_hw_envelope_shape $line]
 
 
-		# 0    1    2  3    4  5  6 7  8     9 10 11    12     13   14      15          16         17          18     19     20     21     22     23        24        25          26       27
-		#type,time,ch,ticks,l,fL,en,f,fStamp,v,o,scale,timbre,mode,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-		puts "type:$type,time:$time,ch$:ch,ticks:$ticks,l:$l,fL:$fL,v:$v,fV:$fV,f:$f,fF:$fF,o:$o,scale:$scale,en:$en,fEn:$fEn,vDiff:$vDiff,vCnt:$vCnt,oDiff:$oDiff,envlp:$envlp,envlpIndex:$envlpIndex,nE:$nE,nF:$nF"
+		puts "type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,Timbre,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2"
+		puts "$type,$time,$ch,$ticks,$l,$fL,$v,$fV,$f,$fF,$o,$scale,$en,$fEn,$vDiff,$vCnt,$oDiff,$cnt,$envlp,$envlpIndex,$Timbre,$hwEnvOn,$hwEnvShape,$hwEnvPeriod,$noisePeriod,$fCtrlA,$fCtrlB,$wNCtrl,$vVCtrl,$aVCtrl,$envPCtrlL,$envPCtrlM,$envShape,$ioParallel1,$ioParallel2"
 
 	}
 
@@ -931,12 +1073,19 @@ namespace eval ::mml_psg {
 		set ::mml_psg::fileNameBody $output_name_body
 
 		# --- Prepare Output folder ---
-		set output_dir ${directory}/outputs/${output_name_body}
+		set output_dir ${directory}/outputs_tcl/${output_name_body}
 		if {[file exists $output_dir] != 1} {
 			file mkdir $output_dir
 			puts "$output_dir was created."
 		}
 	
+		# ---
+		# --- Read $csv_file for constructing tables
+		# ---
+		file_read_with_callback_per_line ${directory}/${file_name} read_line_from_csv_file
+        
+		array set tempBuffer0 ""
+		array set tempBuffer0f ""
 		# ---
 		# --- Read $csv_file for constructing tables
 		# ---
@@ -952,7 +1101,10 @@ namespace eval ::mml_psg {
 			foreach line $logBuffer($ch) {
 				puts "line $line"
 				if {$line != ""} {
-					#type,time,ch,ticks,length,en,mode,freq,vol,timbre,Octave,Scale,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2"
+					#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+					# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18         19     20      21        22           23          24     25     26     27     28     29        30        31      32           33          34
+					#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,Timbre,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+					#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 					set tmp  [split $line ","]
 					set type [lindex $tmp 0]
 					set time [lindex $tmp 1]
@@ -970,11 +1122,11 @@ namespace eval ::mml_psg {
 		set output_file_name ${::mml_psg::fileNameBody}.psg.pass0.csv
 		set fd [open ${output_dir}/${output_file_name} w]
 		
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-		#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		puts $fd "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2"
+		#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18         19     20      21        22           23          24     25     26     27     28     29        30        31      32           33          34
+		#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,Timbre,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+		#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		puts $fd "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,Timbre,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2"
 		
 		foreach ch $::mml_psg::chList {
 			foreach line $tempBuffer0($ch) {
@@ -1014,16 +1166,16 @@ namespace eval ::mml_psg {
 				set line [lindex $tempBuffer0($ch) $index]
 				set next [lindex $tempBuffer0($ch) [expr $index + 1]]
 				if {$lineStamp != "" } {
-					#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-					# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-					#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-					#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+					#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+					# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18         19     20      21        22           23          24     25     26     27     28     29        30        31      32           33          34
+					#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,Timbre,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+					#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 					set lineTemp $lineStamp
 					set currentType [lindex $line 0]
 					set nextType    [lindex $next 0]
 					set currentL [expr [lindex $line 3] - [lindex $lineStamp 3]]
 					set nextL    [expr [lindex $next 3] - [lindex $line 3]]
-					if {($currentType == "fCtrlA" || $currentType =="fCtrlB") && ($nextType == "fCtrlA" || $nextType =="fCtrlB" ) && $nextL == 0} {
+					if {($currentType == "fCA" || $currentType =="fCB") && ($nextType == "fCA" || $nextType =="fCB" ) && $nextL == 0} {
 						incr index
 						set line [lindex $tempBuffer0($ch) $index]
 						set next [lindex $tempBuffer0($ch) [expr $index + 1]]
@@ -1037,8 +1189,8 @@ namespace eval ::mml_psg {
 					set lineTemp  [lreplace $lineTemp 4 4 $l]
 
 					# fL
-					set fTicks [lindex $lineStamp 3]
-					if {$type == "fCtrlA" || $type == "fCtrlB" ||$type == "aVCtrl"} {
+					set fTicks [lindex $lineStamp 5]
+					if {$type == "fCA" || $type == "fCB" ||$type == "aVC"} {
 						set fL [expr $fTicks - $fTickStamp]
 						set fTickStamp $fTicks
 						set lineTemp  [lreplace $lineTemp 5 5 $fL]
@@ -1050,7 +1202,7 @@ namespace eval ::mml_psg {
 					set lineTemp [lreplace $lineTemp 6 6 $v]
 					
 					# fV
-					if {$type == "fCtrlA" || $type == "fCtrlB" || $type == "aVCtrl"} {
+					if {$type == "fCA" || $type == "fCB" || $type == "aVC"} {
 						set fV         $v
 						set lineTemp  [lreplace $lineTemp 7 7 $fVStamp]
 						set fVStamp    $fV
@@ -1064,7 +1216,7 @@ namespace eval ::mml_psg {
 					set fF $fStamp
 					set lineTemp  [lreplace $lineTemp 9 9 $fF]
 					
-					if {$type == "fCtrlA" || $type == "fCtrlB"} {
+					if {$type == "fCA" || $type == "fCB"} {
 						set fStamp $f
 					}
 					
@@ -1083,7 +1235,7 @@ namespace eval ::mml_psg {
 					# fEn
 					set fMode $enStamp
 					set lineTemp [lreplace $lineTemp 13 13 $fMode]
-					if {$type == "fCtrlA" || $type == "fCtrlB"} {
+					if {$type == "fCA" || $type == "fCB"} {
 						set enStamp $mode
 					}
 					
@@ -1093,7 +1245,7 @@ namespace eval ::mml_psg {
 					set lineTemp [lreplace $lineTemp 14 14 $vDiff]
 					
 					# vCnt
-					if {$type == "vVCtrl"} {
+					if {$type == "aVC"} {
 						incr vCnt
 					}
 					set lineTemp [lreplace $lineTemp 15 15 $vCnt]
@@ -1119,7 +1271,7 @@ namespace eval ::mml_psg {
 					set vCntStamp  $vCnt
 				}
 				# fStamp
-				if {$type == "fCtrlA" || $type == "fCtrlB" } {
+				if {$type == "fCA" || $type == "fCB" } {
 					set fStamp $f
 					set vCnt 1
 				}
@@ -1131,10 +1283,10 @@ namespace eval ::mml_psg {
 					if {$fLineStamp == "" } {
 						set fLineStamp $line
 					}
-					#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-					# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18        19 20   21    22    23      24     25     26     27     28     29        30        31        32         33
-					#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-					#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+					#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+					# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18         19     20      21        22           23          24     25     26     27     28     29        30        31      32           33          34
+					#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,Timbre,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+					#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 					set lineTemp $lineStamp
 					set type     [lindex $lineStamp 0]
 					set time     [lindex $lineStamp 1]
@@ -1212,10 +1364,10 @@ namespace eval ::mml_psg {
 
 			}
 			# Last line
-			#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-			# 0    1    2  3    4  5  6 7  8     9 10 11    12     13   14      15          16         17          18     19     20     21     22     23        24        25          26       27
-			#type,time,ch,ticks,l,fL,en,f,fStamp,v,o,scale,timbre,mode,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-			#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18         19     20      21        22           23          24     25     26     27     28     29        30        31      32           33          34
+			#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,Timbre,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+			#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			set lineTemp $lineStamp
 			set time     [lindex $lineStamp 1]
 			
@@ -1267,23 +1419,23 @@ namespace eval ::mml_psg {
 			
 			# Timbre
 			set tim [get_timbre_index $lineStamp ]
-			set lineTemp [lreplace $lineTemp 12 12 $tim]
+			set lineTemp [lreplace $lineTemp 20 20 $tim]
 					
 			# hwEnvOn
 			set hwEnvOn [get_hw_envelope_on $lineStamp ]
-			set lineTemp [lreplace $lineTemp 14 14 $hwEnvOn]
+			set lineTemp [lreplace $lineTemp 21 21 $hwEnvOn]
 			
 			# hwEnvShape
 			set hwEnvShape [get_hw_envelope_shape $lineStamp ]
-			set lineTemp [lreplace $lineTemp 15 15 $hwEnvShape]
+			set lineTemp [lreplace $lineTemp 22 22 $hwEnvShape]
 			
 			# hwEnvPeriod
 			set hwEnvPeriod [get_hw_envelope_freqency $lineStamp ]
-			set lineTemp [lreplace $lineTemp 16 16 $hwEnvPeriod]
+			set lineTemp [lreplace $lineTemp 23 23 $hwEnvPeriod]
 			
 			# noisePeriod
 			set noisePeriod [get_noise_period $lineStamp ]
-			set lineTemp [lreplace $lineTemp 17 17 $noisePeriod]
+			set lineTemp [lreplace $lineTemp 24 24 $noisePeriod]
 			
 			# Push lineTemp into tempBuffer1($ch)
 			lappend tempBuffer1($ch) $lineTemp
@@ -1293,7 +1445,7 @@ namespace eval ::mml_psg {
 		set output_file_name ${output_name_body}.psg.pass1.csv
 		set fd [open ${output_dir}/${output_file_name} w]
 		puts "::mml_psg::chList $::mml_psg::chList"
-		puts $fd "type,time,ch,ticks,l,fL,en,f,fStamp,v,o,scale,timbre,mode,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2"
+		puts $fd "type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,Timbre,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2"
 		foreach ch $::mml_psg::chList {
 			foreach line $tempBuffer1($ch) {
 				set tmp  [regsub -all " " $line ","]
@@ -1308,10 +1460,10 @@ namespace eval ::mml_psg {
 		array set tempBuffer2 ""
 		foreach ch $::mml_psg::chList {
 			foreach tmp $tempBuffer1($ch) {
-				#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-				# 0    1    2  3    4  5  6 7  8     9 10 11    12     13   14      15          16         17          18     19     20     21     22     23        24        25          26       27
-				#type,time,ch,ticks,l,fL,en,f,fStamp,v,o,scale,timbre,mode,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-				#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+				#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18         19     20      21        22           23          24     25     26     27     28     29        30        31      32           33          34
+				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,Timbre,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+				#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 				set type  [lindex $tmp 0]
 				set l     [lindex $tmp 4]
 
@@ -1328,7 +1480,7 @@ namespace eval ::mml_psg {
 		# Dump tempBuffer2($ch) into the file
 		set output_file_name ${output_name_body}.psg.pass2.csv
 		set fd [open ${output_dir}/${output_file_name} w]
-		puts $fd "#type,time,ch,ticks,l,fL,en,f,fStamp,v,o,scale,timbre,mode,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2"
+		puts $fd "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,Timbre,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2"
 		foreach ch $::mml_psg::chList {
 			foreach line $tempBuffer2($ch) {
 				set tmp  [regsub -all " " $line ","]
@@ -1353,10 +1505,10 @@ namespace eval ::mml_psg {
 			set cntStamp   0
 			set cnt 1
 			foreach tmp $tempBuffer2($ch) {
-				#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-				# 0    1    2  3    4  5  6 7  8     9 10 11    12     13   14      15          16         17          18     19     20     21     22     23        24        25          26       27
-				#type,time,ch,ticks,l,fL,en,f,fStamp,v,o,scale,timbre,mode,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
-				#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+				#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+				# 0    1    2  3    4  5 6  7 8  9 10 11   12  13  14    15   16    17    18         19     20      21        22           23          24     25     26     27     28     29        30        31      32           33          34
+				#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,cnt,envlp,envlpIndex,Timbre,hwEnvOn,hwEnvShape,hwEnvPeriod,noisePeriod,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2
+				#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 				set l     [lindex $tmp 4]
 				set lDiff [expr $l - $lStamp]
 				lappend tmp $lDiff	
@@ -1411,11 +1563,12 @@ namespace eval ::mml_psg {
 				lappend workBuffer1($ch) $line
 			}
 		}
+
 		# generate_mml: Generate mml based on workBuffer2
 		generate_mml
 		
 		# Dump mmlBuffer1($ch) into the file
-		set output_file_name ${output_name_body}.psg.pass3.mml
+		set output_file_name ${output_name_body}.psg.pass3.simple.mml
 		set fd [open ${output_dir}/${output_file_name} w]
 		puts $fd ";\[name=scc lpf=1\]"
 		puts $fd "#opll_mode 1"
@@ -1436,14 +1589,18 @@ namespace eval ::mml_psg {
 		}
 		close $fd
 
+		#-------------------------------------------------------------
+		# Generate .psg.pass3.simple.MGS.mml
+		#-------------------------------------------------------------
 		# generate_mml: Read workBuffer2 and generate mml into mmlBuffer1
-		generate_mml
+		array unset  mmlBuffer1
+		generate_mml_MGS workBuffer1 mmlBuffer1
 
 		# Dump mmlBuffer1($ch) into the file
-		set output_file_name ${output_name_body}.psg.pass3_1.mml
+		set output_file_name ${output_name_body}.psg.pass3.simple.MGS.mml
 		set fd [open ${output_dir}/${output_file_name} w]
 		
-		puts $fd ";\[name=scc lpf=1\]"
+		puts $fd ";\[name=psg lpf=1\]"
 		puts $fd "#opll_mode 1"
 		puts $fd "#tempo 75"
 		puts $fd "#title { \"$::mml_psg::fileNameBody\"}"
@@ -1462,9 +1619,20 @@ namespace eval ::mml_psg {
 		}
 		close $fd	
 		
+
+		#------------------------------------------------------------------------
+		# Generate .psg.pass3.compress.MGS.mml
+		#------------------------------------------------------------------------		
+		# optimize_sw_envelope1: Read workBuffer1 and eliminate the line, update the cnt, store it into workBuffer2
+		update_and_optimize_cnt workBuffer1 workBuffer2
+		
 		# generate_mml: Read workBuffer2 and generate mml into mmlBuffer1
 		array unset  mmlBuffer1
-		generate_mml2
+		generate_mml_MGS workBuffer2 mmlBuffer1				
+
+		# Dump mmlBuffer1($ch) into the file
+		set output_file_name ${output_name_body}.psg.pass3.compress.MGS.mml
+		set fd [open ${output_dir}/${output_file_name} w]
 
 		# Dump mmlBuffer1($ch) into the file
 		set output_file_name ${output_name_body}.psg.pass3_2.mml
