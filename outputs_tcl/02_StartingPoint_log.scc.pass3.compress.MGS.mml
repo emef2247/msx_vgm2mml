@@ -1,0 +1,75 @@
+;[name=scc lpf=1]
+#opll_mode 1
+#tempo 225
+#title { "02_StartingPoint_log"}
+#alloc 1=3100
+#alloc 2=3100
+#alloc 3=2400
+#alloc 4=2100
+#alloc 5=1100
+#alloc 6=1000
+#alloc 7=1000
+
+@s00 = {001931475a6a757d7f7d756a5a47311900e7cfb9a6968b8380838b96a6b9cfe7}
+@s01 = {00407f4001c081c001407f4001c0014001e0012001f0011001ffffffff404040}
+@s02 = {00f0e0d0c0b0a090808080808080808080808080808080807f70605040302010}
+@s03 = {00407f400110202d37444e59636c73787c7f7c78736c594e44372d2010030201}
+
+
+4 @0 v10o5l64
+4 e16e16d+16d16c+16c16<b16a+16a16
+; Ticks count: 101
+4 g+16g16f+16[((e4]2((e8.((e8e
+
+4 @1 v11o2l64
+4 [(c]4(cv15c
+4 >[(c]4(cv15c<[(c]4(cv15c>[(c]4(cv15c
+4 <[(c]4(cv15c>[(c]4(cv15c<[(c]4(cv15c
+4 >[(c]4(cv15c<[(c]4(cv15c>[(c]4(cv15c
+4 <[(c]4(cv15c>[(c]4(cv15c<[(c]4(cv15c
+4 >[(c]4(cv15c<[(c]4(cv15c>[(c]4(cv15c
+4 <[(c]4(cv15c>[(c]4(cc<[(c]4(cv15c
+4 >[(c]4(cv15c<[(c]4(cv15c>[(c]4(cv15c
+4 <[(c]4(cv15c>[(c]4(cv15c<[(c]4(cv15c
+4 >[(c]4(cv15c<[(c]4(cv15c>[(c]4(cv15c
+4 <[(c]4(cv15c>[(c]4(cv15c<[(c]4(c[(c]4
+; Ticks count: 352
+
+
+5 @0 v7o4l64
+5 b16b16a+16a16g+16g16f+16f16e16
+; Ticks count: 101
+5 d+16d16c+16c4<)b4((b8.((b8b
+
+5 @3 v10o4l64
+5 [)f]2[(f]8
+5 (f4f16.f(f(f[)c]3[(c]8(c4c16.c(c(c[)f]3
+5 [(f]8(f4f16.f(f(ff[)a+]2[(a+]8(a+4a+16.a+(a+
+5 (a+v8a+>[)d+]2[(d+]8(d+4d+16.d+(d+(d+[)g+]3[(g+]6
+; Ticks count: 352
+
+
+6 @1 v10o2l64
+; Ticks count: 101
+6 d8d32d4d8.d32e8e32[(e8e32]4(e8e32.
+
+6 @3 v1o4l64
+6 [(a+]9(a+32v8a+[(a+]8
+6 (a+4a+8a+(a+32v8a+[(f]8(f4f8f(f32v8f[(a+]8(a+4a+8a+
+6 (a+32v8a+>[(d+]8(d+4d+8d+(d+32v8d+[(g+]8(g+4g+8g+(g+32
+; Ticks count: 352
+
+
+7 @2 v7o4l64
+7 e16e16<b16>e16f+16<b16>f+16>e16<b16
+7 >e16f+16<b16>f+16<b16>e16f+16((b16<b16
+; Ticks count: 101
+7 >e16f+16(((b16<b16>e16f+8f+
+
+7 @3 v10o4l64
+7 [)a+]2[(a+]8(a+4a+16.a+
+7 (a+(a+[)f]3[(f]8(f4f16.f(f(f[)a+]3[(a+]8
+7 (a+4a+16.a+(a+(a+32>[)d+]2[(d+]8(d+4d+16.d+(d+(d+[)g+]3
+7 [(g+]8(g+4g+16.g+(g+(g+v8g+>[)c+]2[(c+]6(c+2.c+8c+[(c+]4
+; Ticks count: 352
+

@@ -1,0 +1,102 @@
+;[name=scc lpf=1]
+#opll_mode 1
+#tempo 225
+#title { "02_StartingPoint_log"}
+#alloc 1=3100
+#alloc 2=3100
+#alloc 3=2400
+#alloc 4=2100
+#alloc 5=1100
+#alloc 6=1000
+#alloc 7=1000
+
+@s00 = {001931475a6a757d7f7d756a5a47311900e7cfb9a6968b8380838b96a6b9cfe7}
+@s01 = {00407f4001c081c001407f4001c0014001e0012001f0011001ffffffff404040}
+@s02 = {00f0e0d0c0b0a090808080808080808080808080808080807f70605040302010}
+@s03 = {00407f400110202d37444e59636c73787c7f7c78736c594e44372d2010030201}
+
+
+4 @0 v10o5l64
+4 e16e16d+16d16c+16c16<b16a+16a16
+; Ticks count: 101
+4 g+16g16f+16f4((e4((e8.((e8e
+
+4 @1 v14o2l64
+4 c(c
+4 (c(c(cv15c>(c(c(c(c(c
+4 v15c<(c(c(c(c(cv15c>(c(c
+4 (c(c(cv15c<(c(c(c(c(c
+4 v15c>(c(c(c(c(cv15c<(c(c
+4 (c(c(cv15c>(c(c(c(c(c
+4 v15c<(c(c(c(c(cv15c>(c(c
+4 (c(c(cv15c<(c(c(c(c(c
+4 v15c>(c(c(c(c(cv15c<(c(c
+4 (c(c(cv15c>(c(c(c(c(c
+4 v15c<(c(c(c(c(cv15c>(c(c
+4 (c(c(cv15c<(c(c(c(c(c
+4 v15c>(c(c(c(c(cc<v14c(c
+4 (c(c(cv15c>(c(c(c(c(c
+4 v15c<(c(c(c(c(cv15c>(c(c
+4 (c(c(cv15c<(c(c(c(c(c
+4 v15c>(c(c(c(c(cv15c<(c(c
+4 (c(c(cv15c>(c(c(c(c(c
+4 v15c<(c(c(c(c(cv15c>(c(c
+4 (c(c(cv15c<(c(c(c(c(c
+4 v15c>(c(c(c(c(cv15c<(c(c
+4 (c(c(cv15c(c(c(c(c2.c8c32(c
+; Ticks count: 352
+
+
+5 @0 v7o4l64
+5 b16b16a+16a16g+16g16f+16f16e16
+; Ticks count: 101
+5 d+16d16c+16c4<)b4((b8.((b8b
+
+5 @3 v9o4l64
+5 f)f
+5 )f(f(f(f(f(f(f(f(f4f16.f
+5 (f(fv8f)c)c)c(c(c(c
+5 (c(c(c(c(c4c16.c(c(cv8c)f
+5 )f)f(f(f(f(f(f(f(f
+5 (f4f16.f(f(ffv9a+)a+)a+(a+(a+
+5 (a+(a+(a+(a+(a+(a+4a+16.a+(a+(a+v8a+
+5 >)d+)d+)d+(d+(d+(d+(d+(d+(d+
+5 (d+(d+4d+16.d+(d+(d+v8d+)g+)g+)g+(g+
+; Ticks count: 352
+
+
+6 @1 v10o2l64
+; Ticks count: 101
+6 d8d32d4d8.d32e8e32d8d32(e8e32(e8e32(e8e32(e8e32.
+
+6 @3 v9o4l64
+6 a+
+6 (a+(a+(a+(a+(a+(a+(a+(a+(a+32
+6 v8a+)a+(a+(a+(a+(a+(a+(a+(a+
+6 (a+4a+8a+(a+32v8a+)f(f(f(f(f(f
+6 (f(f(f4f8f(f32v8f)a+(a+(a+(a+
+6 (a+(a+(a+(a+(a+4a+8a+(a+32v8a+>)d+(d+
+6 (d+(d+(d+(d+(d+(d+(d+4d+8d+(d+32v8d+
+6 )g+(g+(g+(g+(g+(g+(g+(g+(g+4g+8g+
+6 (g+32v8g+>)c+(c+(c+(c+(c+(c+(c+2c+8.c+32.
+; Ticks count: 352
+
+
+7 @2 v7o4l64
+7 e16e16<b16>e16f+16<b16>f+16>e16<b16
+7 >e16f+16<b16>f+16<b16>e16f+16((b16<b16
+; Ticks count: 101
+7 >e16f+16(((b16<b16>e16f+8f+
+
+7 @3 v9o4l64
+7 a+)a+)a+
+7 (a+(a+(a+(a+(a+(a+(a+(a+4a+16.a+(a+
+7 (a+v8a+)f)f)f(f(f(f(f
+7 (f(f(f(f4f16.f(f(fv8f)a+)a+
+7 )a+(a+(a+(a+(a+(a+(a+(a+(a+4a+16.a+
+7 (a+(a+32>v9d+)d+)d+(d+(d+(d+(d+
+7 (d+(d+(d+(d+4d+16.d+(d+(d+v8d+)g+)g+
+7 )g+(g+(g+(g+(g+(g+(g+(g+(g+4g+16.g+
+7 (g+(g+v8g+>)c+)c+)c+(c+(c+(c+
+; Ticks count: 352
+
