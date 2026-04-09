@@ -30,7 +30,7 @@ outputs/stem/stem.mml
 
 ## 制限事項 
 - `#alloc` に設定されている値はchごとの文字数です。コンパイル後のバッファサイズに合うよう調整が必要な場合があります
-- OPLLは現状ノートの展開のみに対応しています。音色指定は現状未対応です
+- OPLLは現状ノートの展開及び音色指定は、Presetの音色のみ対応しています。ユーザーパッチには未対応（無視されます）
 
 ## 注意事項 
 MGSDRV の MML は **コンパイル後、全チャンネルのバッファサイズ合計が 16KB 以内**である必要があります。 しかし **本スクリプトはこの制限を考慮しません**。
@@ -74,7 +74,7 @@ The output will be saved in `outputs/<stem>/<stem>.mml`.
 
 ## Limitations
 - The value set in `#alloc` is the character count per channel. You may need to adjust it to fit the buffer size after compilation.
-- OPLL support is currently limited to note expansion only. Tone (instrument) assignment is not yet supported.
+- For OPLL, only note expansion and preset tone assignments are currently supported. User defined patches are not supported and will be ignored.
 
 ## Notes
 MGSDRV MML must satisfy the constraint that the total buffer size of all channels after compilation is within 16 KB.
