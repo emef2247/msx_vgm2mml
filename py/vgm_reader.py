@@ -418,28 +418,37 @@ class _OpllState:
       0x20+ch : bit4=KeyOn, bits[3:1]=Block, bit0=Fnum MSB, bit5=Sustain
       0x30+ch : bits[7:4]=INST, bits[3:0]=VOL
 
-    Registers 0x00-0x07 (user patch) and 0x0E (rhythm) are noted but not
-    decoded into melody tracks.
+    Registers 0x00-0x07 (user patch) are tracked and emitted to the separate
+    voice CSV.  0x0E (rhythm) is stored in state but not decoded into melody
+    tracks.
 
     Trace CSV columns (9 cols):
       type, time, ch, ticks, keyon, fnum, block, inst, vol
+
+    Voice CSV columns (7 cols):
+      type, time, ch, ticks, inst, vol, patch_hex
+      type='patch'   – user-patch register update (ch=-1, global)
+      type='instVol' – per-channel inst/vol change with current patch snapshot
     """
 
     NUM_CH = 6
 
     _HEADER = ('#type,time,ch,ticks,keyon,fnum,block,inst,vol')
+    _VOICE_HEADER = ('#type,time,ch,ticks,inst,vol,patch_hex')
 
     def __init__(self):
         self._global_time = 0.0
         self._start_time: float | None = None   # None = not yet initialised
         self._common_time = 0.0
 
-        self.fnum_low = [0] * self.NUM_CH   # 8-bit LSB of Fnum
-        self.key_blk  = [0] * self.NUM_CH   # raw reg 0x20+ch value
-        self.inst_vol = [0] * self.NUM_CH   # raw reg 0x30+ch value
+        self.fnum_low  = [0] * self.NUM_CH   # 8-bit LSB of Fnum
+        self.key_blk   = [0] * self.NUM_CH   # raw reg 0x20+ch value
+        self.inst_vol  = [0] * self.NUM_CH   # raw reg 0x30+ch value
+        self.user_patch = [0] * 8             # raw regs 0x00-0x07 (user patch)
 
-        self.log_buf   = {ch: [] for ch in range(self.NUM_CH)}
+        self.log_buf        = {ch: [] for ch in range(self.NUM_CH)}
         self.trace_buf: list[str] = []
+        self.voice_trace_buf: list[str] = []   # chronological voice events
 
     # ── time ────────────────────────────────────────────────────
     def _update_time(self, time_s: float):
@@ -465,6 +474,10 @@ class _OpllState:
     def _vol(self, ch: int) -> int:
         return self.inst_vol[ch] & 0x0F
 
+    def _patch_hex(self) -> str:
+        """Current user patch as a 16-char hex string (8 bytes)."""
+        return ''.join(f'{b:02x}' for b in self.user_patch)
+
     # ── CSV row builder ─────────────────────────────────────────
     def _row(self, ch: int, type_: str) -> str:
         t     = self._common_time
@@ -479,6 +492,15 @@ class _OpllState:
         ]
         return ','.join(cols)
 
+    def _voice_row(self, type_: str, ch: int, inst: int, vol: int) -> str:
+        t     = self._common_time
+        ticks = get_ticks(t)
+        cols = [
+            type_, repr(t), str(ch), str(ticks),
+            str(inst), str(vol), self._patch_hex(),
+        ]
+        return ','.join(cols)
+
     def _log(self, ch: int, type_: str):
         row = self._row(ch, type_)
         self.log_buf[ch].append(row)
@@ -489,7 +511,12 @@ class _OpllState:
         self._update_time(time_s)
         a = address
 
-        if 0x10 <= a <= 0x15:
+        if 0x00 <= a <= 0x07:
+            # User patch register update (global, all channels)
+            self.user_patch[a] = value & 0xFF
+            row = self._voice_row('patch', -1, 0, 0)
+            self.voice_trace_buf.append(row)
+        elif 0x10 <= a <= 0x15:
             ch = a - 0x10
             self.fnum_low[ch] = value & 0xFF
             self._log(ch, 'fNumL')
@@ -501,7 +528,10 @@ class _OpllState:
             ch = a - 0x30
             self.inst_vol[ch] = value & 0xFF
             self._log(ch, 'instVol')
-        # 0x00-0x07: user patch, 0x0E: rhythm – not decoded into melody tracks
+            # Also emit to voice CSV so opll_mml.py can build the voice table
+            row = self._voice_row('instVol', ch, self._inst(ch), self._vol(ch))
+            self.voice_trace_buf.append(row)
+        # 0x0E: rhythm – not decoded into melody tracks
 
     # ── CSV output ───────────────────────────────────────────────
     def output_trace_csv(self, out_path: str):
@@ -520,18 +550,25 @@ class _OpllState:
                     fh.write(row + '\n')
                 fh.write('\n')
 
+    def output_voice_csv(self, out_path: str):
+        """Write chronological voice CSV (patch updates + instVol events)."""
+        with open(out_path, 'w', newline='\n') as fh:
+            fh.write(self._VOICE_HEADER + '\n')
+            for row in self.voice_trace_buf:
+                fh.write(row + '\n')
+
 
 # ─────────────────────────────────────────────────────────────────
 # VGM parser
 # ─────────────────────────────────────────────────────────────────
 
-def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, str, str, str, str]:
+def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, str, str, str, str, str]:
     """
     Parse a VGM file and write PSG, SCC, and OPLL log/trace CSVs.
 
     Returns:
         (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
-         opll_log_csv, opll_trace_csv)
+         opll_log_csv, opll_trace_csv, opll_voice_csv)
 
     Note: 0x77 and 0x7a wait commands are treated as 0-sample waits to match
     the reference Tcl vgm_read.tcl behaviour (see module docstring).
@@ -607,19 +644,22 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, s
     scc.output_trace_csv(scc_trace_csv)
     opll.output_log_csv(opll_log_csv)
     opll.output_trace_csv(opll_trace_csv)
+    opll_voice_csv = os.path.join(output_dir, f"{base_name}_trace.opll_voice.csv")
+    opll.output_voice_csv(opll_voice_csv)
 
     return (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
-            opll_log_csv, opll_trace_csv)
+            opll_log_csv, opll_trace_csv, opll_voice_csv)
 
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print(f"Usage: python {sys.argv[0]} <vgm_file> [output_dir]")
         sys.exit(1)
-    p_log, s_log, p_trace, s_trace, o_log, o_trace = parse_vgm(
+    p_log, s_log, p_trace, s_trace, o_log, o_trace, o_voice = parse_vgm(
         sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
-    print(f"PSG log CSV:    {p_log}")
-    print(f"SCC log CSV:    {s_log}")
-    print(f"SCC trace CSV:  {s_trace}")
-    print(f"OPLL log CSV:   {o_log}")
-    print(f"OPLL trace CSV: {o_trace}")
+    print(f"PSG log CSV:       {p_log}")
+    print(f"SCC log CSV:       {s_log}")
+    print(f"SCC trace CSV:     {s_trace}")
+    print(f"OPLL log CSV:      {o_log}")
+    print(f"OPLL trace CSV:    {o_trace}")
+    print(f"OPLL voice CSV:    {o_voice}")

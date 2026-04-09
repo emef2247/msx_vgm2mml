@@ -147,15 +147,16 @@ def main():
 
     # ── Step 1: Parse VGM → SCC + PSG + OPLL log/trace CSVs ──────
     (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
-     opll_log_csv, opll_trace_csv) = parse_vgm(vgm_path, song_dir)
+     opll_log_csv, opll_trace_csv, opll_voice_csv) = parse_vgm(vgm_path, song_dir)
 
     if args.debug:
-        print(f"PSG log:    {psg_log_csv}")
-        print(f"PSG trace:  {psg_trace_csv}")
-        print(f"SCC log:    {scc_log_csv}")
-        print(f"SCC trace:  {scc_trace_csv}")
-        print(f"OPLL log:   {opll_log_csv}")
-        print(f"OPLL trace: {opll_trace_csv}")
+        print(f"PSG log:       {psg_log_csv}")
+        print(f"PSG trace:     {psg_trace_csv}")
+        print(f"SCC log:       {scc_log_csv}")
+        print(f"SCC trace:     {scc_trace_csv}")
+        print(f"OPLL log:      {opll_log_csv}")
+        print(f"OPLL trace:    {opll_trace_csv}")
+        print(f"OPLL voice:    {opll_voice_csv}")
 
     # Detect chip presence from trace CSVs
     has_psg  = _has_chip_data(psg_trace_csv)
@@ -183,7 +184,8 @@ def main():
     # ── Step 4: OPLL MML pipeline ────────────────────────────────
     opll_mml_path = process_opll_csv(opll_trace_csv, song_dir, stem=base_name,
                                      dump_passes=args.dump_passes,
-                                     debug=args.debug)
+                                     debug=args.debug,
+                                     voice_csv_path=opll_voice_csv)
     if args.debug:
         print(f"OPLL MML: {opll_mml_path}")
 
@@ -200,7 +202,8 @@ def main():
         # Remove log/trace CSVs written by parse_vgm (intermediate inputs)
         for csv_path in (psg_log_csv, psg_trace_csv,
                          scc_log_csv, scc_trace_csv,
-                         opll_log_csv, opll_trace_csv):
+                         opll_log_csv, opll_trace_csv,
+                         opll_voice_csv):
             try:
                 os.remove(csv_path)
             except OSError:

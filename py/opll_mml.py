@@ -119,7 +119,7 @@ class _ChState:
 class _Segment:
     """A contiguous note-on or rest segment on one channel."""
     __slots__ = ('tick_start', 'tick_end', 'keyon', 'fnum', 'block',
-                 'inst', 'vol')
+                 'inst', 'vol', 'voice_id')
 
     def __init__(self, tick_start, keyon, fnum, block, inst, vol):
         self.tick_start = tick_start
@@ -129,6 +129,7 @@ class _Segment:
         self.block      = block
         self.inst       = inst
         self.vol        = vol
+        self.voice_id   = 0   # assigned later by _assign_voice_ids
 
     def mml_vol(self):
         return 15 - self.vol
@@ -232,10 +233,166 @@ def _build_segments(trace_path: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Voice table: voice CSV columns
+# ---------------------------------------------------------------------------
+
+_VCOL_TYPE      = 0
+_VCOL_TIME      = 1
+_VCOL_CH        = 2
+_VCOL_TICKS     = 3
+_VCOL_INST      = 4
+_VCOL_VOL       = 5
+_VCOL_PATCH_HEX = 6
+
+# Known OPLL preset voice names (inst 1..15; 0 = user defined)
+_OPLL_PRESET_NAMES = [
+    'User Defined',      # 0
+    'Violin',            # 1
+    'Guitar',            # 2
+    'Piano',             # 3
+    'Flute',             # 4
+    'Clarinet',          # 5
+    'Oboe',              # 6
+    'Trumpet',           # 7
+    'Organ',             # 8
+    'Horn',              # 9
+    'Synthesizer',       # 10
+    'Harpsichord',       # 11
+    'Vibraphone',        # 12
+    'Synthesizer Bass',  # 13
+    'Acoustic Bass',     # 14
+    'Electric Guitar',   # 15
+]
+
+
+def _assign_voice_ids(segments: dict,
+                      voice_csv_path: str | None) -> tuple[dict, list[str]]:
+    """Assign voice_id to every segment and return (voice_table, warnings).
+
+    Voice key definition:
+      - inst != 0 : ('preset', inst)
+      - inst == 0 : ('user', patch_bytes_tuple)  where patch_bytes is the
+                    8-byte user patch current at the segment's tick_start.
+
+    When *voice_csv_path* is None or missing, falls back to using
+    ('preset', inst) for all segments (including inst=0 as 'user' with
+    all-zero patch).
+
+    Returns:
+        voice_table : dict mapping voice_key -> voice_id (0-indexed)
+        warnings    : list of warning strings for caller to emit as comments
+    """
+    warnings: list[str] = []
+
+    # ── Read voice CSV ───────────────────────────────────────────
+    # Build a sorted list of (tick, patch_bytes) for all 'patch' events.
+    # These are global user-patch register updates (addr 0x00-0x07).
+    patch_timeline: list[tuple[int, bytes]] = []   # (tick, patch_bytes)
+
+    has_voice_csv = False
+    has_patch_events = False
+    if voice_csv_path and os.path.exists(voice_csv_path):
+        has_voice_csv = True
+        with open(voice_csv_path, 'r', newline='') as fh:
+            for line in fh:
+                line = line.rstrip('\r\n')
+                if not line or line.startswith('#'):
+                    continue
+                parts = line.split(',')
+                if len(parts) < 7:
+                    continue
+                try:
+                    vtype = parts[_VCOL_TYPE]
+                    ticks = int(parts[_VCOL_TICKS])
+                    patch_hex = parts[_VCOL_PATCH_HEX].strip()
+                    patch_bytes = bytes(int(patch_hex[i:i+2], 16)
+                                        for i in range(0, 16, 2))
+                except (ValueError, IndexError):
+                    continue
+                if vtype == 'patch':
+                    patch_timeline.append((ticks, patch_bytes))
+                    has_patch_events = True
+    # patch_timeline is already in chronological order (voice CSV is ordered)
+
+    def _get_patch_at_tick(tick: int) -> bytes:
+        """Return the effective user patch at or before *tick*."""
+        result = bytes(8)
+        for t, p in patch_timeline:
+            if t <= tick:
+                result = p
+            else:
+                break
+        return result
+
+    # ── Assign voice IDs ─────────────────────────────────────────
+    voice_table: dict[tuple, int] = {}   # voice_key -> voice_id
+    next_id = 0
+
+    def _get_voice_id(key: tuple) -> int:
+        nonlocal next_id
+        if key not in voice_table:
+            voice_table[key] = next_id
+            next_id += 1
+        return voice_table[key]
+
+    warned_no_voice_csv = False
+    warned_no_patch_events = False
+    for ch in range(NUM_CH):
+        for seg in segments[ch]:
+            if seg.inst != 0:
+                key = ('preset', seg.inst)
+            else:
+                if has_voice_csv:
+                    patch = _get_patch_at_tick(seg.tick_start)
+                    # Warn once if user patch registers were never written
+                    if not has_patch_events and not warned_no_patch_events:
+                        warnings.append(
+                            '; NOTE: inst=0 used but no user patch registers '
+                            '(0x00-0x07) were written; using all-zero patch')
+                        warned_no_patch_events = True
+                    key = ('user', patch)
+                else:
+                    # No voice CSV: treat inst=0 as unknown user patch (all zeros)
+                    key = ('user', bytes(8))
+                    if not warned_no_voice_csv:
+                        warnings.append(
+                            '; WARNING: no voice CSV provided; '
+                            'inst=0 user patches treated as all-zero')
+                        warned_no_voice_csv = True
+
+            seg.voice_id = _get_voice_id(key)
+
+    return voice_table, warnings
+
+
+def _voice_table_comments(voice_table: dict) -> list[str]:
+    """Return a list of MML comment lines describing the voice table."""
+    if not voice_table:
+        return []
+
+    # Invert for display: voice_id -> voice_key
+    inv = {vid: vk for vk, vid in voice_table.items()}
+    lines = ['; === OPLL Voice Table ===']
+    for vid in sorted(inv):
+        vk = inv[vid]
+        if vk[0] == 'preset':
+            name = (_OPLL_PRESET_NAMES[vk[1]]
+                    if vk[1] < len(_OPLL_PRESET_NAMES) else '?')
+            lines.append(f';@voice {vid:02d} preset inst={vk[1]} ({name})')
+        else:
+            patch_hex = ''.join(f'{b:02x}' for b in vk[1])
+            lines.append(f';@voice {vid:02d} user patch={patch_hex}')
+    lines.append('; =========================')
+    return lines
+
+
+# ---------------------------------------------------------------------------
 # MML generation
 # ---------------------------------------------------------------------------
 
-def _generate_mml_impl(segments: dict, stem: str, raw_ticks: bool = False) -> str:
+def _generate_mml_impl(segments: dict, stem: str, raw_ticks: bool = False,
+                       voice_table: dict | None = None,
+                       warnings: list[str] | None = None) -> str:
     """Generate MGSDRV MML text from per-channel segment data.
 
     When *raw_ticks* is True, emit ``{scale}%{N}`` tick notation and use
@@ -274,7 +431,7 @@ def _generate_mml_impl(segments: dict, stem: str, raw_ticks: bool = False) -> st
                 ltmp = min(remaining, 255)
 
                 if note_cnt == 0:
-                    at_val = seg.inst
+                    at_val = seg.voice_id
                     if is_first_group:
                         if raw_ticks:
                             mml = f'\n{track_id} @{at_val} v{v}'
@@ -291,9 +448,9 @@ def _generate_mml_impl(segments: dict, stem: str, raw_ticks: bool = False) -> st
                     at_stamp = at_val
                     v_stamp  = v
 
-                if seg.inst != at_stamp and note_cnt != 0:
-                    mml += f' @{seg.inst}'
-                    at_stamp = seg.inst
+                if seg.voice_id != at_stamp and note_cnt != 0:
+                    mml += f' @{seg.voice_id}'
+                    at_stamp = seg.voice_id
 
                 if v != v_stamp and note_cnt != 0:
                     mml += f' v{v}'
@@ -339,6 +496,10 @@ def _generate_mml_impl(segments: dict, stem: str, raw_ticks: bool = False) -> st
         used  = estimate_mml_used(mml_buffer[ch])
         alloc = estimate_alloc(used)
         lines.append(f'#alloc {track_id}={alloc}')
+    if voice_table:
+        lines.extend(_voice_table_comments(voice_table))
+    if warnings:
+        lines.extend(warnings)
     lines.append('')
     lines.append('')
 
@@ -355,12 +516,17 @@ def _generate_mml_impl(segments: dict, stem: str, raw_ticks: bool = False) -> st
     return result
 
 
-def _generate_mml(segments: dict, stem: str) -> str:
+def _generate_mml(segments: dict, stem: str,
+                  voice_table: dict | None = None,
+                  warnings: list[str] | None = None) -> str:
     """Generate MGSDRV MML text from per-channel segment data."""
-    return _generate_mml_impl(segments, stem, raw_ticks=False)
+    return _generate_mml_impl(segments, stem, raw_ticks=False,
+                              voice_table=voice_table, warnings=warnings)
 
 
-def _generate_mml_mgs_pct(segments: dict, stem: str) -> str:
+def _generate_mml_mgs_pct(segments: dict, stem: str,
+                           voice_table: dict | None = None,
+                           warnings: list[str] | None = None) -> str:
     """Generate OPLL MML with MGS delta-token octave/volume and raw tick (%) lengths.
 
     Applies the same ``<``/``>``/``(``/``)`` delta-token logic as
@@ -404,7 +570,7 @@ def _generate_mml_mgs_pct(segments: dict, stem: str) -> str:
                 ltmp = min(remaining, 255)
 
                 if note_cnt == 0:
-                    at_val = seg.inst
+                    at_val = seg.voice_id
                     if is_first_group:
                         mml = f'\n{track_id} @{at_val} v{v} o{octave}'
                         at_stamp = at_val
@@ -457,6 +623,10 @@ def _generate_mml_mgs_pct(segments: dict, stem: str) -> str:
         used  = estimate_mml_used(mml_buffer[ch])
         alloc = estimate_alloc(used)
         lines.append(f'#alloc {track_id}={alloc}')
+    if voice_table:
+        lines.extend(_voice_table_comments(voice_table))
+    if warnings:
+        lines.extend(warnings)
     lines.append('')
     lines.append('')
 
@@ -478,17 +648,24 @@ def _generate_mml_mgs_pct(segments: dict, stem: str) -> str:
 # ---------------------------------------------------------------------------
 
 def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
-                     dump_passes: bool = False, debug: bool = True) -> str:
+                     dump_passes: bool = False, debug: bool = True,
+                     voice_csv_path: str | None = None) -> str:
     """Run the OPLL MML generation pipeline.
 
     Args:
-        trace_path  : path to ``*_trace.opll.csv``
-        output_dir  : directory for output files
-        stem        : base name for output files (e.g. ``"ym2413_patch_change_midnote"``).
-                      When *None* the stem is derived from *trace_path*.
-        dump_passes : when True write a pass0 segment CSV for debugging
-        debug       : when True (default) write all MML variant files; when False
-                      write only the ``pass3.compress.MGS_pct.mml`` file.
+        trace_path     : path to ``*_trace.opll.csv``
+        output_dir     : directory for output files
+        stem           : base name for output files (e.g. ``"mysong"``).
+                         When *None* the stem is derived from *trace_path*.
+        dump_passes    : when True write a pass0 segment CSV for debugging
+        debug          : when True (default) write all MML variant files; when
+                         False write only the ``pass3.compress.MGS_pct.mml``.
+        voice_csv_path : optional path to ``*_trace.opll_voice.csv`` produced
+                         by :func:`vgm_reader.parse_vgm`.  When provided the
+                         voice table is built from user-patch register data so
+                         that inst=0 segments are correctly distinguished by
+                         their patch bytes.  When *None* inst=0 is treated as
+                         an all-zero user patch.
 
     Returns:
         path to the generated MML file (``*.opll.mml`` in debug mode, or
@@ -508,19 +685,24 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     # Build segments (tick-based final-state evaluation)
     segments = _build_segments(trace_path)
 
+    # Assign voice IDs using the voice CSV (user-patch tracking)
+    voice_table, warnings = _assign_voice_ids(segments, voice_csv_path)
+
     if dump_passes:
         # Emit a simple segment dump for debugging
         seg_path = os.path.join(output_dir, f'{stem}.opll.pass0.csv')
         with open(seg_path, 'w', newline='\n') as fh:
-            fh.write('#ch,tick_start,tick_end,keyon,fnum,block,inst,vol\n')
+            fh.write('#ch,tick_start,tick_end,keyon,fnum,block,inst,vol,voice_id\n')
             for ch in range(NUM_CH):
                 for seg in segments[ch]:
                     fh.write(f'{ch},{seg.tick_start},{seg.tick_end},'
                              f'{seg.keyon},{seg.fnum},{seg.block},'
-                             f'{seg.inst},{seg.vol}\n')
+                             f'{seg.inst},{seg.vol},{seg.voice_id}\n')
 
     # ---- pass3.compress.MGS_pct.mml – always produced (merge source + non-debug output) ----
-    simple_mgs_pct_text = _generate_mml_mgs_pct(segments, stem)
+    simple_mgs_pct_text = _generate_mml_mgs_pct(segments, stem,
+                                                  voice_table=voice_table,
+                                                  warnings=warnings)
     compress_mgs_pct_path = os.path.join(output_dir, f'{stem}.opll.pass3.compress.MGS_pct.mml')
     with open(compress_mgs_pct_path, 'w', newline='\n') as fh:
         fh.write(compress_mml_text(simple_mgs_pct_text))
@@ -530,13 +712,16 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
 
     # ---- debug-only variants ----
 
-    mml_text = _generate_mml(segments, stem)
+    mml_text = _generate_mml(segments, stem, voice_table=voice_table,
+                              warnings=warnings)
     mml_path = os.path.join(output_dir, f'{stem}.opll.mml')
     with open(mml_path, 'w', newline='\n') as fh:
         fh.write(mml_text)
 
     # pass3.simple.mml – raw tick (%N) notation, #tempo 75
-    simple_raw_text = _generate_mml_impl(segments, stem, raw_ticks=True)
+    simple_raw_text = _generate_mml_impl(segments, stem, raw_ticks=True,
+                                          voice_table=voice_table,
+                                          warnings=warnings)
     simple_raw_path = os.path.join(output_dir, f'{stem}.opll.pass3.simple.mml')
     with open(simple_raw_path, 'w', newline='\n') as fh:
         fh.write(simple_raw_text)
@@ -581,5 +766,12 @@ if __name__ == '__main__':
             s = root
         out_dir = os.path.join(script_dir, 'outputs', s)
 
-    result = process_opll_csv(in_csv, out_dir)
+    # Optionally look for a companion voice CSV next to the trace CSV.
+    # Trace CSV: {dir}/{stem}_trace.opll.csv
+    # Voice CSV: {dir}/{stem}_trace.opll_voice.csv
+    voice_csv = in_csv.replace('_trace.opll.csv', '_trace.opll_voice.csv')
+    if voice_csv == in_csv or not os.path.exists(voice_csv):
+        voice_csv = None
+
+    result = process_opll_csv(in_csv, out_dir, voice_csv_path=voice_csv)
     print(f"Wrote {result}")
