@@ -147,7 +147,7 @@ def main():
 
     # ── Step 1: Parse VGM → SCC + PSG + OPLL log/trace CSVs ──────
     (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
-     opll_log_csv, opll_trace_csv, opll_voice_csv) = parse_vgm(vgm_path, song_dir)
+     opll_log_csv, opll_trace_csv, opll_voice_csv, opll_regs_csv) = parse_vgm(vgm_path, song_dir)
 
     if args.debug:
         print(f"PSG log:       {psg_log_csv}")
@@ -157,6 +157,7 @@ def main():
         print(f"OPLL log:      {opll_log_csv}")
         print(f"OPLL trace:    {opll_trace_csv}")
         print(f"OPLL voice:    {opll_voice_csv}")
+        print(f"OPLL regs:     {opll_regs_csv}")
 
     # Detect chip presence from trace CSVs
     has_psg  = _has_chip_data(psg_trace_csv)
@@ -203,7 +204,7 @@ def main():
         for csv_path in (psg_log_csv, psg_trace_csv,
                          scc_log_csv, scc_trace_csv,
                          opll_log_csv, opll_trace_csv,
-                         opll_voice_csv):
+                         opll_voice_csv, opll_regs_csv):
             try:
                 os.remove(csv_path)
             except OSError:

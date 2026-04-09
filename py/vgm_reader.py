@@ -406,49 +406,65 @@ class _SccState:
 
 
 # ─────────────────────────────────────────────────────────────────
-# OPLL (YM2413) state machine  – melody channels 0..5 only
-# Rhythm mode (reg 0x0E) is detected and logged but not processed.
+# OPLL (YM2413) state machine  – melody channels 0..5 (+ ch6..8 in regs)
 # ─────────────────────────────────────────────────────────────────
 
 class _OpllState:
-    """Track YM2413 (OPLL) register state and emit a chronological trace CSV.
+    """Track YM2413 (OPLL) register state and emit chronological trace CSVs.
 
-    Registers handled per melody channel ch (0..5):
-      0x10+ch : F-number low 8 bits
-      0x20+ch : bit4=KeyOn, bits[3:1]=Block, bit0=Fnum MSB, bit5=Sustain
-      0x30+ch : bits[7:4]=INST, bits[3:0]=VOL
+    YM2413 register map coverage
+    ─────────────────────────────
+    0x00–0x07  user instrument (patch) parameters
+    0x0E       rhythm control: bit5=rhythm-mode, bits0–4=rhythm instruments
+    0x0F       test register (usually 0)
+    0x10–0x18  F-Number low 8 bits  (ch0..8; ch0..5=melody, ch6..8=rhythm)
+    0x20–0x28  Fnum MSB + Block + KeyOn + Sustain
+    0x30–0x35  Instrument select + volume (melody ch0..5)
+    0x36–0x38  Rhythm channel volumes (ch6=BD, ch7=HH/SD, ch8=TOM/CYM)
 
-    Registers 0x00-0x07 (user patch) are tracked and emitted to the separate
-    voice CSV.  0x0E (rhythm) is stored in state but not decoded into melody
-    tracks.
+    Existing trace CSV (*_trace.opll.csv) – kept unchanged for opll_mml.py
+    ──────────────────────────────────────────────────────────────────────
+    Columns (9):  type, time, ch, ticks, keyon, fnum, block, inst, vol
+    Only melody channels 0..5 are emitted here.
 
-    Trace CSV columns (9 cols):
-      type, time, ch, ticks, keyon, fnum, block, inst, vol
+    Extended register trace CSV (*_trace.opll_regs.csv) – NEW
+    ──────────────────────────────────────────────────────────
+    Columns (6):  type, time, ticks, addr, val, ch
+      type  – usrPat (0x00-0x07), rhythm (0x0E), test (0x0F),
+               fNumL (0x10-0x18), keyBlk (0x20-0x28), instVol (0x30-0x38)
+      addr  – register address in hex (e.g. 0x10)
+      val   – written value (decimal)
+      ch    – channel 0..8, or -1 for global registers (usrPat, rhythm, test)
+    All YM2413 writes are captured here so that nothing is lost.
 
-    Voice CSV columns (7 cols):
-      type, time, ch, ticks, inst, vol, patch_hex
+    Voice CSV (*_trace.opll_voice.csv) – unchanged
+    ───────────────────────────────────────────────
+    Columns (7):  type, time, ch, ticks, inst, vol, patch_hex
       type='patch'   – user-patch register update (ch=-1, global)
       type='instVol' – per-channel inst/vol change with current patch snapshot
     """
 
     NUM_CH = 6
 
-    _HEADER = ('#type,time,ch,ticks,keyon,fnum,block,inst,vol')
-    _VOICE_HEADER = ('#type,time,ch,ticks,inst,vol,patch_hex')
+    _HEADER       = '#type,time,ch,ticks,keyon,fnum,block,inst,vol'
+    _VOICE_HEADER = '#type,time,ch,ticks,inst,vol,patch_hex'
+    _REGS_HEADER  = '#type,time,ticks,addr,val,ch'
 
     def __init__(self):
         self._global_time = 0.0
         self._start_time: float | None = None   # None = not yet initialised
         self._common_time = 0.0
 
-        self.fnum_low  = [0] * self.NUM_CH   # 8-bit LSB of Fnum
-        self.key_blk   = [0] * self.NUM_CH   # raw reg 0x20+ch value
-        self.inst_vol  = [0] * self.NUM_CH   # raw reg 0x30+ch value
+        self.fnum_low  = [0] * self.NUM_CH   # 8-bit LSB of Fnum (ch0..5)
+        self.key_blk   = [0] * self.NUM_CH   # raw reg 0x20+ch value (ch0..5)
+        self.inst_vol  = [0] * self.NUM_CH   # raw reg 0x30+ch value (ch0..5)
         self.user_patch = [0] * 8             # raw regs 0x00-0x07 (user patch)
+        self.rhythm_mode = 0                  # bit5 of reg 0x0E
 
         self.log_buf        = {ch: [] for ch in range(self.NUM_CH)}
         self.trace_buf: list[str] = []
         self.voice_trace_buf: list[str] = []   # chronological voice events
+        self.regs_trace_buf: list[str] = []    # all YM2413 writes (extended)
 
     # ── time ────────────────────────────────────────────────────
     def _update_time(self, time_s: float):
@@ -501,6 +517,13 @@ class _OpllState:
         ]
         return ','.join(cols)
 
+    def _regs_row(self, type_: str, addr: int, val: int, ch: int) -> str:
+        """CSV row for the extended register trace (*_trace.opll_regs.csv)."""
+        t = self._common_time
+        ticks = get_ticks(t)
+        cols = [type_, repr(t), str(ticks), f'0x{addr:02X}', str(val), str(ch)]
+        return ','.join(cols)
+
     def _log(self, ch: int, type_: str):
         row = self._row(ch, type_)
         self.log_buf[ch].append(row)
@@ -510,28 +533,55 @@ class _OpllState:
     def write(self, time_s: float, address: int, value: int):
         self._update_time(time_s)
         a = address
+        v = value
 
+        # ── Extended register trace: capture every YM2413 write ──
+        # Determine type and logical channel for the regs CSV row.
+        if 0x00 <= a <= 0x07:
+            _type, _ch = 'usrPat', -1
+        elif a == 0x0E:
+            _type, _ch = 'rhythm', -1
+        elif a == 0x0F:
+            _type, _ch = 'test', -1
+        elif 0x10 <= a <= 0x18:
+            _type, _ch = 'fNumL',  a - 0x10
+        elif 0x20 <= a <= 0x28:
+            _type, _ch = 'keyBlk', a - 0x20
+        elif 0x30 <= a <= 0x38:
+            _type, _ch = 'instVol', a - 0x30
+        else:
+            _type, _ch = 'raw', -1
+        self.regs_trace_buf.append(self._regs_row(_type, a, v, _ch))
+
+        # ── Per-channel melody state machine (ch0..5) ────────────
+        # The extended regs trace (above) captures ch0..8; the melody
+        # state machine below intentionally processes only ch0..5.
         if 0x00 <= a <= 0x07:
             # User patch register update (global, all channels)
-            self.user_patch[a] = value & 0xFF
+            self.user_patch[a] = v & 0xFF
             row = self._voice_row('patch', -1, 0, 0)
             self.voice_trace_buf.append(row)
+        elif a == 0x0E:
+            # Rhythm control: bit5=rhythm-mode, bits0-4=rhythm instruments on/off.
+            # Stored for future rhythm-mode processing (e.g. decoding ch6..8 notes).
+            self.rhythm_mode = (v >> 5) & 0x01
         elif 0x10 <= a <= 0x15:
             ch = a - 0x10
-            self.fnum_low[ch] = value & 0xFF
+            self.fnum_low[ch] = v & 0xFF
             self._log(ch, 'fNumL')
         elif 0x20 <= a <= 0x25:
             ch = a - 0x20
-            self.key_blk[ch] = value & 0x3F
+            self.key_blk[ch] = v & 0x3F
             self._log(ch, 'keyBlk')
         elif 0x30 <= a <= 0x35:
             ch = a - 0x30
-            self.inst_vol[ch] = value & 0xFF
+            self.inst_vol[ch] = v & 0xFF
             self._log(ch, 'instVol')
             # Also emit to voice CSV so opll_mml.py can build the voice table
             row = self._voice_row('instVol', ch, self._inst(ch), self._vol(ch))
             self.voice_trace_buf.append(row)
-        # 0x0E: rhythm – not decoded into melody tracks
+        # 0x0F (test), 0x16-0x18, 0x26-0x28, 0x36-0x38 (ch6..8 / rhythm vols)
+        # are already captured in regs_trace_buf above.
 
     # ── CSV output ───────────────────────────────────────────────
     def output_trace_csv(self, out_path: str):
@@ -557,18 +607,34 @@ class _OpllState:
             for row in self.voice_trace_buf:
                 fh.write(row + '\n')
 
+    def output_regs_csv(self, out_path: str):
+        """Write extended chronological register trace CSV (all YM2413 writes).
+
+        Captures every write to the YM2413 chip in chronological order,
+        including user-patch (0x00–0x07), rhythm control (0x0E), test (0x0F),
+        F-Number (0x10–0x18), key/block (0x20–0x28), and inst/vol (0x30–0x38)
+        for all nine channels (ch0..5=melody, ch6..8=rhythm).
+
+        This file is a superset of *_trace.opll.csv and is intended for
+        debugging, user-patch reconstruction, and rhythm-mode analysis.
+        """
+        with open(out_path, 'w', newline='\n') as fh:
+            fh.write(self._REGS_HEADER + '\n')
+            for row in self.regs_trace_buf:
+                fh.write(row + '\n')
+
 
 # ─────────────────────────────────────────────────────────────────
 # VGM parser
 # ─────────────────────────────────────────────────────────────────
 
-def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, str, str, str, str, str]:
+def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, str, str, str, str, str, str]:
     """
     Parse a VGM file and write PSG, SCC, and OPLL log/trace CSVs.
 
     Returns:
         (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
-         opll_log_csv, opll_trace_csv, opll_voice_csv)
+         opll_log_csv, opll_trace_csv, opll_voice_csv, opll_regs_csv)
 
     Note: 0x77 and 0x7a wait commands are treated as 0-sample waits to match
     the reference Tcl vgm_read.tcl behaviour (see module docstring).
@@ -646,16 +712,18 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, s
     opll.output_trace_csv(opll_trace_csv)
     opll_voice_csv = os.path.join(output_dir, f"{base_name}_trace.opll_voice.csv")
     opll.output_voice_csv(opll_voice_csv)
+    opll_regs_csv = os.path.join(output_dir, f"{base_name}_trace.opll_regs.csv")
+    opll.output_regs_csv(opll_regs_csv)
 
     return (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
-            opll_log_csv, opll_trace_csv, opll_voice_csv)
+            opll_log_csv, opll_trace_csv, opll_voice_csv, opll_regs_csv)
 
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print(f"Usage: python {sys.argv[0]} <vgm_file> [output_dir]")
         sys.exit(1)
-    p_log, s_log, p_trace, s_trace, o_log, o_trace, o_voice = parse_vgm(
+    p_log, s_log, p_trace, s_trace, o_log, o_trace, o_voice, o_regs = parse_vgm(
         sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
     print(f"PSG log CSV:       {p_log}")
     print(f"SCC log CSV:       {s_log}")
@@ -663,3 +731,4 @@ if __name__ == '__main__':
     print(f"OPLL log CSV:      {o_log}")
     print(f"OPLL trace CSV:    {o_trace}")
     print(f"OPLL voice CSV:    {o_voice}")
+    print(f"OPLL regs CSV:     {o_regs}")
