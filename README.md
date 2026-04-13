@@ -7,7 +7,7 @@ MSX-Music（PSG, OPLL）および SCC の VGM ファイルから、MGSDRV 用 MM
 - レジスタアクセスに忠実な MML を出力  h
 
 ## 使い方
-x`x
+以下のコマンドを実行する事で.vgmファイルからMGSDRVのmmlを含んだテキスト.mmlを生成できます。
 ### コマンド
 ```bash
 python vgm2mml.py [-h] [--outdir OUTDIR] [--dump-passes] [--debug]  vgm
