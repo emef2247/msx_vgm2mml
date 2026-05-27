@@ -19,6 +19,8 @@ import sys
 import os
 import math
 
+from opll import (_build_segments)
+
 sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import (get_ticks, estimate_mml_used, estimate_alloc,
                        track_id_to_mgsdrv, ticks_to_mml_length,
@@ -134,103 +136,6 @@ class _Segment:
 
     def mml_vol(self):
         return 15 - self.vol
-
-
-# ---------------------------------------------------------------------------
-# Build per-channel segment lists from the trace CSV
-# ---------------------------------------------------------------------------
-
-def _build_segments(trace_path: str) -> dict:
-    """Read trace CSV and return per-channel segment lists.
-
-    Uses tick-based final-state evaluation:
-      - Events at the same tick are all applied before evaluating state.
-      - A note-on edge, pitch change, or instrument change while keyon=1
-        closes the current segment and opens a new one.
-    """
-    # 1. Parse trace into per-channel lists of (tick, keyon, fnum, block, inst, vol)
-    ch_events: dict[int, list] = {ch: [] for ch in range(NUM_CH)}
-
-    with open(trace_path, 'r', newline='') as fh:
-        for line in fh:
-            line = line.rstrip('\r\n')
-            if not line or line.startswith('#'):
-                continue
-            parts = line.split(',')
-            if len(parts) < 9:
-                continue
-            try:
-                ch    = int(parts[_COL_CH])
-                ticks = int(parts[_COL_TICKS])
-                keyon = int(parts[_COL_KEYON])
-                fnum  = int(parts[_COL_FNUM])
-                block = int(parts[_COL_BLOCK])
-                inst  = int(parts[_COL_INST])
-                vol   = int(parts[_COL_VOL])
-            except (ValueError, IndexError):
-                continue
-            if 0 <= ch < NUM_CH:
-                ch_events[ch].append((ticks, keyon, fnum, block, inst, vol))
-
-    # 2. For each channel, group by tick → final-state evaluation → segments
-    segments: dict[int, list] = {ch: [] for ch in range(NUM_CH)}
-
-    for ch in range(NUM_CH):
-        events = ch_events[ch]
-        if not events:
-            continue
-
-        state   = _ChState()
-        cur_seg = None
-        i       = 0
-        n       = len(events)
-
-        while i < n:
-            tick = events[i][0]
-
-            # Collect all events at the same tick
-            j = i
-            while j < n and events[j][0] == tick:
-                j += 1
-
-            # Apply all events in this tick group (final-state evaluation)
-            for _, keyon, fnum, block, inst, vol in events[i:j]:
-                state.keyon = keyon
-                state.fnum  = fnum
-                state.block = block
-                state.inst  = inst
-                state.vol   = vol
-
-            # Evaluate state at end of this tick group
-            if cur_seg is None:
-                # First event: start the first segment
-                cur_seg = _Segment(tick, state.keyon, state.fnum, state.block,
-                                   state.inst, state.vol)
-            else:
-                # Check for state change that requires a new segment
-                keyon_edge   = (state.keyon == 1 and cur_seg.keyon == 0)
-                keyoff_edge  = (state.keyon == 0 and cur_seg.keyon == 1)
-                pitch_change = (state.pitch_key() != (cur_seg.fnum, cur_seg.block)
-                                and state.keyon == 1)
-                inst_change  = (state.inst != cur_seg.inst and state.keyon == 1)
-                vol_change   = (state.vol != cur_seg.vol   and state.keyon == 1)
-
-                if keyon_edge or keyoff_edge or pitch_change or inst_change or vol_change:
-                    cur_seg.tick_end = tick
-                    segments[ch].append(cur_seg)
-                    cur_seg = _Segment(tick, state.keyon, state.fnum,
-                                       state.block, state.inst, state.vol)
-                else:
-                    # Extend the current segment
-                    cur_seg.tick_end = tick
-
-            i = j
-
-        # Close the last segment
-        if cur_seg is not None:
-            segments[ch].append(cur_seg)
-
-    return segments
 
 
 # ---------------------------------------------------------------------------
@@ -805,7 +710,7 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     os.makedirs(output_dir, exist_ok=True)
 
     # Build segments (tick-based final-state evaluation)
-    segments = _build_segments(trace_path)
+    segments,bpm = _build_segments(trace_path)
 
     # Assign voice IDs using the voice CSV (user-patch tracking)
     voice_table, user_patches, warnings = _assign_voice_ids(segments, voice_csv_path)

@@ -134,15 +134,13 @@ def main():
     # Determine base name: "02_StartingPoint"
     base_name = os.path.splitext(os.path.basename(vgm_path))[0]
 
-    # Determine song-level output directory.
-    # All outputs (raw CSVs + MML + pass CSVs) go into a single flat directory.
-    # With --outdir: <outdir>/<vgm_stem>/
-    # Without --outdir: <repo_root>/outputs/<vgm_stem>/
     if args.outdir:
-        song_dir = os.path.join(args.outdir, base_name)
+        song_dir = args.outdir
     else:
-        song_dir = os.path.join(_SCRIPT_DIR, 'outputs', base_name)
-
+        song_dir = os.path.join(
+            os.path.dirname(os.path.abspath(vgm_path)),
+        )
+    
     os.makedirs(song_dir, exist_ok=True)
 
     # ── Step 1: Parse VGM → SCC + PSG + OPLL log/trace CSVs ──────
