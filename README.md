@@ -38,7 +38,7 @@ outputs/stem/stem.mml
 | `--outdir OUTDIR` | MML ファイルの出力先ディレクトリを指定 |
 | `--dump-passes` | 中間ファイル（intermediate files）を出力 |
 | `--debug` | デバッグ用ファイルを出力 |
-| `--raw-ticks` | 音長を `%` tick 形式（例: `c%4`）で出力（デフォルトは音価形式） |
+| `--raw-ticks` | 音長を `%` tick 形式（例: `{scale}%{N}`）で出力（デフォルトは音価形式） |
 
 ---
 
@@ -133,7 +133,7 @@ The output will be saved in `outputs/<stem>/<stem>.mml`.
 | `--outdir OUTDIR` | Specify the output directory for the MML file |
 | `--dump-passes` | Output intermediate files |
 | `--debug` | Output debug files |
-| `--raw-ticks` | Output note lengths as raw `%` ticks (e.g. `c%4`) instead of note-value notation |
+| `--raw-ticks` | Output note lengths as raw `%` ticks (e.g. `{scale}%{N}`) instead of note-value notation |
 
 ---
 
