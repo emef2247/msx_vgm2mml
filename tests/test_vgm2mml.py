@@ -43,9 +43,23 @@ class BuildMergedMmlTests(unittest.TestCase):
             self.assertIn('opll_PCT', merged)
             self.assertNotIn('psg_MGS', merged)
 
+    def test_skips_absent_chip_parts(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            stem = 'song'
+            with open(os.path.join(tmpdir, f'{stem}.psg.pass3.compress.MGS.mml'), 'w', newline='\n') as fh:
+                fh.write(';hdr\n#tempo 225\n#alloc 100\npsg_MGS\n')
+            with open(os.path.join(tmpdir, f'{stem}.psg.pass3.compress.MGS_pct.mml'), 'w', newline='\n') as fh:
+                fh.write(';hdr\n#tempo 75\n#alloc 100\npsg_PCT\n')
+
+            merged = vgm2mml._build_merged_mml(stem, tmpdir, True, False, False)
+
+            self.assertIn('psg_MGS', merged)
+            self.assertNotIn('scc part', merged)
+            self.assertNotIn('OPLL part', merged)
+
 
 class MainCliTests(unittest.TestCase):
-    def _make_parse_outputs(self, outdir, stem):
+    def _make_parse_outputs(self, outdir, stem, has_psg=True, has_scc=True, has_opll=True):
         names = [
             f'{stem}_log.psg.csv',
             f'{stem}_log.scc.csv',
@@ -57,10 +71,11 @@ class MainCliTests(unittest.TestCase):
             f'{stem}_trace.opll_regs.csv',
         ]
         paths = []
-        for name in names:
+        data_flags = [has_psg, has_scc, has_psg, has_scc, has_opll, has_opll, has_opll, has_opll]
+        for name, has_data in zip(names, data_flags):
             p = os.path.join(outdir, name)
             with open(p, 'w', newline='\n') as fh:
-                fh.write('0\n')
+                fh.write('0\n' if has_data else '# empty\n')
             paths.append(p)
         return tuple(paths)
 
@@ -140,6 +155,35 @@ class MainCliTests(unittest.TestCase):
             for chip in ('psg', 'scc', 'opll'):
                 self.assertFalse(os.path.exists(os.path.join(tmpdir, f'{stem}.{chip}.pass3.compress.MGS.mml')))
                 self.assertFalse(os.path.exists(os.path.join(tmpdir, f'{stem}.{chip}.pass3.compress.MGS_pct.mml')))
+
+    def test_main_cleanup_only_detected_chips(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            stem = 'song'
+            vgm_path = os.path.join(tmpdir, f'{stem}.vgm')
+            with open(vgm_path, 'wb') as fh:
+                fh.write(b'VGM')
+
+            parse_outputs = self._make_parse_outputs(tmpdir, stem, has_psg=True, has_scc=False, has_opll=False)
+            with patch('vgm2mml.parse_vgm', return_value=parse_outputs), \
+                 patch('vgm2mml.process_psg_csv', side_effect=self._fake_process('psg')), \
+                 patch('vgm2mml.process_scc_csv', side_effect=self._fake_process('scc')), \
+                 patch('vgm2mml.process_opll_csv', side_effect=self._fake_process('opll')), \
+                 patch('sys.argv', ['vgm2mml.py', vgm_path, '--outdir', tmpdir]):
+                vgm2mml.main()
+
+            merged_path = os.path.join(tmpdir, f'{stem}.mml')
+            with open(merged_path, 'r', newline='') as fh:
+                merged = fh.read()
+            self.assertIn('psg_MGS', merged)
+            self.assertNotIn('scc_MGS', merged)
+            self.assertNotIn('opll_MGS', merged)
+
+            self.assertFalse(os.path.exists(os.path.join(tmpdir, f'{stem}.psg.pass3.compress.MGS.mml')))
+            self.assertFalse(os.path.exists(os.path.join(tmpdir, f'{stem}.psg.pass3.compress.MGS_pct.mml')))
+            self.assertTrue(os.path.exists(os.path.join(tmpdir, f'{stem}.scc.pass3.compress.MGS.mml')))
+            self.assertTrue(os.path.exists(os.path.join(tmpdir, f'{stem}.scc.pass3.compress.MGS_pct.mml')))
+            self.assertTrue(os.path.exists(os.path.join(tmpdir, f'{stem}.opll.pass3.compress.MGS.mml')))
+            self.assertTrue(os.path.exists(os.path.join(tmpdir, f'{stem}.opll.pass3.compress.MGS_pct.mml')))
 
 
 if __name__ == '__main__':
