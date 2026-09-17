@@ -137,6 +137,10 @@ class MainCliTests(unittest.TestCase):
             self.assertIn('opll_PCT', merged)
             self.assertNotIn('psg_MGS', merged)
 
+            for chip in ('psg', 'scc', 'opll'):
+                self.assertFalse(os.path.exists(os.path.join(tmpdir, f'{stem}.{chip}.pass3.compress.MGS.mml')))
+                self.assertFalse(os.path.exists(os.path.join(tmpdir, f'{stem}.{chip}.pass3.compress.MGS_pct.mml')))
+
 
 if __name__ == '__main__':
     unittest.main()
