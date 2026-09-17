@@ -218,8 +218,16 @@ def main():
                 os.remove(csv_path)
             except OSError:
                 pass
-        # Remove per-chip compress intermediate files
-        for chip in ('psg', 'scc', 'opll'):
+        # Remove per-chip compress intermediate files for chips present in input.
+        chips_to_clean = []
+        if has_psg:
+            chips_to_clean.append('psg')
+        if has_scc:
+            chips_to_clean.append('scc')
+        if has_opll:
+            chips_to_clean.append('opll')
+
+        for chip in chips_to_clean:
             for suffix in ('pass3.compress.MGS.mml', 'pass3.compress.MGS_pct.mml'):
                 chip_path = os.path.join(song_dir, f'{base_name}.{chip}.{suffix}')
                 try:
