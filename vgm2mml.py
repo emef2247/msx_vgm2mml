@@ -65,8 +65,9 @@ def _extract_from_alloc(mml_path: str) -> str:
 
 
 def _build_merged_mml(stem: str, song_dir: str,
-                      has_psg: bool, has_scc: bool, has_opll: bool) -> str:
-    """Build the merged MML text from per-chip compress.MGS_pct outputs.
+                      has_psg: bool, has_scc: bool, has_opll: bool,
+                      raw_ticks: bool = False) -> str:
+    """Build the merged MML text from per-chip compress outputs.
 
     The merged file has a single global header followed by PSG, SCC, and OPLL
     parts (in that order) when the corresponding chip is present.  Each part
@@ -76,7 +77,7 @@ def _build_merged_mml(stem: str, song_dir: str,
     lines = []
     lines.append(';[name=psg lpf=1]')
     lines.append('#opll_mode 1')
-    lines.append('#tempo 75')
+    lines.append('#tempo 75' if raw_ticks else '#tempo 225')
     lines.append(f'#title {{ "{stem}"}}')
     lines.append('')
 
@@ -93,11 +94,13 @@ def _build_merged_mml(stem: str, song_dir: str,
     header_text = '\n'.join(lines) + '\n'
     body_parts = [header_text]
 
+    suffix = 'pass3.compress.MGS_pct.mml' if raw_ticks else 'pass3.compress.MGS.mml'
+
     for chip_key, chip_ext, separator in parts:
         if not flags[chip_key]:
             continue
         mml_path = os.path.join(song_dir,
-                                f'{stem}.{chip_ext}.pass3.compress.MGS_pct.mml')
+                                f'{stem}.{chip_ext}.{suffix}')
         body_parts.append(separator + '\n')
         body_parts.append(_extract_from_alloc(mml_path))
 
@@ -124,6 +127,9 @@ def main():
     parser.add_argument('--psg-input', choices=['trace', 'log'], default='trace',
                         help='PSG intermediate format: trace (default, chronological)'
                              ' or log (per-channel grouped)')
+    parser.add_argument('--raw-ticks', action='store_true',
+                        help='Output note lengths as raw tick %% notation (e.g. c%%4). '
+                             'Default is note-value/divisor notation (e.g. c16, d8.).')
     args = parser.parse_args()
 
     vgm_path = args.vgm
@@ -167,7 +173,8 @@ def main():
 
     scc_mml_path = process_scc_csv(scc_csv, song_dir, stem=base_name,
                                    dump_passes=args.dump_passes,
-                                   debug=args.debug)
+                                   debug=args.debug,
+                                   raw_ticks=args.raw_ticks)
     if args.debug:
         print(f"SCC MML: {scc_mml_path}")
 
@@ -176,7 +183,8 @@ def main():
 
     psg_mml_path = process_psg_csv(psg_csv, song_dir, stem=base_name,
                                    dump_passes=args.dump_passes,
-                                   debug=args.debug)
+                                   debug=args.debug,
+                                   raw_ticks=args.raw_ticks)
     if args.debug:
         print(f"PSG MML: {psg_mml_path}")
 
@@ -184,13 +192,15 @@ def main():
     opll_mml_path = process_opll_csv(opll_trace_csv, song_dir, stem=base_name,
                                      dump_passes=args.dump_passes,
                                      debug=args.debug,
-                                     voice_csv_path=opll_voice_csv)
+                                     voice_csv_path=opll_voice_csv,
+                                     raw_ticks=args.raw_ticks)
     if args.debug:
         print(f"OPLL MML: {opll_mml_path}")
 
     # ── Step 5: Build merged MML ──────────────────────────────────
     merged_text = _build_merged_mml(base_name, song_dir,
-                                    has_psg, has_scc, has_opll)
+                                    has_psg, has_scc, has_opll,
+                                    raw_ticks=args.raw_ticks)
     merged_path = os.path.join(song_dir, f'{base_name}.mml')
     with open(merged_path, 'w', newline='\n') as fh:
         fh.write(merged_text)
@@ -207,14 +217,14 @@ def main():
                 os.remove(csv_path)
             except OSError:
                 pass
-        # Remove per-chip compress.MGS_pct intermediate files
+        # Remove per-chip compress intermediate files
         for chip in ('psg', 'scc', 'opll'):
-            chip_path = os.path.join(song_dir,
-                                     f'{base_name}.{chip}.pass3.compress.MGS_pct.mml')
-            try:
-                os.remove(chip_path)
-            except OSError:
-                pass
+            for suffix in ('pass3.compress.MGS.mml', 'pass3.compress.MGS_pct.mml'):
+                chip_path = os.path.join(song_dir, f'{base_name}.{chip}.{suffix}')
+                try:
+                    os.remove(chip_path)
+                except OSError:
+                    pass
 
 
 if __name__ == '__main__':

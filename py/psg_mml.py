@@ -107,7 +107,7 @@ def _row_to_csv(row):
 
 
 def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
-                    debug=True):
+                    debug=True, raw_ticks=False):
     """Main processing pipeline for PSG log CSV.
 
     Args:
@@ -117,11 +117,15 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
                       When *None* (default) the stem is derived from *input_path*.
         dump_passes : when True (default) write pass0-3 intermediate CSV files
         debug       : when True (default) write all MML variant files; when False
-                      write only the ``pass3.compress.MGS_pct.mml`` file.
+                      write only one selected compress file.
+        raw_ticks   : when True, non-debug output uses raw tick ``%`` notation
+                      (``pass3.compress.MGS_pct.mml``). When False (default),
+                      non-debug output uses divisor notation
+                      (``pass3.compress.MGS.mml``).
 
     Returns:
-        path to the generated MML file (``*.psg.mml`` in debug mode, or
-        ``*.psg.pass3.compress.MGS_pct.mml`` in non-debug mode).
+        path to the generated MML file (``*.psg.mml`` in debug mode, or selected
+        ``*.psg.pass3.compress.MGS*.mml`` in non-debug mode).
     """
     # Read raw CSV lines into logBuffer per channel
     log_buffer = {}   # ch -> list of raw CSV line strings
@@ -832,13 +836,19 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
     work_buffer2 = _update_and_optimize_cnt_psg(work_buffer1)
 
     # ---- pass3.compress.MGS_pct.mml (cnt-optimised repeat + MGS delta-token + % lengths) ----
-    # Always produced – used as the merge source and as the primary non-debug output.
+    # Always produced so merged output can select raw-tick mode.
     compress_mgs_pct_buf = _build_psg_mml_mgs_buffer(work_buffer2, use_cnt=True, use_pct=True)
     compress_mgs_pct_path = os.path.join(output_dir, f"{output_name_body}.psg.pass3.compress.MGS_pct.mml")
     _write_psg_mml(compress_mgs_pct_buf, compress_mgs_pct_path, output_name_body, raw_ticks=True)
 
+    # ---- pass3.compress.MGS.mml (cnt-optimised repeat + MGS delta-token) ----
+    # Always produced so merged output can select divisor mode in non-debug.
+    compress_mgs_buf = _build_psg_mml_mgs_buffer(work_buffer2, use_cnt=True)
+    compress_path = os.path.join(output_dir, f"{output_name_body}.psg.pass3.compress.MGS.mml")
+    _write_psg_mml(compress_mgs_buf, compress_path, output_name_body, raw_ticks=False)
+
     if not debug:
-        return compress_mgs_pct_path
+        return compress_mgs_pct_path if raw_ticks else compress_path
 
     # ---- debug-only variants ----
 
@@ -856,11 +866,6 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
     simple_mgs_buf = _build_psg_mml_mgs_buffer(work_buffer1, use_cnt=False)
     simple_mgs_path = os.path.join(output_dir, f"{output_name_body}.psg.pass3.simple.MGS.mml")
     _write_psg_mml(simple_mgs_buf, simple_mgs_path, output_name_body, raw_ticks=False)
-
-    # pass3.compress.MGS.mml (cnt-optimised repeat + MGS delta-token)
-    compress_mgs_buf = _build_psg_mml_mgs_buffer(work_buffer2, use_cnt=True)
-    compress_path = os.path.join(output_dir, f"{output_name_body}.psg.pass3.compress.MGS.mml")
-    _write_psg_mml(compress_mgs_buf, compress_path, output_name_body, raw_ticks=False)
 
     # pass3.simple.MGS_pct.mml (MGS delta-token, raw tick % lengths, #tempo 75)
     simple_mgs_pct_buf = _build_psg_mml_mgs_buffer(work_buffer1, use_cnt=False, use_pct=True)

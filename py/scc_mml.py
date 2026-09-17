@@ -975,7 +975,7 @@ def _generate_mml_mgs(buf3, ch_list, file_name_body, wtb_tracker, use_cnt=False,
 # ---------------------------------------------------------------------------
 
 def process_scc_csv(input_path, output_dir, dump_passes=True, stem=None,
-                    debug=True):
+                    debug=True, raw_ticks=False):
     """Run the full SCC MML pipeline.
 
     Args:
@@ -985,11 +985,15 @@ def process_scc_csv(input_path, output_dir, dump_passes=True, stem=None,
         stem        : base name for output files (e.g. ``"02_StartingPoint"``).
                       When *None* (default) the stem is derived from *input_path*.
         debug       : when True (default) write all MML variant files; when False
-                      write only the ``pass3.compress.MGS_pct.mml`` file.
+                      write only one selected compress file.
+        raw_ticks   : when True, non-debug output uses raw tick ``%`` notation
+                      (``pass3.compress.MGS_pct.mml``). When False (default),
+                      non-debug output uses divisor notation
+                      (``pass3.compress.MGS.mml``).
 
     Returns:
-        path to the generated MML file (``*.scc.mml`` in debug mode, or
-        ``*.scc.pass3.compress.MGS_pct.mml`` in non-debug mode).
+        path to the generated MML file (``*.scc.mml`` in debug mode, or selected
+        ``*.scc.pass3.compress.MGS*.mml`` in non-debug mode).
     """
     # ---- Derive output name body from input filename or stem ----
     if stem is not None:
@@ -1052,15 +1056,22 @@ def process_scc_csv(input_path, output_dir, dump_passes=True, stem=None,
     # ---- cnt-optimised buffer (needed for compress variants) ----
     compress_buf3 = _update_and_optimize_cnt_scc(temp_buf3, ch_list)
 
-    # ---- pass3.compress.MGS_pct.mml – always produced (merge source + non-debug output) ----
+    # ---- pass3.compress.MGS_pct.mml – always produced for raw-tick mode ----
     compress_mgs_pct_text = _generate_mml_mgs(
         compress_buf3, ch_list, file_name_body, wtb_tracker, use_cnt=True, use_pct=True)
     compress_mgs_pct_path = os.path.join(output_dir, f'{file_name_body}.scc.pass3.compress.MGS_pct.mml')
     with open(compress_mgs_pct_path, 'w', newline='\n') as fh:
         fh.write(compress_mgs_pct_text)
 
+    # ---- pass3.compress.MGS.mml – always produced for default divisor mode ----
+    compress_mgs_text = _generate_mml_mgs(
+        compress_buf3, ch_list, file_name_body, wtb_tracker, use_cnt=True)
+    compress_path = os.path.join(output_dir, f'{file_name_body}.scc.pass3.compress.MGS.mml')
+    with open(compress_path, 'w', newline='\n') as fh:
+        fh.write(compress_mgs_text)
+
     if not debug:
-        return compress_mgs_pct_path
+        return compress_mgs_pct_path if raw_ticks else compress_path
 
     # ---- debug-only MML variants ----
 
@@ -1083,13 +1094,6 @@ def process_scc_csv(input_path, output_dir, dump_passes=True, stem=None,
     simple_mgs_path = os.path.join(output_dir, f'{file_name_body}.scc.pass3.simple.MGS.mml')
     with open(simple_mgs_path, 'w', newline='\n') as fh:
         fh.write(simple_mgs_text)
-
-    # pass3.compress.MGS.mml – cnt-optimised repeat + MGS delta-token notation
-    compress_mgs_text = _generate_mml_mgs(
-        compress_buf3, ch_list, file_name_body, wtb_tracker, use_cnt=True)
-    compress_path = os.path.join(output_dir, f'{file_name_body}.scc.pass3.compress.MGS.mml')
-    with open(compress_path, 'w', newline='\n') as fh:
-        fh.write(compress_mgs_text)
 
     # pass3.simple.MGS_pct.mml – MGS delta-token, raw tick (%) lengths, #tempo 75
     simple_mgs_pct_text = _generate_mml_mgs(

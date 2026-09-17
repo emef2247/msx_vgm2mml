@@ -676,7 +676,8 @@ def _generate_mml_mgs_pct(segments: dict, stem: str,
 
 def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
                      dump_passes: bool = False, debug: bool = True,
-                     voice_csv_path: str | None = None) -> str:
+                     voice_csv_path: str | None = None,
+                     raw_ticks: bool = False) -> str:
     """Run the OPLL MML generation pipeline.
 
     Args:
@@ -686,17 +687,21 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
                          When *None* the stem is derived from *trace_path*.
         dump_passes    : when True write a pass0 segment CSV for debugging
         debug          : when True (default) write all MML variant files; when
-                         False write only the ``pass3.compress.MGS_pct.mml``.
+                         False write only one selected compress file.
         voice_csv_path : optional path to ``*_trace.opll_voice.csv`` produced
                          by :func:`vgm_reader.parse_vgm`.  When provided the
                          voice table is built from user-patch register data so
                          that inst=0 segments are correctly distinguished by
                          their patch bytes.  When *None* inst=0 is treated as
                          an all-zero user patch.
+        raw_ticks      : when True, non-debug output uses raw tick ``%``
+                         notation (``pass3.compress.MGS_pct.mml``). When False
+                         (default), non-debug output uses divisor notation
+                         (``pass3.compress.MGS.mml``).
 
     Returns:
-        path to the generated MML file (``*.opll.mml`` in debug mode, or
-        ``*.opll.pass3.compress.MGS_pct.mml`` in non-debug mode).
+        path to the generated MML file (``*.opll.mml`` in debug mode, or selected
+        ``*.opll.pass3.compress.MGS*.mml`` in non-debug mode).
     """
     if stem is None:
         base = os.path.basename(trace_path)
@@ -726,7 +731,7 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
                              f'{seg.keyon},{seg.fnum},{seg.block},'
                              f'{seg.inst},{seg.vol},{seg.voice_id},{seg.at_token}\n')
 
-    # ---- pass3.compress.MGS_pct.mml – always produced (merge source + non-debug output) ----
+    # ---- pass3.compress.MGS_pct.mml – always produced for raw-tick mode ----
     simple_mgs_pct_text = _generate_mml_mgs_pct(segments, stem,
                                                   voice_table=voice_table,
                                                   user_patches=user_patches,
@@ -735,13 +740,17 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     with open(compress_mgs_pct_path, 'w', newline='\n') as fh:
         fh.write(compress_mml_text(simple_mgs_pct_text))
 
-    if not debug:
-        return compress_mgs_pct_path
-
-    # ---- debug-only variants ----
-
+    # ---- pass3.compress.MGS.mml – always produced for default divisor mode ----
     mml_text = _generate_mml(segments, stem, voice_table=voice_table,
                               user_patches=user_patches, warnings=warnings)
+    compress_path = os.path.join(output_dir, f'{stem}.opll.pass3.compress.MGS.mml')
+    with open(compress_path, 'w', newline='\n') as fh:
+        fh.write(compress_mml_text(mml_text))
+
+    if not debug:
+        return compress_mgs_pct_path if raw_ticks else compress_path
+
+    # ---- debug-only variants ----
     mml_path = os.path.join(output_dir, f'{stem}.opll.mml')
     with open(mml_path, 'w', newline='\n') as fh:
         fh.write(mml_text)
@@ -759,11 +768,6 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     simple_mgs_path = os.path.join(output_dir, f'{stem}.opll.pass3.simple.MGS.mml')
     with open(simple_mgs_path, 'w', newline='\n') as fh:
         fh.write(mml_text)
-
-    # pass3.compress.MGS.mml – divisor notation with token-level RLE compression
-    compress_path = os.path.join(output_dir, f'{stem}.opll.pass3.compress.MGS.mml')
-    with open(compress_path, 'w', newline='\n') as fh:
-        fh.write(compress_mml_text(mml_text))
 
     # pass3.simple.MGS_pct.mml – MGS delta-token, raw tick (%) lengths, #tempo 75
     simple_mgs_pct_path = os.path.join(output_dir, f'{stem}.opll.pass3.simple.MGS_pct.mml')
