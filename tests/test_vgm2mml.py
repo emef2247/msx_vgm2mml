@@ -164,10 +164,14 @@ class MainCliTests(unittest.TestCase):
                 fh.write(b'VGM')
 
             parse_outputs = self._make_parse_outputs(tmpdir, stem, has_psg=True, has_scc=False, has_opll=False)
+            def _absent_chip_process(_input_path, output_dir, stem=None, **_kwargs):
+                stem = stem or 'song'
+                return os.path.join(output_dir, f'{stem}.absent.mml')
+
             with patch('vgm2mml.parse_vgm', return_value=parse_outputs), \
                  patch('vgm2mml.process_psg_csv', side_effect=self._fake_process('psg')), \
-                 patch('vgm2mml.process_scc_csv', side_effect=self._fake_process('scc')), \
-                 patch('vgm2mml.process_opll_csv', side_effect=self._fake_process('opll')), \
+                 patch('vgm2mml.process_scc_csv', side_effect=_absent_chip_process), \
+                 patch('vgm2mml.process_opll_csv', side_effect=_absent_chip_process), \
                  patch('sys.argv', ['vgm2mml.py', vgm_path, '--outdir', tmpdir]):
                 vgm2mml.main()
 
@@ -180,10 +184,10 @@ class MainCliTests(unittest.TestCase):
 
             self.assertFalse(os.path.exists(os.path.join(tmpdir, f'{stem}.psg.pass3.compress.MGS.mml')))
             self.assertFalse(os.path.exists(os.path.join(tmpdir, f'{stem}.psg.pass3.compress.MGS_pct.mml')))
-            self.assertTrue(os.path.exists(os.path.join(tmpdir, f'{stem}.scc.pass3.compress.MGS.mml')))
-            self.assertTrue(os.path.exists(os.path.join(tmpdir, f'{stem}.scc.pass3.compress.MGS_pct.mml')))
-            self.assertTrue(os.path.exists(os.path.join(tmpdir, f'{stem}.opll.pass3.compress.MGS.mml')))
-            self.assertTrue(os.path.exists(os.path.join(tmpdir, f'{stem}.opll.pass3.compress.MGS_pct.mml')))
+            self.assertFalse(os.path.exists(os.path.join(tmpdir, f'{stem}.scc.pass3.compress.MGS.mml')))
+            self.assertFalse(os.path.exists(os.path.join(tmpdir, f'{stem}.scc.pass3.compress.MGS_pct.mml')))
+            self.assertFalse(os.path.exists(os.path.join(tmpdir, f'{stem}.opll.pass3.compress.MGS.mml')))
+            self.assertFalse(os.path.exists(os.path.join(tmpdir, f'{stem}.opll.pass3.compress.MGS_pct.mml')))
 
 
 if __name__ == '__main__':
