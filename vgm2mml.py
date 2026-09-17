@@ -129,7 +129,7 @@ def main():
                              ' or log (per-channel grouped)')
     parser.add_argument('--raw-ticks', action='store_true',
                         help='Output note lengths as raw tick %% notation '
-                             '(e.g. {scale}%%{N}). '
+                             '(e.g. c%%N). '
                              'Default is note-value/divisor notation (e.g. c16, d8.).')
     args = parser.parse_args()
 
