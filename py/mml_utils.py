@@ -4,6 +4,7 @@ Tone table and note/octave/scale conversion utilities for MSX PSG/SCC.
 """
 
 import math
+import threading
 
 
 def estimate_mml_used(items):
@@ -59,6 +60,57 @@ def track_id_to_mgsdrv(ch: int) -> str:
     if 10 <= ch <= 17:
         return chr(ord('a') + ch - 10)
     raise ValueError(f"Track number {ch} is outside the valid MGSDRV range 1-17")
+
+
+def build_section_group_map(track_groups):
+    """Build mutable section-tracking state for channel groups.
+
+    Args:
+        track_groups: iterable of track-id iterables, e.g. ``((1, 2, 3),)``.
+
+    Returns:
+        dict mapping each track id to its shared group state.  The structure is
+        generic so future chip groupings (for example SCC-i ch4-ch8) can be
+        added by changing only the configured track groups.
+    """
+    track_map = {}
+    for tracks in track_groups:
+        group_tracks = tuple(tracks)
+        group_state = {
+            'tracks': group_tracks,
+            'boundaries': {track: [] for track in group_tracks},
+            'emitted_sections': 0,
+            'lock': threading.Lock(),
+        }
+        for track in group_tracks:
+            track_map[track] = group_state
+    return track_map
+
+
+def register_section_break(section_group_map, track_id, total_length):
+    """Record a track-local section break and maybe emit a group comment."""
+    group_state = section_group_map.get(track_id)
+    if group_state is None:
+        return ''
+
+    with group_state['lock']:
+        group_state['boundaries'][track_id].append(total_length)
+        section_index = group_state['emitted_sections']
+        if not all(len(group_state['boundaries'][track]) > section_index
+                   for track in group_state['tracks']):
+            return ''
+
+        lengths = []
+        for track in group_state['tracks']:
+            current_total = group_state['boundaries'][track][section_index]
+            previous_total = 0
+            if section_index > 0:
+                previous_total = group_state['boundaries'][track][section_index - 1]
+            lengths.append(str(current_total - previous_total))
+
+        group_state['emitted_sections'] += 1
+        channel_names = '-'.join(f'ch{track}' for track in group_state['tracks'])
+        return f"\n; Total length count: {channel_names}: {'-'.join(lengths)}\n"
 
 # Register value -> tone string table (port of reg2tone dict in mml_utils.tcl)
 REG2TONE = {

@@ -11,7 +11,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import (get_ticks, get_octave, get_scale, get_tone_frequency,
                        estimate_mml_used, estimate_alloc, ticks_to_mml_length,
                        compress_mml_text, get_mgs_note_token,
-                       get_mgs_note_token_pct)
+                       get_mgs_note_token_pct, build_section_group_map,
+                       register_section_break)
 
 # PSG column indices
 COL_TYPE = 0
@@ -47,6 +48,8 @@ COL_IOPARALLEL2 = 33
 _PSG_COL_LDIFF = 34
 _PSG_COL_ODIFF3 = 35
 _PSG_COL_CNT = 36
+
+PSG_SECTION_TRACK_GROUPS = ((1, 2, 3),)
 
 
 def _int(val):
@@ -100,6 +103,10 @@ def get_hw_envelope_frequency(row):
 
 def get_hw_envelope_shape(row):
     return _int(row[COL_ENVSHAPE]) & 0xF
+
+
+def _is_psg_section_break(mode):
+    return mode == 0
 
 
 def _row_to_csv(row):
@@ -396,6 +403,8 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
 
         ch_offset = 1  # PSG channels displayed as 1-based
 
+        section_group_map = build_section_group_map(PSG_SECTION_TRACK_GROUPS)
+
         for ch in ch_list:
             note_cnt = 0
             mml = ""
@@ -430,7 +439,6 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
                     if note_cnt > 0 and mode != mode_stamp:
                         mml_buffer[ch].append(mml)
                         mml = ""
-                        mml_buffer[ch].append(f"\n;tick count: {l_cnt}\n")
                         note_cnt = 0
 
                     if note_cnt == 0:
@@ -516,11 +524,15 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
                             mml = ""
 
                     note_cnt += 1
-                    if note_cnt == 8 or mode == 0:
+                    is_section_break = _is_psg_section_break(mode)
+                    if note_cnt == 8 or is_section_break:
                         mml_buffer[ch].append(mml)
                         mml = ""
-                        info = f"\n;tick count: {l_cnt}\n"
-                        mml_buffer[ch].append(info)
+                        if is_section_break:
+                            info = register_section_break(
+                                section_group_map, ch + ch_offset, l_cnt)
+                            if info:
+                                mml_buffer[ch].append(info)
                         note_cnt = 0
 
                     o_stamp = o
@@ -529,9 +541,6 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
 
             if mml:
                 mml_buffer[ch].append(mml)
-
-            info = f"\n;ch{ch + ch_offset} end: tick count: {l_cnt}\n"
-            mml_buffer[ch].append(info)
 
         return mml_buffer
 
@@ -689,6 +698,8 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
         mml_buffer = {ch: [] for ch in ch_list}
         ch_offset = 1
 
+        section_group_map = build_section_group_map(PSG_SECTION_TRACK_GROUPS)
+
         for ch in ch_list:
             note_cnt = 0
             mml = ""
@@ -726,7 +737,6 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
                     if note_cnt > 0 and mode != mode_stamp:
                         mml_buffer[ch].append(mml)
                         mml = ""
-                        mml_buffer[ch].append(f"\n;tick count: {l_cnt}\n")
                         note_cnt = 0
 
                     if note_cnt == 0:
@@ -815,10 +825,15 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
                             mml = ""
 
                     note_cnt += 1
-                    if note_cnt == 8 or mode == 0:
+                    is_section_break = _is_psg_section_break(mode)
+                    if note_cnt == 8 or is_section_break:
                         mml_buffer[ch].append(mml)
                         mml = ""
-                        mml_buffer[ch].append(f"\n;tick count: {l_cnt}\n")
+                        if is_section_break:
+                            info = register_section_break(
+                                section_group_map, ch + ch_offset, l_cnt)
+                            if info:
+                                mml_buffer[ch].append(info)
                         note_cnt = 0
 
                     o_stamp = o
@@ -827,8 +842,6 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
 
             if mml:
                 mml_buffer[ch].append(mml)
-
-            mml_buffer[ch].append(f"\n;ch{ch + ch_offset} end: tick count: {l_cnt}\n")
 
         return mml_buffer
 
