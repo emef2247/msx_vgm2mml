@@ -4,6 +4,7 @@ Tone table and note/octave/scale conversion utilities for MSX PSG/SCC.
 """
 
 import math
+import threading
 
 
 def estimate_mml_used(items):
@@ -79,6 +80,7 @@ def build_section_group_map(track_groups):
             'tracks': group_tracks,
             'boundaries': {track: [] for track in group_tracks},
             'emitted_sections': 0,
+            'lock': threading.Lock(),
         }
         for track in group_tracks:
             track_map[track] = group_state
@@ -91,23 +93,24 @@ def register_section_break(section_group_map, track_id, total_length):
     if group_state is None:
         return ''
 
-    group_state['boundaries'][track_id].append(total_length)
-    section_index = group_state['emitted_sections']
-    if not all(len(group_state['boundaries'][track]) > section_index
-               for track in group_state['tracks']):
-        return ''
+    with group_state['lock']:
+        group_state['boundaries'][track_id].append(total_length)
+        section_index = group_state['emitted_sections']
+        if not all(len(group_state['boundaries'][track]) > section_index
+                   for track in group_state['tracks']):
+            return ''
 
-    lengths = []
-    for track in group_state['tracks']:
-        current_total = group_state['boundaries'][track][section_index]
-        previous_total = 0
-        if section_index > 0:
-            previous_total = group_state['boundaries'][track][section_index - 1]
-        lengths.append(str(current_total - previous_total))
+        lengths = []
+        for track in group_state['tracks']:
+            current_total = group_state['boundaries'][track][section_index]
+            previous_total = 0
+            if section_index > 0:
+                previous_total = group_state['boundaries'][track][section_index - 1]
+            lengths.append(str(current_total - previous_total))
 
-    group_state['emitted_sections'] += 1
-    channel_names = '-'.join(f'ch{track}' for track in group_state['tracks'])
-    return f"\n; Total length count: {channel_names}: {'-'.join(lengths)}\n"
+        group_state['emitted_sections'] += 1
+        channel_names = '-'.join(f'ch{track}' for track in group_state['tracks'])
+        return f"\n; Total length count: {channel_names}: {'-'.join(lengths)}\n"
 
 # Register value -> tone string table (port of reg2tone dict in mml_utils.tcl)
 REG2TONE = {
