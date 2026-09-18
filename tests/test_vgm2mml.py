@@ -223,7 +223,8 @@ class SectionBreakTrackingTests(unittest.TestCase):
 
 class SccSectionCommentOutputTests(unittest.TestCase):
     class _DummyWtbTracker:
-        bytes_list = []
+        def __init__(self):
+            self.bytes_list = []
 
     def _make_scc_row(self, type_, length, volume, en, scale='c', octave=4, wtb_index=0):
         row = ['{}'] * scc_mml.NUM_COLS
