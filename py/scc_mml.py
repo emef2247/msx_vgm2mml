@@ -10,7 +10,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import (get_ticks, get_octave, get_scale,
                        estimate_mml_used, estimate_alloc,
                        ticks_to_mml_length, compress_mml_text,
-                       get_mgs_note_token, get_mgs_note_token_pct)
+                       get_mgs_note_token, get_mgs_note_token_pct,
+                       build_section_group_map, register_section_break)
 
 # ---------------------------------------------------------------------------
 # Column indices (28 columns, 0-27)
@@ -56,6 +57,7 @@ SCC_HEADER_PASS23 = "#" + _HEADER_COMMON
 
 # SCC channels start at MGSDRV channel 4
 CH_OFFSET = 4
+SCC_SECTION_TRACK_GROUPS = ((4, 5, 6, 7),)
 
 # Tcl-compatible empty placeholder
 EMPTY = '{}'
@@ -86,6 +88,10 @@ def _get_volume(row):
 
 def _get_frequency(row):
     return _int(row[COL_F1CTRL]) + 256 * _int(row[COL_F2CTRL])
+
+
+def _is_scc_section_break(type_, en, v):
+    return (type_ == 'enBit' and en == 0) or v == 0
 
 
 def _row_to_csv(row):
@@ -564,6 +570,7 @@ def _generate_simple_raw_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
     inline ``o{N}`` token whenever it changes.
     """
     mml_buffer = {}
+    section_group_map = build_section_group_map(SCC_SECTION_TRACK_GROUPS)
 
     for ch in ch_list:
         mml_buffer[ch] = []
@@ -622,10 +629,15 @@ def _generate_simple_raw_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
                         mml = ''
 
                 note_cnt += 1
-                if note_cnt == 8 or (type_ == 'enBit' and en == 0) or v == 0:
+                is_section_break = _is_scc_section_break(type_, en, v)
+                if note_cnt == 8 or is_section_break:
                     mml_buffer[ch].append(mml)
                     mml = ''
-                    mml_buffer[ch].append(f'\n;tick count: {l_cnt}\n')
+                    if is_section_break:
+                        info = register_section_break(
+                            section_group_map, ch_num, l_cnt)
+                        if info:
+                            mml_buffer[ch].append(info)
                     note_cnt = 0
 
                 o_stamp = o
@@ -633,8 +645,6 @@ def _generate_simple_raw_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
 
         if mml:
             mml_buffer[ch].append(mml)
-
-        mml_buffer[ch].append(f'\n;ch{ch_num} end: tick count: {l_cnt}\n')
 
     # --- Build final MML text ---
     lines = []
@@ -670,6 +680,7 @@ def _generate_simple_raw_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
 def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
     """Generate MML text from pass-3 data."""
     mml_buffer = {}
+    section_group_map = build_section_group_map(SCC_SECTION_TRACK_GROUPS)
 
     for ch in ch_list:
         mml_buffer[ch] = []
@@ -729,10 +740,15 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
                         mml = ''
 
                 note_cnt += 1
-                if note_cnt == 8 or (type_ == 'enBit' and en == 0) or v == 0:
+                is_section_break = _is_scc_section_break(type_, en, v)
+                if note_cnt == 8 or is_section_break:
                     mml_buffer[ch].append(mml)
                     mml = ''
-                    mml_buffer[ch].append(f'\n;tick count: {l_cnt}\n')
+                    if is_section_break:
+                        info = register_section_break(
+                            section_group_map, ch_num, l_cnt)
+                        if info:
+                            mml_buffer[ch].append(info)
                     note_cnt = 0
 
                 o_stamp = o
@@ -740,8 +756,6 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
 
         if mml:
             mml_buffer[ch].append(mml)
-
-        mml_buffer[ch].append(f'\n;ch{ch_num} end: tick count: {l_cnt}\n')
 
     # --- Build final MML text ---
     lines = []
@@ -862,6 +876,7 @@ def _generate_mml_mgs(buf3, ch_list, file_name_body, wtb_tracker, use_cnt=False,
     note_token_fn = get_mgs_note_token_pct if use_pct else get_mgs_note_token
     tempo = 75 if use_pct else 225
     mml_buffer = {ch: [] for ch in ch_list}
+    section_group_map = build_section_group_map(SCC_SECTION_TRACK_GROUPS)
 
     for ch in ch_list:
         note_cnt = 0
@@ -925,10 +940,15 @@ def _generate_mml_mgs(buf3, ch_list, file_name_body, wtb_tracker, use_cnt=False,
                         mml = ''
 
                 note_cnt += 1
-                if note_cnt == 8 or (type_ == 'enBit' and en == 0) or v == 0:
+                is_section_break = _is_scc_section_break(type_, en, v)
+                if note_cnt == 8 or is_section_break:
                     mml_buffer[ch].append(mml)
                     mml = ''
-                    mml_buffer[ch].append(f'\n;tick count: {l_cnt}\n')
+                    if is_section_break:
+                        info = register_section_break(
+                            section_group_map, ch_num, l_cnt)
+                        if info:
+                            mml_buffer[ch].append(info)
                     note_cnt = 0
 
                 o_stamp = o
@@ -936,8 +956,6 @@ def _generate_mml_mgs(buf3, ch_list, file_name_body, wtb_tracker, use_cnt=False,
 
         if mml:
             mml_buffer[ch].append(mml)
-
-        mml_buffer[ch].append(f'\n;ch{ch_num} end: tick count: {l_cnt}\n')
 
     # --- Build final MML text ---
     lines = []

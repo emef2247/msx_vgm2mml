@@ -6,6 +6,9 @@ from contextlib import redirect_stdout
 from unittest.mock import patch
 
 import vgm2mml
+import psg_mml
+import scc_mml
+from mml_utils import build_section_group_map, register_section_break
 
 
 class BuildMergedMmlTests(unittest.TestCase):
@@ -188,6 +191,100 @@ class MainCliTests(unittest.TestCase):
             self.assertFalse(os.path.exists(os.path.join(tmpdir, f'{stem}.scc.pass3.compress.MGS_pct.mml')))
             self.assertFalse(os.path.exists(os.path.join(tmpdir, f'{stem}.opll.pass3.compress.MGS.mml')))
             self.assertFalse(os.path.exists(os.path.join(tmpdir, f'{stem}.opll.pass3.compress.MGS_pct.mml')))
+
+
+class SectionBreakTrackingTests(unittest.TestCase):
+    def test_psg_group_comment_waits_for_all_channels_and_uses_section_deltas(self):
+        self.assertTrue(psg_mml._is_psg_section_break(0))
+        self.assertFalse(psg_mml._is_psg_section_break(1))
+        self.assertFalse(psg_mml._is_psg_section_break(2))
+        self.assertFalse(psg_mml._is_psg_section_break(3))
+
+        group_map = build_section_group_map(psg_mml.PSG_SECTION_TRACK_GROUPS)
+        self.assertEqual('', register_section_break(group_map, 1, 4))
+        self.assertEqual('', register_section_break(group_map, 2, 5))
+        self.assertEqual(
+            '\n; Total length count: ch1-ch2-ch3: 4-5-6\n',
+            register_section_break(group_map, 3, 6),
+        )
+        self.assertEqual('', register_section_break(group_map, 1, 10))
+        self.assertEqual('', register_section_break(group_map, 2, 11))
+        self.assertEqual(
+            '\n; Total length count: ch1-ch2-ch3: 6-6-6\n',
+            register_section_break(group_map, 3, 12),
+        )
+
+    def test_scc_break_conditions_cover_enbit_and_zero_volume(self):
+        self.assertTrue(scc_mml._is_scc_section_break('enBit', 0, 7))
+        self.assertTrue(scc_mml._is_scc_section_break('vCtrl', 1, 0))
+        self.assertFalse(scc_mml._is_scc_section_break('enBit', 1, 7))
+        self.assertFalse(scc_mml._is_scc_section_break('vCtrl', 1, 7))
+
+
+class SccSectionCommentOutputTests(unittest.TestCase):
+    class _DummyWtbTracker:
+        bytes_list = []
+
+    def _make_scc_row(self, type_, length, volume, en, scale='c', octave=4, wtb_index=0):
+        row = ['{}'] * scc_mml.NUM_COLS
+        row[scc_mml.COL_TYPE] = type_
+        row[scc_mml.COL_L] = str(length)
+        row[scc_mml.COL_O] = str(octave)
+        row[scc_mml.COL_SCALE] = scale
+        row[scc_mml.COL_EN] = str(en)
+        row[scc_mml.COL_WTBINDEX] = str(wtb_index)
+        row[scc_mml.COL_VCTRL] = str(volume)
+        row[scc_mml.COL_VDIFF] = '0'
+        row[scc_mml.COL_VCNT] = '1'
+        return row
+
+    def _make_scc_buffers(self):
+        return {
+            0: [
+                self._make_scc_row('enBit', 4, 8, 0),
+                self._make_scc_row('enBit', 9, 8, 0),
+            ],
+            1: [
+                self._make_scc_row('vCtrl', 4, 0, 1),
+                self._make_scc_row('vCtrl', 9, 0, 1),
+            ],
+            2: [
+                self._make_scc_row('enBit', 4, 6, 0),
+                self._make_scc_row('enBit', 9, 6, 0),
+            ],
+            3: [
+                self._make_scc_row('vCtrl', 4, 0, 1),
+                self._make_scc_row('vCtrl', 9, 0, 1),
+            ],
+        }
+
+    def test_generate_mml_emits_only_group_total_length_comments(self):
+        text = scc_mml._generate_mml(
+            self._make_scc_buffers(),
+            [0, 1, 2, 3],
+            'song',
+            self._DummyWtbTracker(),
+        )
+
+        self.assertNotIn(';tick count:', text)
+        self.assertNotIn('end: tick count', text)
+        self.assertEqual(1, text.count('; Total length count: ch4-ch5-ch6-ch7: 4-4-4-4'))
+        self.assertEqual(1, text.count('; Total length count: ch4-ch5-ch6-ch7: 9-9-9-9'))
+
+    def test_generate_mml_mgs_emits_only_group_total_length_comments(self):
+        text = scc_mml._generate_mml_mgs(
+            self._make_scc_buffers(),
+            [0, 1, 2, 3],
+            'song',
+            self._DummyWtbTracker(),
+            use_cnt=False,
+            use_pct=True,
+        )
+
+        self.assertNotIn(';tick count:', text)
+        self.assertNotIn('end: tick count', text)
+        self.assertEqual(1, text.count('; Total length count: ch4-ch5-ch6-ch7: 4-4-4-4'))
+        self.assertEqual(1, text.count('; Total length count: ch4-ch5-ch6-ch7: 9-9-9-9'))
 
 
 if __name__ == '__main__':
