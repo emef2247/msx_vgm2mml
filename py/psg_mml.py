@@ -12,7 +12,7 @@ from mml_utils import (get_ticks, get_octave, get_scale, get_tone_frequency,
                        estimate_mml_used, estimate_alloc, ticks_to_mml_length,
                        compress_mml_text, get_mgs_note_token,
                        get_mgs_note_token_pct, build_section_group_map,
-                       register_section_break)
+                       register_section_break, is_enable_off_transition)
 
 # PSG column indices
 COL_TYPE = 0
@@ -103,10 +103,6 @@ def get_hw_envelope_frequency(row):
 
 def get_hw_envelope_shape(row):
     return _int(row[COL_ENVSHAPE]) & 0xF
-
-
-def _is_psg_section_break(mode):
-    return mode == 0
 
 
 def _row_to_csv(row):
@@ -412,6 +408,7 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
             o_stamp = 0
             v_stamp = 0
             mode_stamp = -1   # tracks previous mode so we can flush on mode change
+            prev_en = None
             is_first_group = True
 
             ch_start = f"\n\n;ch{ch + ch_offset} start"
@@ -425,6 +422,7 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
                 o = _int(row[COL_O])
                 scale = row[COL_SCALE] if row[COL_SCALE] else 'r'
                 mode = _int(row[COL_EN])
+                is_section_break = is_enable_off_transition(prev_en, mode)
 
                 noise_freq = get_noise_period(row)
                 hw_env_on = get_hw_envelope_on(row)
@@ -524,20 +522,26 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
                             mml = ""
 
                     note_cnt += 1
-                    is_section_break = _is_psg_section_break(mode)
-                    if note_cnt == 8 or is_section_break:
+                    if note_cnt == 8:
                         mml_buffer[ch].append(mml)
                         mml = ""
-                        if is_section_break:
-                            info = register_section_break(
-                                section_group_map, ch + ch_offset, l_cnt)
-                            if info:
-                                mml_buffer[ch].append(info)
                         note_cnt = 0
 
                     o_stamp = o
                     v_stamp = v
                     mode_stamp = mode
+
+                if is_section_break:
+                    if mml:
+                        mml_buffer[ch].append(mml)
+                        mml = ""
+                    info = register_section_break(
+                        section_group_map, ch + ch_offset, l_cnt)
+                    if info:
+                        mml_buffer[ch].append(info)
+                    note_cnt = 0
+
+                prev_en = mode
 
             if mml:
                 mml_buffer[ch].append(mml)
@@ -707,6 +711,7 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
             o_stamp = 0
             v_stamp = 0
             mode_stamp = -1
+            prev_en = None
             is_first_group = True
 
             mml_buffer[ch].append(f"\n\n;ch{ch + ch_offset} start")
@@ -718,6 +723,7 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
                 o = _int(row[COL_O])
                 scale = row[COL_SCALE] if row[COL_SCALE] else 'r'
                 mode = _int(row[COL_EN])
+                is_section_break = is_enable_off_transition(prev_en, mode)
                 v_diff = _int(row[COL_VDIFF])
                 if use_cnt:
                     cnt = _int(row[_PSG_COL_CNT]) if len(row) > _PSG_COL_CNT else 1
@@ -825,20 +831,26 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
                             mml = ""
 
                     note_cnt += 1
-                    is_section_break = _is_psg_section_break(mode)
-                    if note_cnt == 8 or is_section_break:
+                    if note_cnt == 8:
                         mml_buffer[ch].append(mml)
                         mml = ""
-                        if is_section_break:
-                            info = register_section_break(
-                                section_group_map, ch + ch_offset, l_cnt)
-                            if info:
-                                mml_buffer[ch].append(info)
                         note_cnt = 0
 
                     o_stamp = o
                     v_stamp = v
                     mode_stamp = mode
+
+                if is_section_break:
+                    if mml:
+                        mml_buffer[ch].append(mml)
+                        mml = ""
+                    info = register_section_break(
+                        section_group_map, ch + ch_offset, l_cnt)
+                    if info:
+                        mml_buffer[ch].append(info)
+                    note_cnt = 0
+
+                prev_en = mode
 
             if mml:
                 mml_buffer[ch].append(mml)

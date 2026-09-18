@@ -11,7 +11,8 @@ from mml_utils import (get_ticks, get_octave, get_scale,
                        estimate_mml_used, estimate_alloc,
                        ticks_to_mml_length, compress_mml_text,
                        get_mgs_note_token, get_mgs_note_token_pct,
-                       build_section_group_map, register_section_break)
+                       build_section_group_map, register_section_break,
+                       is_enable_off_transition)
 
 # ---------------------------------------------------------------------------
 # Column indices (28 columns, 0-27)
@@ -88,10 +89,6 @@ def _get_volume(row):
 
 def _get_frequency(row):
     return _int(row[COL_F1CTRL]) + 256 * _int(row[COL_F2CTRL])
-
-
-def _is_scc_section_break(type_, en, v):
-    return (type_ == 'enBit' and en == 0) or v == 0
 
 
 def _row_to_csv(row):
@@ -579,6 +576,7 @@ def _generate_simple_raw_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
         o_stamp   = 0
         v_stamp   = 0
         at_stamp  = -1
+        prev_en   = None
         is_first_group = True
         mml       = ''
 
@@ -592,6 +590,7 @@ def _generate_simple_raw_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
             o          = _int(row[COL_O])
             scale      = row[COL_SCALE] if row[COL_SCALE] not in ('', EMPTY) else 'r'
             en         = _int(row[COL_EN])
+            is_section_break = is_enable_off_transition(prev_en, en)
             wtb_index  = _int(row[COL_WTBINDEX])
 
             if l > 0:
@@ -629,19 +628,25 @@ def _generate_simple_raw_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
                         mml = ''
 
                 note_cnt += 1
-                is_section_break = _is_scc_section_break(type_, en, v)
-                if note_cnt == 8 or is_section_break:
+                if note_cnt == 8:
                     mml_buffer[ch].append(mml)
                     mml = ''
-                    if is_section_break:
-                        info = register_section_break(
-                            section_group_map, ch_num, l_cnt)
-                        if info:
-                            mml_buffer[ch].append(info)
                     note_cnt = 0
 
                 o_stamp = o
                 v_stamp = v
+
+            if is_section_break:
+                if mml:
+                    mml_buffer[ch].append(mml)
+                    mml = ''
+                info = register_section_break(
+                    section_group_map, ch_num, l_cnt)
+                if info:
+                    mml_buffer[ch].append(info)
+                note_cnt = 0
+
+            prev_en = en
 
         if mml:
             mml_buffer[ch].append(mml)
@@ -689,6 +694,7 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
         o_stamp   = 0
         v_stamp   = 0
         at_stamp  = -1
+        prev_en   = None
         is_first_group = True
         mml       = ''
 
@@ -702,6 +708,7 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
             o          = _int(row[COL_O])
             scale      = row[COL_SCALE] if row[COL_SCALE] not in ('', EMPTY) else 'r'
             en         = _int(row[COL_EN])
+            is_section_break = is_enable_off_transition(prev_en, en)
             wtb_index  = _int(row[COL_WTBINDEX])
 
             if l > 0:
@@ -740,19 +747,25 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, wtb_tracker):
                         mml = ''
 
                 note_cnt += 1
-                is_section_break = _is_scc_section_break(type_, en, v)
-                if note_cnt == 8 or is_section_break:
+                if note_cnt == 8:
                     mml_buffer[ch].append(mml)
                     mml = ''
-                    if is_section_break:
-                        info = register_section_break(
-                            section_group_map, ch_num, l_cnt)
-                        if info:
-                            mml_buffer[ch].append(info)
                     note_cnt = 0
 
                 o_stamp = o
                 v_stamp = v
+
+            if is_section_break:
+                if mml:
+                    mml_buffer[ch].append(mml)
+                    mml = ''
+                info = register_section_break(
+                    section_group_map, ch_num, l_cnt)
+                if info:
+                    mml_buffer[ch].append(info)
+                note_cnt = 0
+
+            prev_en = en
 
         if mml:
             mml_buffer[ch].append(mml)
@@ -884,6 +897,7 @@ def _generate_mml_mgs(buf3, ch_list, file_name_body, wtb_tracker, use_cnt=False,
         o_stamp = 0
         v_stamp = 0
         at_stamp = -1
+        prev_en = None
         is_first_group = True
         mml = ''
 
@@ -897,6 +911,7 @@ def _generate_mml_mgs(buf3, ch_list, file_name_body, wtb_tracker, use_cnt=False,
             o = _int(row[COL_O])
             scale = row[COL_SCALE] if row[COL_SCALE] not in ('', EMPTY) else 'r'
             en = _int(row[COL_EN])
+            is_section_break = is_enable_off_transition(prev_en, en)
             wtb_index = _int(row[COL_WTBINDEX])
             v_diff = _int(row[COL_VDIFF])
             if use_cnt:
@@ -940,19 +955,25 @@ def _generate_mml_mgs(buf3, ch_list, file_name_body, wtb_tracker, use_cnt=False,
                         mml = ''
 
                 note_cnt += 1
-                is_section_break = _is_scc_section_break(type_, en, v)
-                if note_cnt == 8 or is_section_break:
+                if note_cnt == 8:
                     mml_buffer[ch].append(mml)
                     mml = ''
-                    if is_section_break:
-                        info = register_section_break(
-                            section_group_map, ch_num, l_cnt)
-                        if info:
-                            mml_buffer[ch].append(info)
                     note_cnt = 0
 
                 o_stamp = o
                 v_stamp = v
+
+            if is_section_break:
+                if mml:
+                    mml_buffer[ch].append(mml)
+                    mml = ''
+                info = register_section_break(
+                    section_group_map, ch_num, l_cnt)
+                if info:
+                    mml_buffer[ch].append(info)
+                note_cnt = 0
+
+            prev_en = en
 
         if mml:
             mml_buffer[ch].append(mml)

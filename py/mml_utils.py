@@ -112,6 +112,13 @@ def register_section_break(section_group_map, track_id, total_length):
         channel_names = '-'.join(f'ch{track}' for track in group_state['tracks'])
         return f"\n; Total length count: {channel_names}: {'-'.join(lengths)}\n"
 
+
+def is_enable_off_transition(previous_en, current_en):
+    """True only when a channel transitions from enabled to disabled."""
+    if previous_en is None:
+        return False
+    return previous_en != 0 and current_en == 0
+
 # Register value -> tone string table (port of reg2tone dict in mml_utils.tcl)
 REG2TONE = {
     3421: "o1c", 3228: "o1c+", 3047: "o1d", 2876: "o1d+", 2715: "o1e",
