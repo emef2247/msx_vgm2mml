@@ -8,7 +8,8 @@ from unittest.mock import patch
 import vgm2mml
 import psg_mml
 import scc_mml
-from mml_utils import build_section_group_map, register_section_break
+from mml_utils import (build_section_group_map, is_enable_off_transition,
+                       register_section_break)
 
 
 class BuildMergedMmlTests(unittest.TestCase):
@@ -194,12 +195,16 @@ class MainCliTests(unittest.TestCase):
 
 
 class SectionBreakTrackingTests(unittest.TestCase):
-    def test_psg_group_comment_waits_for_all_channels_and_uses_section_deltas(self):
-        self.assertTrue(psg_mml._is_psg_section_break(0))
-        self.assertFalse(psg_mml._is_psg_section_break(1))
-        self.assertFalse(psg_mml._is_psg_section_break(2))
-        self.assertFalse(psg_mml._is_psg_section_break(3))
+    def test_enable_off_transition_requires_actual_enabled_to_disabled_edge(self):
+        self.assertFalse(is_enable_off_transition(None, 0))
+        self.assertFalse(is_enable_off_transition(0, 0))
+        self.assertFalse(is_enable_off_transition(0, 1))
+        self.assertFalse(is_enable_off_transition(1, 1))
+        self.assertFalse(is_enable_off_transition(3, 2))
+        self.assertTrue(is_enable_off_transition(1, 0))
+        self.assertTrue(is_enable_off_transition(3, 0))
 
+    def test_psg_group_comment_waits_for_all_channels_and_uses_section_deltas(self):
         group_map = build_section_group_map(psg_mml.PSG_SECTION_TRACK_GROUPS)
         self.assertEqual('', register_section_break(group_map, 1, 4))
         self.assertEqual('', register_section_break(group_map, 2, 5))
@@ -214,11 +219,85 @@ class SectionBreakTrackingTests(unittest.TestCase):
             register_section_break(group_map, 3, 12),
         )
 
-    def test_scc_break_conditions_cover_enbit_and_zero_volume(self):
-        self.assertTrue(scc_mml._is_scc_section_break('enBit', 0, 7))
-        self.assertTrue(scc_mml._is_scc_section_break('vCtrl', 1, 0))
-        self.assertFalse(scc_mml._is_scc_section_break('enBit', 1, 7))
-        self.assertFalse(scc_mml._is_scc_section_break('vCtrl', 1, 7))
+    def test_scc_group_comment_waits_for_all_channels_and_uses_section_deltas(self):
+        group_map = build_section_group_map(scc_mml.SCC_SECTION_TRACK_GROUPS)
+        self.assertEqual('', register_section_break(group_map, 4, 7))
+        self.assertEqual('', register_section_break(group_map, 5, 8))
+        self.assertEqual('', register_section_break(group_map, 6, 9))
+        self.assertEqual(
+            '\n; Total length count: ch4-ch5-ch6-ch7: 7-8-9-10\n',
+            register_section_break(group_map, 7, 10),
+        )
+        self.assertEqual('', register_section_break(group_map, 4, 11))
+        self.assertEqual('', register_section_break(group_map, 5, 14))
+        self.assertEqual('', register_section_break(group_map, 6, 17))
+        self.assertEqual(
+            '\n; Total length count: ch4-ch5-ch6-ch7: 4-6-8-10\n',
+            register_section_break(group_map, 7, 20),
+        )
+
+
+class PsgSectionCommentOutputTests(unittest.TestCase):
+    def _make_psg_row(self, type_, time_s, ch, en, volume=10, freq_a=85, freq_b=0):
+        row = [''] * 34
+        row[psg_mml.COL_TYPE] = type_
+        row[psg_mml.COL_TIME] = str(time_s)
+        row[psg_mml.COL_CH] = str(ch)
+        row[psg_mml.COL_EN] = str(en)
+        row[psg_mml.COL_FCTRLA] = str(freq_a)
+        row[psg_mml.COL_FCTRLB] = str(freq_b)
+        row[psg_mml.COL_AVCTRL] = str(volume)
+        row[psg_mml.COL_VVCTRL] = '0'
+        row[psg_mml.COL_ENVPCTRL_L] = '11'
+        row[psg_mml.COL_ENVPCTRL_M] = '0'
+        row[psg_mml.COL_ENVSHAPE] = '0'
+        return ','.join(row)
+
+    def test_process_psg_csv_emits_group_comments_only_on_en_off_transitions(self):
+        rows = []
+        rows.extend([
+            self._make_psg_row('fCA', 0.0, 0, 1, volume=10),
+            self._make_psg_row('mode', 0.10, 0, 0, volume=10),
+            self._make_psg_row('fCA', 0.10, 0, 1, volume=10),
+            self._make_psg_row('mode', 0.30, 0, 0, volume=10),
+        ])
+        rows.extend([
+            self._make_psg_row('fCA', 0.0, 1, 1, volume=11),
+            self._make_psg_row('aVC', 0.05, 1, 1, volume=0),
+            self._make_psg_row('mode', 0.20, 1, 0, volume=0),
+            self._make_psg_row('fCA', 0.20, 1, 1, volume=11),
+            self._make_psg_row('aVC', 0.25, 1, 1, volume=0),
+            self._make_psg_row('mode', 0.40, 1, 0, volume=0),
+        ])
+        rows.extend([
+            self._make_psg_row('fCA', 0.0, 2, 1, volume=12),
+            self._make_psg_row('mode', 0.15, 2, 0, volume=12),
+            self._make_psg_row('fCA', 0.15, 2, 1, volume=12),
+            self._make_psg_row('mode', 0.25, 2, 0, volume=12),
+        ])
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            input_path = os.path.join(tmpdir, 'song_log.psg.csv')
+            with open(input_path, 'w', newline='\n') as fh:
+                fh.write('#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2\n')
+                for row in rows:
+                    fh.write(row + '\n')
+
+            output_path = psg_mml.process_psg_csv(
+                input_path,
+                tmpdir,
+                stem='song',
+                dump_passes=False,
+                debug=True,
+            )
+
+            with open(output_path, 'r', newline='') as fh:
+                text = fh.read()
+
+        self.assertNotIn(';tick count:', text)
+        self.assertNotIn('end: tick count', text)
+        self.assertEqual(1, text.count('; Total length count: ch1-ch2-ch3: 6-12-9'))
+        self.assertEqual(1, text.count('; Total length count: ch1-ch2-ch3: 12-12-6'))
 
 
 class SccSectionCommentOutputTests(unittest.TestCase):
@@ -242,20 +321,30 @@ class SccSectionCommentOutputTests(unittest.TestCase):
     def _make_scc_buffers(self):
         return {
             0: [
-                self._make_scc_row('enBit', 4, 8, 0),
-                self._make_scc_row('enBit', 9, 8, 0),
+                self._make_scc_row('f1Ctrl', 4, 8, 1),
+                self._make_scc_row('f1Ctrl', 0, 8, 0),
+                self._make_scc_row('f1Ctrl', 9, 8, 1),
+                self._make_scc_row('f1Ctrl', 0, 8, 0),
             ],
             1: [
-                self._make_scc_row('vCtrl', 4, 0, 1),
-                self._make_scc_row('vCtrl', 9, 0, 1),
+                self._make_scc_row('f1Ctrl', 4, 7, 1),
+                self._make_scc_row('vCtrl', 2, 0, 1),
+                self._make_scc_row('enBit', 0, 0, 0),
+                self._make_scc_row('f1Ctrl', 3, 7, 1),
+                self._make_scc_row('vCtrl', 1, 0, 1),
+                self._make_scc_row('enBit', 0, 0, 0),
             ],
             2: [
-                self._make_scc_row('enBit', 4, 6, 0),
-                self._make_scc_row('enBit', 9, 6, 0),
+                self._make_scc_row('f1Ctrl', 6, 6, 1),
+                self._make_scc_row('enBit', 0, 6, 0),
+                self._make_scc_row('f1Ctrl', 4, 6, 1),
+                self._make_scc_row('enBit', 0, 6, 0),
             ],
             3: [
-                self._make_scc_row('vCtrl', 4, 0, 1),
-                self._make_scc_row('vCtrl', 9, 0, 1),
+                self._make_scc_row('f1Ctrl', 5, 5, 1),
+                self._make_scc_row('enBit', 0, 5, 0),
+                self._make_scc_row('f1Ctrl', 7, 5, 1),
+                self._make_scc_row('enBit', 0, 5, 0),
             ],
         }
 
@@ -269,8 +358,8 @@ class SccSectionCommentOutputTests(unittest.TestCase):
 
         self.assertNotIn(';tick count:', text)
         self.assertNotIn('end: tick count', text)
-        self.assertEqual(1, text.count('; Total length count: ch4-ch5-ch6-ch7: 4-4-4-4'))
-        self.assertEqual(1, text.count('; Total length count: ch4-ch5-ch6-ch7: 9-9-9-9'))
+        self.assertEqual(1, text.count('; Total length count: ch4-ch5-ch6-ch7: 4-6-6-5'))
+        self.assertEqual(1, text.count('; Total length count: ch4-ch5-ch6-ch7: 9-4-4-7'))
 
     def test_generate_mml_mgs_emits_only_group_total_length_comments(self):
         text = scc_mml._generate_mml_mgs(
@@ -284,8 +373,8 @@ class SccSectionCommentOutputTests(unittest.TestCase):
 
         self.assertNotIn(';tick count:', text)
         self.assertNotIn('end: tick count', text)
-        self.assertEqual(1, text.count('; Total length count: ch4-ch5-ch6-ch7: 4-4-4-4'))
-        self.assertEqual(1, text.count('; Total length count: ch4-ch5-ch6-ch7: 9-9-9-9'))
+        self.assertEqual(1, text.count('; Total length count: ch4-ch5-ch6-ch7: 4-6-6-5'))
+        self.assertEqual(1, text.count('; Total length count: ch4-ch5-ch6-ch7: 9-4-4-7'))
 
 
 if __name__ == '__main__':
