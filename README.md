@@ -19,7 +19,7 @@ MSX-Music（PSG, OPLL）および SCC の VGM ファイルから、MGSDRV 用 MM
 
 ### 使い方
 ```bash
-python vgm2mml.py [-h] [--outdir OUTDIR] [--dump-passes] [--debug] vgm
+python vgm2mml.py [-h] [--outdir OUTDIR] [--dump-passes] [--debug] [--raw-ticks] vgm
 ```
 
 ### 基本例
@@ -38,6 +38,7 @@ outputs/stem/stem.mml
 | `--outdir OUTDIR` | MML ファイルの出力先ディレクトリを指定 |
 | `--dump-passes` | 中間ファイル（intermediate files）を出力 |
 | `--debug` | デバッグ用ファイルを出力 |
+| `--raw-ticks` | 音長を `%` tick 形式（例: `c%%N`）で出力（デフォルトは音価形式） |
 
 ---
 
@@ -117,7 +118,7 @@ The generated MML can be copied and pasted directly into https://msxplay.com/edi
 
 ### Usage
 ```bash
-python vgm2mml.py [-h] [--outdir OUTDIR] [--dump-passes] [--debug] vgm
+python vgm2mml.py [-h] [--outdir OUTDIR] [--dump-passes] [--debug] [--raw-ticks] vgm
 ```
 
 ### Example
@@ -132,6 +133,7 @@ The output will be saved in `outputs/<stem>/<stem>.mml`.
 | `--outdir OUTDIR` | Specify the output directory for the MML file |
 | `--dump-passes` | Output intermediate files |
 | `--debug` | Output debug files |
+| `--raw-ticks` | Output note lengths as raw `%` ticks (e.g. `c%%N`) instead of note-value notation |
 
 ---
 
