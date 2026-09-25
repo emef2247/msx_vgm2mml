@@ -35,7 +35,7 @@
 - Intermediate results are first-class project artifacts for development and validation.
 - Do not design a conversion as an opaque VGM -> MML transformation when a meaningful intermediate representation can be emitted.
 - Every non-trivial interpretation or transformation should be inspectable before the next transformation consumes it.
-- Prefer CSV or another stable, human-readable representation that can be diffed and inspected outside Python.
+- Prefer CSV, human-readable representation that can be diffed and inspected outside Python.
 - When adding a new transformation stage, add or preserve a way to dump its input and output.
 - Do not remove, merge away, or silently bypass existing pass dumps merely because the final MML still sounds correct.
 - A change is not considered well validated only because final MML was generated. Inspect the relevant intermediate result as part of debugging conversion behavior.
