@@ -1,0 +1,10 @@
+;[name=ym2413_scale_rom1 lpf=1]
+#opll_mode 0
+#tempo 120
+#title { "YM2413 Major Scale ROM1" }
+
+; 目的: 単一 ROM パッチ (@1) でメジャースケール (C-D-E-F-G-A-B-C) の安定性
+; 同一パッチ継続時に不要な再設定が起きないか
+; 単純な往復 + 休符
+
+9 @1 v14 o4 l8 c d e f g a b > c < b a g f e d c r

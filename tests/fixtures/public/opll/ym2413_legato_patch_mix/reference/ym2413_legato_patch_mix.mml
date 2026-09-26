@@ -1,0 +1,8 @@
+;[name=ym2413_legato_patch_mix lpf=1]
+#opll_mode 0
+#tempo 100
+#title { "Legato + Patch Mix" }
+
+; タイで KeyOn 再発行を抑制しつつパッチ変更が正しく反映されるか。
+9 @1 v15 o5 l2 c & @5 v13 c & @9 v11 c & @1 v15 c
+9 @2 v12 o4 l4 e & @6 e & @1 e r

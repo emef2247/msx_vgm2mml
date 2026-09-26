@@ -1,0 +1,18 @@
+;[name=patch_change_midnote lpf=1]
+#opll_mode 1
+#tempo 75
+#title { "Patch Change Mid-Note" }
+#alloc 1=400
+#alloc 2=200
+#alloc 3=400
+#psg_tune { 3392, 3200, 3008, 2848, 2688, 2528, 2368, 2240, 2112, 2016, 1888, 1792 }
+
+@e01 = { 1, 0, F, 0=15 }
+@e09 = { 1, 0, F, E, B=6 }
+@e10 = { 1, 0, F, E, 9=10 }
+
+
+; タイ (&) で KeyOn を維持しつつパッチ番号 @X を変更する挙動の検証。
+
+1 @1 v14 o4 l1 c & @9 v14 c & @1 v14 c & @10 v14 c
+1 @9 v14 o5 l2 g & @1 v14 g

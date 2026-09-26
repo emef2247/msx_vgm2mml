@@ -1,0 +1,27 @@
+;[name=chords_mix lpf=1]
+#opll_mode 1
+#tempo 225
+#title { "Chords Mix" }
+#alloc 4=500
+#alloc 5=500
+#alloc 6=500
+#alloc 7=500
+
+
+@s00 = { 7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f80808080808080808080808080808000 }
+@s01 = { 7f7f7f7f7f7f7f7f80808080808080807f7f7f7f7f7f7f7f8080808080808080 }
+@s02 = { 00f8f0e8e0d8d0c8c0b8b0a8a098908880787068605850484038302820181008 }
+@s03 = { 00f0e0d0c0b0a090807060504030201000f0e0d0c0b0a0908070605040302010 }
+@s04 = { 004e626d757a7d7e7f7e7d7a756d624e00b19d928a858281808182858a929db1 }
+@s05 = { 001931475a6a757d7f7d756a5a47311900e7cfb9a6968b8380838b96a6b9cfe7 }
+
+; 目的: 複数チャネル同時発音時の音色/音量/KeyOn 同期
+; ChA/B/C: それぞれ異パッチ/音量で和音 C, F, G を進行
+; 短い進行: | C | F | G | C |
+
+4 @0 v13 o4 l8 c e g c e g c e
+5 @1 v12 o3 l8 c f a c f a c f
+6 @2 v11 o3 l8 g b d g b d g b
+7 @3 v13 o4 l4 c r
+6 @4 v12 o3 l4 c r
+5 @5 v11 o3 l4 g r

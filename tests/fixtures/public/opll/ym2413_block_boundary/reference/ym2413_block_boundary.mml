@@ -1,0 +1,17 @@
+;[name=ym2413_block_boundary lpf=1]
+#opll_mode 0
+#tempo 120
+#title { "Block Boundary Sweep" }
+
+; o1〜o7 に跨る代表音 (C / B) と境界直前直後 (B -> C) の周波数/Block ビットを確認。
+; 各オクターブで C E G B >C を並べる。
+
+
+9 @1 v13 l16
+9 o1 c e g b > c
+9 o2 c e g b > c
+9 o3 c e g b > c
+9 o4 c e g b > c
+9 o5 c e g b > c
+9 o6 c e g b > c
+9 o7 c e g b > c

@@ -1,0 +1,11 @@
+;[name=ym2413_scale_chromatic lpf=1]
+#opll_mode 0
+#tempo 120
+#title { "YM2413 Chromatic Scale" }
+
+; 目的: 連続半音 (クロマチック) による F-Num / Block 計算 & KeyOn/Off の基本検証
+; 範囲: o3 c から o4 c まで 12 半音 + 最後に戻り
+; 使用パッチ: @1 (ROM 音色 1 想定)
+
+9 @1 v14 o3 l8 c c+ d d+ e f f+ g g+ a a+ b > c
+9 @1 v14 o3 l8 r r r r r r r r r r r r r

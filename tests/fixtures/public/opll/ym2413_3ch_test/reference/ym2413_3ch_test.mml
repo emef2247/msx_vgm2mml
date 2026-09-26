@@ -1,0 +1,27 @@
+;[name=ym2413_3ch_test lpf=1]
+#opll_mode 0
+#tempo 118
+#title { "YM2413 3CH Composite Test" }
+
+; 目的:
+;  - 異なるパッチ/音量/オクターブ
+;  - スケール移行
+;  - 途中音量変化
+;  - タイ (&) による持続
+;  - 休符混在
+; これら複合で長め安定性チェック (短時間内)
+
+; CH1: メロディ (パッチ1)
+9 @1 v14 o4 l8 c d e f g a b > c & c r g e
+
+; CH2: 和声 (パッチ4) - アルペジオ風
+8 @4 v12 o3 l16 c g e g c g e g  f a f a  g b g b  c > c < g r r
+
+; CH3: ベース (パッチ7) - オクターブ交互 + 音量変化
+7 @7 v13 o2 l8 c v11 c v9 c v13 g v11 g v9 g
+7 @7 v13 o2 l8 f r f r g r g r
+
+; 終了休符
+9 @1 v14 o4 l4 r
+8 @4 v12 o3 l4 r
+7 @7 v11 o2 l4 r

@@ -1,0 +1,24 @@
+;[name=short_pulses lpf=1]
+#opll_mode 1
+#tempo 225
+#title { "Short Pulses" }
+#alloc 4=500
+#alloc 5=500
+#alloc 6=500
+#alloc 7=500
+
+
+@s00 = { 7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f80808080808080808080808080808000 }
+@s01 = { 7f7f7f7f7f7f7f7f80808080808080807f7f7f7f7f7f7f7f8080808080808080 }
+@s02 = { 00f8f0e8e0d8d0c8c0b8b0a8a098908880787068605850484038302820181008 }
+@s03 = { 00f0e0d0c0b0a090807060504030201000f0e0d0c0b0a0908070605040302010 }
+@s04 = { 004e626d757a7d7e7f7e7d7a756d624e00b19d928a858281808182858a929db1 }
+@s05 = { 001931475a6a757d7f7d756a5a47311900e7cfb9a6968b8380838b96a6b9cfe7 }
+
+
+; l64 / l128 など最小単位 (環境が許す範囲) を使い高速 KeyOn/Off。
+; Retrigger ロジックと Envelope 初期化確認。
+
+9 @1 v15 o5 l64 c c c c c c c c
+9 @1 v12 o5 l64 d e f g a b > c
+9 @1 v10 o5 l64 c r c r c r c r

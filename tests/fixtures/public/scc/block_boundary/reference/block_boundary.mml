@@ -1,0 +1,28 @@
+#title { "Block Boundary Sweep" }
+;[name=block_boundary lpf=1]
+#opll_mode 1
+#tempo 225
+#title { "Block Boundary Sweep" }
+#alloc 4=500
+#alloc 5=500
+#alloc 6=500
+#alloc 7=500
+
+@s00 = {00f8f0e8e0d8d0c8c0b8b0a8a098908880787068605850484038302820181008}
+@s01 = {001931475a6a757d7f7d756a5a4731198090a0b0c0d0e0f00010203040506070}
+@s02 = {00407f4001c081c001407f4001c0014001e0012001f0011001ffffffff404040}
+@s03 = {003050607060503000d0b0a090a0b0d000406070604000c0a090a0c000700090}
+@s04 = {305050300000104060706030f0e0e000202010c0a090a0c00000d0b0b0d00000}
+
+; o1〜o7 に跨る代表音 (C / B) と境界直前直後 (B -> C) の周波数/Block ビットを確認。
+; 各オクターブで C E G B >C を並べる。
+
+
+4 @1 v13 l16
+4 o1 c e g b > c
+4 o2 c e g b > c
+4 o3 c e g b > c
+4 o4 c e g b > c
+4 o5 c e g b > c
+4 o6 c e g b > c
+4 o7 c e g b > c

@@ -1,0 +1,18 @@
+;[name=ym2413_rhythm_mode_basic lpf=1]
+#opll_mode 0
+#tempo 120
+#title { "YM2413 Rhythm Mode Basic" }
+
+; Rhythm ON/OFF と各パーカッションを順次トリガすることを想定。
+; MML が 0x0E を直接書けない場合は VGM 化後にレジスタ列を確認・補強。
+; メロディ参照 (ch9 仮)
+
+9 @1 v12 o4 l8 c r c r c r c r
+
+; (擬似) rhythm enable
+; (擬似) BD / SD / TOM / CYM / HH それぞれ発音
+
+9 @2 v10 o3 l8 e g r e g r e g r
+
+; (擬似) rhythm disable
+9 @1 v12 o4 l4 c r > c r
