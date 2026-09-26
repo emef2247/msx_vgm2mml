@@ -744,13 +744,14 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, s
     # VGM spec: if a chip's clock is 0, the chip is not installed and its
     # data commands must be ignored.
     #
-    # K051649 (SCC/SCC+) clock is at header offset 0xCC, added in VGM 1.61.
+    # K051649 (SCC/SCC+) clock is at header offset 0x9C, added in VGM 1.61.
+    # 0xCC is ES5503, not SCC. Do not read command bytes as an extended header.
     # Only process 0xD2 (K051649) commands when the clock is non-zero.
     vgm_version = struct.unpack_from('<I', raw, 0x08)[0] if len(raw) >= 0x0C else 0
     has_k051649 = False
-    if vgm_version >= 0x161 and len(raw) >= 0xD0:
-        k051649_clock = struct.unpack_from('<I', raw, 0xCC)[0]
-        has_k051649 = (k051649_clock != 0)
+    if vgm_version >= 0x161 and min(len(raw), data_start) >= 0xA0:
+        k051649_clock = struct.unpack_from('<I', raw, 0x9C)[0]
+        has_k051649 = (k051649_clock & 0x3FFFFFFF) != 0
 
     # ── Process data stream ──────────────────────────────────────
     psg  = _PsgState()
