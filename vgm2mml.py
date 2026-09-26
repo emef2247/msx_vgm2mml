@@ -117,7 +117,7 @@ def main():
     parser.add_argument('--outdir', default=None,
                         help='Output directory (default: <vgm_stem>_log/ next to vgm)')
     parser.add_argument('--dump-passes', action='store_true',
-                        help='Write pass0-3 intermediate CSV files')
+                        help='Keep event log/trace CSVs and write pass0-3 and PSG/SCC Segment CSVs')
     parser.add_argument('--debug', action='store_true',
                         help='Write all chip-specific MML variants and raw CSV files '
                              'in addition to the merged <stem>.mml output')
@@ -210,14 +210,15 @@ def main():
     # ── Step 6: Clean up intermediate files in non-debug mode ─────
     if not args.debug:
         # Remove log/trace CSVs written by parse_vgm (intermediate inputs)
-        for csv_path in (psg_log_csv, psg_trace_csv,
-                         scc_log_csv, scc_trace_csv,
-                         opll_log_csv, opll_trace_csv,
-                         opll_voice_csv, opll_regs_csv):
-            try:
-                os.remove(csv_path)
-            except OSError:
-                pass
+        if not args.dump_passes:
+            for csv_path in (psg_log_csv, psg_trace_csv,
+                             scc_log_csv, scc_trace_csv,
+                             opll_log_csv, opll_trace_csv,
+                             opll_voice_csv, opll_regs_csv):
+                try:
+                    os.remove(csv_path)
+                except OSError:
+                    pass
         # Remove per-chip compress intermediate files for chips present in input.
         chips_to_clean = []
         if has_psg:

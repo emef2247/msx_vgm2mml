@@ -11,6 +11,8 @@
 ## How to run
 - Register-oriented converter: `python vgm2mml.py <input.vgm>`
 - OPLL grid converter: `python vgm2mml_grid.py <input.vgm>`
+- Automated checks: `python -m unittest discover -s tests -v`
+- For isolated conversion checks, specify `--outdir <directory>` outside source fixtures.
 - For work on `vgm2mml.py`, use `--dump-passes` whenever intermediate results are needed for inspection.
 - If a requested command or option is not documented here or in `README.md`, inspect the repository and report the actual command. Do not invent a workflow.
 
@@ -19,12 +21,14 @@
 - `vgm2mml_grid.py`: OPLL step-grid conversion entry point.
 - `py/vgm_reader.py`: VGM parsing / trace-side implementation.
 - `py/opll.py`, `py/opll_mml.py`: OPLL processing and MML generation.
-- `py/psg_mml.py`: PSG processing and MML generation.
-- `py/scc_mml.py`: SCC processing and MML generation.
+- `py/psg.py`, `py/scc.py`: event analysis and Segment construction.
+- `py/chip_segments.py`: immutable PSG/SCC Segment types and CSV dumping.
+- `py/psg_mml.py`, `py/scc_mml.py`: Segment-to-MML rendering and compatibility entry points.
 - `py/segment_utils.py`: shared segment/pass processing.
 - `py/mml_utils.py`: shared MML utilities.
 - `tests/`: automated checks.
 - `docs/project_knowledge.md`: project design context and transformation rules. Read before changing conversion behavior.
+- `docs/psg_scc_segments.md`: current PSG/SCC pipeline, Segment fields and validation limits.
 - `inputs/`: source/reference material if present locally. Do not commit private game-derived material.
 - `outputs/`: generated artifacts and intermediate results if present locally.
 - `field_notes/`: reusable discoveries if this workflow directory is added.

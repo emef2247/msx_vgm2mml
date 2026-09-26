@@ -1387,6 +1387,12 @@ At the time this document was prepared, the public repository describes:
 -   `vgm2mml.py` as supporting PSG, OPLL and SCC and producing
     register-oriented MGSDRV MML.
 -   `vgm2mml.py --dump-passes` as producing intermediate files.
+-   PSG/SCC analysis now lives in `py/psg.py` and `py/scc.py`; their MML
+    renderers consume chip-specific immutable Segments. `--dump-passes`
+    retains source event CSVs and emits Segment and SCC waveform CSVs.
+    See `docs/psg_scc_segments.md` for the preserved interpretation and limits.
+-   SCC clock detection reads 0x9C (K051649/K052539), not 0xCC (ES5503).
+    The previous offset was a bug that suppressed valid SCC events.
 -   `vgm2mml_grid.py` as an OPLL-specific grid-quantized path.
 -   OPLL user-defined patch output.
 -   OPLL rhythm output for bass drum, snare, tom, cymbal and hi-hat.

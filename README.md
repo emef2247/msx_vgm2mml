@@ -36,9 +36,13 @@ outputs/stem/stem.mml
 | オプション | 説明 |
 |-----------|------|
 | `--outdir OUTDIR` | MML ファイルの出力先ディレクトリを指定 |
-| `--dump-passes` | 中間ファイル（intermediate files）を出力 |
+| `--dump-passes` | イベントlog/trace、PASS0-3、PSG/SCC Segment、SCC波形CSVを保存 |
 | `--debug` | デバッグ用ファイルを出力 |
 | `--raw-ticks` | 音長を `%` tick 形式（例: `c%%N`）で出力（デフォルトは音価形式） |
+
+PSG/SCCは、イベントCSV → Segment → MMLの段階に分けて処理します。
+構成と中間フォーマットは [PSG/SCC Segment pipeline](docs/psg_scc_segments.md) を参照してください。
+テストはリポジトリのルートで `python -m unittest discover -s tests -v` を実行します。
 
 ---
 
