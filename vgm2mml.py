@@ -30,6 +30,7 @@ from scc_mml import process_scc_csv
 from psg_mml import process_psg_csv
 from opll_mml import process_opll_csv
 from mml_sync import annotate_sync_points
+from mml_envelopes import EnvelopeBank
 
 
 def _has_chip_data(csv_path: str) -> bool:
@@ -67,7 +68,8 @@ def _extract_from_alloc(mml_path: str) -> str:
 
 def _build_merged_mml(stem: str, song_dir: str,
                       has_psg: bool, has_scc: bool, has_opll: bool,
-                      raw_ticks: bool = False, sync_min_gap: int = 1000) -> str:
+                      raw_ticks: bool = False, sync_min_gap: int = 1000,
+                      target: bool = True) -> str:
     """Build the merged MML text from per-chip compress outputs.
 
     The merged file has a single global header followed by PSG, SCC, and OPLL
@@ -102,13 +104,16 @@ def _build_merged_mml(stem: str, song_dir: str,
             continue
         mml_path = os.path.join(song_dir,
                                 f'{stem}.{chip_ext}.{suffix}')
+        target_path = os.path.join(song_dir, f'{stem}.{chip_ext}.target.mml')
+        if target and chip_key in ('psg', 'scc') and os.path.exists(target_path):
+            mml_path = target_path
         body_parts.append(separator + '\n')
         body_parts.append(_extract_from_alloc(mml_path))
 
     result = ''.join(body_parts)
     if not result.endswith('\n'):
         result += '\n'
-    return annotate_sync_points(result, min_gap=sync_min_gap)
+    return annotate_sync_points(result, min_gap=sync_min_gap, drop_silent=target)
 
 
 def main():
@@ -176,12 +181,14 @@ def main():
     has_opll = _has_chip_data(opll_trace_csv)
 
     # ── Step 2: SCC MML pipeline ─────────────────────────────────
+    envelope_bank = EnvelopeBank()
     scc_csv = scc_trace_csv if args.scc_input == 'trace' else scc_log_csv
 
     scc_mml_path = process_scc_csv(scc_csv, song_dir, stem=base_name,
                                    dump_passes=args.dump_passes,
                                    debug=args.debug,
-                                   raw_ticks=args.raw_ticks)
+                                   raw_ticks=args.raw_ticks,
+                                   envelope_bank=envelope_bank)
     if args.debug:
         print(f"SCC MML: {scc_mml_path}")
 
@@ -191,7 +198,8 @@ def main():
     psg_mml_path = process_psg_csv(psg_csv, song_dir, stem=base_name,
                                    dump_passes=args.dump_passes,
                                    debug=args.debug,
-                                   raw_ticks=args.raw_ticks)
+                                   raw_ticks=args.raw_ticks,
+                                   envelope_bank=envelope_bank)
     if args.debug:
         print(f"PSG MML: {psg_mml_path}")
 
@@ -213,6 +221,9 @@ def main():
     with open(merged_path, 'w', newline='\n') as fh:
         fh.write(merged_text)
     print(f"Merged MML: {merged_path}")
+    if not args.debug and not args.dump_passes:
+        for chip in ('psg', 'scc'):
+            os.remove(os.path.join(song_dir, f'{base_name}.{chip}.target.mml'))
 
     # ── Step 6: Clean up intermediate files in non-debug mode ─────
     if not args.debug:

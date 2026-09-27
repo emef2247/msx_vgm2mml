@@ -440,11 +440,18 @@ def write_scc_mml(analysis, output_dir, stem, debug=True, raw_ticks=False):
 
 
 def process_scc_csv(input_path, output_dir, dump_passes=True, stem=None,
-                    debug=True, raw_ticks=False):
+                    debug=True, raw_ticks=False, envelope_bank=None):
     """Compatibility entry point: CSV -> Segments -> MGSDRV MML."""
     analysis = build_segments(input_path, output_dir, dump_passes, stem)
     name = stem if stem is not None else os.path.splitext(os.path.splitext(os.path.basename(input_path))[0])[0]
-    return write_scc_mml(analysis, output_dir, name, debug, raw_ticks)
+    result = write_scc_mml(analysis, output_dir, name, debug, raw_ticks)
+    if envelope_bank is not None:
+        from mml_envelopes import render
+        target = render(analysis.segments, 'scc', envelope_bank, raw_ticks, analysis.waveforms,
+                        dump_path=os.path.join(output_dir, f'{name}.scc.target_notes.csv') if dump_passes else None)
+        with open(os.path.join(output_dir, f'{name}.scc.target.mml'), 'w', newline='\n') as fh:
+            fh.write(target)
+    return result
 
 
 # ---------------------------------------------------------------------------
