@@ -1408,6 +1408,19 @@ weakening the general principles above.
 
 ------------------------------------------------------------------------
 
+## Shared step comments in merged MML (2026-09-27)
+
+The main converter annotates the final merged MML at common note/rest
+boundaries across all still-playing tracks. Step counts use target MML time
+(48 per quarter note), not raw VGM samples or Segment ticks. Tied continuations
+are not synchronization boundaries. Ended tracks do not block later markers.
+The CLI defaults to a minimum gap of 700 target-MML steps between selected
+markers; start and final end are always retained. `--sync-min-gap 0` restores
+all shared boundaries. This spacing is not phrase or bar detection.
+This is a target-stage formatting operation: retain source timing and Segment
+evidence, and verify the expanded note/command timeline before and after it.
+See [MML sync points](mml_sync.md) for the implemented scope and tests.
+
 # 45. Final Rule for Agents
 
 When uncertain whether to simplify, merge, normalize, quantize, discard,

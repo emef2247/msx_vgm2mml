@@ -29,6 +29,7 @@ from vgm_reader import parse_vgm
 from scc_mml import process_scc_csv
 from psg_mml import process_psg_csv
 from opll_mml import process_opll_csv
+from mml_sync import annotate_sync_points
 
 
 def _has_chip_data(csv_path: str) -> bool:
@@ -66,7 +67,7 @@ def _extract_from_alloc(mml_path: str) -> str:
 
 def _build_merged_mml(stem: str, song_dir: str,
                       has_psg: bool, has_scc: bool, has_opll: bool,
-                      raw_ticks: bool = False) -> str:
+                      raw_ticks: bool = False, sync_min_gap: int = 700) -> str:
     """Build the merged MML text from per-chip compress outputs.
 
     The merged file has a single global header followed by PSG, SCC, and OPLL
@@ -107,7 +108,7 @@ def _build_merged_mml(stem: str, song_dir: str,
     result = ''.join(body_parts)
     if not result.endswith('\n'):
         result += '\n'
-    return result
+    return annotate_sync_points(result, min_gap=sync_min_gap)
 
 
 def main():
@@ -131,7 +132,12 @@ def main():
                         help='Output note lengths as raw tick %% notation '
                              '(e.g. c%%N). '
                              'Default is note-value/divisor notation (e.g. c16, d8.).')
+    parser.add_argument('--sync-min-gap', type=int, default=700,
+                        help='Minimum target-MML steps between sync comments '
+                             '(default: 700; 0: all shared boundaries; end always shown)')
     args = parser.parse_args()
+    if args.sync_min_gap < 0:
+        parser.error('--sync-min-gap must be nonnegative')
 
     vgm_path = args.vgm
     if not os.path.isfile(vgm_path):
@@ -201,7 +207,8 @@ def main():
     # ── Step 5: Build merged MML ──────────────────────────────────
     merged_text = _build_merged_mml(base_name, song_dir,
                                     has_psg, has_scc, has_opll,
-                                    raw_ticks=args.raw_ticks)
+                                    raw_ticks=args.raw_ticks,
+                                    sync_min_gap=args.sync_min_gap)
     merged_path = os.path.join(song_dir, f'{base_name}.mml')
     with open(merged_path, 'w', newline='\n') as fh:
         fh.write(merged_text)
