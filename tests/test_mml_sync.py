@@ -126,13 +126,13 @@ class SyncTests(unittest.TestCase):
         import vgm2mml
         source = ROOT / ('tests/fixtures/public/psg_scc_opll/www.mutopiaproject.org/'
                          'Classical/giselle/giselle.vgm')
-        for raw, gap in ((False, 700), (True, 700), (False, 0), (False, 1000)):
+        for raw, gap in ((False, 1000), (True, 1000), (False, 0), (False, 700)):
             with self.subTest(raw=raw, gap=gap), tempfile.TemporaryDirectory() as folder:
                 command = [sys.executable, str(ROOT / 'vgm2mml.py'), str(source),
                            '--outdir', folder, '--debug', '--dump-passes']
                 if raw:
                     command.append('--raw-ticks')
-                if gap != 700:
+                if gap != 1000:
                     command.extend(['--sync-min-gap', str(gap)])
                 run = subprocess.run(command, capture_output=True, text=True,
                                      encoding='utf-8', timeout=120)
@@ -142,7 +142,7 @@ class SyncTests(unittest.TestCase):
                                                        True, True, True, raw_ticks=raw)
                 result = (Path(folder) / f'{source.stem}.mml').read_text(encoding='utf-8')
                 self.assertEqual(timeline(original), timeline(result))
-                self.assertEqual(len(analyze_mml(result)[0]), 7)
+                self.assertEqual(len(analyze_mml(result)[0]), 8)
                 assert_valid_marks(self, result, min_gap=gap)
 
 

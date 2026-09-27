@@ -36,7 +36,7 @@ outputs/stem/stem.mml
 | オプション | 説明 |
 |-----------|------|
 | `--outdir OUTDIR` | MML ファイルの出力先ディレクトリを指定 |
-| `--sync-min-gap N` | 同期コメントの最小間隔（出力MMLのstep、既定700）。0で全同期点を表示。開始・終端は常に表示 |
+| `--sync-min-gap N` | 同期コメントの最小間隔（出力MMLのstep、既定1000）。0で全同期点を表示。開始・終端は常に表示 |
 | `--dump-passes` | イベントlog/trace、PASS0-3、PSG/SCC Segment、SCC波形CSVを保存 |
 | `--debug` | デバッグ用ファイルを出力 |
 | `--raw-ticks` | 音長を `%` tick 形式（例: `c%%N`）で出力（デフォルトは音価形式） |

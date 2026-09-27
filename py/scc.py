@@ -164,6 +164,7 @@ def _pass0(log_buffer, ch_list):
 
     for ch in ch_list:
         temp_buf0[ch] = []
+        wave_id = 0
         for raw_line in log_buffer[ch]:
             row = _parse_input_line(raw_line)
 
@@ -182,8 +183,9 @@ def _pass0(log_buffer, ch_list):
                 data   = _int(row[COL_DATA])
                 key = wtb.append_wavetable(offset, data)
                 if offset == 31:
-                    row[COL_WTBINDEX] = str(wtb.get_index(key))
+                    wave_id = wtb.get_index(key)
 
+            row[COL_WTBINDEX] = str(wave_id)
             temp_buf0[ch].append(row)
 
     return temp_buf0, wtb
@@ -194,268 +196,45 @@ def _pass0(log_buffer, ch_list):
 # ---------------------------------------------------------------------------
 
 def _pass1(temp_buf0, ch_list):
-    """Compute l, fL, v, fV, f, fF, o, scale, en, fEn, vDiff, vCnt, oDiff."""
-    temp_buf1 = {}
-
+    """Interpret each post-write state over [this tick, next event tick)."""
+    result = {}
     for ch in ch_list:
-        buf       = temp_buf0[ch]
-        n         = len(buf)
-        temp_buf1[ch] = []
+        rows = temp_buf0[ch]
+        result[ch] = []
+        previous_f = 0
+        previous_v = 0
+        for index, source in enumerate(rows):
+            row = list(source)
+            tick = _int(row[COL_TICKS])
+            end = _int(rows[index + 1][COL_TICKS]) if index + 1 < len(rows) else tick
+            f = _get_frequency(row) & 0xfff
+            v = _get_volume(row)
+            row[COL_L] = str(end - tick)
+            row[COL_FL] = str(end - tick)
+            row[COL_F] = str(f)
+            row[COL_FF] = str(previous_f)
+            row[COL_V] = str(v)
+            row[COL_FV] = str(previous_v)
+            row[COL_O] = str(get_octave(f))
+            row[COL_SCALE] = get_scale(f) if v and _int(row[COL_EN]) else 'r'
+            row[COL_VDIFF] = str(v - previous_v)
+            row[COL_VCNT] = '1'
+            row[COL_ODIFF] = str(get_octave(f) - get_octave(previous_f))
+            row[COL_FEN] = row[COL_EN]
+            result[ch].append(row)
+            previous_f, previous_v = f, v
+    return result
 
-        f_tick_stamp = 0
-        f_stamp      = 0
-        fv_stamp     = 0
-        en_stamp     = 0
-        v_cnt        = 0
-
-        line_stamp = None
-        index = 0
-
-        while index < n:
-            line = buf[index]
-            next_row = buf[index + 1] if index + 1 < n else None
-
-            if line_stamp is not None:
-                # --- skip-ahead when two consecutive f1/f2Ctrl share the same tick ---
-                if next_row is not None:
-                    cur_type  = line[COL_TYPE]
-                    nxt_type  = next_row[COL_TYPE]
-                    next_l    = _int(next_row[COL_TICKS]) - _int(line[COL_TICKS])
-                    if (cur_type in ('f1Ctrl', 'f2Ctrl') and
-                            nxt_type in ('f1Ctrl', 'f2Ctrl') and
-                            next_l == 0):
-                        index += 1
-                        line = buf[index]
-                        next_row = buf[index + 1] if index + 1 < n else None
-
-                # --- process line_stamp ---
-                lt = list(line_stamp)   # working copy
-                type_ = line_stamp[COL_TYPE]
-
-                # l = ticks(line) - ticks(line_stamp)
-                l = _int(line[COL_TICKS]) - _int(line_stamp[COL_TICKS])
-                lt[COL_L] = str(l)
-
-                # fL (only for f1Ctrl / f2Ctrl / enBit)
-                if type_ in ('f1Ctrl', 'f2Ctrl', 'enBit'):
-                    f_ticks = _int(line_stamp[COL_TICKS])
-                    fl = f_ticks - f_tick_stamp
-                    lt[COL_FL] = str(fl)
-                    f_tick_stamp = f_ticks
-
-                # v = vCtrl & 0xF
-                v = _get_volume(line_stamp)
-                lt[COL_V] = str(v)
-
-                # fV (only for f1Ctrl / f2Ctrl / enBit)
-                if type_ in ('f1Ctrl', 'f2Ctrl', 'enBit'):
-                    lt[COL_FV] = str(fv_stamp)
-                    fv_stamp = v
-
-                # f = f1Ctrl + 256*f2Ctrl
-                f = _get_frequency(line_stamp)
-                lt[COL_F] = str(f)
-
-                # fF = previous f_stamp
-                lt[COL_FF] = str(f_stamp)
-                if type_ in ('f1Ctrl', 'f2Ctrl'):
-                    f_stamp = f
-
-                # o, scale (derived from fF)
-                lt[COL_O]     = str(get_octave(f_stamp if type_ not in ('f1Ctrl', 'f2Ctrl') else _int(lt[COL_FF])))
-                lt[COL_SCALE] = get_scale(_int(lt[COL_FF]))
-
-                # en
-                en = _int(line_stamp[COL_EN])
-                lt[COL_EN] = str(en)
-
-                # fEn (only updated by f1Ctrl / f2Ctrl, not enBit)
-                lt[COL_FEN] = str(en_stamp)
-                if type_ in ('f1Ctrl', 'f2Ctrl'):
-                    en_stamp = en
-
-                # vDiff = volume(next line) - volume(line_stamp)
-                v_diff = _get_volume(line) - v
-                lt[COL_VDIFF] = str(v_diff)
-
-                # vCnt (incremented only for vCtrl)
-                if type_ == 'vCtrl':
-                    v_cnt += 1
-                lt[COL_VCNT] = str(v_cnt)
-
-                # oDiff = octave(next_f) - octave(fF)
-                next_f = _get_frequency(line)
-                next_o = get_octave(next_f)
-                o_diff = next_o - _int(lt[COL_O])
-                lt[COL_ODIFF] = str(o_diff)
-
-                # wtbIndex stays from line_stamp
-                lt[COL_WTBINDEX] = line_stamp[COL_WTBINDEX]
-
-                temp_buf1[ch].append(lt)
-
-                # Update vCnt after line_stamp is an f1Ctrl/f2Ctrl
-                if type_ in ('f1Ctrl', 'f2Ctrl'):
-                    f_stamp = f   # redundant but mirrors Tcl outside-block update
-                    v_cnt = 1
-
-            line_stamp = line
-            index += 1
-
-        # --- last line ---
-        if line_stamp is not None:
-            lt = list(line_stamp)
-            type_ = line_stamp[COL_TYPE]
-
-            l = 0   # ticks(last) - ticks(last) = 0
-            lt[COL_L] = str(l)
-
-            if type_ in ('f1Ctrl', 'f2Ctrl', 'enBit'):
-                f_ticks = _int(line_stamp[COL_TICKS])
-                fl = f_ticks - f_tick_stamp
-                lt[COL_FL] = str(fl)
-                f_tick_stamp = f_ticks
-
-            v = _get_volume(line_stamp)
-            lt[COL_V] = str(v)
-
-            if type_ in ('f1Ctrl', 'f2Ctrl', 'enBit'):
-                lt[COL_FV] = str(fv_stamp)
-                fv_stamp = v
-
-            f = _get_frequency(line_stamp)
-            lt[COL_F] = str(f)
-            lt[COL_FF] = str(f_stamp)
-            if type_ in ('f1Ctrl', 'f2Ctrl'):
-                f_stamp = f
-
-            lt[COL_O]     = str(get_octave(_int(lt[COL_FF])))
-            lt[COL_SCALE] = get_scale(_int(lt[COL_FF]))
-
-            en = _int(line_stamp[COL_EN])
-            lt[COL_EN] = str(en)
-            lt[COL_FEN] = str(en_stamp)
-            if type_ in ('f1Ctrl', 'f2Ctrl'):
-                en_stamp = en
-
-            # vDiff using last row as both line and line_stamp → 0
-            v_diff = 0
-            lt[COL_VDIFF] = str(v_diff)
-
-            if type_ == 'vCtrl':
-                v_cnt += 1
-            lt[COL_VCNT] = str(v_cnt)
-
-            lt[COL_ODIFF] = str(0)
-            lt[COL_WTBINDEX] = line_stamp[COL_WTBINDEX]
-
-            temp_buf1[ch].append(lt)
-
-    return temp_buf1
-
-
-# ---------------------------------------------------------------------------
-# Pass 2
-# ---------------------------------------------------------------------------
 
 def _pass2(temp_buf1, ch_list):
-    """Remove wtbNew/wtbLast rows; merge f1/f2Ctrl + vCtrl/enBit at same tick.
+    """Drop zero-time waveform bookkeeping, never move time to another state.
 
-    When wtbNew/wtbLast rows are dropped, their l values are accumulated and
-    propagated to the nearest adjacent non-wtb row so that the total tick count
-    per channel is preserved.  Specifically:
-    - If a non-wtb row already exists in the output buffer, the accumulated l is
-      added to the last such row's l (covers the case of a wavetable update in
-      the middle of playback).
-    - If no non-wtb row has been emitted yet (wavetable setup at the very start
-      of the channel), the accumulated l is added to the first non-wtb row's l
-      (covers the case of ch7 starting with waveform initialisation at tick 0).
+    A waveform write followed by a wait is a real interval and must remain.
+    Other zero-duration writes are preserved as event evidence.
     """
-    temp_buf2 = {}
-
-    for ch in ch_list:
-        buf = temp_buf1[ch]
-        n   = len(buf)
-        temp_buf2[ch] = []
-
-        line_stamp = None
-        index = 0
-        _acc_l = 0   # l accumulated from dropped wtb rows
-
-        while index < n:
-            line     = buf[index]
-            next_row = buf[index + 1] if index + 1 < n else None
-
-            if line_stamp is not None:
-                lt_type = line_stamp[COL_TYPE]
-
-                # Add line_stamp to buffer (unless it is a wavetable row)
-                if lt_type not in ('wtbNew', 'wtbLast'):
-                    if _acc_l > 0:
-                        row_to_add = list(line_stamp)
-                        if temp_buf2[ch]:
-                            # There is a previous non-wtb row: extend its l
-                            temp_buf2[ch][-1][COL_L] = str(
-                                _int(temp_buf2[ch][-1][COL_L]) + _acc_l)
-                        else:
-                            # No previous row yet: add to the current row's l
-                            row_to_add[COL_L] = str(
-                                _int(row_to_add[COL_L]) + _acc_l)
-                        _acc_l = 0
-                    else:
-                        row_to_add = list(line_stamp)
-                    temp_buf2[ch].append(row_to_add)
-                else:
-                    # Accumulate the l from the dropped wavetable row
-                    _acc_l += _int(line_stamp[COL_L])
-
-                # Check merge: line is f1/f2Ctrl AND next is vCtrl/enBit at same tick
-                if next_row is not None:
-                    cur_type = line[COL_TYPE]
-                    nxt_type = next_row[COL_TYPE]
-                    next_l   = _int(next_row[COL_TICKS]) - _int(line[COL_TICKS])
-
-                    if (cur_type in ('f1Ctrl', 'f2Ctrl') and
-                            nxt_type in ('vCtrl', 'enBit') and
-                            next_l == 0):
-                        # Build the merged row: start from next_row, copy fields from line
-                        merged = list(next_row)
-                        merged[COL_TYPE]    = cur_type
-                        merged[COL_FL]      = line[COL_FL]
-                        merged[COL_FV]      = line[COL_FV]
-                        merged[COL_F]       = line[COL_F]
-                        merged[COL_FF]      = line[COL_FF]
-                        merged[COL_O]       = line[COL_O]
-                        merged[COL_SCALE]   = line[COL_SCALE]
-                        merged[COL_FEN]     = line[COL_FEN]
-                        merged[COL_VCNT]    = line[COL_VCNT]
-                        merged[COL_WTBINDEX] = line[COL_WTBINDEX]
-                        temp_buf2[ch].append(merged)
-                        # Skip both line and next_row
-                        index += 2
-                        line = buf[index] if index < n else None
-
-            line_stamp = line
-            index += 1
-
-        # Last line_stamp
-        if line_stamp is not None:
-            lt_type = line_stamp[COL_TYPE]
-            if lt_type not in ('wtbNew', 'wtbLast'):
-                if _acc_l > 0:
-                    row_to_add = list(line_stamp)
-                    if temp_buf2[ch]:
-                        temp_buf2[ch][-1][COL_L] = str(
-                            _int(temp_buf2[ch][-1][COL_L]) + _acc_l)
-                    else:
-                        row_to_add[COL_L] = str(
-                            _int(row_to_add[COL_L]) + _acc_l)
-                    _acc_l = 0
-                    temp_buf2[ch].append(row_to_add)
-                else:
-                    temp_buf2[ch].append(list(line_stamp))
-
-    return temp_buf2
+    return {ch: [list(row) for row in temp_buf1[ch]
+                 if row[COL_TYPE] not in ('wtbNew', 'wtbLast') or _int(row[COL_L]) > 0]
+            for ch in ch_list}
 
 
 # ---------------------------------------------------------------------------

@@ -1414,7 +1414,7 @@ The main converter annotates the final merged MML at common note/rest
 boundaries across all still-playing tracks. Step counts use target MML time
 (48 per quarter note), not raw VGM samples or Segment ticks. Tied continuations
 are not synchronization boundaries. Ended tracks do not block later markers.
-The CLI defaults to a minimum gap of 700 target-MML steps between selected
+The CLI defaults to a minimum gap of 1000 target-MML steps between selected
 markers; start and final end are always retained. `--sync-min-gap 0` restores
 all shared boundaries. This spacing is not phrase or bar detection.
 This is a target-stage formatting operation: retain source timing and Segment
