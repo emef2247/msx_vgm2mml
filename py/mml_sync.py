@@ -8,7 +8,6 @@ from collections import Counter
 from dataclasses import dataclass
 import re
 
-from mml_utils import estimate_alloc
 
 
 _TRACK = re.compile(r'^([1-9a-hA-H])\s+(.*)$')
@@ -190,6 +189,35 @@ def _split_nodes(nodes, marks):
             yield node
 
 
+def proportional_allocations(usage, total=15000):
+    """Distribute the pool by estimated MML size, resolving rounding exactly."""
+    active = {ch: used for ch, used in usage.items() if used > 0}
+    weight = sum(active.values())
+    if not weight:
+        return {}
+    result = {ch: total * used // weight for ch, used in active.items()}
+    remaining = total - sum(result.values())
+    order = sorted(active, key=lambda ch: -(total * active[ch] % weight))
+    for ch in order[:remaining]:
+        result[ch] += 1
+    return result
+
+
+def _has_sound(nodes):
+    volume = 8
+    for node in _leaves(nodes):
+        token = node.text.lower()
+        if re.fullmatch(r'v[-+]?\d+', token):
+            volume = int(token[1:])
+        elif token.startswith('('):
+            volume = max(0, volume - int(token[1:] or 1))
+        elif token.startswith(')'):
+            volume = min(15, volume + int(token[1:] or 1))
+        elif node.end > node.start and token[0] != 'r' and volume > 0:
+            return True
+    return False
+
+
 def annotate_sync_points(text, line_width=120, min_gap=0):
     """Replace local tick counts with shared step comments without retiming notes."""
     tracks, boundaries, header = analyze_mml(text)
@@ -221,24 +249,28 @@ def annotate_sync_points(text, line_width=120, min_gap=0):
         total = nodes[-1].end
         if total in marks and total not in emitted:
             body.append(f'; ch{channel} --- step {total} : {marks[total]} ---')
-        # Expanded repeat bodies need at least the existing textual size estimate.
-        used = sum(len(re.sub(r'\s', '', line)) for line in body if not line.startswith(';'))
-        allocations[channel] = estimate_alloc(used)
+        # Textual size estimate of the emitted track (not its playback duration).
+        used = sum(len(re.sub(r'\s', '', line.split(' ', 1)[1]))
+                   for line in body if not line.startswith(';'))
+        allocations[channel] = used if _has_sound(nodes) else 0
         rendered.extend(body + [''])
 
-    def allocation(match):
-        channel, value = match.group(1).lower(), int(match.group(2))
-        return f'{match.group(1)}={max(value, allocations.get(channel, value))}'
-
-    # Only rewrite actual allocation directives, including brace-style lists.
+    # Replace old per-chip allocations with one shared budget.
+    clean_header = []
     in_alloc = False
-    for i, line in enumerate(header):
+    for line in header:
         if line.lstrip().startswith('#alloc'):
-            in_alloc = True
+            in_alloc = '{' in line and '}' not in line
+            continue
         if in_alloc:
-            header[i] = re.sub(r'([0-9a-hA-H])\s*=\s*(\d+)', allocation, line)
-            if '}' in line or ('{' not in line and line.lstrip().startswith('#alloc')):
+            if '}' in line:
                 in_alloc = False
+            continue
+        clean_header.append(line)
+    shares = proportional_allocations(allocations)
+    header = clean_header
+    if shares:
+        header.append('#alloc { ' + ', '.join(f'{ch}={value}' for ch, value in shares.items()) + ' }')
     note = '; sync marks: all active channels at token boundaries; clock: %48 = quarter'
     # Extracting track lines leaves their separators in the header. Keep only
     # one blank line between the remaining definitions and comments.

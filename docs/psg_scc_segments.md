@@ -92,6 +92,20 @@ pass that object to `write_scc_mml`.
 
 ## Validation and limits
 
+### SCC correctness fixes (2026-09-28)
+
+SCC now captures five channels (zero-based 0..4), including frequency registers
+0x9888/0x9889 and volume 0x988E. Enable bits use `1 << ch`. Channels 3/4 share
+the standard SCC waveform RAM at 0x9860..0x987F.
+PASS1 uses the current post-write period for each following time interval;
+PASS2 retains timed waveform events instead of transferring their duration to
+another note. MGS compression groups only identical adjacent states, and applies
+waveform/volume changes at the actual segment boundary.
+SCC regression checks therefore compare rendered time/pitch/volume against trace
+states instead of requiring the historical buggy hashes below. Other-chip hashes
+remain checked (normalizing the extra empty fifth-channel CSV separator).
+Envelope extraction/application and removing rest-only tracks remain future work.
+
 ```sh
 python -m unittest discover -s tests -v
 ```

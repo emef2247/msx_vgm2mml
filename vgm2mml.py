@@ -67,7 +67,7 @@ def _extract_from_alloc(mml_path: str) -> str:
 
 def _build_merged_mml(stem: str, song_dir: str,
                       has_psg: bool, has_scc: bool, has_opll: bool,
-                      raw_ticks: bool = False, sync_min_gap: int = 700) -> str:
+                      raw_ticks: bool = False, sync_min_gap: int = 1000) -> str:
     """Build the merged MML text from per-chip compress outputs.
 
     The merged file has a single global header followed by PSG, SCC, and OPLL
@@ -132,9 +132,9 @@ def main():
                         help='Output note lengths as raw tick %% notation '
                              '(e.g. c%%N). '
                              'Default is note-value/divisor notation (e.g. c16, d8.).')
-    parser.add_argument('--sync-min-gap', type=int, default=700,
+    parser.add_argument('--sync-min-gap', type=int, default=1000,
                         help='Minimum target-MML steps between sync comments '
-                             '(default: 700; 0: all shared boundaries; end always shown)')
+                             '(default: 1000; 0: all shared boundaries; end always shown)')
     args = parser.parse_args()
     if args.sync_min_gap < 0:
         parser.error('--sync-min-gap must be nonnegative')

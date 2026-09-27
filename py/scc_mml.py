@@ -63,6 +63,9 @@ def _generate_simple_raw_mml(temp_buf3, ch_list, file_name_body, waveforms):
                     if v != v_stamp and note_cnt != 0:
                         mml += f' v{v}'
 
+                    if wtb_index != at_stamp:
+                        mml += f' @{wtb_index}'
+                        at_stamp = wtb_index
                     if o != o_stamp:
                         mml += f' o{o}'
 
@@ -70,9 +73,6 @@ def _generate_simple_raw_mml(temp_buf3, ch_list, file_name_body, waveforms):
                     l_cnt += ltmp
 
                     length -= ltmp
-                    if length > 0:
-                        mml_buffer[ch].append(mml)
-                        mml = ''
 
                 note_cnt += 1
                 if note_cnt == 8 or (type_ == 'enBit' and en == 0) or v == 0:
@@ -170,6 +170,9 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, waveforms):
                     if v != v_stamp and note_cnt != 0:
                         mml += f' v{v}'
 
+                    if wtb_index != at_stamp:
+                        mml += f' @{wtb_index}'
+                        at_stamp = wtb_index
                     if o != o_stamp:
                         mml += f' o{o}'
 
@@ -177,9 +180,6 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, waveforms):
                     l_cnt += ltmp
 
                     length -= ltmp
-                    if length > 0:
-                        mml_buffer[ch].append(mml)
-                        mml = ''
 
                 note_cnt += 1
                 if note_cnt == 8 or (type_ == 'enBit' and en == 0) or v == 0:
@@ -228,55 +228,20 @@ def _generate_mml(temp_buf3, ch_list, file_name_body, waveforms):
 
 
 def _update_and_optimize_cnt_scc(src_buf, ch_list):
-    """Re-compute cnt for truly repeating notes in the SCC pass-3 buffer.
-
-    Port of the Tcl ``update_and_optimize_cnt`` logic for SCC data.  For each channel, consecutive rows of type
-    ``f1Ctrl``, ``f2Ctrl``, or ``vCtrl`` where ``f``, ``l``, ``o``,
-    ``vDiff`` all match the previous segment are merged: the previous segment's
-    target repeat count is incremented.
-
-    Returns per-channel (Segment, repeat_count) pairs without changing Segments.
-    """
-    dst_buf = {ch: [] for ch in ch_list}
-
+    """Compress only adjacent, identical audible states; never cross a write."""
+    result = {ch: [] for ch in ch_list}
     for ch in ch_list:
-        f_stamp = None
-        l_stamp = None
-        o_stamp = None
-        vdiff_stamp = None
-        cnt_stamp = 0
-
+        previous_key = None
         for segment in src_buf[ch]:
-            type_ = segment.ev_type
-            l = segment.l
-            f = segment.tone_period
-            o = segment.octave
-            v_diff = segment.volume_delta
-            cnt = segment.volume_run_count
-            if cnt < 1:
-                cnt = 1
-
-            if l != 0:
-                if type_ in ('f1Ctrl', 'f2Ctrl', 'vCtrl'):
-                    if (f == f_stamp and l == l_stamp and o == o_stamp
-                            and v_diff == vdiff_stamp):
-                        cnt_stamp += 1
-                        dst_buf[ch][-1] = (dst_buf[ch][-1][0], cnt_stamp)
-                    else:
-                        dst_buf[ch].append((segment, 1))
-                        cnt_stamp = 1  # First occurrence is always 1
-                else:
-                    dst_buf[ch].append((segment, cnt))
-                    cnt_stamp = 1  # First occurrence is always 1
-
-                f_stamp = f
-                l_stamp = l
-                o_stamp = o
-                vdiff_stamp = v_diff
+            key = (segment.l, segment.tone_period, segment.octave, segment.scale,
+                   segment.volume, segment.enabled, segment.waveform_id)
+            if segment.l > 0 and key == previous_key:
+                previous, count = result[ch][-1]
+                result[ch][-1] = (previous, count + 1)
             else:
-                dst_buf[ch].append((segment, cnt))
-
-    return dst_buf
+                result[ch].append((segment, 1))
+            previous_key = key if segment.l > 0 else None
+    return result
 
 
 def _generate_mml_mgs(buf3, ch_list, file_name_body, waveforms, use_cnt=False, use_pct=False):
@@ -350,15 +315,21 @@ def _generate_mml_mgs(buf3, ch_list, file_name_body, waveforms, use_cnt=False, u
                             mml += f' v{v}'
                             v_stamp = v
 
+                    if wtb_index != at_stamp:
+                        mml += f' @{wtb_index}'
+                        at_stamp = wtb_index
+                    if o != o_stamp:
+                        mml += f' o{o}'
+                        o_stamp = o
+                    if v != v_stamp:
+                        mml += f' v{v}'
+                        v_stamp = v
                     note = note_token_fn(
-                        ltmp, v, v_diff, scale, cnt, o, o_stamp, v_stamp)
+                        ltmp, v, 0, scale, cnt, o, o, v)
                     mml += ' ' + note
-                    l_cnt += ltmp
+                    l_cnt += ltmp * cnt
 
                     length -= ltmp
-                    if length > 0:
-                        mml_buffer[ch].append(mml)
-                        mml = ''
 
                 note_cnt += 1
                 if note_cnt == 8 or (type_ == 'enBit' and en == 0) or v == 0:

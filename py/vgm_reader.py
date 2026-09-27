@@ -215,7 +215,7 @@ class _PsgState:
 # ─────────────────────────────────────────────────────────────────
 
 class _SccState:
-    NUM_CH = 4
+    NUM_CH = 5
 
     def __init__(self):
         self._global_time = 0.0
@@ -250,7 +250,7 @@ class _SccState:
     # ── SCC enable bit ───────────────────────────────────────────
     @staticmethod
     def _enable_bit(ch: int, reg: int) -> int:
-        ch_val = ch + 1        # 1, 2, 3, 4 for ch 0, 1, 2, 3
+        ch_val = 1 << ch
         return 1 if (reg & ch_val) == ch_val else 0
 
     # ── wavetable helpers ────────────────────────────────────────
@@ -348,12 +348,19 @@ class _SccState:
             self._new_wavetable(ch, value)
             self.wtb_last[ch] = value
             self._log(ch, 'wtbNew')
+            self.wtb_offset[4] = self.wtb_offset[3]
+            self.wtb_last[4] = value
+            self._log(4, 'wtbNew')
             return
         if 0x9860 < a < 0x9880:
             ch = 3
             self._append_wavetable(ch, value)
             self.wtb_last[ch] = value
             self._log(ch, 'wtbLast')
+            self.wtb_offset[4] = self.wtb_offset[3]
+            self.wtb_last[4] = value
+            self.wtbl_index[4] = self.wtbl_index[3]
+            self._log(4, 'wtbLast')
             return
 
         # Frequency registers
@@ -365,12 +372,15 @@ class _SccState:
         if   a == 0x9885: ch = 2; self.f2Ctrl[ch] = value; self._log(ch, 'f2Ctrl'); return
         if   a == 0x9886: ch = 3; self.f1Ctrl[ch] = value; self._log(ch, 'f1Ctrl'); return
         if   a == 0x9887: ch = 3; self.f2Ctrl[ch] = value; self._log(ch, 'f2Ctrl'); return
+        if   a == 0x9888: ch = 4; self.f1Ctrl[ch] = value; self._log(ch, 'f1Ctrl'); return
+        if   a == 0x9889: ch = 4; self.f2Ctrl[ch] = value; self._log(ch, 'f2Ctrl'); return
 
         # Volume registers
         if   a == 0x988A: ch = 0; self.vCtrl[ch] = value; self._log(ch, 'vCtrl'); return
         if   a == 0x988B: ch = 1; self.vCtrl[ch] = value; self._log(ch, 'vCtrl'); return
         if   a == 0x988C: ch = 2; self.vCtrl[ch] = value; self._log(ch, 'vCtrl'); return
         if   a == 0x988D: ch = 3; self.vCtrl[ch] = value; self._log(ch, 'vCtrl'); return
+        if   a == 0x988E: ch = 4; self.vCtrl[ch] = value; self._log(ch, 'vCtrl'); return
 
         # Enable register (broadcast)
         if a == 0x988F:
