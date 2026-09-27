@@ -1,0 +1,59 @@
+;[name=aguado03_with_sync_mark01 lpf=1]
+
+
+#opll_mode 1
+#tempo 90
+#title { "aguado03_with_sync_mark / 01 start" }
+#alloc { 9=184, a=222, b=114, c=206 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+; block 01  steps 0-1298  (1298 steps)  start
+; clock %48 = quarter. early-ending ch padded with r%.
+; % values > 256 are split (notes tied with &, rests repeated).
+; #alloc { 9=184, a=222, b=114, c=206 }
+
+; ----- ch1  start-state ----- steps 0  pad 1298  alloc -
+
+; ----- ch2  start-state ----- steps 0  pad 1298  alloc -
+
+; ----- ch3  start-state ----- steps 0  pad 1298  alloc -
+
+; ----- ch4  start-state ----- steps 0  pad 1298  alloc -
+
+; ----- ch5  start-state ----- steps 0  pad 1298  alloc -
+
+; ----- ch6  start-state ----- steps 0  pad 1298  alloc -
+
+; ----- ch7  start-state ----- steps 0  pad 1298  alloc -
+
+; ----- ch8  start-state ----- steps 0  pad 1298  alloc -
+
+; ----- ch9  start-state ----- steps 1298  alloc 184
+9 @1v15o5c%20d%5o4e8g8c8e8o5c8o4c8e8g8o5g%37f16o4g8o3b8o4d8o5f+16g16o4c8e8g8o3f+8a8o4d8o3g4r8o5g16f%6g%5o4d8
+9 g%24 o5 e%37 d%12 o4 g%24 o3 f%24 b%24 o4 a%12 b%6 o5 d%5 o3 e%73 o5 g%36 g%12 o4 a%24 d%48 f%24 g%48 f%24 c%48 r%120 a%24 f%24
+
+; ----- cha  start-state ----- steps 1298  alloc 222
+a @1v15o4c8o5c%20o4b%6o5c%18d%6e%36d16o4g8o5c%18d%5c%19o4b%6o5c%18d%6o3b8o4d8o5d8d%36e16o4g8o5d%36f+16e16d16d16c%6
+a d%5c16o4b16o5c16o4a16g4r8o3b8o5f16e16f16d16o4c8e8o5c8o4g%37g16d8o5c16o4b16o5c16d16e16f16o4c+8e8o5f16
+a e%12 g%12 f%12 e%12 f%12 g%12 a%24 c%12 o4 b%12 o5 c%12 o3 g%24 o4 e%48 r%96 o3 f%72
+
+; ----- chb  start-state ----- steps 1298  alloc 114
+b r%192 r%192 r%192 r%192 r%192 r%98 @1 v15 o5 e%18 d%6 c%48 r%24 o4 b%12 o5 c%12 o4 b%12 o5 c%12 o4 b%12 o5 c%12 c%36 d%12 o4 a%24
+
+; ----- chc  start-state ----- steps 1298  alloc 206
+c r%192 r%192 r%192 r%192 r%192 r%192 r%98 @1 v15 o4 f%24 o5 c%24
+
+; ----- chd  start-state ----- steps 0  pad 1298  alloc -
+
+; ----- che  start-state ----- steps 0  pad 1298  alloc -
+
+; ----- chf  start-state ----- steps 0  pad 1298  alloc -
+
+; ----- chg  start-state ----- steps 0  pad 1298  alloc -
+

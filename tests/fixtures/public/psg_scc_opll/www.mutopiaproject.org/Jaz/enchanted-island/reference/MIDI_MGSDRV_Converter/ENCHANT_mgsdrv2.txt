@@ -1,0 +1,111 @@
+#opll_mode 1
+#tempo 150
+#title {"https://www.mutopiaproject.org/ftp/DoonanSC/enchanted-island/enchanted-island.mid"}
+#alloc { 0=180 , 4=529 , 5=562 , 6=551 , 7=482 , 9=293 , a=324 , b=358 , c=692 , d=106 , e=106 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Piano
+@e00 = {,,cefffffffffffffffffffddddca87655443333343443333333222111100000000111111111111111100000000011111111111111111111111000000000011111110}
+@s00 = { 0f 39 5a 5a 56 64 68 55 4d 52 41 1b f1 c9 bc da fe 09 05 0e 0b e9 ce cf c4 a6 93 88 81 98 c6 ee }
+
+
+9 l%192
+9 r1r1r1r1r1r1r%4@2v15o6g1&g1&g%48o5f4r4f4r1r1r1g1&g1&g%48f4r4f4r1r1r1o6c1&c1&c%48o5a+4r4a+4r1r1r1g1&g1&g%48
+9 f4r4f4r1r1r1c1&c%96o4a+%120o5c+%144r8c4c1&c1&c%144c+1&c+%96o4a+%120r%168o5c4c1&c1&c%144f%144r2f4f4r2f2r4d%120
+9 r1r1r%72f%144r2f4f4r2f2r4o6f%72f4d+2d+4c+2c+4c2c4o5a+2a+4g+2g+4f+2f+4f2f4d+2d+4c+2c+4o4b2b4a+2a+4r1r1r1r1r1r1r1r1r1r%22
+9 o5a+1&a+%24r%120o6a+1&a+%24r1r1r1r%22o5a+1&a+%24r%120o6a+1&a+%24r1r1r1r1r1r1r1r1r1d+2d+4c+2c+4o5b2b4a+2a+4
+9 g+2g+4f+2f+4e2e4d+2d+%70d+1&d+%48r4o6g+%144r1
+
+a l%48
+a r1r1r1r1r1r1r%4@2v15o6e1&e1&e%48o5a+4r4a+4g%144f1&f1&f%48o6c1&c1&c%48o5a+4r4a+4g%144f1&f1&f%48o6f1&f1&f%48
+a d+4r4d+4c%144o5a+1&a+1&a+%48o6c1&c1&c%48o5a+4r4a+4g%144f1&f1&f%48f1&f%96d+%120f%144r8f4f1&f1&f%144f1&f%96d+%120
+a c+%144r8f4f1&f1&f%144a%144f4f4a4a4f4f4a2f4g%120f%144d%144f%168a%144f4f4a4a4f4f4a2f4o6a%72a4g2g4f2f4d+2d+4d2
+a d4c2c4o5a+2a+4g+2g+4g2g4f2f4d+2d+4c+2c+4r%144c+%168r%120c+%168r%120c+%168r%120c+%144r1r1r1r%22o6d+1&d+%24r2o5a+1&a+%48
+a r1r1r1r%22o6d+1&d+%24r2o5a+1&a+%48r1r1r1r1r1r1r1r1r1o6g2g4f2f4d+2d+4c+2c+4c2c4o5a+2a+4g+2g+4f+2f+%70g1&g%48
+a r4o6a+%144r1
+
+b l%48
+b r1r1r1r1r1r1r%4@2v15o6c1&c1&c%48d4o5g4o6d4c%144o5a+1&a+1&a+%48o6e1&e1&e%48d4o5g4o6d4c%144o5a+1&a+1&a+%48o6a1&a1&a%48
+b g4c4g4f%144d+1&d+1&d+%48e1&e1&e%48d4o5g4o6d4c%144o5a+1&a+1&a+%48a1&a%96g%120g+%144r8a4a1&a1&a%144g+1&g+%96g%120
+b f%144r8a4a1&a1&a%144o6c%144o5a4a4o6c4c4o5a4a4o6c2o5a4b%120a%144g%144a%168o6c%144o5a4a4o6c4c4o5a4a4o6c2o5a4
+b o7c%72c4o6a+2a+4g+2g+4g2g4f2f4d+2d+4c+2c+4c2c4o5a+2a+4g+2g+4f+2f+4f2f4r2d+4f%168r%72d+4f%168r%72d+4f%168
+b r%72d+4f%144r1r1r%118o7c+4c4o6g1&g%24r%72d+1&d+%72r1r1r%118o7c+4c4o6g1&g%24r%72d+1&d+%72r1r1r%70o7g+%72g%72o6d+1&d+1&d+%120
+b d+4d+1&d+1&d+%144d+4a+2a+4g+2g+4f+2f+4f2f4d+2d+4c+2c+4o5b2b4a+2a+%72g+1&g+%48r4o7a+%144r1
+
+c l%10
+c r1r1r1r1r1r1r%4@2v15o5g1&g1&g%48o6f4g4f4e%144c1&c1&c%48g1&g1&g%48f4g4f4e%144c1&c1&c%48o7c1&c1&c%48o6a+4o7c4
+c o6a+4a%144f1&f1&f%48g1&g1&g%48f4g4f4e%144c1&c1&c%48c1&c%96o5a+%120o6c%144o5a+8o6c4c1&c1&c%144c1&c%96o5a+%120g+%144
+c a+8o6c4c1&c1&c%144e%144c4d4e4e4d4c4e2c4d%120o5b%144b%144b%168o6e%144c4d4e4e4d4c4e2c4o7e%72e4d2d4c2c4o6a+2a+4
+c a2a4g2g4f2f4d+2d+4d2d4c2c4o5a+2a+4g+2g+4r2g4g+%168r%72g4g+%168r%72g4g+%168r%72g4g+%144o6d+8o7d+%10o6d+%10o7d+%10
+c o6d+%10o7d+%10o6d+%10o7d+%10o6d+16o7d+%10o6d+%10o7d+%10o6d+%10o7d+%10o6d+%10o7d+%10o6d+16o7d+%10o6d+%10o7d+%10o6d+%10
+c o7d+%10o6d+%10o7d+%10o6d+16o7d+%10o6d+%10o7d+%10o6d+%10o7d+%10o6d+%10o7d+%10o6d+16o7d+%10o6d+%10o7d+%10o6d+%10o7d+%10
+c o6d+%10o7d+%10o6d+16o7d+%10o6d+%10o7d+4o6c+4c4a+1&a+%24o5a+8o6f8g1&g%96d+8o7d+%10o6d+%10o7d+%10o6d+%10o7d+%10
+c o6d+16o7d+%10o6d+%10o7d+%10o6d+%10o7d+%10o6d+%10o7d+%10o6d+16o7d+%10o6d+%10o7d+%10o6d+%10o7d+%10o6d+%10o7d+%10o6d+16
+c o7d+%10o6d+%10o7d+%10o6d+%10o7d+%10o6d+%10o7d+%10o6d+16o7d+%10o6d+%10o7d+%10o6d+%10o7d+%10o6d+%10o7d+%10o6d+16o7d+%10
+c o6d+%10o7d+%10o6d+%10o7d+4o6c+4c4a+1&a+%24o5a+8o6f8g1&g%96a+8o7a+%10o6a+%10o7a+%10o6a+16o7a+%10o6a+%10o7a+%10
+c o6a+%10o7a+%10o6a+%10o7a+%10o6a+16o7a+%10o6a+%10o7a+%10o6a+%10o7a+%10o6a+%10o7a+%10o6a+16o7a+%10o6a+%10o7a+%10o6a+%10
+c o7a+%10o6a+%10o7a+%10o6a+16o7a+%10o6a+%10o7a+%10o6a+%10o7a+%10o6a+%10o7a+%10o6a+16o7a+%10o6a+%10o7a+%10o6a+%10o7a+%10
+c o6a+%10g+%72g%72o7d+1&d+1&d+%120d+4d+1&d+1&d+%144d+4d2d4c2c4o6a+2a+4g+2g+4g2g4f2f4d+2d+4c+2c+%72c1&c%48o5g+%8
+c o6d+%8g+%8a+%8o7f%8d+%152r1
+
+d l%192
+d r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r%94
+d @2v15o6d+%144r1
+
+e l%192
+e r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r%94
+e @2v15o5g+%144r1
+
+4 l%72
+4 k2r%4@0@e0v15o2c4r8o4c4o3a+%72r%72o2g%72r%72g%72r%72g8r%72o4e4o3a+%72r%72o2g%72r%72g%72r%72g8r%72o4e4o3a+%72r%72o2g%72
+4 r%72g%72r%72g8r%72o4e4o3a+%72r%72o2g%72r%72g%72r%72g8r%72o4e4o3a+%72r%72o2g%72r%72g%72r%72g8r%72o4e4o3a+%72r%72o2g%72r%72
+4 g%72r%72g8r%72o4a4d+%72r%72o3c%72r%72c%72r%72c8r%72o4a4d+%72r%72o3c%72r%72c%72r%72c8r%72o4e4o3a+%72r%72o2g%72r%72g%72r%72
+4 g8r%72o4e4o3a+%72r%72o2g%72r%72g%72r%72g8r%72o3a4d+%72r%72c8r%72g4c+%72r%72c+8r%72a4d+%72r%72c8r%72a4d+%72r%72c8r%72g+4
+4 d+%72r%72c+8r%72g4c+%72r%72c+8r%72a4d+%72r%72c8r%72a4d+%72r%72c8r4f8r4o4c%72r%72o3d8r%72b4r%72o2a8r%72o1g4r8o3g4f%72
+4 r%72o2g8r%72o3b4f%72r%72o2g8r4o3f8r4o4c%72r%72o3d8r%72b4r%72o2a8r%72o1f4r8o4f4d+%72r8d+4c+%72r8c+4d+%72r8d+4f%72
+4 r8f4d+%72r8d+4c+%72r8c+4d+%72r8d+4r%72o3d+%144r8o4c4o3f+%72r8f+4g+%72r8g+4r8d+4r8a+4g+%144r%72d+%144r%72o2a+8
+4 r%72o4d4o3g+%144r%72d+1&d+%24r8d+4r8o4d+4f%72o2a+%72r%72o3a+%72o4g+%72o2a+%72r%72o3a+%72o4g+%72o1a+%72r8d+4r8o4d+4
+4 f%72o2a+%72r%72o3d+%72o4c+%72o2d+%72r%72o3d+%72o4c+%72o2d+%72r%72o3a+%72o4g+%72o2a+%72r%72o3a+%72o4g+%72o2a+%72r%72o3f%72
+4 o4c%72o2f%72r%72o3f%72o4c%72o2a+4r2o3a+%72o4g+%72o2a+%72r%72o3a+%72o4g+%72o2a+%72r%72o3a+%72o4g+%72o2a+%72r%72o3a+%72
+4 o4g+%72o2a+%72r%72o3a+%144r8o4f4o3b%72r8b4o4c+%72r8c+4d+%72r8d+4c+%72r8c+4o3b%72r8b4o4c+%72r8c+4r8o2g+1&g+%48r1
+
+5 l%72
+5 k2r%4@0@e0v15o3c4r%72o4d%72r%144o2f8r%120f8r%72c4r%72o4d%72r%144o2f8r%120f8r%72c4r%72o4d%72r%144o2f8r%120f8r%72c4r%72
+5 o4d%72r%144o2f8r%120f8r%72c4r%72o4d%72r%144o2f8r%120f8r%72c4r%72o4d%72r%144o2f8r%120f8r%72o1f4r8o4f4r%72o2a+8r%120
+5 a+8r%120a+8r%72f4r%72o4g%72r%144o2a+8r%120a+8r%72c4r%72o4d%72r%144o2f8r%120f8r%72c4r%72o4d%72r%144o2f8r%120f8r%72f4
+5 r%72o3g%72r2o2f4r%72o3f%72r2o2f4r%72o3g%72r2o2f4r%72o3g%72r2o1a+4r8o3f4r%72o2a+8r%72o1a+4r8o3d+4r%72o2a+8r%72f4
+5 r%72o3g%72r2o2f4r%72o3g%72r2d4r8b4r%72o2a8r%72d4r8o3g4r2c4r%72d%144r8o2f4r%72o3d%144r8o2f4r%72o3a8r4a%72r2o2d4
+5 r8o3g4r2c4r%72o4c%144r8g4r%72o3a+%144r8o4g4r%72o3a+%144r8o4g4r%72o3a+%144r8o4g4r2d4o3g+%72r8g+4r%72d+%144r8o4c4
+5 r%72o3d+1&d+%24r8o2d+4r%72o4c%72r2o2d+4r8o3a+4r%144o2a+8r%72o4d4o3g+%144r8o2d+4r8o4d4c+%72r%72o2a+8r%72o4g4f%72
+5 r%72o2a+8r%72o4g4f%72o2a+%72r%72o3a+%72o4g+%72r%72o2a+8r%72o4c4o3a+%72r%72o2d+8r%72o4c4o3a+%72r%72o2d+%72r8o4d+4f%72
+5 r%72o1a+8r%72o4g4f%72r%72o2a+%72r8o3a+4g+%72r%72o2f8r%72o4d4o3g+%72r4c+8r2o4g4f%72r%72o2a+8r%72o4g4f%72r%72o1a+8
+5 r%72o4g4f%72r%72o2a+8r%72o4g4f%72r%72o2a+8r%72o4g4c+%72r8c+4r%72o3g+%144r8o4f4r%72o3g+%144r8o4f4r%72o3g+%144r8o4f4r1
+
+6 l%48
+6 k2r%52@0@e0v15o3g%144r8o2f+4r2f+4r2f+4r%72o3g%144r8o2f+4r2f+4r2f+4r%72o3g%144r8o2f+4r2f+4r2f+4r%72o3g%144r8
+6 o2f+4r2f+4r2f+4r%72o3g%144r8o2f+4r2f+4r2f+4r%72o3g%144r8o2f+4r2f+4r2f+4r%72o4c%144r8o2b4r2b4r2b4r%72o4c%144
+6 r8o2b4r2b4r2b4r%72o3g%144r8o2f+4r2f+4r2f+4r%72o3g%144r8o2f+4r2f+4r2f+4r%72o3c%144r8o2b4r%72a+%144r8o3c4r%72
+6 c%144r8o2b4r%72o3c%144r8o2b4r%72a+%144r8o3c4r%72o2a+%144r8o3c4r%72c%144r8o2b4r%72o3c%144r8o2b4r%72o3a8r4a%72r%144
+6 a8r4o4c%72r%72o3d8r%72b4r%72o2d8r%72o1g4r%72o3a%72r2d4r8b4r%72o2a8r%120o3a8r4o4c%72r%72o3d8r%72o4a4r%72o3a+%144r8
+6 o4f4r%72o3a+%144r8o4a4r%72o3a+%144r8o4f4r%72o3a+%72a+%72r8a+4r%72d+%144r8a+4r%72d+%72r8o2d+4r%72o4c%144r2d4o3g+%72
+6 r2d+4r%72o4c%144r2o3a+4r%144o2a+8r%72o4g4c%72r2o2d+4r8o4d4c+%72r2o1d+4r8o4d+4c+%72r%72o1a+8r%72o4g4c+%72r2o1g+4
+6 r8o3g+4f+%72r2o1g+4r8o3g+4f+%72r2o1d+4r8o4d4c+%72r2o1d+4r8o4d+4c+%72r2o1a+4r8o3a4g%72r2o1a+4r8o3a+4g%72r%72
+6 d+8r%72o4d+4c+%72r2o2d+4r8o4d4c+%72r2o1d+4r8o4d+4c+%72r2o2d+4r8o4d4c+%72r2o2d+4r%72o4f%72r%72d+%72r%72f%72r%72
+6 g%72r%72f%72r%72d+%72r%72f%72r%72o2d+8r1
+
+7 l%72
+7 k2r%76@0@e0v15o4e4r%72o2f8r1r1r%48o4c4r%72o2f8r1r1r%48o4c4r%72o2f8r1r1r%48o4c4r%72o2f8r1r1r%48o4c4r%72o2f8r1r1r%48
+7 o4c4r%72o2f8r1r%168f4r%72o4g%72r1r1r%72f4r%72o2a+8r1r1r%48o4c4r%72o2f8r1r1r%48o4c4r%72o2f8r1r1r%48o3f4r%72o2a+8
+7 r%144o3d+4r%72o2a+8r%144o3f4r%72o2a+8r%144o3f4r%72o2a+8r%72a+4r%72o3g%72r2o2a+4r%72o3f%72r%168f4r%72o2a+8r%144o3f4
+7 r%72o2a+8r%72d4r8o3g4r2c4r%72f8r4a%72r2o2g4r%72o3a%72r%168g4r%72o2d8r%72d4r8o3g4r2c4r%72f8r4a%72r2o2f4r%72o4g%72
+7 r%72f%72r%72g%72r%72a%72r%72g%72r%72f%72r%72g%72r%72d%72r%72c%72r%72o3a+%72r%72o4c%72r%72o2a+8r%72o4d4r%144o2a+8r%72o3a+4r%72
+7 o2a+%72r%72o3d+1&d+%24r8o2d+4r%72o4c%144r%72o3a+%72o4g+%72r%168d+4c%72r2o2d+4r8o4d4c%72r2o2d+4r8o4d4c%72r2o2g+4
+7 r8o3g4f%72r2o2g+4r8o3g4f%72r%168o4g4c%72r2o2d+4r8o4d4c%72r%168d4o3d+%72r2o2a+4r8o3a4d+%72r2o2d+4r8o4d4c%72r%168
+7 d+4c%72r2o2d+4r8o4d4c%72r%168d+4c%72r%168d+4r%72o3g+%144r8o4d+4r%72o3g+%144r8o4g4r%72o3g+%144r8o4d+4r%72o3g+%72
+7 r8o1g+1&g+%48r1

@@ -1,0 +1,69 @@
+;[name=MUSAIRCH lpf=1]
+
+#opll_mode 1
+#tempo 120
+#title {"https://www.mutopiaproject.org/ftp/RootGF/MusAirCh/MusAirCh.mid"}
+#alloc { 0=180 , 4=192 , 5=187 , 6=185 , 7=171 , 9=59 , a=64 , b=100 , c=115 , d=233 , e=115 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Piano
+@e00 = {,,cefffffffffffffffffffddddca87655443333343443333333222111100000000111111111111111100000000011111111111111111111111000000000011111110}
+@s00 = { 0f 39 5a 5a 56 64 68 55 4d 52 41 1b f1 c9 bc da fe 09 05 0e 0b e9 ce cf c4 a6 93 88 81 98 c6 ee }
+
+
+9 l%48
+9 r1r1r1r1r1r1r1r1r%3@2v15o5d+4g+4d+4r4d+4r4f4r4d+4r4o4g4r4o5c+4r1r%48o4g+4r4o5d+4r4f4r4d+4r4o4g4r4o5c+4r1
+
+a l%48
+a r1r1r1r1r1r1r1r1r%3@2v15o6d+4o5d+4c4r4c4r4c+4r4c4r4o4a+4r4a+4r4o5c4c4c4r4c4r4c4r4c+4r4c4r4o4a+4r4a+4
+a r4o5c4c2r1
+
+b l%48
+b r1r1r1r1r1r1r1r1r%3@2v15o5d+4o6d+4o5g+4g+4g+4g+1g8g8g8g8g4g4g+%144d+4g+4g+4g+4g+4g+1g8g8g8g8g4g4g+%144
+b r4g+4g+4g+4g+4g+4g+4g+2g4g4a+4g4d+4d+4g+2g+4g+4g+4g+4g+4g+4g+4g+8g+8g4g4a+4g4d+1r1
+
+c l%48
+c r1r1r1r1r1r1r1r1r%99@2v15o6d+4o5d+4d+4o6f2o5d+2c+8c+8c+8c+8d+4o6c+4o5c%144d+4d+4d+4d+4d+4o6f2o5d+2c+8
+c c+8c+8c+8d+4o6c+4o5c%144r4c+4f4f4c+4c4c4o6d+2o5c+4c+4c+4c+4c4c4o6c2o5c+4f4f4c+4c4c4o6d+4o5d+8d+8c+4
+c c+4c+4c+4c1r1
+
+d l%24
+d r1r1r1r1r1r1r1r1r%99@2v15o4g+4r4g+4r4g+4r4g+4r4o5c+4r4o4g4r4g+4g+4g+4r4o5d+4r4o4g+4r4g+4r4g+4r4o5c+4
+d r4o4g4r4g+4g+2o7f8c+8o6g+8f8o7f8c+8o6g+8f8o7d+8c8o6g+8d+8o7d+8c8o6g+8d+8o7d+8c+8o6a+8g8o7c+8o6a+8g8
+d d+8o7c+8c8o6g+8d+8c8d+8g+8o7c8f8c+8o6g+8f8o7f8c+8o6g+8f8o7d+8c8o6g+8d+8o7d+8c8o6g+8d+8o7d+8c+8o6a+8
+d g8o7c+8o6a+8g8d+8o7c8o6g+8d+8c8o5g+2o7f8c+8o6g+8f8o7f8c+8o6g+8f8o7f8d+8c8o6g+8d+8g+8o7c8d+8d8d+8f8
+d d+8c+8o6a+8f8g8a+16g+16g16g+16o7c16o6g+16d+16c16r1
+
+e l%48
+e r1r1r1r1r1r1r1r1r%99@2v15o5d+4o6d+4d+4o5f2o6d+2c+8c+8c+8c+8d+4o5c+4o6c%144d+4d+4d+4d+4d+4o5f2o6d+2c+8
+e c+8c+8c+8d+4o5c+4o6c%144r4c+4f4f4c+4c4c4o5d+2o6c+4c+4c+4c+4c4c4o5c2o6c+4f4f4c+4c4c4o5d+4o6d+8d+8c+4
+e c+4c+4c+4c1r1
+
+4 l%48
+4 k2r%3@0@e0v15o4d+4r4d+8r4g+8r4o2g+2o5c8r4o4c8r4g8r4a+8r4o2g+2o3g+2o5c8r4o4c8r4d+8r4g+8r4o3g+2o5c8r4
+4 o4d+8r4g8r4g+8r2d+4o1g+2o5c4c4o2g+1o4a+8a+8a+8a+8o3d+4d+4o2g+1o1g+2o5c4c4o2g+1o4a+8a+8a+8a+8o3d+4d+4
+4 o2g+1o3c+2c+4o4f4d+4g+4o2g+2o5c4o4a+4o3d+4o4d+4o2g+4g+4o4c2o3c+2c+4o4f4d+4g+4o2g+4o5c8c8o3d+4d+4a+4
+4 d+4r2g+2r2o5c+2r2o4d+2d+2a+2r2g+4r1
+
+5 l%48
+5 k2r%51@0@e0v15o2g+2o5c8r4o4c8r4f8r4g+8r4o2d+2o5c8r4o4d+8r4d+8r%72d+8r4g+8r4o3g+2o5c+8r4o4c+8r4d+8r4a+8
+5 r4o3d+2o4a+8r4c8r2o5c4c4o2g+4g+4o1g+2g+2o2d+2o5c4o4a+4o2g+%144o3d+4o2g+2g+2o5c+2c2o3d+8d+8d+8d+8d+2
+5 o1g+1r4o4g+4c+4o3c+4o2g+4g+4o3g+2o2d+2o3g4d+4g+2g+2r4o4g+4o3f4c+4o2g+4g+4o3g+4o2g+8g+8o3d+2g2o4g+1
+5 c+2r2o3g+2r2d+2r2g+2r1
+
+6 l%96
+6 k2r%51@0@e0v15o5c8r4o4c8r4d+8r4g+8r4o3g+2o5c8r4o4d+8r4g8r4g+8r%72c8r4o2g+2o5c8r4o4c8r4f8r4g+8r4o2d+2
+6 o5c8r4o4d+8r4d+8r%72o3d+4o2g+2o1g+2o5c+2c2o3d+8d+8d+8d+8d+2o1g+1o5c4c4o2g+4g+4g+2o1g+2o2d+2o5c4o4a+4
+6 o2g+%144r4o3c+4r4f2o2g+2o4c2o3d+2o4c+2a+4g+4o2g+2o3c+4r4o4c+2o2g+2o3d+2o2d+2o4c+2o2g+2o4c2r2g+2r2g+2
+6 r2d+2r1
+
+7 l%96
+7 k2r%75@0@e0v15o4g+8r4o3g+2o5c+8r4o4c+8r4d+8r4a+8r4o3d+2o4a+8r4c8r%72g+8r4d+8r4g+8r4o2g+2o5c8r4o4c8r4
+7 g8r4a+8r4o2g+2o3g+2o2g+4g+4g+2g+2g+2o3d+2o2d+2o4g+%144d+4o2g+4g+4o1g+2g+2o2g+2o3d+2o2d+2o4g+%144r4f4
+7 o3c+4g+2g+2d+2d+4d+4a+2o2g+2o4d+2f4o3c+4g+2g+2o4c2o5c4o4a+4o3d+4o4d+4o2g+1r2o4f2r2o5c2r2o4g2r1

@@ -1,0 +1,68 @@
+;[name=bridge_with_sync_mark01 lpf=1]
+
+#opll_mode 1
+#tempo 112
+#title { "bridge_with_sync_mark / 01 start" }
+#alloc { 4=711, 5=639, 6=668, 7=659, 9=335, a=316, b=163 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Violin
+@e00 = {,,34579abbbcbccdeffffffeeeeeeefeedddddeeeeeedeedefeffeddddcddddeeddddddedeeedddcdcccdddcdcccccddeddddddddddddccccccccccccccccccddddddccdcccccdccbbcccdcdddcccccccccccbbbbcbcccccccbbcccdcdcccbbbbbcbcbbbbabbbccccccbbcbcccccbbbababbbbcccbbbbbccb}
+@s00 = { 0a 15 19 2a 40 59 6c 64 35 f4 c5 a0 8b 83 81 8f ad db 11 49 6a 75 66 5b 51 2b f3 b8 8f 97 b2 eb }
+;SCC Vibraphone
+@e01 = {,,fffeedeffeeefffffeeeddddcaa9aaaa9bcca7777654445655567654456665544444445444554444333333333444444334443333322222222222222211111111111111111110}
+@s01 = { 12 18 3b 67 5b 47 59 51 3d 67 6e 4a 4b 33 f9 e9 f3 da d1 e8 bc 95 a1 8b 81 b0 c8 c0 d5 e7 c8 e1 }
+;SCC Contrabass
+@e02 = {,,23689abdeffffffffeeeeeeeefeefffffffeeeeeeeeeeeefffffffeeeeeeeeeeedeeeeffffeeeddddddddeeefeeeeeeeeeedddddddddeeeeeeeeeddddddedeeddedeeeeeeeeddddddddddeeeeeddddddcddddddddddedeeeedddddcccccdddddddddddddddddcdccddddddeedddcdccddcddcdcd}
+@s02 = { 0d 2f 26 0f f0 e1 d9 e0 ee 11 49 7d 7f 67 3d 1e 10 06 e7 dd eb 09 0e 0a f7 d1 c0 97 97 a3 bc f1 }
+
+; block 01  steps 0-1154  (1154 steps)  start
+; clock %48 = quarter. early-ending ch padded with r%.
+; % values > 256 are split (notes tied with &, rests repeated).
+; #alloc { 4=711, 5=639, 6=668, 7=659, 9=335, a=316, b=163 }
+
+; ----- ch1  start-state ----- steps 0  pad 1154  alloc -
+
+; ----- ch2  start-state ----- steps 0  pad 1154  alloc -
+
+; ----- ch3  start-state ----- steps 0  pad 1154  alloc -
+
+; ----- ch4  start-state ----- steps 1154  alloc 711
+4 k2r%3@0@e0v2o3a+4r4a+4r4a+4r4a+8r4a+8r4@2@e2v4o2a+%143r4@0@e0v2o3a8r4g8r4a+4r4a+8r4a+8r4@2@e2v4o2a+%144
+
+; ----- ch5  start-state ----- steps 1154  alloc 639
+5 r%51 @0 @e0 v2 o3 a+%48 r%48 a+%48 r%48 a+%48 r%48 a%24 r%48 g%24 r%48 a+%48 r%48 a+%24 r%48 a+%24 r%48 @2 @e2 v4 o2 a+%143 r%48 @0 @e0 v2 o3 a%24 r%48 g%24 r%48 v3 a+%48 r%48
+
+; ----- ch6  start-state ----- steps 1154  alloc 668
+6 r%146 @0 @e0 v4 o3 a+%144 r%24 v2 a+%24 r%48 a+%24 r%24 v4 a+%144 r%24 v2 a+%24 r%48 a+%24 r%24 v6 a+%144 r%24 v2 a+%24 r%48 a+%24 r%24 a+%48 r%48 v4 a+%48
+
+; ----- ch7  start-state ----- steps 1154  alloc 659
+7 r%146 @2 @e2 v4 o2 a+%144 r%145 @0 @e0 v2 o3 a+%48 r%48 a+%48 r%144 a+%48 r%48 a+%48 r%144 v10 a+%143
+
+; ----- ch8  start-state ----- steps 0  pad 1154  alloc -
+
+; ----- ch9  start-state ----- steps 1154  alloc 335
+9 r%3 @11 v11 o5 a+%143 @0 v12 e%144 r%145 f%143 r%145 v14 e%143 r%145 v15 d%143
+
+; ----- cha  start-state ----- steps 1154  alloc 316
+a r%146 @0 v12 o5 f%144 r%145 e%143 r%145 v14 f%143 r%145 f%143
+
+; ----- chb  start-state ----- steps 1154  alloc 163
+b r%192 r%98 @11 v11 o5 a+%145 r%143 a+%145 r%143 a+%145 r%143
+
+; ----- chc  start-state ----- steps 0  pad 1154  alloc -
+
+; ----- chd  start-state ----- steps 0  pad 1154  alloc -
+
+; ----- che  start-state ----- steps 0  pad 1154  alloc -
+
+; ----- chf  start-state ----- steps 0  pad 1154  alloc -
+
+; ----- chg  start-state ----- steps 0  pad 1154  alloc -
+

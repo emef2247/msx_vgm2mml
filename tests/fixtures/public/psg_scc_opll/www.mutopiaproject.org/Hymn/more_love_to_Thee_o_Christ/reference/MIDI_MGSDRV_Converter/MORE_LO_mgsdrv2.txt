@@ -1,0 +1,40 @@
+#opll_mode 1
+#tempo 60
+#title {"https://www.mutopiaproject.org/ftp/DoaneWH/more_love_to_Thee_o_Christ/more_love_to_Thee_o_Christ.mid"}
+#alloc { 0=180 , 4=83 , 5=80 , 6=76 , 7=78 , 9=74 , a=80 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Piano
+@e00 = {,,cefffffffffffffffffffddddca87655443333343443333333222111100000000111111111111111100000000011111111111111111111111000000000011111110}
+@s00 = { 0f 39 5a 5a 56 64 68 55 4d 52 41 1b f1 c9 bc da fe 09 05 0e 0b e9 ce cf c4 a6 93 88 81 98 c6 ee }
+
+
+9 l%48
+9 @2v15o5d+2c+4c4d+%74a+8d+2d+2d+4d4a+1c2c+4c4d+%72a+8d+2f2d+4d+4g+1f2g+4f4g+%72o6c8o5g+2g2d+4g4a+%72d+8
+9 d+2c+2c+4f4d+1f2d+4d+4d+1r1
+
+a l%48
+a @2v15o5c2f4d+4g+%74d+8o6c2c2o5a+4g+4d+1d+2f4d+4g+%72d+8o6c2o5a+2g+4g4d+1o6c+2c+4c+4c+%72o5g+8o6c2o5a+2
+a a+4a+4d+%72g+8g+2f2f4c+4g+1a+2g+4g4g+1r1
+
+4 l%48
+4 k2@0@e0v15o3g+2r4g+4r%74d+8r2g+2r4a+4r1o2g+2r4o3g+4r%72g8r2o4c+2r4o3a+4r1c+2r4o4c+4r%72d+8r2d+2r4d+4r%72
+4 o2g+8r2o3g+2r4g+4r1o4c+2r4o3a+4r1
+
+5 l%48
+5 k2@0@e0v15o2g+2r4g+4r%74o3g8r1a+4r4g1r2g+4r4g+%72r8g+2r2o4c4r4c1r2c+4r4f%72r8o3g+2r2a+4r4o4c+%72r8c2r2
+5 o3g+4r4c1r2o4c4r4c1r1
+
+6 l%48
+6 k2r2@0@e0v15o3g+4r4g+%74r8g+2r2g4r4d+1r2c+4r4c%72r%120c+2r4d+4r1g+2r4c+4r%72g+8r2d+2r4d+4r%72o4c8r2o3c+2
+6 r4c+4r1o2a+2r4o3d+4r1
+
+7 l%48
+7 k2r2@0@e0v15o3c+4r4c%74r1r%72f4r1g+2r4o2g+4r%72o3d+8r1d+4r4g+1r2f4r4g+%72r8o4d+2r2o3g4r4o2g+%72r8g+2r2o3c+4
+7 r4g+1r2d+4r4o2g+1r1

@@ -1,0 +1,36 @@
+#opll_mode 1
+#tempo 90
+#title {"https://www.mutopiaproject.org/ftp/AguadoD/O3/aguado-op03n01/aguado-op03n01.mid"}
+#alloc { 0=11 , 9=184 , a=222 , b=114 , c=206 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+
+
+9 l%24
+9 @1v15o5c%20d%5o4e8g8c8e8o5c8o4c8e8g8o5g%37f16o4g8o3b8o4d8o5f+16g16o4c8e8g8o3f+8a8o4d8o3g4r8o5g16f%6g%5o4d8
+9 g8o5e%37d16o4g8o3f8b8o4a16b%6o5d%5o3e%73o5g%36g16o4a8d4f8g4f8c4r%120a8f8r2f8o5f8r2o4a+8g8r8g8o5a16g16r8o4e8
+9 e8r2f8o5c8r2o4a8f8r2e8e8r8f8f8r%168e8o5c8r2o4a8f8r2g+16g16g+16g16r8g+16g16g+16g16r%168f8f8r2f8f8r2g8
+9 g8r8g8g8r1
+
+a l%24
+a @1v15o4c8o5c%20o4b%6o5c%18d%6e%36d16o4g8o5c%18d%5c%19o4b%6o5c%18d%6o3b8o4d8o5d8d%36e16o4g8o5d%36f+16e16d16d16c%6
+a d%5c16o4b16o5c16o4a16g4r8o3b8o5f16e16f16d16o4c8e8o5c8o4g%37g16d8o5c16o4b16o5c16d16e16f16o4c+8e8o5f16
+a e16g16f16e16f16g16a8c16o4b16o5c16o3g8o4e4r2o3f%72r2o4a8a8r2g8a+8r8a+8a+8r8g8g8r2a8a8r2f8a8r2g8g8r8g8
+a g8c4r%120a+8a+8r2f8a8r2f8f8r8f8f8c4r%120a8a8r2a8a8r2a+8a+8r8a+8a+8f4r1
+
+b l%72
+b r1r1r1r1r1r%98@1v15o5e%18d%6c4r8o4b16o5c16o4b16o5c16o4b16o5c16c%36d16o4a8r%72o3f%72r%72o4c%72c%72o3f%72r%72f%72
+b r%72f%72r%72o4c%72o5g4f16d16o4e4r2c%72r%72o3f%72r%72o4d%72d%72e4r2o3f%72r%72o5a4f8r%72o4c%72o5a+4a16g16o4a4r1
+
+c l%12
+c r1r1r1r1r1r1r%98@1v15o4f8o5c8o4b16o5c16d16c16o4b%18o5c%6a4o4f8o5c16d16e16f16g16a16a+4a16g16a+4o4g8o5f4
+c c8o4b16o5c16o4b16o5c16o4b16o5c16c%36d16o4f8b16o5c16d16c16o4b%18o5c%6a4f8c16d16e16f16g16a16a4g16e16o3b%72
+c o5c4r8a+16a16o6c16o5a+16g16e16c%36c+16o4e8b16o5c16c+16d16d+16e16f4c8f16e16g16f16a16c16o4b%72b%72o5c4r8
+c o4b16o5c16o4b16o5c16o4b16o5c16c%36d16c8o4b16o5c16d16c16o4b%18o5c%6o3f%72o5c16d16e16f16g16a16a+4a16g16o4c%72
+c o5f4r1

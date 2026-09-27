@@ -1,0 +1,41 @@
+#opll_mode 1
+#tempo 75
+#title {"https://www.mutopiaproject.org/ftp/AguadoD/O3/aguado-op03n01/aguado-op03n01.mid"}
+#alloc { 0=11 , 9=192 , a=228 , b=109 , c=202 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+
+
+9 l%20
+9 r%2@1v15o5c%15d%4r%1o4e%20g%20c%20e%20o5c%20o4c%20e%20g%20o5g%30f%10o4g%20o3b%20o4d%20o5f+%10g%10o4c%20
+9 e%20g%20o3f+%20a%20o4d%20o3g%40r%20o5g%10f%5g%4r%1o4d%20g%20o5e%30d%10o4g%20o3f%20b%20o4a%10b%5o5d%4
+9 r%1o3e%60o5g%30g%10o4a%20d%40f%20g%40f%20c%40r%100a%20f%20r%80f%20o5f%20r%80o4a+%20g%20r%20g%20o5a%10
+9 g%10r%20o4e%20e%20r%80f%20o5c%20r%80o4a%20f%20r%80e%20e%20r%20f%20f%20r%140e%20o5c%20r%80o4a%20f%20
+9 r%80g+%10g%10g+%10g%10r%20g+%10g%10g+%10g%10r%140f%20f%20r%80f%20f%20r%80g%20g%20r%20g%20g%20r%60
+
+a l%20
+a r%2@1v15o4c%20o5c%15o4b%5o5c%15d%5e%30d%10o4g%20o5c%15d%4r%1c%15o4b%5o5c%15d%5o3b%20o4d%20o5d%20d%30
+a e%10o4g%20o5d%30f+%10e%10d%10d%10c%5d%4r%1c%10o4b%10o5c%10o4a%10g%40r%20o3b%20o5f%10e%10f%10d%10o4c%20
+a e%20o5c%20o4g%30g%10d%20o5c%10o4b%10o5c%10d%10e%10f%10o4c+%20e%20o5f%10e%10g%10f%10e%10f%10g%10a%20
+a c%10o4b%10o5c%10o3g%20o4e%40r%80o3f%60r%80o4a%20a%20r%80g%20a+%20r%20a+%20a+%20r%20g%20g%20r%80a%20
+a a%20r%80f%20a%20r%80g%20g%20r%20g%20g%20c%40r%100a+%20a+%20r%80f%20a%20r%80f%20f%20r%20f%20f%20c%40
+a r%100a%20a%20r%80a%20a%20r%80a+%20a+%20r%20a+%20a+%20f%40r%60
+
+b l%60
+b r%256r%256r%256r%114@1v15o5e%15d%5c%40r%20o4b%10o5c%10o4b%10o5c%10o4b%10o5c%10c%30d%10o4a%20r%60o3f%60
+b r%60o4c%60c%60o3f%60r%60f%60r%60f%60r%60o4c%60o5g%40f%10d%10o4e%40r%80c%60r%60o3f%60r%60o4d%60d%60
+b e%40r%80o3f%60r%60o5a%40f%20r%60o4c%60o5a+%40a%10g%10o4a%40r%60
+
+c l%10
+c r%256r%256r%256r%256r%18@1v15o4f%20o5c%20o4b%10o5c%10d%10c%10o4b%15o5c%5a%40o4f%20o5c%10d%10e%10f%10
+c g%10a%10a+%40a%10g%10a+%40o4g%20o5f%40c%20o4b%10o5c%10o4b%10o5c%10o4b%10o5c%10c%30d%10o4f%20b%10o5c%10
+c d%10c%10o4b%15o5c%5a%40f%20c%10d%10e%10f%10g%10a%10a%40g%10e%10o3b%60o5c%40r%20a+%10a%10o6c%10o5a+%10
+c g%10e%10c%30c+%10o4e%20b%10o5c%10c+%10d%10d+%10e%10f%40c%20f%10e%10g%10f%10a%10c%10o4b%60b%60o5c%40
+c r%20o4b%10o5c%10o4b%10o5c%10o4b%10o5c%10c%30d%10c%20o4b%10o5c%10d%10c%10o4b%15o5c%5o3f%60o5c%10d%10
+c e%10f%10g%10a%10a+%40a%10g%10o4c%60o5f%40r%60

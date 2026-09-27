@@ -1,0 +1,82 @@
+;[name=cpebach_with_sync_mark04 lpf=1]
+
+;[gain=1.0 name=cpebach duration=300s fade=5s cpu=0 lpf=1]
+
+#opll_mode 1
+#tempo 75
+#title { "cpebach_with_sync_mark / 04 token-boundary 7/7ch" }
+#alloc { 4=986, 5=918, 6=728, 7=645, 9=191, a=458, b=749, c=806 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Harpsichord
+@e00 = {,,8bffedcba9887776665555555554444433332222222222222222222222111111111111111111111111110}
+@s00 = { 02 49 6c 7f 78 3c f0 e7 15 08 4a 0c d4 da c9 c9 d4 1b 39 32 32 37 00 b9 b7 c9 e8 b4 c5 bd ae d1 }
+
+; block 04  steps 23592-25556  (1964 steps)  token-boundary 7/7ch
+; clock %48 = quarter. early-ending ch padded with r%.
+; % values > 256 are split (notes tied with &, rests repeated).
+; #alloc { 4=986, 5=918, 6=728, 7=645, 9=191, a=458, b=749, c=806 }
+
+; ----- ch1  start-state ----- steps 0  pad 1964  alloc -
+
+; ----- ch2  start-state ----- steps 0  pad 1964  alloc -
+
+; ----- ch3  start-state ----- steps 0  pad 1964  alloc -
+
+; ----- ch4  start-state ----- steps 1964  alloc 986
+4 @0 o3 v15 @e0
+4 o1 o3 g+%55 o4 f%54 r%28 o3 g+%27 r%55 d+%27 r%256 r%207 o2 f%55 r%256 r%126 o3 a+%18 r%36 f%109
+4 r%55 d+%55 r%109 o2 g+%218 r%109 o3 g%109
+
+; ----- ch5  start-state ----- steps 1964  alloc 918
+5 @0 o2 v15 @e0
+5 o2 o3 o2 o4 o2 o4 d%55 o3 a+%54 r%55 a+%27 r%55 o2 a+%27
+5 r%256 r%235 f%109 r%256 r%35 o3 g+%18 r%73 o2 g%164 r%218 o3 f%109 r%218
+
+; ----- ch6  start-state ----- steps 1964  alloc 728
+6 @0 o4 v15 @e0
+6 o3 o4 o1 o2 o1 o4 f%55
+6 r%54 o3 g%28 r%54 o2 a+%28 r%54 d+%27 r%256 r%208 o3 d%109 r%256 r%53 g%18 r%109 o2 a+%110 r%256 r%71 a+%218
+
+; ----- ch7  start-state ----- steps 1964  alloc 645
+7 @0 o2 v15 @e0
+7 r%55 o3 g+%54 r%256 r%256 r%256 r%256 r%176 d+%55 r%55 o2 g%109 r%256 r%180
+
+; ----- ch8  start-state ----- steps 0  pad 1964  alloc -
+
+; ----- ch9  start-state ----- steps 0  pad 1964  alloc 191
+9 @10 o5 v15
+9 r%256 r%256 r%256 r%256 r%256 r%256 r%256 r%172
+
+; ----- cha  start-state ----- steps 112  pad 1852  alloc 458
+a @10 o7 v15
+a o7 o5 o7 c%52 r%60
+a r%256 r%256 r%256 r%256 r%256 r%256 r%256 r%60
+
+; ----- chb  start-state ----- steps 1888  pad 76  alloc 749
+b @10 o6 v15
+b o5 o6 o5 o6 o5 o6 f%52
+b r%256r%256r%256r%256r%256r%114o5a+%27g+%27g%28c%81r%137c+%82r%60
+b r%76
+
+; ----- chc  start-state ----- steps 1964  alloc 806
+c @10 o5 v15
+c o4 o6 d%52 d+%3 d%54 d+%14 o5 a+%14 o6 c%13 o5 g+%14 g%27 f%28 d+%54 r%27 o4 a+%28 a+%27 o5 d+%27
+c d%27g%28f%27d+%27d%28f%27d+%18d%18c%18o4a+%19g%18f%18a+%109g+%82g+%27g+%27o5f%28d+%27d%27a+%27g+%28
+c g%27f%27d+%18d%19c%18r%245o4a+%28a+%109o5g%27e%27f%27c%28c%27o6c%27o5a+%28g+%27g+%27f+%27g%28c+%27
+c c+%27 o6 c+%27 c%28 o5 a+%27
+
+; ----- chd  start-state ----- steps 0  pad 1964  alloc -
+
+; ----- che  start-state ----- steps 0  pad 1964  alloc -
+
+; ----- chf  start-state ----- steps 0  pad 1964  alloc -
+
+; ----- chg  start-state ----- steps 0  pad 1964  alloc -
+

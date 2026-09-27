@@ -1,0 +1,103 @@
+;[name=bridge lpf=1]
+#opll_mode 1
+#tempo 112
+#title {"https://www.mutopiaproject.org/ftp/BrownCJ/bridge/bridge.mid"}
+#alloc { 0=736 , 4=711 , 5=639 , 6=668 , 7=659 , 9=335 , a=316 , b=163 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Violin
+@e00 = {,,34579abbbcbccdeffffffeeeeeeefeedddddeeeeeedeedefeffeddddcddddeeddddddedeeedddcdcccdddcdcccccddeddddddddddddccccccccccccccccccddddddccdcccccdccbbcccdcdddcccccccccccbbbbcbcccccccbbcccdcdcccbbbbbcbcbbbbabbbccccccbbcbcccccbbbababbbbcccbbbbbccb}
+@s00 = { 0a 15 19 2a 40 59 6c 64 35 f4 c5 a0 8b 83 81 8f ad db 11 49 6a 75 66 5b 51 2b f3 b8 8f 97 b2 eb }
+;SCC Vibraphone
+@e01 = {,,fffeedeffeeefffffeeeddddcaa9aaaa9bcca7777654445655567654456665544444445444554444333333333444444334443333322222222222222211111111111111111110}
+@s01 = { 12 18 3b 67 5b 47 59 51 3d 67 6e 4a 4b 33 f9 e9 f3 da d1 e8 bc 95 a1 8b 81 b0 c8 c0 d5 e7 c8 e1 }
+;SCC Contrabass
+@e02 = {,,23689abdeffffffffeeeeeeeefeefffffffeeeeeeeeeeeefffffffeeeeeeeeeeedeeeeffffeeeddddddddeeefeeeeeeeeeedddddddddeeeeeeeeeddddddedeeddedeeeeeeeeddddddddddeeeeeddddddcddddddddddedeeeedddddcccccdddddddddddddddddcdccddddddeedddcdccddcddcdcd}
+@s02 = { 0d 2f 26 0f f0 e1 d9 e0 ee 11 49 7d 7f 67 3d 1e 10 06 e7 dd eb 09 0e 0a f7 d1 c0 97 97 a3 bc f1 }
+
+
+9 l%24
+9 r%3@11v11o5a+%143@0v12e%144r%145f%143r%145v14e%143r%145v15d%143v14o6f%144o5f%145o6f%143o5f%145o6f%143e%145f%143e%144
+9 f%145e%143d%145d%143f%145d%143o5a+%144o6f%145c2d8d+8d+2d8c8c2o5b8o6c8d2v15f8r8o5a+2a8a+8a+2g8a+8a8a+8a+8o6d8
+9 d8o5a+8o6c2o5a+8o6c8c2o5a+8o6d8d+2o5a+4o6c4d2o5f2d+8r8v13d+8g8g8a+8v12a+8o6c8o5a+8a4a+8o6c8v13o5f8
+9 g8a8a8v12a+4g8a+%144v13a+8a4a+8o6c8o5f8g8a8a8a+4g8a+%143v14o4a+%144o6f%145f8g8g8g+8g+8a+8a+8a4a+8o7c8o6f8
+9 g8a8a8a+4g8a+4a+4a+4a+4a8a+4g8f4f4f4f4e8f4d8e1&e%96e2d8e8d2c4d2c8d8c2o5a+4o6d2c8d8c%143v13o5a+8a4a+8
+9 o6c8o5f8g8a8a8a+4g8a+%145r1r1r1r1r1r1v14o6a+4a+4a+4a+4a8a+4g8a+4a+4a+4a+4a8a+4g8a+4a+4a+4v15a+4a+4a+4
+9 a+4a+4a+4a+8r1
+
+a l%24
+a r%146@0v12o5f%144r%145e%143r%145v14f%143r%145f%143a+%144o4a+%145o5a+%143o4a+%145o5d%143f%145e%143f%144e%145f%143e%145
+a f%143d%145o4a+%143o5f%144o4a+%145o5g%143o4a+%145o5a%143o4a+%145o5a+8o4a+8a+8o5d8d8v15f8f8g8g8a+8a+8o6d8o5f8
+a g8g8a+8a+8o6d8o5d+8g8v14g2a8f8r4d+8g8g2a8f8f8d8d8f8f8g8o4a+2g8r8v13g8a+8a+8o5d8v12d8f8f1v13f2v12d2
+a d8v13f8f8d8d8f8f8g8e%144d%143v14o6f2o5a+8o6c8c8o5f8f8d+8d+8d8v15d8c4d8d+8o4g+8a+8o5c8c8d4o4a+8a+%144v14o6g4
+a g4g4g4f8g4e8f4f4f4f4e8f4d8c1&c%97v13o5a+%143a%145g2f8g8g2f8r8g2f8g8f%143r1a+8a4a+8o6c8o5f8g8a8a8a+4g8a+%144
+a r1r1r1r1r1v14o6f4f4f4f4e8f4d8f4f4f4f4e8f4d8f4f4f4v15f4f4f4f4f4f4f8r1
+
+b l%192
+b r1r%98@11v11o5a+%145r%143a+%145r%143a+%145r%143v13a+%72a+%72a+%73a+%72a+%71a+%72a+%72a+%73a+%71a+%72a+%72a+%73a+%72a+%71
+b a+%72a+%72a+%73a+%72a+%71a+%72a+%72a+%73a+%71a+%72a+%72a+%73a+%72a+%71a+%72a+%72a+%145r1r1r1a+%143a+%144r1r1r1r1r1r1r%144
+b a+%145a+%143r%145a+%143a+%144r%145a+%143a+%145a+%143v14a+%145a+%143a+%144a+%145r1r%96v13a+%143r1r1r1r1r1r1r1r1r1r1r1r1
+b v14a+%144a+%145a+%143a+%145a+%143a+%145a+%143a+%144r1
+
+4 l%24
+4 k2r%3@0@e0v2o3a+4r4a+4r4a+4r4a+8r4a+8r4@2@e2v4o2a+%143r4@0@e0v2o3a8r4g8r4a+4r4a+8r4a+8r4@2@e2v4o2a+%144
+4 v7a+%144r%145@0@e0v5o3a+%143v7o2a+%145@2@e2o3a+%143r%145@0@e0v5o4d%143v7o3f%144@2@e2a+%145r%143@0@e0v5o4d%145
+4 v7o3a+%143@2@e2o2a+%145r%143@0@e0v5o4d%144v7o2a+8@2@e2o3d8r8@0@e0v5a+8v6f8@2@e2g8r2@0@e0v4a+8v6d+8@2@e2c2
+4 r8@0@e0v4o4c8v6o3f8@2@e2d8r8@0@e0f8@2@e2f8r8@0@e0v4o4e2v6o3g8o4d8@2@e2o3d8r8@0@e0o2a+8@2@e2o3d8r8@0@e0v7o4e8
+4 v6o3c2v7o4f8v4o3g8@2@e2f8r8@0@e0d8v7o4f8v4o3f8@2@e2g8r8@0@e0v5a+8@2@e2a+8r8@0@e0v6g8@2@e2d+8r8@0@e0o2a+8
+4 @2@e2a+8r8@0@e0o3d8@2@e2o2a+8r8@0@e0v7o4d8v6o2a+8@2@e2o3d8r8@0@e0v7o4g8v6o2g8@2@e2a+8r8@0@e0o3d8@2@e2d8
+4 r8@0@e0o2g8@2@e2a+8r8@0@e0o3d8@2@e2d8r8@0@e0v5o2a+8@2@e2o3d8r8@0@e0v3o4f8v5o3f8@2@e2g8r2@0@e0v2o4d2
+4 r2v3o3d8@2@e2o2a+8r8@0@e0v4g8@2@e2g8r8@0@e0v5f1&f%72r8g8@2@e2a+8r8@0@e0v4o3g8v6d8@2@e2o2a+8r8@0@e0v4o3g8
+4 v6d8@2@e2f4g8r8@0@e0v4o4e8v6o3g8r8v4o4c8v6o3g8r8v4o4e8v6o3g8r8v4o4c8v6o3g8r8v4o4e8r8d8v6c8r8o3g8r8
+4 v4o4d8v6o3a+4v9g8r8v5o4f8r4f8r8v7o3a+4a8r8v5o4a+4@2@e2v7o3d%144@0@e0o4d4c8r8v5o5d8r8@2@e2v7o3c1&c%97
+4 r%143@0@e0v5o4c%145o3a+%143r4v4o4c2r8g8r4v5o3f4r%144@1@e1v7o4a+1&a+1r4@0@e0v4c8r8o3g8r8a8v6o2f8r8a8r8a+4
+4 r8a+%145r1r1r1r%143v5o4d4v7o3a+4r4v5o4d4v7o3a8r4v5o4d8@2@e2v7o3d%144@0@e0a+4r8v5o4d4v7o3g8r4v8a+4@2@e2o2a+4
+4 r4@0@e0v7o4d4v10o3a+4@2@e2o2a+4r4@0@e0v7o4d4v10o3a+8r1
+
+5 l%24
+5 k2r%51@0@e0v2o3a+4r4a+4r4a+4r4a8r4g8r4a+4r4a+8r4a+8r4@2@e2v4o2a+%143r4@0@e0v2o3a8r4g8r4v3a+4r4v5a+%144
+5 v7o2a+%145@2@e2a+%143r%145@0@e0v5o4e%143v7o3a%145@2@e2g%143r%144@0@e0v5o4d%145v7o2a+%143@2@e2o3a+%145r%143@0@e0v5a+%145
+5 v7a+%143@2@e2o2a+%144r8@0@e0v5o3g8v7d8@2@e2f8r8@0@e0v4o4d8v6o3d+2@2@e2d8r8@0@e0v4o4c2v6o3d+8@2@e2g8r8
+5 @0@e0d8@2@e2d8r8@0@e0f8@2@e2g8r8@0@e0a+8@2@e2a+8r8g8r8@0@e0d8@2@e2o2a+8r8@0@e0o3d8@2@e2d8r8@0@e0v7a+8
+5 r8o4d8r8@2@e2v5o3e8r8@0@e0v7a+8v4d8v7o4d8@2@e2v4o3f8r8@0@e0v7o4g8v4o3g8@2@e2v5a+8r8@0@e0g8@2@e2v6g8
+5 r8@0@e0v7o4c2d+8v6o2a+8@2@e2g8r8@0@e0v7o4d8v6o3d8@2@e2d8r8@0@e0v7o4a+%145o3a+%143v4a+8v5d8@2@e2d8r8@0@e0v3o4f8
+5 v5o3g8@2@e2f1&f%72r8@0@e0v2o4f%145v4o3a+8r4a+8r8f8r8a8r8a+4r8g8v5o2a+8@2@e2a+8r8@0@e0v4o3g8v6o2a+8@2@e2a+8
+5 r8@0@e0v4o3g8v6f4g8@2@e2f%144@0@e0v4o4f8v6o3g8r8v4o4c8v6o3f8r8a+8r8v4o4e8r8c8v6o3f8r8v4o4d8v6o3a8r8
+5 v4a+8r8v7a+4a+4r8v5o4g8r8g8r8g8r8v7o3g8r4v5o4a+4v7d4r8v5o5d8r8d8r8v7o4d8r2v5a2r2g%143r2v4g4r2d4r%144
+5 @1@e1v7a+%145@0@e0v4a%143r1r%144o3a+8r4a+8r8v6o2a4r8@2@e2v7o3f%144o2f%145r1r1r1r1@0@e0o3a+4r4v5o4d4@2@e2v7o2a+%144
+5 @0@e0v5o4d4v7o3a+4r4v5o4d4v7o3a8r4v5o4d8@2@e2v8o2a+4r4@0@e0v6o4d4v8o3a+4@2@e2v9o2a+4r4@0@e0v7o4d4v10o3a+4
+5 @2@e2o2a+4r1
+
+6 l%24
+6 k2r%146@0@e0v4o3a+%144r8v2a+8r4a+8r8v4a+%144r8v2a+8r4a+8r8v6a+%144r8v2a+8r4a+8r8a+4r4v4a+4r%144v5o4d%145
+6 v7o3a+%143@2@e2o2a+%145r%143@0@e0v5o4c%145v7o3g%143@2@e2f%144r%145@0@e0v5o4c%143v7o3a+%145@2@e2a+%143r%145@0@e0v5o4g%143
+6 v7o2a+%144@2@e2a+8r8@0@e0v5o3g8v7f8@2@e2v6f8r8@0@e0v4o4c2v6o3d8@2@e2d+8r2@0@e0v4a+8v6g8@2@e2f8r8@0@e0d8
+6 @2@e2f8r8@0@e0v4o4c8v6o3g8@2@e2a+8r8@0@e0g8v4o4e8@2@e2v6o3d+8r8@0@e0o2a+8@2@e2a+8r8@0@e0o3d8@2@e2f8
+6 r8@0@e0v7o4d8r8f8r8o3a+8v4f8@2@e2d8r8@0@e0f8@2@e2f8r8@0@e0v7o4d+2d8v6o3d+8@2@e2d8r8@0@e0o2a+8@2@e2o3d8
+6 r8@0@e0v7o4g8v6o2g8@2@e2a+8r8@0@e0v7o4f8v6o3d8@2@e2f8r8@0@e0o2a+8@2@e2a+8r8@0@e0o3d8@2@e2o2a+8r8@0@e0a+8
+6 @2@e2a+8r8@0@e0o3d8@2@e2o2a+8r8@0@e0v4o4d8v5o3d8@2@e2f8r8@0@e0v2o4g8v5o3f1&f%72r8@2@e2v3d8r8@0@e0o2a+8
+6 @2@e2v4g8r8@0@e0v5a+8@2@e2f1&f%72r8g8r8@0@e0v4o3f8v6d8@2@e2d8r8@0@e0v4f8v6d8@2@e2d8r8@0@e0v4a+8r8o4f8
+6 v6o3g8r8v4o4c8v6o3f8r8g+8r8v4o4e8v6o3f8r8v4a+8@2@e2v6f%145@0@e0v4o4e8v6o3a8r8v4a+8r8v5o4d8@2@e2v7o3d%144
+6 @0@e0v5o4f8r8f8v7o3a+4r8o4d4r4v5a+4@2@e2v7o2a+%144@0@e0o4e1&e%96v5d%143r%145@1@e1v7a+%143@0@e0v5o3a+%144
+6 g2r4f%144r1r%168v4a4r4f8r8v6o2a+8r8v4o3a+4g8v6o2a8r4g8r1r1r1r1r%96@2@e2v7o3d%144@0@e0a+4r8v5o4d4v7o3g8
+6 r4v5o4d4v7o3a+4r4v5o4c8v7o3a+4r8v8a+4v5o4d4v8o3a+4@2@e2o2a+4r4@0@e0v7o4d4v10o3a+4@2@e2o2a+4r4@0@e0v7o4d8r1
+
+7 l%24
+7 k2r%146@2@e2v4o2a+%144r%145@0@e0v2o3a+4r4a+4r%144a+4r4a+4r%144v10a+%143v7a+%144@2@e2o2a+%145r%143@0@e0v5o4d%145
+7 v7o3a+%143@2@e2a%145r%143@0@e0v5o4c%144v7o3a+%145@2@e2o2a+%143r%145@0@e0v5o4d%143v7o2a+%145@2@e2o3a+%143r%144
+7 @0@e0v5o4d8v7o3d8@2@e2d8r8@0@e0v5a+8v6g8@2@e2d+2r8@0@e0v4o4c8v6o3c2@2@e2d+8r8@0@e0v4o4d2d8v6o3g8@2@e2g8
+7 r8@0@e0a+8@2@e2g8r8@0@e0d+8v7o4f2f8v6o3f8@2@e2c2@0@e0v5e8@2@e2v4g8r8@0@e0v7o4d8@2@e2v4o3d8r8@0@e0v7o4f8
+7 v4o3g8@2@e2g8r8@0@e0v5a+8@2@e2g8r8@0@e0v7o4d+8v6o3d8@2@e2o2a+8r8@0@e0o3d8@2@e2d8r8@0@e0v7o4f8v6o2a+8
+7 @2@e2a+8r8@0@e0v7o4f8v6o3f8@2@e2o2g8r8@0@e0a+8@2@e2o3d8r8@0@e0o2a+8@2@e2g8r8@0@e0a+8@2@e2o3d8r8@0@e0o2a+8
+7 @2@e2v5a+8r8@0@e0v4o4d8v5o3f8@2@e2f8r8@0@e0v2o4e2r2e2r8v3o2a+8@2@e2a+8r8@0@e0v4g8@2@e2v5a+8r8@0@e0v4o3a4
+7 r8o4c8r8o3g8r8a8r4g8r8f8v5o2a+8@2@e2v6o3d8r8@0@e0v4f8v6o2a+8@2@e2o3d8r8@0@e0v4a+8r8o4c8v6o3g+8r8v4o4e8
+7 v6o3f8r8v4a+8@2@e2v6o2f%144@0@e0v4o4f8v6o3a4a+8r8v4a+8@2@e2v6e%144@0@e0v5o4d8r8f4v7o3a+4@2@e2o2a+%144
+7 @0@e0v5o4a+4v7d4r4v5a+8r8o5e8v7o4d4v5a+8a+2r2a2r%144v4f2r4d+2r4d+4r2d+8r8f2r1r1r1v6o2a+8r4v4o3a8v6c8
+7 r8o2g8r8v4o3a+%145r1r1r1r1r%95v5o4d4v7o3a+4r4v5o4c8v7o3a+4r8a+4r4v5o4d4@2@e2v7o2a+%145@0@e0v5o4d4@2@e2v8o2a+4
+7 r4@0@e0v7o4d4v9o3a+4@2@e2v10o2a+4r4@0@e0v7o4d4v10o3a+4@2@e2o2a+8r1

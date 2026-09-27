@@ -1,0 +1,62 @@
+#opll_mode 1
+#tempo 70
+#title {"https://www.mutopiaproject.org/ftp/BrownCJ/wedding/wedding.mid"}
+#alloc { 0=558 , 4=271 , 5=300 , 6=254 , 7=91 , 9=237 , a=136 , b=265 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Trumpet
+@e00 = {,,57acdeefdeedeeeffeeedeeeffeffefeffefffffeffeffeffeffeffeffeffeffeffeffeffeffeffeffeffdeedeedeedefefedeedeedfedffeffeffeffefeffefffeffefeffeffeffeefeffeffeeeeffeffdffefedeedeedeedeedeedeedeedeedffeffeffdfedffdffeffeeeefedefdffdeeffdfeedfeeed}
+@s00 = { 0b 1e 18 18 12 00 f9 06 06 05 04 03 0c 1c 2c 25 05 b9 8b f6 fc 81 ad 1e 1e 00 f0 fc 0d 10 07 fe }
+;SCC Church Org
+@e01 = {,,12457788999aaaaabbbceedcdcccbcccbbcdeeeefffffffffefeffffeedeeeeeffffffffeffffddddeedffffffffffeeededdeddeeeeeeeffffeeefefffeeeffeeeeeffffeeeeeeddddddddeeeeffffffdddddedeeeeeffeefffffeefeedeeeeeeefeeeefeffffeeeeeeedddddeddddedffffed}
+@s01 = { 05 18 33 32 3f 56 66 7f 6d 4d 40 1f 0d 04 e3 cd c2 cd dc d2 d2 da da d0 b0 af cb d3 cb cd cf f0 }
+
+
+9 l%24
+9 r1r1@7v11o6d+4d4c%14d16c4f8d+4d2@6o5d+4d+%72d8d+8f8d+%72c8g2d+4d+%71d8d+8f8d+%72c8g+2d+4d+%72d8d+8f8d+%73
+9 c8a+2v12g+4g+8g8f8g8d+4c4d+8d8c8d8o4a+2o5c2d2d+1&d+%95r1r1r1r1r1r1r1r1r1r1r%48v10d+4d+%73d8d+8f8f%143v12d+8
+9 r8v11d+4d+%72d8d+8f8f%144d+8r8d+4d+%72d8d+8f8d+%73c8g2d+4d+%72d8d+8f8d+%71c8g+2d+4d+%72d8d+8f8v12d+%73c8a+2
+9 g+4g+8g8f8g8g+4f4f4o6c%72o5a+16g+16g4g2g+8g8f8g+8g4a+4g+8g8f8g+8g4d+4d+8d8c8d+8d+2c2c+4c4d+2v10d+%144
+9 v11d+4r1
+
+a l%192
+a r1r1r1r%145@7v11o6c%121o5a+8g+2g8o6c%168d+4d4c16d16c4f8d+4d16d+16d4c1&c%24o5g+4o6f%143v13d+4f%73d+8g2g8f8
+a d+8f8d2r%143d4r1r%96v11o5a+2o6f2o5g2o6d+1&d+%144r1r1r1r1r1r1r1r1r1r1r1r%48o5g+8a+8g+8a+8d+4d+4r1r1r1r1r1r1r1r%97
+a v13a+2a+2r1
+
+b l%24
+b r1r1r1r1r1r1r1r1r1r1r1r%146@7v13o6f4f8g8g+8f8a+2c8o5a+8o6c8d+8g1v11g2o5g+2o6d+2o5g1&g%143r4g8f8d+8g8
+b d+4d4c8d8d+8f8c4g+4g+8g8f+8d+8c+4a+4o6c8o5a+8a8o6f8f4g4d+8d8c8f8f4a+4d+8d8c8f8f4o5a+4g+4o6c4o5a+8g+8
+b g4g1g+8g8f8g8g+4o6c4d+4d16c16d4o5a+%73g+8g8f8g8g+4o6c4c8o5g8f8g8g4c4g+8a+8o6d+4d2o5g8g+8o6c4o5a+2g+8
+b g8f8g8v13g+4o6c4c4d+4v14d+4v15g4v13g+8g8f8g8o5g+8f8f8g+8g+8a+8o6d+2d4d+1f8d+8d8c8d2o5g2g+8a+8o6d+4
+b d2o5g8g+8o6c4o5g+2g+8g8f8g8g+4o6c4v12c4v11d+4v10g1r1
+
+4 l%48
+4 k2@1@e1v4o3g+8r4g8r4o4c4r4c%74r%71o3g2r2o4c2r2o3g+8r4g8r4o4c4r%72d16r%109o3a+2r2g2r2g+8r4g8r4o4c4r4o3f8
+4 r%71o4c4r4o3c%144r4o2a+2r4g+8r4g+8r4a+4r4f8r%72o3c4r4g%144r2d+2a+1&a+%144r4d+4r4g4r4g+8r4g+8r4c4r4g+4r4
+4 f8r%72c4r4o2a+4r4o3g+4r4f8r%72d+4r2o4c4r4o3a+8r4g8r4o4c+8r4o3a+8r4o4f8r4o3a+8r4g+4r4f8r4a+8r4o4c8r4o3a+8
+4 r4f4r4a+8r4a+8r4g+8r4g8r4g4r4d+8r%72a+4r4d8r%73g+4r4g+8r%71d+4r4c8r%72o2a+4r%145o3f4r4g+8r%72o4d+4r4o3a+8
+4 r%120o4d8r4d8r4o3a+4r4g+8r%72g+4r4f8r%71f4r4d+8r%121g1r1
+
+5 l%48
+5 k2r8@1@e1v4o3g8r4g+4r4g+4r%74a+16r%156f2r2a+2r4f8r%119o4d+%72r1r%25o3g+2r2f2r4f8r%119g+8r4g8r2o2g+8r%73o3d+2
+5 r2d2r4o2f8r%120g+8r4g8r2o3d+4r4o2a+2r2o3g2r8@0@e0o4d8r8d8r4g4r8a+8r8v7o5d8r%144@1@e1v4o3g4r4a+4r4f8r%120
+5 o4c4r4o3g+8r4g8r2d4r4o4c4r4o3g+8r4g8r2o4c+2r4o3g+4r4d+8r4o4c8r4c8r4o3g+8r4o4d8r%120o3d+8r4g+8r4g+8r4
+5 a+8r4o4c4r4o3g+8r4o4d8r4o3a+8r4g8r4f4r4g8r4g8r2f8r4d+8r2o4c8r4o3a+8r2d+8r4d8r2d+%144r4o4c8r4o3a+8r2
+5 o4d8r4c8r%119c8r4d4r4c8r4c8r2o3g+8r4g+8r2f8r4g8r2c1r1
+
+6 l%48
+6 k2r4@1@e1v4o3f8r1r%62g+16r1r1r%71g8r4g+4r%132o4d+16r1r1r%120o3g8r4g+4r%73g8r4o4d+4r%71o2a+8r%144g8r%121f4r2
+6 g2r2g+4r1r%47o3f2r2@0@e0o4d+8r8c8r8d+4r4g+8r8o5d+8r8v7d+2r1r%25@1@e1v4o3g8r4d+4r%167g8r4d+4r1r%73g8r4g4
+6 r1r%71o4c8r4o3a+8r4o4d8r4c8r4d+8r4c4r%73o3c8r4g8r4o4c8r4o3g+8r%143a+8r4o4c8r4o3g+8r4f8r%144f8r4g4r%72d+8
+6 r4f4r%73a+8r4g4r%72d8r4d4r1r%71a+8r4o4c4r%73c8r4o3f2r4a+8r%143a+8r4o4c4r%73o3g8r4g+4r%72d+8r4g2r1
+
+7 l%192
+7 k2r1r%146@1@e1v4o3g4r1r1r1r%95o4c2r1r1r1r%97o3g2r1r%23o2g+8r%169g8r%168g8r1r%143a+2r2o3d+1&d+%144r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r%145
+7 o4d2r1r1r1r%96o3c2r1

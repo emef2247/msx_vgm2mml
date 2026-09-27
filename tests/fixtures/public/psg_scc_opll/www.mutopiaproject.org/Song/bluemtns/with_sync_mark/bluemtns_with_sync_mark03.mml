@@ -1,0 +1,73 @@
+;[name=bluemtns_with_sync_mark03 lpf=1]
+
+
+#opll_mode 1
+#tempo 120
+#title { "bluemtns_with_sync_mark / 03 token-boundary 8/8ch" }
+#alloc { 4=193, 5=177, 6=169, 7=144, 9=184, a=110, b=154, c=157 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Piano
+@e00 = {,,cefffffffffffffffffffddddca87655443333343443333333222111100000000111111111111111100000000011111111111111111111111000000000011111110}
+@s00 = { 0f 39 5a 5a 56 64 68 55 4d 52 41 1b f1 c9 bc da fe 09 05 0e 0b e9 ce cf c4 a6 93 88 81 98 c6 ee }
+
+; block 03  steps 5619-6003  (384 steps)  token-boundary 8/8ch
+; clock %48 = quarter. early-ending ch padded with r%.
+; % values > 256 are split (notes tied with &, rests repeated).
+; #alloc { 4=193, 5=177, 6=169, 7=144, 9=184, a=110, b=154, c=157 }
+
+; ----- ch1  start-state ----- steps 0  pad 384  alloc -
+
+; ----- ch2  start-state ----- steps 0  pad 384  alloc -
+
+; ----- ch3  start-state ----- steps 0  pad 384  alloc -
+
+; ----- ch4  start-state ----- steps 384  alloc 193
+4 @0 o2 v9 @e0
+4 o2 o3 r%48 o4 d%48 o3 a%48 r%48 g%48 r%48 o2 a%48 r%48
+
+; ----- ch5  start-state ----- steps 384  alloc 177
+5 @0 o2 v9 @e0
+5 r%48 a%48 o4 d%48 r%48 o3 a%48 r%96 g%48
+
+; ----- ch6  start-state ----- steps 384  alloc 169
+6 @0 o2 v9 @e0
+6 o4 r%48 o3 f+%48 r%48 e%48 r%48 a%48 r%48 a%48
+
+; ----- ch7  start-state ----- steps 384  alloc 144
+7 @0 o3 v9 @e0
+7 o2 o4 o2 o4 o2 a%48 r%48 o3 f+%48 r%96 g%48 r%96
+
+; ----- ch8  start-state ----- steps 0  pad 384  alloc -
+
+; ----- ch9  start-state ----- steps 384  alloc 184
+9 @2 o5 v14
+9 o6 o5 o6 c+%96 o5 b%48 o6 c+%192 c+%48
+
+; ----- cha  start-state ----- steps 384  alloc 110
+a @2 o5 v13
+a o6 o5 o6 r%192 r%192
+
+; ----- chb  start-state ----- steps 384  alloc 154
+b @2 o5 v13
+b o5 f+%144 o6 c+%192 c+%48
+
+; ----- chc  start-state ----- steps 384  alloc 157
+c @2 o6 v13
+c o6 o5 o6 o5 o6 o5 o6 c+%96
+c o5 b%48 g%192 g%48
+
+; ----- chd  start-state ----- steps 0  pad 384  alloc -
+
+; ----- che  start-state ----- steps 0  pad 384  alloc -
+
+; ----- chf  start-state ----- steps 0  pad 384  alloc -
+
+; ----- chg  start-state ----- steps 0  pad 384  alloc -
+

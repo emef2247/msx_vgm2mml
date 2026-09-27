@@ -1,0 +1,90 @@
+;[name=turpinh_with_sync_mark03 lpf=1]
+
+;[gain=1.0 name=turpinh duration=300s fade=5s cpu=0 lpf=1]
+; The line above defines extra options, works only on msxplay.com 
+
+#opll_mode 1
+#tempo 75
+#title { "turpinh_with_sync_mark / 03 token-boundary 8/8ch" }
+#alloc { 4=559, 5=576, 6=561, 7=493, 9=334, a=426, b=541, c=436 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Piano
+@e00 = {,,cefffffffffffffffffffddddca87655443333343443333333222111100000000111111111111111100000000011111111111111111111111000000000011111110}
+@s00 = { 0f 39 5a 5a 56 64 68 55 4d 52 41 1b f1 c9 bc da fe 09 05 0e 0b e9 ce cf c4 a6 93 88 81 98 c6 ee }
+
+; block 03  steps 8502-10502  (2000 steps)  token-boundary 8/8ch
+; clock %48 = quarter. early-ending ch padded with r%.
+; % values > 256 are split (notes tied with &, rests repeated).
+; #alloc { 4=559, 5=576, 6=561, 7=493, 9=334, a=426, b=541, c=436 }
+
+; ----- ch1  start-state ----- steps 0  pad 2000  alloc -
+
+; ----- ch2  start-state ----- steps 0  pad 2000  alloc -
+
+; ----- ch3  start-state ----- steps 0  pad 2000  alloc -
+
+; ----- ch4  start-state ----- steps 2000  alloc 559
+4 @0 o4 v14 @e0
+4 r%50 c%12 r%38 o2 f%25 r%75 v14 o3 a%12 r%38 o4 d%25 r%37 o3 g%25 r%63 o4 d%50 f%50 c+%25 c+%25 f%25 r%37 c%25
+4 r%38o3g%25r%37g+%13r%50o4c%50e%50o3b%25b%25o4e%25r%37o3d%25r%38c%25r%37c%13r%50g%12r%38o4c%25r%50o2a+%25
+4 r%25g%25r%25v15o3a%25r%25o4c%25r%25o3a%25r%25a%25r%25g%25r%25g%25r%25g%25r%25g%25r%25f%25r%25a%25r%25f%25
+4 r%25 f%25
+
+; ----- ch5  start-state ----- steps 2000  alloc 576
+5 @0 o3 v14 @e0
+5 o3 o2 o3 f%25 r%37 d%25 r%63 v6 o2 f%25 r%37 v14 o4 d%25 r%38 o3 a%25
+5 r%37a+%13r%50o4g%50a%50o3a%25o4g%25r%50o3g%12r%38o4c%25r%37o3f%25r%63o4f%50g%50o3g%25o4f%25r%50o3c%12
+5 r%38d%25r%37e%25r%38c%25r%37g%13r%50o4c%25r%25o2a%25r%25v15f%25r%25o3d+%25r%50f+%25r%50o2a+%25r%50o3d%25
+5 r%50 o2 g%25 r%25 o3 c%25 r%50 o4 d%25 r%25 o3 g%25 r%25 g%25
+
+; ----- ch6  start-state ----- steps 2000  alloc 561
+6 @0 o3 v14 @e0
+6 o2 o3 a%25 r%62 c%13 r%50 v6 f%25 r%62 v14 a%13 r%50 a+%12 r%38 a%50
+6 r%50o4d%50r%25o3a%25r%87g%13r%50g+%12r%38g%50r%50o4c%50r%25o3g%25r%87c%13r%50c%12r%38e%25r%37o4c%25
+6 r%38o3g%25r%50a%25r%25v15f%25r%50a%25r%50c%25r%50d%25r%50o2a+%25r%50o3d%25r%25a%25r%25f%25r%25o4d%25
+6 r%25 o3 b%25
+
+; ----- ch7  start-state ----- steps 2000  alloc 493
+7 @0 o4 v15 @e0
+7 r%256 r%144 v14 o4 a+%50 r%50 g%25 r%25 d%25 r%225 g+%50 r%50 f%25 r%25 c%25 r%256 r%94 o3 a+%25 r%25 g%25 r%25 v15 o4 c%25
+7 r%50 o3 d%25 r%50 f+%25 r%50 o2 g%25 r%50 o3 d%25 r%25 a+%25 r%50 d%25 r%25 o2 b%25 r%25 g%25 r%25
+
+; ----- ch8  start-state ----- steps 0  pad 2000  alloc -
+
+; ----- ch9  start-state ----- steps 2000  alloc 334
+9 @2 o6 v14
+9 r%150 o5 f%25 r%256 r%256 r%256 r%256 r%256 r%256 r%256 r%33
+
+; ----- cha  start-state ----- steps 2000  alloc 426
+a @2 o7 v14
+a r%150 o5 a%25 r%256 r%256 r%256 r%256 r%256 r%256 r%256 r%33
+
+; ----- chb  start-state ----- steps 2000  alloc 541
+b @2 o6 v14
+b o6 o7 o6 o7 o6 o7 o6 o5 o6 o7 o6 f%25
+b r%125c%25r%256r%256r%256r%256r%126c%25d%25e%25o5f%25o7d%50c%25o6f+%25o7d%50c%25o6g%25c%50a+%25d%50
+b a%25 g%25 f%25 c%50 a%25 f%50 a%50
+
+; ----- chc  start-state ----- steps 2000  alloc 436
+c @2 o5 v14
+c o6 o5 o6 o5 o6 o5 f%25 r%25 c%12 d%25 c%13 f%25 r%25 o6 f%25 r%25 o5 a%12
+c o6d%25o5a%13o6d%25o5a%25a+%12g%25a+%13a%50o6a+%12o7d%25o6a+%13a%12f%25f%13e%12g%13f%12e%13d%25r%25o5g%12
+c o6c%25o5g%13o6c%25o5g%25g+%12f%25g+%13g%50o6g+%12o7c%25o6g+%13g%12e%25e%13d%12f%13e%12d%13c%25r%25o5c%12
+c d%25c%13d%25c%25c%12e%25c%13e%25c%25g%12o6c%25o5g%13o6c%25o5g%25o6c%25o5c%25d%25e%25o6f%25d%50c%25
+c o5 f+%25 o6 d%50 c%25 o5 g%25 o7 c%50 o5 a+%25 d%50 a%25 g%25 f%25 o7 c%50 o5 a%25 f%50 a%50
+
+; ----- chd  start-state ----- steps 0  pad 2000  alloc -
+
+; ----- che  start-state ----- steps 0  pad 2000  alloc -
+
+; ----- chf  start-state ----- steps 0  pad 2000  alloc -
+
+; ----- chg  start-state ----- steps 0  pad 2000  alloc -
+

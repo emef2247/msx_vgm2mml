@@ -1,0 +1,74 @@
+;[name=wedding_with_sync_mark03 lpf=1]
+
+;[gain=1.0 name=wedding duration=300s fade=5s cpu=0 lpf=1]
+
+#opll_mode 1
+#tempo 75
+#title { "wedding_with_sync_mark / 03 token-boundary 4/4ch" }
+#alloc { 4=310, 5=314, 6=266, 7=83, 9=251, a=131, b=284 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Trumpet
+@e00 = {,,57acdeefdeedeeeffeeedeeeffeffefeffefffffeffeffeffeffeffeffeffeffeffeffeffeffeffeffeffdeedeedeedefefedeedeedfedffeffeffeffefeffefffeffefeffeffeffeefeffeffeeeeffeffdffefedeedeedeedeedeedeedeedeedffeffeffdfedffdffeffeeeefedefdffdeeffdfeedfeeed}
+@s00 = { 0b 1e 18 18 12 00 f9 06 06 05 04 03 0c 1c 2c 25 05 b9 8b f6 fc 81 ad 1e 1e 00 f0 fc 0d 10 07 fe }
+;SCC Church Org
+@e01 = {,,12457788999aaaaabbbceedcdcccbcccbbcdeeeefffffffffefeffffeedeeeeeffffffffeffffddddeedffffffffffeeededdeddeeeeeeeffffeeefefffeeeffeeeeeffffeeeeeeddddddddeeeeffffffdddddedeeeeeffeefffffeefeedeeeeeeefeeeefeffffeeeeeeedddddeddddedffffed}
+@s01 = { 05 18 33 32 3f 56 66 7f 6d 4d 40 1f 0d 04 e3 cd c2 cd dc d2 d2 da da d0 b0 af cb d3 cb cd cf f0 }
+
+; block 03  steps 8847-8907  (60 steps)  token-boundary 4/4ch
+; clock %48 = quarter. early-ending ch padded with r%.
+; % values > 256 are split (notes tied with &, rests repeated).
+; #alloc { 4=310, 5=314, 6=266, 7=83, 9=251, a=131, b=284 }
+
+; ----- ch1  start-state ----- steps 0  pad 60  alloc -
+
+; ----- ch2  start-state ----- steps 0  pad 60  alloc -
+
+; ----- ch3  start-state ----- steps 0  pad 60  alloc -
+
+; ----- ch4  start-state ----- steps 60  alloc 310
+4 @1 o3 v4 @e1
+4 r%60
+
+; ----- ch5  start-state ----- steps 60  alloc 314
+5 @1 o3 v4 @e1
+5 o3 r%60
+
+; ----- ch6  start-state ----- steps 0  pad 60  alloc 266
+6 @1 o3 v4 @e1
+6 r%60
+
+; ----- ch7  start-state ----- steps 0  pad 60  alloc 83
+7 @1 o3 v4 @e1
+7 r%60
+
+; ----- ch8  start-state ----- steps 0  pad 60  alloc -
+
+; ----- ch9  start-state ----- steps 60  alloc 251
+9 @6 o5 v11
+9 v10 v11 r%60
+
+; ----- cha  start-state ----- steps 0  pad 60  alloc 131
+a @7 o5 v13
+a r%60
+
+; ----- chb  start-state ----- steps 60  alloc 284
+b @7 o6 v10
+b o6 v12 v11 v10 r%60
+
+; ----- chc  start-state ----- steps 0  pad 60  alloc -
+
+; ----- chd  start-state ----- steps 0  pad 60  alloc -
+
+; ----- che  start-state ----- steps 0  pad 60  alloc -
+
+; ----- chf  start-state ----- steps 0  pad 60  alloc -
+
+; ----- chg  start-state ----- steps 0  pad 60  alloc -
+

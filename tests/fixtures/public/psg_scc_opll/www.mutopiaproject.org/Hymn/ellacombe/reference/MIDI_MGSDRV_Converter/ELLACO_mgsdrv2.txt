@@ -1,0 +1,40 @@
+#opll_mode 1
+#tempo 60
+#title {"https://www.mutopiaproject.org/ftp/Anonymous/ellacombe/ellacombe.mid"}
+#alloc { 0=180 , 4=87 , 5=82 , 6=81 , 7=65 , 9=97 , a=99 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Piano
+@e00 = {,,cefffffffffffffffffffddddca87655443333343443333333222111100000000111111111111111100000000011111111111111111111111000000000011111110}
+@s00 = { 0f 39 5a 5a 56 64 68 55 4d 52 41 1b f1 c9 bc da fe 09 05 0e 0b e9 ce cf c4 a6 93 88 81 98 c6 ee }
+
+
+9 l%48
+9 @2v15o5e4a4g+8f+8e4a4r4o4b8a8o5e4c+4d4e4f+4e4e%146r1e4r4o4b8a8b4o5c+4f+8g+8c+8d8e4e4e%144c+8b8e4e4e4
+9 f+4e2b4c+8e8e4e4e4f+4b%144r1e4r4o4b8a8b4o5e4d4c+8d8e4e4e%144r1
+
+a l%48
+a r1@2v15o5e4c+4d4o4b4o5e4f+8g+8a4b4b4o6c+%146o5e4a4g+8f+8e4a4c+4d4e4e4d4a4a4g+4a%144a8d8o6c+4o5b4o6c+4
+a d4o5b4g+8a8e4a8b8o6c+4o5b4o6c+4d4o5e%144e4a4g+8f+8e4a4c+4d4e4c+4f+8g+8a4a4g+4a%144r1
+
+4 l%48
+4 k2@0@e0v15o3e4r4g+8r%74a4r2e4r4a4r4a4r4o2a%144r4o3a4r4e4r4a2r4o2a4r4o3a4r4b4r%144o2a4r4o3b4r4a4r%72f+8
+4 r4o4c+8r8o3a4r4a4r4e%144r4a4r4e4r4a2r4o2a4r4o3a4r4b4r1
+
+5 l%48
+5 k2r4@0@e0v15o3a4r4e4r4a2r4a4r4a4r4g+4r%146e4r4g+8r%72a4r2g+4r4a4r4a4r4o4c+%144r4o3a4r4a4r4g+4r4e4r8b8
+5 r4b4r4a4r%144e4r4g+8r%72a4r2g+4r4a4r4b4r4o4c+%144r1
+
+6 l%48
+6 k2r%122@0@e0v15o3f+8r4c+4r2g+4r4d4r4d4r4a%144r%120f+8r4c+4r2e4r4d4r4e4r4o2a%144r2o3g+4r4d4r2g+4r8g+8r4
+6 g+4r4d4r1r%72f+8r4c+4r2e4r4d4r4e4r4o2a%144r1
+
+7 l%48
+7 k2r1r%50@0@e0v15o3f+2r4o2a4r4o3c+4r4e4r1r1f+2r4a4r4f+4r4e4r%144a4r1e2r4f+8r1r%24g+%144r1r%48f+2r4a4r4f+4
+7 r4e4r1

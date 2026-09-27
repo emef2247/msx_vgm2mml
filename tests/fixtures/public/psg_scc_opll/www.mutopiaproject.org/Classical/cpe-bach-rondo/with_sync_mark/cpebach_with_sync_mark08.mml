@@ -1,0 +1,73 @@
+;[name=cpebach_with_sync_mark08 lpf=1]
+
+;[gain=1.0 name=cpebach duration=300s fade=5s cpu=0 lpf=1]
+
+#opll_mode 1
+#tempo 75
+#title { "cpebach_with_sync_mark / 08 token-boundary 4/4ch" }
+#alloc { 4=986, 5=918, 6=728, 7=645, 9=191, a=458, b=749, c=806 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Harpsichord
+@e00 = {,,8bffedcba9887776665555555554444433332222222222222222222222111111111111111111111111110}
+@s00 = { 02 49 6c 7f 78 3c f0 e7 15 08 4a 0c d4 da c9 c9 d4 1b 39 32 32 37 00 b9 b7 c9 e8 b4 c5 bd ae d1 }
+
+; block 08  steps 26674-26701  (27 steps)  token-boundary 4/4ch
+; clock %48 = quarter. early-ending ch padded with r%.
+; % values > 256 are split (notes tied with &, rests repeated).
+; #alloc { 4=986, 5=918, 6=728, 7=645, 9=191, a=458, b=749, c=806 }
+
+; ----- ch1  start-state ----- steps 0  pad 27  alloc -
+
+; ----- ch2  start-state ----- steps 0  pad 27  alloc -
+
+; ----- ch3  start-state ----- steps 0  pad 27  alloc -
+
+; ----- ch4  start-state ----- steps 27  alloc 986
+4 @0 o5 v15 @e0
+4 o3 r%27
+
+; ----- ch5  start-state ----- steps 27  alloc 918
+5 @0 o5 v15 @e0
+5 o4 o2 r%27
+
+; ----- ch6  start-state ----- steps 27  alloc 728
+6 @0 o5 v15 @e0
+6 o3 a+%27
+
+; ----- ch7  start-state ----- steps 27  alloc 645
+7 @0 o6 v15 @e0
+7 o3 g%27
+
+; ----- ch8  start-state ----- steps 0  pad 27  alloc -
+
+; ----- ch9  start-state ----- steps 0  pad 27  alloc 191
+9 @10 o5 v15
+9 r%27
+
+; ----- cha  start-state ----- steps 0  pad 27  alloc 458
+a @10 o7 v15
+a r%27
+
+; ----- chb  start-state ----- steps 0  pad 27  alloc 749
+b @10 o5 v15
+b r%27
+
+; ----- chc  start-state ----- steps 0  pad 27  alloc 806
+c @10 o5 v15
+c r%27
+
+; ----- chd  start-state ----- steps 0  pad 27  alloc -
+
+; ----- che  start-state ----- steps 0  pad 27  alloc -
+
+; ----- chf  start-state ----- steps 0  pad 27  alloc -
+
+; ----- chg  start-state ----- steps 0  pad 27  alloc -
+

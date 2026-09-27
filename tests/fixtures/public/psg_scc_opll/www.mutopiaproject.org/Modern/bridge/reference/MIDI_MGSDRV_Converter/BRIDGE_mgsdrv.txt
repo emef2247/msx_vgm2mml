@@ -1,0 +1,119 @@
+#opll_mode 1
+#tempo 75
+#title {"https://www.mutopiaproject.org/ftp/PapezikR/twelvetone/twelvetone.mid"}
+#alloc { 0=736 , 4=712 , 5=642 , 6=663 , 7=664 , 9=333 , a=312 , b=140 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Violin
+@e00 = {,,34579abbbcbccdeffffffeeeeeeefeedddddeeeeeedeedefeffeddddcddddeeddddddedeeedddcdcccdddcdcccccddeddddddddddddccccccccccccccccccddddddccdcccccdccbbcccdcdddcccccccccccbbbbcbcccccccbbcccdcdcccbbbbbcbcbbbbabbbccccccbbcbcccccbbbababbbbcccbbbbbccb}
+@s00 = { 0a 15 19 2a 40 59 6c 64 35 f4 c5 a0 8b 83 81 8f ad db 11 49 6a 75 66 5b 51 2b f3 b8 8f 97 b2 eb }
+;SCC Vibraphone
+@e01 = {,,fffeedeffeeefffffeeeddddcaa9aaaa9bcca7777654445655567654456665544444445444554444333333333444444334443333322222222222222211111111111111111110}
+@s01 = { 12 18 3b 67 5b 47 59 51 3d 67 6e 4a 4b 33 f9 e9 f3 da d1 e8 bc 95 a1 8b 81 b0 c8 c0 d5 e7 c8 e1 }
+;SCC Contrabass
+@e02 = {,,23689abdeffffffffeeeeeeeefeefffffffeeeeeeeeeeeefffffffeeeeeeeeeeedeeeeffffeeeddddddddeeefeeeeeeeeeedddddddddeeeeeeeeeddddddedeeddedeeeeeeeeddddddddddeeeeeddddddcddddddddddedeeeedddddcccccdddddddddddddddddcdccddddddeedddcdccddcddcdcd}
+@s02 = { 0d 2f 26 0f f0 e1 d9 e0 ee 11 49 7d 7f 67 3d 1e 10 06 e7 dd eb 09 0e 0a f7 d1 c0 97 97 a3 bc f1 }
+
+
+9 l%16
+9 r%2@11v11o5a+%96@0v12e%96r%97f%96r%97v14e%96r%97v15d%96v14o6f%96o5f%97o6f%96o5f%97o6f%96e%97f%96e%96
+9 f%97e%96d%97d%96f%97d%96o5a+%96o6f%97c%64d%16d+%16d+%65d%16c%16c%64o5b%16o6c%16d%64v15f%16r%17o5a+%64
+9 a%16a+%16a+%64g%16a+%16a%16a+%17a+%16o6d%16d%16o5a+%16o6c%64o5a+%16o6c%16c%65o5a+%16o6d%16d+%64o5a+%32
+9 o6c%32d%65o5f%64d+%16r%16v13d+%16g%16g%16a+%16v12a+%16o6c%16o5a+%16a%33a+%16o6c%16v13o5f%16g%16a%16
+9 a%16v12a+%32g%16a+%97v13a+%16a%32a+%16o6c%16o5f%16g%16a%16a%16a+%32g%17a+%96v14o4a+%96o6f%97f%16g%16
+9 g%16g+%16g+%16a+%16a+%16a%32a+%17o7c%16o6f%16g%16a%16a%16a+%32g%16a+%32a+%32a+%33a+%32a%16a+%32g%16
+9 f%32f%32f%32f%33e%16f%32d%16e%193e%64d%16e%16d%64c%33d%64c%16d%16c%64o5a+%32o6d%65c%16d%16c%96v13o5a+%16
+9 a%32a+%17o6c%16o5f%16g%16a%16a%16a+%32g%16a+%97r%256r%256r%256r%3v14o6a+%32a+%32a+%32a+%33a%16a+%32
+9 g%16a+%32a+%32a+%32a+%32a%16a+%33g%16a+%32a+%32a+%32v15a+%32a+%32a+%33a+%32a+%32a+%32a+%16r%60
+
+a l%16
+a r%98@0v12o5f%96r%97e%96r%97v14f%96r%97f%96a+%96o4a+%97o5a+%96o4a+%97o5d%96f%97e%96f%96e%97f%96e%97
+a f%96d%97o4a+%96o5f%96o4a+%97o5g%96o4a+%97o5a%96o4a+%97o5a+%16o4a+%16a+%16o5d%16d%16v15f%16f%16g%16
+a g%16a+%16a+%16o6d%16o5f%16g%17g%16a+%16a+%16o6d%16o5d+%16g%16v14g%64a%16f%16r%33d+%16g%16g%64a%16f%16
+a f%16d%16d%16f%16f%16g%17o4a+%64g%16r%16v13g%16a+%16a+%16o5d%16v12d%16f%16f%129v13f%64v12d%65d%16v13f%16
+a f%16d%16d%16f%16f%16g%16e%97d%96v14o6f%64o5a+%16o6c%16c%16o5f%17f%16d+%16d+%16d%16v15d%16c%32d%16d+%16
+a o4g+%16a+%16o5c%16c%16d%33o4a+%16a+%96v14o6g%32g%32g%33g%32f%16g%32e%16f%32f%32f%32f%33e%16f%32d%16
+a c%193v13o5a+%96a%97g%64f%16g%16g%64f%16r%16g%65f%16g%16f%96r%129a+%16a%32a+%16o6c%16o5f%16g%16a%16
+a a%16a+%33g%16a+%96r%256r%256r%131v14o6f%32f%32f%32f%33e%16f%32d%16f%32f%32f%32f%32e%16f%33d%16f%32
+a f%32f%32v15f%32f%32f%33f%32f%32f%32f%16r%60
+
+b l%48
+b r%194@11v11o5a+%97r%96a+%97r%96a+%97r%96v13a+%48a+%48a+%49a+%48a+%48a+%48a+%48a+%49a+%48a+%48a+%48
+b a+%49a+%48a+%48a+%48a+%48a+%49a+%48a+%48a+%48a+%48a+%49a+%48a+%48a+%48a+%49a+%48a+%48a+%48a+%48a+%97
+b r%256r%130a+%96a+%96r%256r%256r%256r%100a+%97a+%96r%97a+%96a+%96r%97a+%96a+%97a+%96v14a+%97a+%96a+%96
+b a+%97r%193v13a+%96r%256r%256r%256r%256r%256r%256r%7v14a+%96a+%97a+%96a+%97a+%96a+%97a+%96a+%96r%60
+
+4 l%16
+4 k2r%2@0@e0v2o3a+%32r%32a+%32r%32a+%32r%32a+%16r%33a+%16r%32@2@e2v4o2a+%96r%32@0@e0v2o3a%16r%33g%16
+4 r%32a+%32r%32a+%16r%32a+%16r%33@2@e2v4o2a+%96v7a+%96r%97@0@e0v5o3a+%96v7o2a+%97@2@e2o3a+%96r%97@0@e0v5o4d%96
+4 v7o3f%96@2@e2a+%97r%96@0@e0v5o4d%97v7o3a+%96@2@e2o2a+%97r%96@0@e0v5o4d%96v7o2a+%16@2@e2o3d%17r%16@0@e0v5a+%16
+4 v6f%16@2@e2g%16r%64@0@e0v4a+%16v6d+%16@2@e2c%65r%16@0@e0v4o4c%16v6o3f%16@2@e2d%16r%16@0@e0f%16@2@e2f%16
+4 r%16@0@e0v4o4e%64v6o3g%16o4d%17@2@e2o3d%16r%16@0@e0o2a+%16@2@e2o3d%16r%16@0@e0v7o4e%16v6o3c%64v7o4f%16
+4 v4o3g%16@2@e2f%16r%17@0@e0d%16v7o4f%16v4o3f%16@2@e2g%16r%16@0@e0v5a+%16@2@e2a+%16r%16@0@e0v6g%16@2@e2d+%16
+4 r%16@0@e0o2a+%16@2@e2a+%16r%17@0@e0o3d%16@2@e2o2a+%16r%16@0@e0v7o4d%16v6o2a+%16@2@e2o3d%16r%16@0@e0v7o4g%16
+4 v6o2g%16@2@e2a+%16r%16@0@e0o3d%16@2@e2d%16r%17@0@e0o2g%16@2@e2a+%16r%16@0@e0o3d%16@2@e2d%16r%16@0@e0v5o2a+%16
+4 @2@e2o3d%16r%16@0@e0v3o4f%16v5o3f%16@2@e2g%16r%65@0@e0v2o4d%64r%64v3o3d%16@2@e2o2a+%16r%16@0@e0v4g%17
+4 @2@e2g%16r%16@0@e0v5f%176r%17g%16@2@e2a+%16r%16@0@e0v4o3g%16v6d%16@2@e2o2a+%16r%16@0@e0v4o3g%16v6d%16
+4 @2@e2f%32g%16r%16@0@e0v4o4e%17v6o3g%16r%16v4o4c%16v6o3g%16r%16v4o4e%16v6o3g%16r%16v4o4c%16v6o3g%16
+4 r%16v4o4e%16r%16d%17v6c%16r%16o3g%16r%16v4o4d%16v6o3a+%32v9g%16r%16v5o4f%16r%32f%16r%17v7o3a+%32a%16
+4 r%16v5o4a+%32@2@e2v7o3d%96@0@e0o4d%33c%16r%16v5o5d%16r%16@2@e2v7o3c%193r%96@0@e0v5o4c%97o3a+%96r%32v4o4c%64
+4 r%16g%17r%32v5o3f%32r%96@1@e1v7o4a+%256&a+%1r%33@0@e0v4c%16r%16o3g%16r%16a%16v6o2f%16r%16a%16r%16a+%32
+4 r%16a+%97r%256r%226v5o4d%32v7o3a+%32r%32v5o4d%33v7o3a%16r%32v5o4d%16@2@e2v7o3d%96@0@e0a+%32r%16v5o4d%33
+4 v7o3g%16r%32v8a+%32@2@e2o2a+%32r%32@0@e0v7o4d%32v10o3a+%33@2@e2o2a+%32r%32@0@e0v7o4d%32v10o3a+%16r%60
+
+5 l%16
+5 k2r%34@0@e0v2o3a+%32r%32a+%32r%32a+%32r%33a%16r%32g%16r%32a+%32r%32a+%16r%32a+%17r%32@2@e2v4o2a+%96
+5 r%32@0@e0v2o3a%16r%32g%17r%32v3a+%32r%32v5a+%96v7o2a+%97@2@e2a+%96r%97@0@e0v5o4e%96v7o3a%97@2@e2g%96
+5 r%96@0@e0v5o4d%97v7o2a+%96@2@e2o3a+%97r%96@0@e0v5a+%97v7a+%96@2@e2o2a+%96r%16@0@e0v5o3g%17v7d%16@2@e2f%16
+5 r%16@0@e0v4o4d%16v6o3d+%64@2@e2d%16r%16@0@e0v4o4c%65v6o3d+%16@2@e2g%16r%16@0@e0d%16@2@e2d%16r%16@0@e0f%16
+5 @2@e2g%16r%16@0@e0a+%16@2@e2a+%16r%16g%16r%17@0@e0d%16@2@e2o2a+%16r%16@0@e0o3d%16@2@e2d%16r%16@0@e0v7a+%16
+5 r%16o4d%16r%16@2@e2v5o3e%16r%16@0@e0v7a+%16v4d%17v7o4d%16@2@e2v4o3f%16r%16@0@e0v7o4g%16v4o3g%16@2@e2v5a+%16
+5 r%16@0@e0g%16@2@e2v6g%16r%16@0@e0v7o4c%65d+%16v6o2a+%16@2@e2g%16r%16@0@e0v7o4d%16v6o3d%16@2@e2d%16
+5 r%16@0@e0v7o4a+%97o3a+%96v4a+%16v5d%16@2@e2d%16r%16@0@e0v3o4f%16v5o3g%16@2@e2f%177r%16@0@e0v2o4f%97
+5 v4o3a+%16r%32a+%16r%16f%16r%16a%16r%16a+%32r%17g%16v5o2a+%16@2@e2a+%16r%16@0@e0v4o3g%16v6o2a+%16@2@e2a+%16
+5 r%16@0@e0v4o3g%16v6f%32g%16@2@e2f%97@0@e0v4o4f%16v6o3g%16r%16v4o4c%16v6o3f%16r%16a+%16r%16v4o4e%16
+5 r%17c%16v6o3f%16r%16v4o4d%16v6o3a%16r%16v4a+%16r%16v7a+%32a+%32r%16v5o4g%17r%16g%16r%16g%16r%16v7o3g%16
+5 r%32v5o4a+%32v7d%32r%16v5o5d%17r%16d%16r%16v7o4d%16r%64v5a%64r%65g%96r%64v4g%33r%64d%32r%96@1@e1v7a+%97
+5 @0@e0v4a%96r%225o3a+%16r%32a+%17r%16v6o2a%32r%16@2@e2v7o3f%96o2f%97r%256r%256r%2@0@e0o3a+%32r%32v5o4d%32
+5 @2@e2v7o2a+%97@0@e0v5o4d%32v7o3a+%32r%32v5o4d%32v7o3a%16r%33v5o4d%16@2@e2v8o2a+%32r%32@0@e0v6o4d%32
+5 v8o3a+%32@2@e2v9o2a+%32r%33@0@e0v7o4d%32v10o3a+%32@2@e2o2a+%32r%60
+
+6 l%16
+6 k2r%98@0@e0v4o3a+%96r%16v2a+%17r%32a+%16r%16v4a+%96r%16v2a+%16r%33a+%16r%16v6a+%96r%16v2a+%16r%32a+%16
+6 r%17a+%32r%32v4a+%32r%96v5o4d%97v7o3a+%96@2@e2o2a+%97r%96@0@e0v5o4c%97v7o3g%96@2@e2f%96r%97@0@e0v5o4c%96
+6 v7o3a+%97@2@e2a+%96r%97@0@e0v5o4g%96v7o2a+%96@2@e2a+%16r%17@0@e0v5o3g%16v7f%16@2@e2v6f%16r%16@0@e0v4o4c%64
+6 v6o3d%16@2@e2d+%16r%65@0@e0v4a+%16v6g%16@2@e2f%16r%16@0@e0d%16@2@e2f%16r%16@0@e0v4o4c%16v6o3g%16@2@e2a+%16
+6 r%16@0@e0g%16v4o4e%16@2@e2v6o3d+%17r%16@0@e0o2a+%16@2@e2a+%16r%16@0@e0o3d%16@2@e2f%16r%16@0@e0v7o4d%16
+6 r%16f%16r%16o3a+%16v4f%16@2@e2d%17r%16@0@e0f%16@2@e2f%16r%16@0@e0v7o4d+%64d%16v6o3d+%16@2@e2d%16r%16@0@e0o2a+%16
+6 @2@e2o3d%17r%16@0@e0v7o4g%16v6o2g%16@2@e2a+%16r%16@0@e0v7o4f%16v6o3d%16@2@e2f%16r%16@0@e0o2a+%16@2@e2a+%16
+6 r%16@0@e0o3d%16@2@e2o2a+%17r%16@0@e0a+%16@2@e2a+%16r%16@0@e0o3d%16@2@e2o2a+%16r%16@0@e0v4o4d%16v5o3d%16
+6 @2@e2f%16r%16@0@e0v2o4g%16v5o3f%177r%16@2@e2v3d%16r%16@0@e0o2a+%16@2@e2v4g%17r%16@0@e0v5a+%16@2@e2f%176
+6 r%17g%16r%16@0@e0v4o3f%16v6d%16@2@e2d%16r%16@0@e0v4f%16v6d%16@2@e2d%16r%16@0@e0v4a+%16r%16o4f%16v6o3g%17
+6 r%16v4o4c%16v6o3f%16r%16g+%16r%16v4o4e%16v6o3f%16r%16v4a+%16@2@e2v6f%97@0@e0v4o4e%16v6o3a%16r%16v4a+%16
+6 r%16v5o4d%16@2@e2v7o3d%97@0@e0v5o4f%16r%16f%16v7o3a+%32r%16o4d%32r%32v5a+%32@2@e2v7o2a+%97@0@e0o4e%193
+6 v5d%96r%97@1@e1v7a+%96@0@e0v5o3a+%96g%65r%32f%96r%241v4a%32r%33f%16r%16v6o2a+%16r%16v4o3a+%32g%16v6o2a%16
+6 r%32g%16r%256r%256r%67@2@e2v7o3d%96@0@e0a+%33r%16v5o4d%32v7o3g%16r%32v5o4d%32v7o3a+%32r%32v5o4c%16
+6 v7o3a+%33r%16v8a+%32v5o4d%32v8o3a+%32@2@e2o2a+%32r%32@0@e0v7o4d%33v10o3a+%32@2@e2o2a+%32r%32@0@e0v7o4d%16r%60
+
+7 l%16
+7 k2r%98@2@e2v4o2a+%96r%97@0@e0v2o3a+%32r%32a+%32r%97a+%32r%32a+%32r%97v10a+%96v7a+%96@2@e2o2a+%97r%96@0@e0v5o4d%97
+7 v7o3a+%96@2@e2a%97r%96@0@e0v5o4c%96v7o3a+%97@2@e2o2a+%96r%97@0@e0v5o4d%96v7o2a+%97@2@e2o3a+%96r%96@0@e0v5o4d%16
+7 v7o3d%17@2@e2d%16r%16@0@e0v5a+%16v6g%16@2@e2d+%64r%16@0@e0v4o4c%16v6o3c%65@2@e2d+%16r%16@0@e0v4o4d%64
+7 d%16v6o3g%16@2@e2g%16r%16@0@e0a+%16@2@e2g%16r%16@0@e0d+%17v7o4f%64f%16v6o3f%16@2@e2c%64@0@e0v5e%16
+7 @2@e2v4g%16r%16@0@e0v7o4d%17@2@e2v4o3d%16r%16@0@e0v7o4f%16v4o3g%16@2@e2g%16r%16@0@e0v5a+%16@2@e2g%16
+7 r%16@0@e0v7o4d+%16v6o3d%16@2@e2o2a+%16r%16@0@e0o3d%17@2@e2d%16r%16@0@e0v7o4f%16v6o2a+%16@2@e2a+%16
+7 r%16@0@e0v7o4f%16v6o3f%16@2@e2o2g%16r%16@0@e0a+%16@2@e2o3d%16r%16@0@e0o2a+%17@2@e2g%16r%16@0@e0a+%16
+7 @2@e2o3d%16r%16@0@e0o2a+%16@2@e2v5a+%16r%16@0@e0v4o4d%16v5o3f%16@2@e2f%16r%16@0@e0v2o4e%65r%64e%64
+7 r%16v3o2a+%16@2@e2a+%16r%17@0@e0v4g%16@2@e2v5a+%16r%16@0@e0v4o3a%32r%16o4c%16r%16o3g%16r%16a%16r%32g%17
+7 r%16f%16v5o2a+%16@2@e2v6o3d%16r%16@0@e0v4f%16v6o2a+%16@2@e2o3d%16r%16@0@e0v4a+%16r%16o4c%16v6o3g+%16
+7 r%17v4o4e%16v6o3f%16r%16v4a+%16@2@e2v6o2f%96@0@e0v4o4f%16v6o3a%32a+%17r%16v4a+%16@2@e2v6e%96@0@e0v5o4d%16
+7 r%16f%32v7o3a+%33@2@e2o2a+%96@0@e0v5o4a+%32v7d%32r%32v5a+%16r%17o5e%16v7o4d%32v5a+%16a+%64r%64a%65
+7 r%96v4f%64r%33d+%64r%32d+%32r%64d+%16r%17f%64r%256r%130v6o2a+%16r%32v4o3a%16v6c%16r%16o2g%16r%16v4o3a+%97
+7 r%256r%256r%66v5o4d%32v7o3a+%32r%33v5o4c%16v7o3a+%32r%16a+%32r%32v5o4d%32@2@e2v7o2a+%97@0@e0v5o4d%32
+7 @2@e2v8o2a+%32r%32@0@e0v7o4d%32v9o3a+%32@2@e2v10o2a+%33r%32@0@e0v7o4d%32v10o3a+%32@2@e2o2a+%16r%60

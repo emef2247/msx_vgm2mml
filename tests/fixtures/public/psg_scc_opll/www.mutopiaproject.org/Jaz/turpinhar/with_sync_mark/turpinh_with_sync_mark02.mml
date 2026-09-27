@@ -1,0 +1,83 @@
+;[name=turpinh_with_sync_mark02 lpf=1]
+
+;[gain=1.0 name=turpinh duration=300s fade=5s cpu=0 lpf=1]
+; The line above defines extra options, works only on msxplay.com 
+
+#opll_mode 1
+#tempo 75
+#title { "turpinh_with_sync_mark / 02 token-boundary 8/8ch" }
+#alloc { 4=559, 5=576, 6=561, 7=493, 9=334, a=426, b=541, c=436 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Piano
+@e00 = {,,cefffffffffffffffffffddddca87655443333343443333333222111100000000111111111111111100000000011111111111111111111111000000000011111110}
+@s00 = { 0f 39 5a 5a 56 64 68 55 4d 52 41 1b f1 c9 bc da fe 09 05 0e 0b e9 ce cf c4 a6 93 88 81 98 c6 ee }
+
+; block 02  steps 7702-8502  (800 steps)  token-boundary 8/8ch
+; clock %48 = quarter. early-ending ch padded with r%.
+; % values > 256 are split (notes tied with &, rests repeated).
+; #alloc { 4=559, 5=576, 6=561, 7=493, 9=334, a=426, b=541, c=436 }
+
+; ----- ch1  start-state ----- steps 0  pad 800  alloc -
+
+; ----- ch2  start-state ----- steps 0  pad 800  alloc -
+
+; ----- ch3  start-state ----- steps 0  pad 800  alloc -
+
+; ----- ch4  start-state ----- steps 800  alloc 559
+4 @0 o4 v7 @e0
+4 o4 o3 o4 c%50
+4 r%37o3c%13r%50o2a%25r%25f%25r%25o3d+%25r%50f+%25r%25a%25r%25g%25r%25g%25r%25g%25r%25g%25r%25f%25r%25g%25
+4 r%25 g%25 r%25 a+%25
+
+; ----- ch5  start-state ----- steps 800  alloc 576
+5 @0 o2 v7 @e0
+5 o2 o3 r%50 c%12 r%38 d%25 r%25 a%25 r%25 f%25 r%50 a%25 r%25 a%25 r%50 o2 a+%25
+5 r%50 o3 d%25 r%50 o2 g%25 r%25 o3 c%25 r%50 a+%25 r%25 b%25 r%50
+
+; ----- ch6  start-state ----- steps 800  alloc 561
+6 @0 o3 v7 @e0
+6 o4 o3 r%62 d%25 r%38 a+%25 r%25 o2 g%25 r%25 o3 a%25 r%25 o4 c%25 r%50 o3 c%25 r%50 d%25
+6 r%50 o2 a+%25 r%50 o3 d%25 r%25 a%25 r%25 d%25 r%50 c%25 r%25
+
+; ----- ch7  start-state ----- steps 800  alloc 493
+7 @0 o3 v7 @e0
+7 o4 o3 o2 o3 o2 o3 c%50
+7 r%75o2a+%25r%25o3g%25r%25o4c%25r%50o3d%25r%50f+%25r%50o2g%25r%50o3d%25r%25a+%25r%50o2a+%25r%25o3d%25
+7 r%50 g%25
+
+; ----- ch8  start-state ----- steps 0  pad 800  alloc -
+
+; ----- ch9  start-state ----- steps 800  alloc 334
+9 @2 o6 v14
+9 o6 v12 v14 o5 g%50 r%256 r%256 r%163 o6 d%25 r%25 e%25
+
+; ----- cha  start-state ----- steps 800  alloc 426
+a @2 o6 v14
+a o6 o5 o6 o5 o6 v14 c%50 r%256 r%256 r%163 f%25
+a r%25 c%25
+
+; ----- chb  start-state ----- steps 800  alloc 541
+b @2 o5 v14
+b o7 o6 o7 o6 o5 o6 o7 o6 e%50 c%12 d%25 c%13 d%25 c%25 o5 d%25
+b o6 e%25 f%25 o7 d%50 c%25 o6 f+%25 d%50 o7 c%25 o6 g%25 o7 c%50 o6 a+%25 d%50 a%25 o5 g%25 o6 f%25 o7 c%50 o6 a+%25 a%50 g%50
+
+; ----- chc  start-state ----- steps 800  alloc 436
+c @2 o5 v14
+c o6 o5 o6 g%50 o5 c%12 d%25 c%13 d%25 c%25 o6 d%25 o5 e%25 f%25 o6 d%50 c%25 o5 f+%25 o7 d%50 o6 c%25 o5 g%25
+c o6 c%50 o5 a+%25 d%50 a%25 o6 g%25 o5 f%25 o6 c%50 o5 a+%25 a%50 g%50
+
+; ----- chd  start-state ----- steps 0  pad 800  alloc -
+
+; ----- che  start-state ----- steps 0  pad 800  alloc -
+
+; ----- chf  start-state ----- steps 0  pad 800  alloc -
+
+; ----- chg  start-state ----- steps 0  pad 800  alloc -
+

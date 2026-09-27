@@ -1,0 +1,70 @@
+;[name=bluemtns_with_sync_mark01 lpf=1]
+
+
+#opll_mode 1
+#tempo 120
+#title { "bluemtns_with_sync_mark / 01 start" }
+#alloc { 4=193, 5=177, 6=169, 7=144, 9=184, a=110, b=154, c=157 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Piano
+@e00 = {,,cefffffffffffffffffffddddca87655443333343443333333222111100000000111111111111111100000000011111111111111111111111000000000011111110}
+@s00 = { 0f 39 5a 5a 56 64 68 55 4d 52 41 1b f1 c9 bc da fe 09 05 0e 0b e9 ce cf c4 a6 93 88 81 98 c6 ee }
+
+; block 01  steps 0-2595  (2595 steps)  start
+; clock %48 = quarter. early-ending ch padded with r%.
+; % values > 256 are split (notes tied with &, rests repeated).
+; #alloc { 4=193, 5=177, 6=169, 7=144, 9=184, a=110, b=154, c=157 }
+
+; ----- ch1  start-state ----- steps 0  pad 2595  alloc -
+
+; ----- ch2  start-state ----- steps 0  pad 2595  alloc -
+
+; ----- ch3  start-state ----- steps 0  pad 2595  alloc -
+
+; ----- ch4  start-state ----- steps 2595  alloc 193
+4 k2r%3@0@e0v9o3d4r4f+4r4f+4a4r4f+4a4r4g4b4r4f+4a4r4f+4a4r4f+4a4r4f+4r4o2a4r4o3e4r4e4g4r4f+4a4r4g4b4r4
+4 f+%48 a%48 r%48 f+%72 r%72 g+%48 r%144 c+%48 r%144 f%144
+
+; ----- ch5  start-state ----- steps 2595  alloc 177
+5 k2r%51@0@e0v9o3f+4a4r4a4f+4r4a4o4d4r4o3b4g4r4a4o4d4r4o3a4f+4r4a4o4d4r4o3a4r2e4g4r4g4e4r4a4o4d4r4o3b4
+5 g%48 r%48 a%48 o4 d%48 r%120 o3 g+%24 r%96 f+%48 r%144 f+%48 r%96 o2 f%144
+
+; ----- ch6  start-state ----- steps 2595  alloc 169
+6 k2r%51@0@e0v9o3a4o4d4r4d4r4o3d4r4f+4r4o4d4r4o3d4r4f+4r4o4d4r4o3d4r4f+4r2a4r4g4a4r4a4r4d4r4f+4r4o4d4
+6 r%48 o3 d%48 r%48 f+%48 r%144 a%48 r%96 o4 c+%96 r%192 r%144
+
+; ----- ch7  start-state ----- steps 2595  alloc 144
+7 k2r%51@0@e0v9o4d4r4o3d4r4o4d4r4d4r4o2g4r4o4d4r4d4r4o2a4r4o4d4r4d4r4o2a4r4o3f+4r4a4r4o2a4r4o3a4r4o4d4
+7 r%48 o2 g%48 r%48 o4 d%48 r%48 d%48 r%48 o2 a%48 r%192 r%192 r%192 r%96
+
+; ----- ch8  start-state ----- steps 0  pad 2595  alloc -
+
+; ----- ch9  start-state ----- steps 2595  alloc 184
+9 r1r%3@2v13o5f+4g4a2a4b2o6d4o5a%144f+4d4e4f+2f+4f+4e4d4a1f+4g4a2a4b2o6d4o5a%144f+4f+%72g+8a4g+4f+4o6c+2
+9 c+%48 c+%192 c+%48 c+%48
+
+; ----- cha  start-state ----- steps 2595  alloc 110
+a r%192 r%3 @2 v13 o5 f+%48 g%48 a%96 a%48 g%144 f+%144 r%192 r%192 r%48 c+%192 r%96 f+%144 b%96 o6 d%48 o5 f+%144 r%192 r%192 g+%48 f+%144 r%144
+
+; ----- chb  start-state ----- steps 2595  alloc 154
+b r1r%99@2v13o5f+%144b2o6d4o5a%144f+4d4e4f+2f+4f+4e4d4a1f+4g4a2a4g%144a%144f+4f+%72g+8a4g+4f+4o6c+2o5f4a%144
+b a%48 r%96
+
+; ----- chc  start-state ----- steps 2595  alloc 157
+c r%192 r%192 r%192 r%192 r%192 r%192 r%192 r%192 r%192 r%192 r%192 r%147 @2 v13 o6 c+%48 c+%144 c+%48 c+%48 c+%48
+
+; ----- chd  start-state ----- steps 0  pad 2595  alloc -
+
+; ----- che  start-state ----- steps 0  pad 2595  alloc -
+
+; ----- chf  start-state ----- steps 0  pad 2595  alloc -
+
+; ----- chg  start-state ----- steps 0  pad 2595  alloc -
+

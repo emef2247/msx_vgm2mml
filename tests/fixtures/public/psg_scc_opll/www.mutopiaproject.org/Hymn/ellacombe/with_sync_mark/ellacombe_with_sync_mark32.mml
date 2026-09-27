@@ -1,0 +1,69 @@
+;[name=ellacombe_with_sync_mark32 lpf=1]
+
+;[gain=1.0 name=ellacombe duration=300s fade=5s cpu=0 lpf=1]
+
+#opll_mode 1
+#tempo 75
+#title { "ellacombe_with_sync_mark / 32 token-boundary 4/4ch" }
+#alloc { 4=89, 5=82, 6=81, 7=65, 9=99, a=98 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Piano
+@e00 = {,,cefffffffffffffffffffddddca87655443333343443333333222111100000000111111111111111100000000011111111111111111111111000000000011111110}
+@s00 = { 0f 39 5a 5a 56 64 68 55 4d 52 41 1b f1 c9 bc da fe 09 05 0e 0b e9 ce cf c4 a6 93 88 81 98 c6 ee }
+
+; block 32  steps 3842-3902  (60 steps)  token-boundary 4/4ch
+; clock %48 = quarter. early-ending ch padded with r%.
+; % values > 256 are split (notes tied with &, rests repeated).
+; #alloc { 4=89, 5=82, 6=81, 7=65, 9=99, a=98 }
+
+; ----- ch1  start-state ----- steps 0  pad 60  alloc -
+
+; ----- ch2  start-state ----- steps 0  pad 60  alloc -
+
+; ----- ch3  start-state ----- steps 0  pad 60  alloc -
+
+; ----- ch4  start-state ----- steps 0  pad 60  alloc 89
+4 @0 o3 v15 @e0
+4 r%60
+
+; ----- ch5  start-state ----- steps 60  alloc 82
+5 @0 o4 v15 @e0
+5 o4 r%60
+
+; ----- ch6  start-state ----- steps 60  alloc 81
+6 @0 o2 v15 @e0
+6 o2 r%60
+
+; ----- ch7  start-state ----- steps 0  pad 60  alloc 65
+7 @0 o3 v15 @e0
+7 r%60
+
+; ----- ch8  start-state ----- steps 0  pad 60  alloc -
+
+; ----- ch9  start-state ----- steps 60  alloc 99
+9 @2 o5 v15
+9 o4 o5 r%60
+
+; ----- cha  start-state ----- steps 60  alloc 98
+a @2 o5 v15
+a o5 o6 o5 r%60
+
+; ----- chb  start-state ----- steps 0  pad 60  alloc -
+
+; ----- chc  start-state ----- steps 0  pad 60  alloc -
+
+; ----- chd  start-state ----- steps 0  pad 60  alloc -
+
+; ----- che  start-state ----- steps 0  pad 60  alloc -
+
+; ----- chf  start-state ----- steps 0  pad 60  alloc -
+
+; ----- chg  start-state ----- steps 0  pad 60  alloc -
+

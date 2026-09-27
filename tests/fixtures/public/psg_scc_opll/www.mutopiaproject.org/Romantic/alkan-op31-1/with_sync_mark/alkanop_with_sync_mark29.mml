@@ -1,0 +1,74 @@
+;[name=alkanop_with_sync_mark29 lpf=1]
+
+#opll_mode 1
+#tempo 75
+#title { "alkanop_with_sync_mark / 29 token-boundary 7/7ch" }
+#alloc { 4=139, 5=150, 6=130, 7=143, 9=128, a=133, b=135 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Piano
+@e00 = {,,cefffffffffffffffffffddddca87655443333343443333333222111100000000111111111111111100000000011111111111111111111111000000000011111110}
+@s00 = { 0f 39 5a 5a 56 64 68 55 4d 52 41 1b f1 c9 bc da fe 09 05 0e 0b e9 ce cf c4 a6 93 88 81 98 c6 ee }
+
+; block 29  steps 962-1502  (540 steps)  token-boundary 7/7ch
+; clock %48 = quarter. early-ending ch padded with r%.
+; % values > 256 are split (notes tied with &, rests repeated).
+; #alloc { 4=139, 5=150, 6=130, 7=143, 9=128, a=133, b=135 }
+
+; ----- ch1  start-state ----- steps 0  pad 540  alloc -
+
+; ----- ch2  start-state ----- steps 0  pad 540  alloc -
+
+; ----- ch3  start-state ----- steps 0  pad 540  alloc -
+
+; ----- ch4  start-state ----- steps 540  alloc 139
+4 @0 o3 v15 @e0
+4 o4 o3 o4 o3 e%60 a%20 a%20 a%20 g+%45 g+%15 g+%60 g+%60 a%20 a%20 a%20 g+%45 g+%15
+4 g+%60 o4 c%60
+
+; ----- ch5  start-state ----- steps 540  alloc 150
+5 @0 o4 v15 @e0
+5 o3 o4 o3 o4 o3 b%60 o4 c%20 c%20 c%20 o3 e%45 b%15 b%60 b%60 e%20 o4 c%20
+5 c%20 o3 b%45 e%15 b%60 r%60
+
+; ----- ch6  start-state ----- steps 540  alloc 130
+6 @0 o4 v15 @e0
+6 o4 o3 g+%60 r%20 e%20 r%20 b%45 r%15 e%60 r%60 o4 c%20 r%20 o3 e%20 r%45 b%15 r%60 a%60
+
+; ----- ch7  start-state ----- steps 540  alloc 143
+7 @0 o3 v15 @e0
+7 o4 o3 o4 r%60 o3 e%20 r%20 e%20 r%45 e%15 r%60 e%60 r%20 e%20 r%20 e%45 r%15 e%60
+7 r%60
+
+; ----- ch8  start-state ----- steps 0  pad 540  alloc -
+
+; ----- ch9  start-state ----- steps 540  alloc 128
+9 @2 o6 v13
+9 o5 o6 o5 o6 r%256 r%256 r%28
+
+; ----- cha  start-state ----- steps 540  alloc 133
+a @2 o5 v15
+a e%60 f%20 o5 f%20 o6 f%20 e%45 o5 b%15 o6 e%60 e%60 o5 f+%20 o6 g+%20 f+%20 e%45 o5 b%15
+a o6 e%60 v13 e%60
+
+; ----- chb  start-state ----- steps 540  alloc 135
+b @2 o5 v15
+b o6 o5 o6 o5 e%60 f%20 o6 g%20 o5 f%20 e%45 e%15 e%60 e%60 o6 f+%20 o5 f+%20 f+%20 e%45
+b e%15 e%60 v13 e%60
+
+; ----- chc  start-state ----- steps 0  pad 540  alloc -
+
+; ----- chd  start-state ----- steps 0  pad 540  alloc -
+
+; ----- che  start-state ----- steps 0  pad 540  alloc -
+
+; ----- chf  start-state ----- steps 0  pad 540  alloc -
+
+; ----- chg  start-state ----- steps 0  pad 540  alloc -
+

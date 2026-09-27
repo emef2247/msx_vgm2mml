@@ -1,0 +1,58 @@
+#opll_mode 1
+#tempo 120
+#title {"bluemtns"}
+#alloc { 0=180 , 4=193 , 5=177 , 6=169 , 7=144 , 9=184 , a=110 , b=154 , c=157 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Piano
+@e00 = {,,cefffffffffffffffffffddddca87655443333343443333333222111100000000111111111111111100000000011111111111111111111111000000000011111110}
+@s00 = { 0f 39 5a 5a 56 64 68 55 4d 52 41 1b f1 c9 bc da fe 09 05 0e 0b e9 ce cf c4 a6 93 88 81 98 c6 ee }
+
+
+9 l%48
+9 r1r%3@2v13o5f+4g4a2a4b2o6d4o5a%144f+4d4e4f+2f+4f+4e4d4a1f+4g4a2a4b2o6d4o5a%144f+4f+%72g+8a4g+4f+4o6c+2
+9 c+4c+1c+4c+4e4c+4o5a4b2o6c+4o5a2r2a4g+4g2v14a4o6c+2v15o5b4a%144v14f+4a4v13g+4g2a4o6c+2o5b4a%144r4v14f+%72
+9 g+8a4g+4f+4o6c+2c+4o5a%144f+4f+%72g+8a4g+4f+4o6c+2c+4c+1&c+%48d4d2d4c+2o5b4o6c+1&c+%48c+4c+2c+4o5b2a4b1
+9 f+4g4a2b4o6c+2d4f+%144d4o5f+4g4a4g+4a4b4o6c+2d1r1
+
+a l%192
+a r1r%3@2v13o5f+4g4a2a4g%144f+%144r1r1r%48c+1r2f+%144b2o6d4o5f+%144r1r1g+4f+%144r%144o6e4r2o5d%144c+2r1r1r1r1r1r1r1r%144
+a o6c+2c+4r1r1r%48o5f2o6c+4c+%144c+2r1r1r1r1r1r1r1r%144o5a%144o6d4r1r%48o5d4e2f+1r1
+
+b l%48
+b r1r%99@2v13o5f+%144b2o6d4o5a%144f+4d4e4f+2f+4f+4e4d4a1f+4g4a2a4g%144a%144f+4f+%72g+8a4g+4f+4o6c+2o5f4a%144
+b a4r2o6c+4r2o5g+%144e2r2a4f4e2f+4a2g4a%144r4f+4f4e2f+4a2b4f+%144r1r%96g+%144f+%144r1r%96g+2g+4a%144g2r4o6d2
+b d4o5f+%144o6c+1&c+%48r4o5g%144g%144g%144f+4r2f+%144g2f+4o6d%144o5a4r2f+4f4a4g4g2a1r1
+
+c l%48
+c r1r1r1r1r1r1r1r1r1r1r1r%147@2v13o6c+4c+%144c+4c+4c+4o5e4o6c+4o5a4b2o6c+4o5a2r2f+4g+4g2a4o6c+2o5b4f+%144
+c f+4a4g+4g2a4o6c+2o5g4a%144r4f+%72g+8a4g+4f+4f%144a%144f+4f+%72g+8a4g+4f+4o6c+2o5f4f+%144e2o6d4o5f+%144o6c+2
+c o5b4g1&g%48o6c+4c+2c+4o5b2a4b%144a4f+4g4a2b4o6c+2d4f+%144o5f+4f+4g4a4g+4f+4b4o6c+2d1r1
+
+4 l%48
+4 k2r%3@0@e0v9o3d4r4f+4r4f+4a4r4f+4a4r4g4b4r4f+4a4r4f+4a4r4f+4a4r4f+4r4o2a4r4o3e4r4e4g4r4f+4a4r4g4b4r4
+4 f+4a4r4f+%72r%72g+4r%144c+4r%144f%144r%144e4r2o2a4r2o3a4r2o2a4r2o3a4r2o2a4r2o3a4r2o2a4r2o3a4r2o4d4r2o3d4
+4 r%72g+8r2f+4r2c+4r1f+%72r%72g+4r%144c+4r%144o2a2r2o3f+4a4r4o4d4o3a4r4g4r4o2a4r4o3g4r4a4r4o2a4r4o3e4r4o2b4
+4 r1o3d4r4g+4r4g4r4o2a4r2o3a4r2f+4r2e4r2d4r2o2d4r1
+
+5 l%48
+5 k2r%51@0@e0v9o3f+4a4r4a4f+4r4a4o4d4r4o3b4g4r4a4o4d4r4o3a4f+4r4a4o4d4r4o3a4r2e4g4r4g4e4r4a4o4d4r4o3b4
+5 g4r4a4o4d4r%120o3g+8r2f+4r%144f+4r2o2f%144r1e2r2o3a4r2a4r2a4r2a4r2a4r2a4r2a4r2a4r2f+4r%144a4r2c+2r1r%120
+5 g+8r2f+4r%144f+%144r%144d4r4f+4r4a4o4d4r4o3a4r2g4r4e4r4a4r4g4g4r2c+4r1f+4r4o2a4r4o3f+4r2a4r2a4r1o2a2r2
+5 f+4r1
+
+6 l%48
+6 k2r%51@0@e0v9o3a4o4d4r4d4r4o3d4r4f+4r4o4d4r4o3d4r4f+4r4o4d4r4o3d4r4f+4r2a4r4g4a4r4a4r4d4r4f+4r4o4d4
+6 r4o3d4r4f+4r%144a4r2o4c+2r1r%144o3e4r1r%96a4r2a4r2a4r2a4r2a4r2a4r2a4r2a4r2a4r2f+%72r%72g+4r1f+1r2a4r2c+2
+6 r1r1a4o4d4r4o3f+4r4e4r4a4r4a4r2g4r2e4o4c+4r%144o3d4r%144a4r2e4r2a4r2a4r4o2a4r1r%96a4r1
+
+7 l%48
+7 k2r%51@0@e0v9o4d4r4o3d4r4o4d4r4d4r4o2g4r4o4d4r4d4r4o2a4r4o4d4r4d4r4o2a4r4o3f+4r4a4r4o2a4r4o3a4r4o4d4
+7 r4o2g4r4o4d4r4d4r4o2a4r1r1r1r%96e4r1r1r1r1r1r1r1r1r1r1r%48f+1r1r1f+%144r1o4d4r4o2a4r4o3f+4r2g4r2a4r2g4
+7 r4o4c+4r4o2a4r1r%144o3f4r2d4r1r%96d4r1

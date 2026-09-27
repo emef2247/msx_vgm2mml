@@ -1,0 +1,60 @@
+;[name=aguado03_with_sync_mark15 lpf=1]
+
+
+#opll_mode 1
+#tempo 90
+#title { "aguado03_with_sync_mark / 15 token-boundary 4/4ch" }
+#alloc { 9=184, a=222, b=114, c=206 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+; block 15  steps 3026-3170  (144 steps)  token-boundary 4/4ch
+; clock %48 = quarter. early-ending ch padded with r%.
+; % values > 256 are split (notes tied with &, rests repeated).
+; #alloc { 9=184, a=222, b=114, c=206 }
+
+; ----- ch1  start-state ----- steps 0  pad 144  alloc -
+
+; ----- ch2  start-state ----- steps 0  pad 144  alloc -
+
+; ----- ch3  start-state ----- steps 0  pad 144  alloc -
+
+; ----- ch4  start-state ----- steps 0  pad 144  alloc -
+
+; ----- ch5  start-state ----- steps 0  pad 144  alloc -
+
+; ----- ch6  start-state ----- steps 0  pad 144  alloc -
+
+; ----- ch7  start-state ----- steps 0  pad 144  alloc -
+
+; ----- ch8  start-state ----- steps 0  pad 144  alloc -
+
+; ----- ch9  start-state ----- steps 144  alloc 184
+9 @1 o4 v15
+9 o5 o4 o5 o4 r%96 f%24 f%24
+
+; ----- cha  start-state ----- steps 144  alloc 222
+a @1 o4 v15
+a r%96 a%24 a%24
+
+; ----- chb  start-state ----- steps 144  alloc 114
+b @1 o4 v15
+b o4 o5 o4 o3 o4 o3 r%72 o5 a%48 f%24
+
+; ----- chc  start-state ----- steps 144  alloc 206
+c @1 o4 v15
+c o4 o5 o4 o5 o4 o5 o4 b%12 o5 c%12 d%12 c%12 o4 b%18 o5 c%6 o3 f%72
+
+; ----- chd  start-state ----- steps 0  pad 144  alloc -
+
+; ----- che  start-state ----- steps 0  pad 144  alloc -
+
+; ----- chf  start-state ----- steps 0  pad 144  alloc -
+
+; ----- chg  start-state ----- steps 0  pad 144  alloc -
+

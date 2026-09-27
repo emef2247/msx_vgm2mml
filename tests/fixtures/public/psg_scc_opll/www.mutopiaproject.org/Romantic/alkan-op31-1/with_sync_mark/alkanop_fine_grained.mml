@@ -1,0 +1,85 @@
+;[name=alkanop lpf=1]
+#opll_mode 1
+#tempo 75
+; sync marks (loops expanded). clock: %48 = quarter
+; 0 start | 62 token-boundary | 82 token-boundary | 102 token-boundary | 122 token-boundary | 167 token-boundary | 182 token-boundary | 242 token-boundary | 302 token-boundary | 322 token-boundary | 342 token-boundary | 362 token-boundary | 407 token-boundary | 422 token-boundary | 482 token-boundary | 542 token-boundary | 562 token-boundary | 582 token-boundary | 602 token-boundary | 647 token-boundary | 662 token-boundary | 722 token-boundary | 782 token-boundary | 802 token-boundary | 822 token-boundary | 842 token-boundary | 887 token-boundary | 902 token-boundary | 962 token-boundary | 1502 token-boundary | 1522 token-boundary | 1542 token-boundary | 1562 token-boundary | 1607 token-boundary | 1622 token-boundary | 1682 token-boundary | 1742 token-boundary | 1762 token-boundary | 1782 token-boundary | 1802 token-boundary | 1847 token-boundary | 1862 token-boundary | 1922 token-boundary | 1982 token-boundary | 2002 token-boundary | 2022 token-boundary | 2042 token-boundary | 2087 token-boundary | 2102 token-boundary | 2162 token-boundary | 2222 token-boundary | 2242 token-boundary | 2262 token-boundary | 2282 token-boundary | 2327 token-boundary | 2342 token-boundary | 2402 token-boundary | 2462 end
+#title {"https://www.mutopiaproject.org/ftp/AlkanCV/O31/alkan-op31-1/alkan-op31-1.mid"}
+#alloc { 0=180 , 4=139 , 5=150 , 6=130 , 7=143 , 9=128 , a=133 , b=135 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Piano
+@e00 = {,,cefffffffffffffffffffddddca87655443333343443333333222111100000000111111111111111100000000011111111111111111111111000000000011111110}
+@s00 = { 0f 39 5a 5a 56 64 68 55 4d 52 41 1b f1 c9 bc da fe 09 05 0e 0b e9 ce cf c4 a6 93 88 81 98 c6 ee }
+
+
+; ch9 --- step 0 : start ---
+9 l%20
+9 r%2@2v15o5g%60o6g%20o5b%20g%20o6d%45e%15d%60o5g%60o6e%20r%20a%20r%45f%15d%60r%60o5a%20g%20o6c%20d%45
+; ch9 --- step 647 : token-boundary 7/7ch ---
+9 e%15o5g%60o6e%60d%20o5a%20b%20g%45a%15o6c%60r%256r%256r%28v13o5f+%20g+%20a%20e%45o6c%15o5b%60o6c%60
+; ch9 --- step 1742 : token-boundary 7/7ch ---
+9 o5e%20o6c%20f%20r%45d%15o5e%60r%60f+%20g+%20e%20b%45o6c%15o5f+%60o6e%60d%20o5a%20g%20o6c%45o5a%15o6c%60r%60
+; ch9 --- step 2462 : end ---
+
+; cha --- step 0 : start ---
+a l%20
+a r%2@2v15o6g%60o5g%20o6g%20g%20g%45g%15g%60g%60g%20g%20g%20o5g%45o6g%15g%60g%60g%20g%20g%20g%45g%15
+; cha --- step 662 : token-boundary 7/7ch ---
+a g%60g%60g%20g%20g%20g%45g%15g%60e%60f%20o5f%20o6f%20e%45o5b%15o6e%60e%60o5f+%20o6g+%20f+%20e%45o5b%15
+a o6e%60v13e%60e%20e%20e%20e%45e%15e%60e%60e%20e%20e%20e%45e%15e%60e%60e%20e%20e%20f+%45f+%15f+%60g%60
+; cha --- step 2222 : token-boundary 7/7ch ---
+a g%20g%20g%20g%45g%15g%60r%60
+; cha --- step 2462 : end ---
+
+; chb --- step 0 : start ---
+b l%20
+b r%62@2v15o5a%20g%20o6c%20o5g%45g%15g%60o6c%60o5g%20g%20g%20o6g%45o5g%15g%60g%60g%20b%20g%20g%45g%15
+; chb --- step 662 : token-boundary 7/7ch ---
+b o6d%60o5g%60g%20g%20g%20o6c%45o5g%15g%60e%60f%20o6g%20o5f%20e%45e%15e%60e%60o6f+%20o5f+%20f+%20e%45
+b e%15e%60v13e%60e%20e%20e%20b%45e%15e%60e%60a%20e%20e%20e%45e%15b%60e%60e%20e%20a%20f+%45f+%15o6c%60
+; chb --- step 2162 : token-boundary 7/7ch ---
+b o5g%60g%20g%20b%20g%45g%15g%60r%60
+; chb --- step 2462 : end ---
+
+; ch4 --- step 0 : start ---
+4 l%20
+4 k2r%2@0@e0v15o3g%60o4c%20c%20c%20o3b%45b%15b%60o4c%60c%20c%20c%20o3b%45b%15b%60o4c%60c%20c%20c%20o3b%45
+; ch4 --- step 647 : token-boundary 7/7ch ---
+4 b%15b%60o4c%60o3b%20o4c%20d%20e%45r%15c%60o3e%60a%20a%20a%20g+%45g+%15g+%60g+%60a%20a%20a%20g+%45g+%15
+4 g+%60o4c%60r%20o3a%20r%20g+%45r%15g+%60r%60a%20r%20a%20r%45g+%15r%60c+%60a%20a%20a%20a%45a%15a%60o4c%60
+; ch4 --- step 2222 : token-boundary 7/7ch ---
+4 o3b%20o4c%20d%20e%45r%15c%60r%60
+; ch4 --- step 2462 : end ---
+
+; ch5 --- step 0 : start ---
+5 l%20
+5 k2r%2@0@e0v15o4c%60e%20e%20o3g%20o4f%45f%15f%60o3g%60o4e%20e%20e%20o3g%45o4f%15f%60e%60o3g%20o4e%20
+; ch5 --- step 582 : token-boundary 7/7ch ---
+5 e%20f%45o3g%15o4f%60e%60f%20o3g%20o4f%20r%45c%15r%60o3b%60o4c%20c%20c%20o3e%45b%15b%60b%60e%20o4c%20
+5 c%20o3b%45e%15b%60r%60a%20r%20o4c%20r%45o3g+%15r%60a%60r%20o4c%20r%20o3g+%45r%15g+%60o4c+%60o3c+%20
+; ch5 --- step 2002 : token-boundary 7/7ch ---
+5 o4c+%20c+%20d%45o3d%15o4d+%60e%60f%20o3g%20o4f%20r%45c%15r%60
+
+; ch6 --- step 0 : start ---
+6 l%20
+6 k2r%2@0@e0v15o4e%60r%20o3g%20r%20g%45r%15g%60r%60g%20r%20g%20r%45g%15r%60g%60r%20g%20r%20g%45r%15g%60
+; ch6 --- step 722 : token-boundary 7/7ch ---
+6 r%60g%20r%20g%20r%45o4e%15r%60o3g+%60r%20e%20r%20b%45r%15e%60r%60o4c%20r%20o3e%20r%45b%15r%60a%60r%20o4c%20
+; ch6 --- step 1542 : token-boundary 7/7ch ---
+6 r%20d%45r%15d%60r%60c%20r%20c%20r%45d%15r%60o3a%60r%20c+%20r%20d%45r%15d+%60r%60g%20r%20g%20r%45o4e%15r%60
+
+; ch7 --- step 0 : start ---
+7 l%20
+7 k2r%62@0@e0v15o3g%20r%20o4e%20r%45o3g%15r%60o4e%60r%20o3g%20r%20o4f%45r%15o3g%60r%60o4e%20r%20o3g%20
+; ch7 --- step 602 : token-boundary 7/7ch ---
+7 r%45o4f%15r%60o3g%60r%20o4f%20r%20c%45r%15e%60r%60o3e%20r%20e%20r%45e%15r%60e%60r%20e%20r%20e%45r%15e%60
+7 r%60o4c%20r%20o3a%20r%45o4d%15r%60c%60r%20o3a%20r%20o4d%45r%15d%60r%60c+%20r%20o3c+%20r%45o4d%15r%60o3g%60
+; ch7 --- step 2222 : token-boundary 7/7ch ---
+7 r%20o4f%20r%20c%45r%15e%60r%60
+; ch7 --- step 2462 : end ---

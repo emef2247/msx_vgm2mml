@@ -1,0 +1,80 @@
+;[gain=1.0 name=wedding duration=300s fade=5s cpu=0 lpf=1]
+
+#opll_mode 1
+#tempo 75
+#title {"https://www.mutopiaproject.org/ftp/BrownCJ/wedding/wedding.mid"}
+#alloc { 0=558 , 4=310 , 5=314 , 6=266 , 7=83 , 9=251 , a=131 , b=284 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Trumpet
+@e00 = {,,57acdeefdeedeeeffeeedeeeffeffefeffefffffeffeffeffeffeffeffeffeffeffeffeffeffeffeffeffdeedeedeedefefedeedeedfedffeffeffeffefeffefffeffefeffeffeffeefeffeffeeeeffeffdffefedeedeedeedeedeedeedeedeedffeffeffdfedffdffeffeeeefedefdffdeeffdfeedfeeed}
+@s00 = { 0b 1e 18 18 12 00 f9 06 06 05 04 03 0c 1c 2c 25 05 b9 8b f6 fc 81 ad 1e 1e 00 f0 fc 0d 10 07 fe }
+;SCC Church Org
+@e01 = {,,12457788999aaaaabbbceedcdcccbcccbbcdeeeefffffffffefeffffeedeeeeeffffffffeffffddddeedffffffffffeeededdeddeeeeeeeffffeeefefffeeeffeeeeeffffeeeeeeddddddddeeeeffffffdddddedeeeeeffeefffffeefeedeeeeeeefeeeefeffffeeeeeeedddddeddddedffffed}
+@s01 = { 05 18 33 32 3f 56 66 7f 6d 4d 40 1f 0d 04 e3 cd c2 cd dc d2 d2 da da d0 b0 af cb d3 cb cd cf f0 }
+
+
+9 l%26
+9 r%256r%157@7v11o6d+%51d%52c%13d%13c%51f%26d+%51d%103@6o5d+%51d+%78d%25d+%26f%26d+%77c%26g%102d+%52
+9 d+%77d%26d+%25f%26d+%77c%26g+%103d+%51d+%77d%26d+%26f%26d+%77c%25a+%103v12g+%52g+%25g%26f%26g%26d+%51
+9 c%51d+%26d%26c%26d%25o4a+%103o5c%103d%103d+%256&d+%52r%256r%256r%256r%256r%256r%256r%256r%256r%61v10d+%51
+9 d+%78d%25d+%26f%26f%154v12d+%26r%25v11d+%52d+%77d%26d+%25f%26f%154d+%26r%26d+%51d+%77d%26d+%26f%26
+9 d+%77c%25g%103d+%52d+%77d%26d+%25f%26d+%77c%26g+%103d+%51d+%77d%26d+%26f%25v12d+%78c%25a+%103g+%52
+9 g+%25g%26f%26g%25g+%52f%51f%52o6c%77o5a+%13g+%13g%51g%103g+%26g%25f%26g+%26g%51a+%52g+%25g%26f%26g+%25
+9 g%52d+%51d+%26d%26c%25d+%26d+%103c%103c+%51c%52d+%103v10d+%154v11d+%51r%60
+
+a l%256
+a r%256r%256r%256r%5@7v11o6c%129o5a+%25g+%103g%26o6c%180d+%51d%52c%13d%12c%52f%26d+%51d%13d+%13d%51c%232
+a o5g+%51o6f%154v13d+%52f%77d+%26g%102g%26f%26d+%26f%25d%103r%154d%52r%256r%52v11o5a+%103o6f%103o5g%103
+a o6d+%256&d+%104r%256r%256r%256r%256r%256r%256r%256r%256r%256r%10o5g+%26a+%26g+%25a+%26d+%52d+%51r%256r%256r%256r%256r%256r%256r%7v13a+%103
+a a+%103r%60
+
+b l%26
+b r%256r%256r%256r%256r%256r%256r%256r%256r%256r%115@7v13o6f%51f%26g%26g+%25f%26a+%103c%26o5a+%25o6c%26
+b d+%26g%205v11g%103o5g+%103o6d+%103o5g%256&g%104r%51g%26f%26d+%26g%25d+%52d%51c%26d%26d+%25f%26c%51
+b g+%52g+%26g%25f+%26d+%26c+%51a+%52o6c%25o5a+%26a%26o6f%25f%52g%51d+%26d%26c%25f%26f%52a+%51d+%26d%25
+b c%26f%26f%51o5a+%52g+%51o6c%52o5a+%25g+%26g%51g%206g+%26g%26f%25g%26g+%51o6c%52d+%51d%13c%13d%51o5a+%78
+b g+%25g%26f%26g%25g+%52o6c%51c%26o5g%26f%25g%26g%52c%51g+%26a+%25o6d+%52d%103o5g%25g+%26o6c%52o5a+%102
+b g+%26g%26f%26g%25v13g+%52o6c%51c%52d+%51v14d+%51v15g%52v13g+%26g%25f%26g%26o5g+%25f%26f%26g+%26g+%25
+b a+%26o6d+%103d%51d+%206f%26d+%25d%26c%26d%103o5g%103g+%25a+%26o6d+%51d%103o5g%26g+%26o6c%51o5g+%103
+b g+%26g%25f%26g%26g+%51o6c%52v12c%51v11d+%52v10g%205r%60
+
+4 l%51
+4 k2r%2@1@e1v4o3g+%25r%52g%25r%52o4c%51r%52c%77r%77o3g%103r%103o4c%103r%102o3g+%26r%52g%25r%52o4c%51
+4 r%77d%13r%116o3a+%103r%103g%102r%103g+%26r%51g%26r%52o4c%51r%51o3f%26r%77o4c%52r%51o3c%154r%52o2a+%103
+4 r%51g+%26r%51g+%26r%51a+%52r%51f%26r%77o3c%52r%51g%154r%103d+%103a+%256&a+%104r%51d+%52r%51g%52r%51g+%26
+4 r%51g+%26r%51c%52r%51g+%52r%51f%26r%77c%51r%52o2a+%51r%52o3g+%51r%52f%25r%77d+%52r%103o4c%51r%52o3a+%25
+4 r%52g%25r%52o4c+%26r%51o3a+%26r%51o4f%26r%51o3a+%26r%51g+%52r%51f%26r%51a+%26r%52o4c%25r%52o3a+%25
+4 r%52f%51r%52a+%25r%52a+%26r%51g+%26r%51g%26r%51g%52r%51d+%26r%77a+%51r%52d%26r%77g+%51r%52g+%25r%77d+%52
+4 r%51c%26r%77o2a+%52r%154o3f%51r%52g+%25r%78o4d+%51r%51o3a+%26r%129o4d%25r%52d%26r%51o3a+%51r%52g+%26
+4 r%77g+%51r%52f%25r%77f%52r%51d+%26r%129g%205r%60
+
+5 l%26
+5 k2r%27@1@e1v4o3g%26r%51g+%52r%51g+%52r%77a+%13r%167f%103r%103a+%102r%52f%26r%128o4d+%77r%232o3g+%103
+5 r%102f%103r%52f%25r%129g+%26r%51g%26r%103o2g+%25r%78o3d+%102r%103d%103r%52o2f%25r%129g+%26r%51g%26
+5 r%103o3d+%51r%51o2a+%103r%103o3g%103r%26@0@e0o4d%25r%26d%26r%51g%52r%25a+%26r%26v7o5d%26r%154@1@e1v4o3g%51
+5 r%52a+%51r%52f%25r%129o4c%51r%52o3g+%25r%52g%26r%102d%52r%51o4c%52r%51o3g+%26r%51g%26r%103o4c+%103
+5 r%51o3g+%52r%51d+%26r%51o4c%26r%51c%26r%51o3g+%26r%52o4d%25r%129o3d+%26r%51g+%26r%51g+%26r%51a+%26
+5 r%51o4c%52r%51o3g+%26r%51o4d%26r%52o3a+%25r%52g%25r%52f%51r%52g%25r%52g%26r%102f%26r%52d+%25r%103o4c%26
+5 r%51o3a+%26r%103d+%26r%51d%26r%103d+%154r%51o4c%26r%51o3a+%26r%103o4d%26r%51c%26r%128c%26r%52d%51r%51c%26
+5 r%52c%25r%103o3g+%26r%51g+%26r%103f%26r%51g%26r%103c%205r%60
+
+6 l%26
+6 k2r%53@1@e1v4o3f%26r%256r%14g+%13r%256r%232g%26r%51g+%52r%141o4d+%13r%256r%256r%28o3g%26r%51g+%52r%77g%25
+6 r%52o4d+%51r%77o2a+%26r%154g%26r%129f%51r%103g%103r%103g+%51r%256r%1o3f%103r%103@0@e0o4d+%26r%25c%26
+6 r%26d+%51r%52g+%25r%26o5d+%26r%26v7d+%102r%232@1@e1v4o3g%26r%51d+%51r%180g%26r%52d+%51r%256r%27g%26
+6 r%51g%51r%256r%27o4c%26r%51o3a+%26r%52o4d%25r%52c%25r%52d+%26r%51c%51r%78o3c%25r%52g%25r%52o4c%26r%51o3g+%26
+6 r%154a+%26r%51o4c%26r%51o3g+%26r%51f%26r%154f%26r%52g%51r%77d+%26r%51f%52r%77a+%26r%51g%51r%78d%25
+6 r%52d%51r%256r%27a+%26r%51o4c%52r%77c%25r%52o3f%103r%51a+%26r%154a+%26r%51o4c%52r%77o3g%26r%51g+%51
+6 r%78d+%25r%52g%103r%60
+
+7 l%256
+7 k2r%256r%106@1@e1v4o3g%51r%256r%256r%208o4c%103r%256r%256r%208o3g%103r%231o2g+%26r%180g%26r%180g%25
+7 r%256r%104a+%103r%103o3d+%256&d+%104r%256r%256r%256r%256r%256r%256r%256r%256r%256r%256r%256r%256r%256r%256r%256r%223o4d%103
+7 r%256r%256r%208o3c%103r%60

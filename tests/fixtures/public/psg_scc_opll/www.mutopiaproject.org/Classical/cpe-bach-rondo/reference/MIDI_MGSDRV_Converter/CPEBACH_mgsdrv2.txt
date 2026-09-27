@@ -1,0 +1,121 @@
+#opll_mode 1
+#tempo 66
+#title {"https://www.mutopiaproject.org/ftp/BachCPE/cpe-bach-rondo/cpe-bach-rondo.mid"}
+#alloc { 0=134 , 4=908 , 5=866 , 6=703 , 7=634 , 9=198 , a=448 , b=696 , c=757 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Harpsichord
+@e00 = {,,8bffedcba9887776665555555554444433332222222222222222222222111111111111111111111111110}
+@s00 = { 02 49 6c 7f 78 3c f0 e7 15 08 4a 0c d4 da c9 c9 d4 1b 39 32 32 37 00 b9 b7 c9 e8 b4 c5 bd ae d1 }
+
+
+9 l%192
+9 @10v15o5g8g2g+%74r4o6g+8g8f8f4d+8r4a+8g+8g8g8e8f8o7c8o6a+8c8g8o5g+8g4f8r4a+8o6f8d+8d+4d8r4g+8g8f8o5g+4
+9 o6d+8r%119f%43r1r1r1r1r1r1r1r%78o4a+8a+8o5d+8c8r%72c4r1r1r1r1r1r1r%71d+8d+%72d+8d+%72r1r1r1r1r1r1r1r%72o6g4
+9 r1r1r1r1r1r1r1r1r1r1r1r1r1r%145a+%44r%147f%45r%147o7c4r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r%168
+9 o5f8r1
+
+a l%24
+a @10v15o5a+8a+8o6g8f8d+8d+4d8o5g+8g+2a+%73a+8a+2o6c%121g+8o5a+8o6f8d+4d8r4g8o5g+8g8g4f8r4o6c8o5a+8g+8
+a o6f4o5g8o4g+8g+8g+8g+8g+8o7c%42r1r%78o4a+8o5g8d+8d+4d4r8g+8d8f8f4d+4r8d+8g8o4a+8o5c+8o4b8o5c8e8f8r%144
+a o6a+8o5a+8r%143o6a+8a+8r%144o7d+8o6d+8o5g8g8g+8g+8d+8d+8a+8o6c4r%168o5b8o6d8o5g8r8o6d8f8d+8r8o5g8f8d+8
+a d4c8r1r1r%145o6c8o5d+8e8e8f8f+8g8o6f%72a8a%72o7c8c%72f8o6a%72r8o5d2a+4a8r4o6d+8d8c8c4o5a+8r4o6f8d+8d8o5g%119
+a o6d+8o5f8d+8d4c8r4o7d8c8o6a+8d4a8r4o7d+8d8o6d+8o7c4o6a+8r%120c4r1r%145o5d4d+4g+4d+4d+4d4f%144f+2r1a+2
+a g+2o6g+%119r1r1r1r1r%49o4g+8o5f8c+8c+4c4r8f+8c8d+8d+4c+8r%120o6d+%44r%147d%45r%147g4r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r%120
+a d8r%72g8r%72o7c8r1r1r1r1r%24o5g+8g8f8f4d+8r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r%24
+a o7c4r1
+
+b l%24
+b r1r1r1r1r1r1r%121@10v15o6d%43d+%5d4d+16o5a+16o6c16o5g+16g8f8d+4r8a+8a+%168a+8a+%168a+8a+%120g8g+8o6c4c8o5g+8
+b f8d+4d8a+8o6a+8r%144o5a+8a+8r%144o6d+8o7d+8o5d+8d+8c8d+8a8a8d8d+4d4d+4r8g8g%73o6c8o5g%72g8o6g8d+8d8c8o5a+4
+b a8f8f8g8g8a8a4a+8g8g8a8a8b8b4o6c8o5a8a8a+8a+8b8b8d+8o6c8c+8c+8d8d+8e8o5a%72o6c8c%72a8a%72a8o7f%72o5f8f8
+b o6d8c8o5a+8d+%71d+8d+2f%72f8f2o6d8o5b8o6c8g8f8o5g8o6d8c8o5a+4a8r4o6f8d+8d8a+4c8r4g8f8o7c8o6d+4d8o5d+8
+b d+8d+8d+8d+8a4a+%2a4a+%10f16g16d+16d8c8o4a+4r4o5a+1f4f+%43f%3g+%3f+4f4o6d%144d+2o5d+2d4r4o4a+2g+2o5g+%119
+b g+8g+8o6f8d+8c+8c+4c8o5f+8f+8o6f+8f8d+8d+4c+8o5g+8g+8o6g+8f+8f8f8d8d+8a+8g+8f+8f8d+8c+4c8o5g+8g+%168
+b g+8g+%168r%121o6c%44c+%3c4c+16o5g+16a+16f+16f8d+8a+%45r%147o6e4r1r%73c+8c8o5e8a+4g+8b8b%71b8b%169o4b8o5b%72b8
+b b4o4a8o5e8e8o6c8o5b8a8d%71r4o6d8c8o5b8b4a8r4o6e8d8c8c8o5a+8b8o6f8e8o5f8o6c8o5b8a4o4b8r%72o6g+8a4f+8a8
+b g8r8c8e8f4d+8e8r2o7d8d8d8d8r2d8d4d4d4d4r1r1r1r1r1r%72o6g8g8r%144g8g8r1r1r%48o5a8a8a8a8a8o6d8d8o5g4o6g8
+b g8g8g8r1r1r%120d8d8g+8r8b8b8o7f8r8d+8o6f8d+8f4o5d+8d8d4c8r8f+2a4a+4o6c2r2o5g+2b4o6c4d2c+2r4o7c2o6c2
+b o7c2o6c%73o7c+8c+%71c8c%72o5a+4o6g+8g+4g8r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1a+8a+%73o7d8o6d%72o5a+8a+%72o7f8
+b o6f%167r%120d+4d8r4g+8g8f8f4d+8r4a+8g+8g8c%120g+8o5a+8g+8g4f8r4o6g8f8d+8o5g4o6d8r4g+8g8o5g+8o6f4d+8r%120
+b f4r1r1r1r1r1r1r%72o5a+8g+8g8c%72r%120c+%73r1
+
+c l%24
+c r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r%25@10v15o6a+%45
+c d+%3d4d+16o5a+16b16g+16g8f8o6c4r1r%73o5e8f8a+8e4f8o4b8b%71b8b%169o5b8o4b%72b8b4o5a8c8c2a4g+8d8d2e%71e8e2
+c f%120o6d8o5e8d8c4g+8r4o6e8d8c8o5b2r8a%72g+%72f8f8f8f8o6d8d8d8d8o5f+8f+8f+8f+8o6d8d4d4d4d4r8o5f16g+16b16
+c o6d16f16g+16o5f16g+16b16o6d16f16g+16b16o7d16f4r1r1r%72o5g8f8d+8d+8c+8d8g+8g8f8d+8d8c4o4b8o5g8g8r%144
+c g8g8r1r%144d+8d+8d+8d+8d+8d+4d4a4o6d8d8d4c4o7c16o6g+16g16f16d+8d8c4r8o5g8g8o6c+8c8o5a+8a+4a8a8a8o6d+8
+c d8c8c4o5b4o6g8f8d+4o7f8o6g8o7d8c8d4c8o6b8b4o7c8r8o6f+%144f2d+4d+4c+4g+%144g2f4f4e4r4c2o7c2o6c2o7c%73o6c+8
+c c+%71c8c%72a+4o5g+8g+4g8d+8d+8o6c8o5a+8g+8g+4g8c+8c+8o6c+8c8o5a+8a+4g+8d+8d+8o6d+8c+8c8c8o5a8a+8o6f8
+c d+8c+8c8o5a+8g+4g8r%121o4g+%119g+8g+8o5g+8g+%169f8d+4c+8r4c+8c8o4a+8a+%120a+8a+8o5a+8a+%167g8f4d+8d+8d+8
+c f8f8g8g4g+8f8f8g8g8g+8g+4a+8g8g8g+8g+8a8a8a+8a+8b8b8o6c4d4d+4e4f4g4g+4b4o7c8o6a+16g+16g16f16d+4d8o5a+8
+c a+%73o6d8o7d%72o4a+8a+%72o6f8o7f%167o5a+8a+8o6g8f8d+8o5g+%72g+8g+2a+%72a+8a+2o6g8e8f8o7c8o6a+8c8g8f8d+4d8
+c r4o5a+8g+8g8o6d+4o5f8r4o6c8o5a+8o6f8o5g+4g8o4g+8g+8g+8g+8g+8o6d4d+%2d4d+%10o5a+16o6c16o5g+16g8f8d+4r8
+c o4a+8a+8o5d+8d8g8f8d+8d8f8d+%16d%16c%16o4a+%17g%16f%15a+2g+%72g+8g+8o5f8d+8d8a+8g+8g8f8d+%16d%17c%15r1r%24o4a+8
+c a+2o5g8e8f8c8c8o6c8o5a+8g+8g+8f+8g8c+8c+8o6c+8c8o5a+8a+8g8a+8g+8g8f8b8o6c8o5d+4d8g8g%6a+%6g+%7g%6g+%5a+%6
+c o6c%6d%6d+%7f%5g%6f%6d+%6d%7c%6o5a+%5g+8r1
+
+4 l%48
+4 k2r8@0@e0v15o3d+4r4f4r4f4r4g4r4g4r4g+4r4g+4r4a+%73r8o2a+8r2o3a8r4o1a+8r2o4d8r4o1g+8r8g+8r8o3g+4o4f4
+4 r8o3g+8r4d+8r%121g4r4g+4r4g+4r4a+4r4d+4r4o2g+2o3c4o2a+%72r4o3g8r8g8r4d8r4d8r8f8r4d+8r4o2c+8r8c8r8b8r8
+4 o1a+8r4o2a+4r8a+8r%71o4d8r%72o3b8r%72c8r4f2r8a+8r4o4c4r8o3a+8r4o4c8r4o3f8r4o4c8r4d8r1r%120o3d+8r%72o2d+8
+4 r%144a+4r4o3c4r4c4r4d4r4d4r4d+4r4d+4r4f%73r8f8r2o4e8r4o2f8r2o4f+8r4o2d+8r8d+8r8o4c4o3f4r8d+8r4o2a+8r%168
+4 o3g+4r4d4r4o2a+2r2o1b2r4o3f+4r2c+2f+2f+2r4c+%144r2d+2r2f2r2a+2r%143c+4r4d+4r4d+4r4g+8f+8o2f+8f+8f+8f+8
+4 o4c4o3g+4r8f+8r4g+4a+4r8g+8r4o4g4r4o3c%168c8r4g+8r%72f4r4c+8r4g+8r%168o2g+8r4o3c%73r%72o2a4r4b4r4b4r4o3c4
+4 r4c4r4d4r4d4r%71o2e8r%169e8r%167f8r8f8r%120f+8r8f+8r%73o3f+8r%72a8r8o4d8r16d16r1r%48o3g8r8o4d+8r8c8r4o3b8
+4 r4o4f8r8d8r4c8r%119o3f2r2g%72r4g8r8c8r4o2b8r4b8r8o3d8r4c8r8o2g+8r8g+8r8o3g+4a+8r%73a8r%72a4r4f4r4d+4r4
+4 g8r4o2g16r%107o4e4r4o3f4r%73o4d8r4g8r4d8r4c8r4o3g+8r1r%95o4d+4r4f2r1f4r4g2r2f+2r2e2r2o3g+%72r8o4d+%72r8
+4 c+4r4d+%73r%71o2g+4r4o3c+4r4g4c4r2g+4f4r2f4r%72d+8r4a+8r4c1r4f+4r4g+8r4f8r%144d1r4g+4r4a+8r4g8r4g+8r4a+4
+4 r8g+8r4a+8r4o2d+8r4o3a+8r4o4c8r4c+8r%73o3b4r4a+4r4o4c4r4o3g4r%119o2a+8r%72g+8r%72g+8r%72g+8r2o5c4r4o4g+4
+4 r2o3f4r4f4r4g4r4g4r4g+4r4g+4r4a+%73r8o2a+8r2o3a8r4o1a+8r2o4d8r4o1g+8r8g+8r8o3g+4o4f4r8o3g+8r4d+8r1r1r%23
+4 o2f4r1r%144o3a+%16r%32f2r4d+4r2o2g+1r2o3g2r2c2r2o2d+2r4o3f8r8o4g+%6r16g+%7r16o5d%5r16g%7r16f%5r16c%7r4o3g8r8
+4 o4a+%5r16a+%6r16o5d+%6r16g+%6r16d+%6r16o4a+%7r16o5d+%5r16o4a+%7r16f%5r16g%7r16d%5r16c%6r16f%6r16g%6r16d%6r16o3g+%6
+4 r16d+8r8g8r8o4f4r8o5g8r2d+4r1
+
+5 l%48
+5 k2r%73@0@e0v15o3d+4r4f4r4f4r4g4r4g4r4g+4r4g+4r%72o2a+8r%144o3a+8r8o2a+8r%120o4d+8r8o2g+8r8g+8r8o4d4o3a+4
+5 r4a+8r4o2a+8r2o3d+4r4f4r4f4r4g4r2g+4r4c4r4g4r%72a+8r8d+8r4f8r4f8r8g+8r4g8r4c+8r8c8r8o1b8r8o2a+8r4o3f4
+5 r4o2d+8r%72o4g8r%72d8r%72o3d8r2a8r4a+8r4f8r4a+8r4o4d8r4d+8r8o3f2r1r%144d+%72r8d+%121r%72o2a+4r4o3c4r4c4r4
+5 d4r4d4r4d+4r4d+4r%72o2f8r%143o4f8r8o3f8r%121o4g8r8o3d+8r8d+8r8a4o4c4r4o3f8r4o2f8r1o3f+4r4d+4r1o2b2r2g+2
+5 r2o3c2r2d+4r%144d+2r2f2r2f+2r2g+%71r%72f4r4f+4r4f+4r4f8r8o1f+8o3f+8o1f+8o3f+8o4d+4d+4r4o3g+8r8o4f4f4r4
+5 o3a+8r8a+4r%72o4c8o3g8r8o4g+4o3e8r4a+8r4c+2r4f8r4f8r%168d8r4e%73r%119o2b4r4b4r4o3c4r4c4r4d4r4d4r4e%72r8
+5 e%169r8o2e%167r8f8r8f8r2o3f+8r8f+8r%73o4c8r%72c8r8o3b8r1r%95c2o4c4r8o3f8r4o4d+8r8o3d+2d+2r2f2r%120d+8r8d+8
+5 r4d8r4d8r8f8r4d+8r8g+8r8g+8r8a+8r4a+8r%72o4c8r2o3f+4r4d+4r4f4r4c8r%169o4f4r4f+4r4d8r4f8r4c8r8g+8r4c8
+5 r1r%95c4r4o3a2r1o4d4r4o3b2r2a2r2g2r2f%72r8o4g%72r8f4r%144o2g+4r4a+4r2a+4r4o3d+4r4c4r4f4r4c+4r2d+8r4g+8
+5 r4d+8r%144c%72r8e8r4f+4r4f8r%121f8r%144d%71r8f+8r4g+4r4g8r4a+8r4o4c8r8o2d+2r4o4c+8r4o3b8r4o4c8r4d8r2c4r4
+5 o3g+4r4o4c4r4o3g+2r4a+8r4g+8r%72g+8r%72g+8r2o4d2r4g2r4o3f4r4f4r4g4r4g4r4g+4r4g+4r%73o2a+8r%144o3a+8r8o2a+8
+5 r%120o4d+8r8o2g+8r8g+8r8o4d4o3a+4r4a+8r4o2a+8r1r1r%47f2r1r%64o3g+%16r%64o2g%145r1o3f2r1d+2r2o2a+%71r%145o4d8
+5 r8g+8r16a+%5r16o5c%6r16f%6r16g%6r16d%7r%29o3g8r8o4a+8r16o5c%6r16d%7r16g%5r16f%6r16c%6r16d%6r16c%6r16o4g%6r16g+%7r16
+5 d+%5r16o2a+2d+8r8o3a+8r8g+4r8o5a+8r2g4r1
+
+6 l%24
+6 k2r1r1r1r1@0@e0v15o1a+8r%169a+8r%169o2g+8r8o1g+8r8g+8o4f4r4o3g8r4o2a+8r4d+8r%119o3f4r%145a+4r1r%95o4c4r4
+6 o3f8r%73f8r8d+4r2d+8r8g+4r2o2c+8r8c8r8o1b8r8g+4o3g+4r%168o4d+8r%72c8r%72o3d+8r2f2r4o4c+8r8o3f2r4f4r8o4c+8
+6 r4d8r1r1o3d+8r1r1r1r1r%120f8r%168o2f8r%167d+8r8d+8r8d+8o3d+4r4d8r4o2f8r4o1a+8r1r1r1r%24o2a2r2g2r2o3d+2
+6 r4f%145r2o4c2r2c+2r2o3f+2r1d+4r%144f4r8o1f+8o3f+8r8f+8r8f+4r4f8r4o2g+8r4o3g+4r%71o2a+8r%72o3c8r4o4e8o3f8
+6 r4o4g8r2o3g8r%120c+8r2f2r2o2g+8r%120a4r1r1r1r%120o3e8r%169e8r%167f8r8f8r%144f+8r8o2f+8r2o3g8r8o4f+8r4o3b16
+6 r1r%84d+2f%73r8d2o4d4r8o3g8r2g+2r1r%47d8r8c4r2d+8r8d4r8o2g+8r8o3g+8r8g+8r8a+8r4f+2o4c4r4c4r4o3g2r%72o2g8
+6 r%36d+16r1r%168o4g+8r4d+8r4o3b8r8c8r4g+8r1r%120o4f4r2o3a+2r%144o4g4r2g2r2o3g+2r2o4d+2r%72f8r%72g8r4c4r2o3c4
+6 r4c+4r2c+4r4c4r4d+4r4c+4r2d+%72r4o4c8r%120o3f8r%144d+4r4f8r2f8r%168g8r%144f4r4g8r2g8r4g+8r4o2d+8r4o3g+8
+6 r4o4c8r4o3d+4r4b8r4o4c+8r4d+4r2o3g4r4e4r1r%144g+%72r8o2g+%72r8o3g+2r4o4a+4r4d+2r1r1r1r%73o1a+8r%167a+8r%168
+6 o2g+8r8o1g+8r8g+8o4f4r4o3g8r4o2a+8r4d+8r1r1r%24o3d2r1r%80g%16r2o2a+2r1r%96a+1r2g+2r1r%25o3f8r4o2f2o4a+8
+6 r8d+8r%29o5d%6r16c%7r16f%5r16g%7r16d%5r16o2g+2o3a+%7r16o4d+%5r16g+%7r16d+%5r16o3a+%6r16f%6r8a+8r8o4g8r4d+8r8o5f2r1
+
+7 l%24
+7 k2r1r1r1r1r%26@0@e0v15o1a+8r%143o2a+8r%169o1g+8r8o2g+8r8g+8r4o3g+4r1r%95g+4r%145g4r1r%95o2g+4r%145o3g+8r8
+7 g4r2g8r8f4r2c+8r8c8r8o2b8r8g+4r4o3d+8r1r1r%71a8r4o4c8r4o3f4r8o4c8r4d4r8c8r4c+8r1r1r%72o2d+%121r1r1r1r1r%24
+7 f8r%144o3f8r%167d+8r8d+8r8d+8r4d+4r1r1r1r1r%96f2r2d+2r2f+4r%145f+2r2g+2r2a+2r1r%95f+4r%145g+4r8o2f+8r8o1f+8
+7 r8f+8r4o3f+4r2o4d4r4o3f+8r%71o4e4r%72o3g+8r8o4f8o3f4r4c2g4r%72f8r2g+2r2d8r1r1r1r1r%121o2e%168r8o3e%167r8
+7 f8r8f8r%120o2f+8r8o3f+8r2b8r%72o4g8r1r%96o3g8r8o4d8r8o3d2f2g%72r8g2r2g+2r%144f8r8d+4r2c8r8f4r8g+8r8o2g+8
+7 r8o3a+8r4g4r2f2r4b4r2g+4r2o2c8r1r1r%96o4g+8r4o3c8r8o4c8r1r%120c+4r2f2r%144d+4r2o3a+2r2o4f2r2o3f+2r%72o4g+8
+7 r%72d+8r4f4r%144o3c4r4o2a+4r2o3d+4r%144c+4r1r1r%49f+%168r8c+%167r1r%24g+%168r8d+1o2d+2r4o3d+4r8a+8r4o4c4r8
+7 o3a+8r1r1o4c4r4o3f4r1r%96o2g+%72r8o3g+%72r8o2g+2r2o4d4r1r1r1r1o1a+8r%144o2a+8r%168o1g+8r8o2g+8r8g+8r4o3g+4
+7 r1r1r1r1r1r%96d+4r4o2g2r1r1o3c2r1r%144o4d8r%30o5c%6r16o4a+%7r16o5d+%5r16g+%6r16d+%6r%36o4d+8r4o2g2o5c%7r16d%5
+7 r16o4g+%6r16g%6r16f%6r16c%6r16d%6r16g%7r16f%5r16c%7r16o3g%5r%30g8r8a+8r4g8r8o6c2r1

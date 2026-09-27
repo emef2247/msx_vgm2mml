@@ -1,0 +1,31 @@
+ 0 bass Kick              0 36   2,560 bytes 10 blocks
+ 1      Kick2     x1.059  0 35
+ 2 snar Snare             1 38  11,776 bytes 46 blocks
+ 3      Snare2    x1.059  1 40
+ 4 hi-c Hi-Hat Close      2 42   1,536 bytes  6 blocks
+ 5      Hi-Hat Pe x1.059  2 44
+ 6 hi-o Hi-Hat Open       3 46  15,616 bytes 61 blocks
+ 7      C_Cymbal  x0.707  4 52
+ 8 cymb Cymbal            4 49  15,616 bytes 61 blocks
+ 9      Cymbal2   x1.122  4 57
+10      S_Cymbal  x0.944  4 55
+11      Tom High  x1.414  5 50
+12      Tom High2 x1.260  5 48
+13 tom_ Tom Mid           5 47  11,264 bytes 44 blocks
+14      Tom Mid2  x0.794  5 45
+15      Tom Low   x0.707  5 43
+16      Tom Low2  x0.630  5 41
+17 tamb Tambourine        6 54   3,584 bytes 14 blocks
+18 hand Hand Clap         7 39   5,888 bytes 23 blocks
+19 stic Sticks            8 31   3,840 bytes 15 blocks
+20 hi_q High Q            9 27     512 bytes  2 blocks
+21 cowb Cowbell          10 56   1,024 bytes  4 blocks
+22 clav Claves           11 75   1,024 bytes  4 blocks
+23 tria Open Triangle    12 81   4,608 bytes 18 blocks
+24 c_sd Concert SD       13 38*  3,840 bytes 15 blocks
+
+-------------------------------------
+
+mu  580 block 145.00K available
+scc 256 block  64.00K use
+drm 323 block  80.75K use

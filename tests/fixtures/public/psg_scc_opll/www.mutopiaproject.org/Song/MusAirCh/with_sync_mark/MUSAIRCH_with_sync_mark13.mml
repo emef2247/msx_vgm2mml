@@ -1,0 +1,77 @@
+;[name=MUSAIRCH_with_sync_mark13 lpf=1]
+
+
+#opll_mode 1
+#tempo 120
+#title { "MUSAIRCH_with_sync_mark / 13 token-boundary 10/10ch" }
+#alloc { 4=192, 5=187, 6=185, 7=171, 9=59, a=64, b=100, c=115, d=233, e=115 }
+
+@v15 = { ; ocarina
+;       TL FB
+        63, 0,
+; AR DR SL RR KL MT AM VB EG KR DT
+   0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+  15, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0 }
+
+;SCC Piano
+@e00 = {,,cefffffffffffffffffffddddca87655443333343443333333222111100000000111111111111111100000000011111111111111111111111000000000011111110}
+@s00 = { 0f 39 5a 5a 56 64 68 55 4d 52 41 1b f1 c9 bc da fe 09 05 0e 0b e9 ce cf c4 a6 93 88 81 98 c6 ee }
+
+; block 13  steps 3123-3315  (192 steps)  token-boundary 10/10ch
+; clock %48 = quarter. early-ending ch padded with r%.
+; % values > 256 are split (notes tied with &, rests repeated).
+; #alloc { 4=192, 5=187, 6=185, 7=171, 9=59, a=64, b=100, c=115, d=233, e=115 }
+
+; ----- ch1  start-state ----- steps 0  pad 192  alloc -
+
+; ----- ch2  start-state ----- steps 0  pad 192  alloc -
+
+; ----- ch3  start-state ----- steps 0  pad 192  alloc -
+
+; ----- ch4  start-state ----- steps 192  alloc 192
+4 @0 o3 v15 @e0
+4 o2 o3 c+%96 c+%48 o4 f%48
+
+; ----- ch5  start-state ----- steps 192  alloc 187
+5 @0 o4 v15 @e0
+5 o1 r%48 o4 g+%48 c+%48 o3 c+%48
+
+; ----- ch6  start-state ----- steps 192  alloc 185
+6 @0 o4 v15 @e0
+6 o2 o3 c+%48 r%48 f%96
+
+; ----- ch7  start-state ----- steps 192  alloc 171
+7 @0 o4 v15 @e0
+7 o2 o3 o2 o3 o2 o4 o2 o1 o2 o3 o2 o4 f%48
+7 o3 c+%48 g+%96
+
+; ----- ch8  start-state ----- steps 0  pad 192  alloc -
+
+; ----- ch9  start-state ----- steps 0  pad 192  alloc 59
+9 @2 o5 v15
+9 r%192
+
+; ----- cha  start-state ----- steps 192  alloc 64
+a @2 o5 v15
+a o5 r%192
+
+; ----- chb  start-state ----- steps 192  alloc 100
+b @2 o5 v15
+b g+%48 g+%48 g+%48 g+%48
+
+; ----- chc  start-state ----- steps 192  alloc 115
+c @2 o5 v15
+c o6 o5 c+%48 f%48 f%48 c+%48
+
+; ----- chd  start-state ----- steps 192  alloc 233
+d @2 o6 v15
+d o4 o7 f%24 c+%24 o6 g+%24 f%24 o7 f%24 c+%24 o6 g+%24 f%24
+
+; ----- che  start-state ----- steps 192  alloc 115
+e @2 o6 v15
+e o5 o6 c+%48 f%48 f%48 c+%48
+
+; ----- chf  start-state ----- steps 0  pad 192  alloc -
+
+; ----- chg  start-state ----- steps 0  pad 192  alloc -
+
