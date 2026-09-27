@@ -1,0 +1,543 @@
+{
+  "base_commit": "6b9d5656781da9e8379df5ec6aa76e2404dd10a3",
+  "description": "Unmodified converter: --dump-passes --debug; normal and --raw-ticks. Sorted relative paths + NUL + SHA256 + LF.",
+  "cases": {
+    "normal/opll/ym2413_3ch_test/ym2413_3ch_test.vgm": {
+      "file_count": 36,
+      "sha256": "7e97578f6cd84f0a4b9311b5ff59389f92ba70ccfdf9b4c647e721f5d80bf593"
+    },
+    "raw/opll/ym2413_3ch_test/ym2413_3ch_test.vgm": {
+      "file_count": 36,
+      "sha256": "ed162b7a9313fca7186ca57b16329293a2af21b7205880f13c3778a1aeea1237"
+    },
+    "normal/opll/ym2413_block_boundary/ym2413_block_boundary.vgm": {
+      "file_count": 36,
+      "sha256": "029ce29f7f262639e01164cca273ef0336e237ace729698245b9e6586cd151ac"
+    },
+    "raw/opll/ym2413_block_boundary/ym2413_block_boundary.vgm": {
+      "file_count": 36,
+      "sha256": "6b17c58e5a5944c9743ec72a9b4c533fd140f6ae7857a3de67837193175be2fa"
+    },
+    "normal/opll/ym2413_chords_mix/ym2413_chords_mix.vgm": {
+      "file_count": 36,
+      "sha256": "08fc058030eb272c639a627a7cefee5ad3e82d65e317c728f47853b4a9e1a892"
+    },
+    "raw/opll/ym2413_chords_mix/ym2413_chords_mix.vgm": {
+      "file_count": 36,
+      "sha256": "e88f16b3991bd8b74084cde40d11a568e8c94b98a73b254507c1bbdd48206856"
+    },
+    "normal/opll/ym2413_highlow_range/ym2413_highlow_range.vgm": {
+      "file_count": 36,
+      "sha256": "49cb58dcba7967fbac896c2e7028a4f552f1e0e591b28bb71ad08a0b37d01cdf"
+    },
+    "raw/opll/ym2413_highlow_range/ym2413_highlow_range.vgm": {
+      "file_count": 36,
+      "sha256": "c4006d0c02fa1be51c8c2033bde674d8cdcbce5281f1d900d51654d0eda84bc9"
+    },
+    "normal/opll/ym2413_legato_patch_mix/ym2413_legato_patch_mix.vgm": {
+      "file_count": 36,
+      "sha256": "d54079f3c54215fed1fb65f45e86a23b5d6d3082824dccf20beb87fb1fe31a4d"
+    },
+    "raw/opll/ym2413_legato_patch_mix/ym2413_legato_patch_mix.vgm": {
+      "file_count": 36,
+      "sha256": "a19277e8641f232a07a521590fc574600cfc7b5caabefe9b176a99b8e6908aa5"
+    },
+    "normal/opll/ym2413_patch_change_midnote/ym2413_patch_change_midnote.vgm": {
+      "file_count": 36,
+      "sha256": "42fb66a72d7f71600b6c154eb87c83db8787d65a29770c0bd05a8f609e70cc4e"
+    },
+    "raw/opll/ym2413_patch_change_midnote/ym2413_patch_change_midnote.vgm": {
+      "file_count": 36,
+      "sha256": "573eceb7cd5596635a38b5bb9311c3089d6e65941cf652789da8b824a3e62a31"
+    },
+    "normal/opll/ym2413_redundant_fnum_writes/ym2413_redundant_fnum_writes.vgm": {
+      "file_count": 36,
+      "sha256": "155db7f6129c4fd431f8ce0f89bb91abbecdcffb5435043e888631ec30074c5b"
+    },
+    "raw/opll/ym2413_redundant_fnum_writes/ym2413_redundant_fnum_writes.vgm": {
+      "file_count": 36,
+      "sha256": "e8ce9b310aba461f1abc33ea8cb7fecf866ed913f21b713d1c7cf6692db1ca51"
+    },
+    "normal/opll/ym2413_release_retrigger/ym2413_release_retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "8ecdedb0807c2d6d6bf40053f6209dceb727441a4d00cf6c3869c718e224f63c"
+    },
+    "raw/opll/ym2413_release_retrigger/ym2413_release_retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "90b2cea9eea946a970b52b0e10ee39e5cbc283e538c831dc80bf28a5244fea4b"
+    },
+    "normal/opll/ym2413_retrigger/ym2413_retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "652f443406c796cbcf13e816e8b4a90d870f48230aafa7ddfb8b7f1455787b68"
+    },
+    "raw/opll/ym2413_retrigger/ym2413_retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "b31b577395b7ac85d9386b69c841e676f6d6b131506fe4b0fc1b954713ef8c73"
+    },
+    "normal/opll/ym2413_rhythm_mode_basic/ym2413_rhythm_mode_basic.vgm": {
+      "file_count": 36,
+      "sha256": "d91ffb6d996ff0d3991a0162b5e05e5870e1383bbe2ce2e29564315095b4c355"
+    },
+    "raw/opll/ym2413_rhythm_mode_basic/ym2413_rhythm_mode_basic.vgm": {
+      "file_count": 36,
+      "sha256": "a2fef3eb549432ddd1e5aa263caa6af5899af5753ff8cd31b4c6f04640e9c000"
+    },
+    "normal/opll/ym2413_rhythm_mode_toggle/ym2413_rhythm_mode_toggle.vgm": {
+      "file_count": 36,
+      "sha256": "25aba4ebbe12fa5aa7030ba51562e9a9d340f9c53d6fdd0dda389eed8b4a3cc0"
+    },
+    "raw/opll/ym2413_rhythm_mode_toggle/ym2413_rhythm_mode_toggle.vgm": {
+      "file_count": 36,
+      "sha256": "f2a52952d3328e6c991423ca488f64a38721d51e4e5194b7a7522a3a3b315c33"
+    },
+    "normal/opll/ym2413_scale_chromatic/ym2413_scale_chromatic.vgm": {
+      "file_count": 36,
+      "sha256": "2b4e541aa8d63dcd5306c2dfb08933dbe49885e6ad9f906d2e4868b32186de43"
+    },
+    "raw/opll/ym2413_scale_chromatic/ym2413_scale_chromatic.vgm": {
+      "file_count": 36,
+      "sha256": "3289c934d52ed7411e346f361bfda104f410f43ab82ed9c6657f98f06d948c25"
+    },
+    "normal/opll/ym2413_scale_rom1/ym2413_scale_rom1.vgm": {
+      "file_count": 36,
+      "sha256": "1cd7339faa3d4acb15e72fea43b664684444e3149773343c05221d0eb3fdc0d3"
+    },
+    "raw/opll/ym2413_scale_rom1/ym2413_scale_rom1.vgm": {
+      "file_count": 36,
+      "sha256": "46ee586f138a747a49d4ce0d41fae0d454ed8576be2c03373191f714fd7a3769"
+    },
+    "normal/opll/ym2413_short_pulses/ym2413_short_pulses.vgm": {
+      "file_count": 36,
+      "sha256": "e63ddc104519d8e3a5b8b16453b3a3c3b67e076efb9eabfd4dc752fbf645b4b0"
+    },
+    "raw/opll/ym2413_short_pulses/ym2413_short_pulses.vgm": {
+      "file_count": 36,
+      "sha256": "01cfd36152acf1f3be6ae74070b6162c72de72e1f6f7a8b32e1bbf9b4fb110d3"
+    },
+    "normal/opll/ym2413_volume_sweep/ym2413_volume_sweep.vgm": {
+      "file_count": 36,
+      "sha256": "7bbb233f87b13efd7e98fc852e65b0f2cd9c6f59c981a9e4f38b581224cca52e"
+    },
+    "raw/opll/ym2413_volume_sweep/ym2413_volume_sweep.vgm": {
+      "file_count": 36,
+      "sha256": "0af08d6c30bec457ce4baaa581ba2d8a3a94dfb5bb99a521272e74c2432b2caa"
+    },
+    "normal/psg/3ch_test/3ch_test.vgm": {
+      "file_count": 36,
+      "sha256": "563493e6c51fe45566d18bf820c77119783d36465f155c5022abb97b8a72350e"
+    },
+    "raw/psg/3ch_test/3ch_test.vgm": {
+      "file_count": 36,
+      "sha256": "63de72da57894937fb5c1c75df0475fb8ebef118dd771a9e8457956a2eddf985"
+    },
+    "normal/psg/block_boundary/block_boundary.vgm": {
+      "file_count": 36,
+      "sha256": "33d864421f0baa9dc380c75267b5a3491eaa6a16ca4a2ca3b97a69b68e07cf8f"
+    },
+    "raw/psg/block_boundary/block_boundary.vgm": {
+      "file_count": 36,
+      "sha256": "8a4d630c8d796b70a7723cf5a7495ddc77172d7efcc547ef9a8aa5e5abcd865f"
+    },
+    "normal/psg/chords_mix/chords_mix.vgm": {
+      "file_count": 36,
+      "sha256": "9eefb5f7187f09fdee6be99fe944d955d0d38eea823b04854cd08bf3f7e29c41"
+    },
+    "raw/psg/chords_mix/chords_mix.vgm": {
+      "file_count": 36,
+      "sha256": "0b7b7f09df4c94b35efffc9e924ce6607028443cd39515127805682402e07e76"
+    },
+    "normal/psg/highlow_range/highlow_range.vgm": {
+      "file_count": 36,
+      "sha256": "d884f7677766d9f47e3d0aaa2ec52c9efb4e2845bb52ea04deaa9ac3c1451e96"
+    },
+    "raw/psg/highlow_range/highlow_range.vgm": {
+      "file_count": 36,
+      "sha256": "9b8a2fe91b4c000e1ed59c62d5c0faee2318f7b61ecf045a0bfb5bd348d08c79"
+    },
+    "normal/psg/legato_patch_mix/legato_patch_mix.vgm": {
+      "file_count": 36,
+      "sha256": "a1ead1df0ed3f4f13cafddf25e10ba376ea54c2a554441f77315bf1ebfa6956f"
+    },
+    "raw/psg/legato_patch_mix/legato_patch_mix.vgm": {
+      "file_count": 36,
+      "sha256": "59eec1b835903d5266cf58a7447154ae15b68ba0d34bdbea28877791a705ce44"
+    },
+    "normal/psg/patch_change_midnote/patch_change_midnote.vgm": {
+      "file_count": 36,
+      "sha256": "c40dd32c2301963c8be36dea0da13095bc77aafc1fda90b29cd24d34a66beedc"
+    },
+    "raw/psg/patch_change_midnote/patch_change_midnote.vgm": {
+      "file_count": 36,
+      "sha256": "cb2e548adbbe04e37b9cd1dcf5187b4222d664ca74ddde880475d617e48bad22"
+    },
+    "normal/psg/redundant_fnum_writes/redundant_fnum_writes.vgm": {
+      "file_count": 36,
+      "sha256": "423d0dbef06f5caea5c78b0c491698fbe5616bb9056956bea9171f5fdcfa370a"
+    },
+    "raw/psg/redundant_fnum_writes/redundant_fnum_writes.vgm": {
+      "file_count": 36,
+      "sha256": "7ba65867f4662889f1800a58a693af44871cc0f7a5ae640fb411ec20ac09016d"
+    },
+    "normal/psg/release_retrigger/release_retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "cf73d59be6ed6d9b30eebb572b30b9a63841e19ca0e9d26ad3d4fb1b2471c032"
+    },
+    "raw/psg/release_retrigger/release_retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "65cc07fdda61c2dc35c01e4b5c5b8deba1445341b1deaa6bdffac2ed9e089fa2"
+    },
+    "normal/psg/retrigger/retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "921caacd37624d4cbf72c29ca0a475bee79631c125da7c41df128775010633b0"
+    },
+    "raw/psg/retrigger/retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "40f5be2256053a21892f579b2e0a20830a774f1d5ff0692711e8eddd291ed07d"
+    },
+    "normal/psg/scale_chromatic/scale_chromatic.vgm": {
+      "file_count": 36,
+      "sha256": "4249998df84aa3b57af3da88491d5bb9014d5ad5be1f015b9e7b7fbf0e955f8b"
+    },
+    "raw/psg/scale_chromatic/scale_chromatic.vgm": {
+      "file_count": 36,
+      "sha256": "2803de5db8f7283c7dd2cf1a41652fdd8526ee9c385d69abf274ad33381fb2b3"
+    },
+    "normal/psg/scale_rom1/scale_rom1.vgm": {
+      "file_count": 36,
+      "sha256": "340e84f1171268ab76a5ab7e5b113a1e213e6e08de7a576a3278b0a41bd4c303"
+    },
+    "raw/psg/scale_rom1/scale_rom1.vgm": {
+      "file_count": 36,
+      "sha256": "2bc9c3f72bb5e596fd77c04eb333d1fe7a208e274a5efe63f501aaee6b637605"
+    },
+    "normal/psg/short_pulses/short_pulses.vgm": {
+      "file_count": 36,
+      "sha256": "defe08b4658f53f2e4e40f7a9da62f0d290c4107edd9c8ccf20e8397aab335a8"
+    },
+    "raw/psg/short_pulses/short_pulses.vgm": {
+      "file_count": 36,
+      "sha256": "452ee20fe1bc4359674c758fe4af43d48eed172482db2d68b425850176a39362"
+    },
+    "normal/psg/volume_sweep/volume_sweep.vgm": {
+      "file_count": 36,
+      "sha256": "550632eb505ba11e760582ba98c36597c54d39e18e6d9b9023dbf307f18dec5e"
+    },
+    "raw/psg/volume_sweep/volume_sweep.vgm": {
+      "file_count": 36,
+      "sha256": "c31e2cea3c2292b5aa238ce73b86be566f580b9e4aafd2f7c1b58b5967f10cef"
+    },
+    "normal/scc/3ch_test/3ch_test.vgm": {
+      "file_count": 36,
+      "sha256": "3048cb224f49ad5ecf40ff13db6ee1925675d33f59f21e2a7be7e1dc8aa2ccfc"
+    },
+    "raw/scc/3ch_test/3ch_test.vgm": {
+      "file_count": 36,
+      "sha256": "b30079f25c0413a49099f5a29de8d92353ecfcaa26b142daacc17ec761dc02fe"
+    },
+    "normal/scc/block_boundary/block_boundary.vgm": {
+      "file_count": 36,
+      "sha256": "33d864421f0baa9dc380c75267b5a3491eaa6a16ca4a2ca3b97a69b68e07cf8f"
+    },
+    "raw/scc/block_boundary/block_boundary.vgm": {
+      "file_count": 36,
+      "sha256": "8a4d630c8d796b70a7723cf5a7495ddc77172d7efcc547ef9a8aa5e5abcd865f"
+    },
+    "normal/scc/chords_mix/chords_mix.vgm": {
+      "file_count": 36,
+      "sha256": "ae1f60dd52ffcdd5c268e0970e8911ed299e3047211dbd1f6af15b29528a2390"
+    },
+    "raw/scc/chords_mix/chords_mix.vgm": {
+      "file_count": 36,
+      "sha256": "41377af2057f8a57bc64a40794e7dc772b7c72ae0ba200e35fc299d00530b016"
+    },
+    "normal/scc/highlow_range/highlow_range.vgm": {
+      "file_count": 36,
+      "sha256": "d283e1ae93aedd51a24b99c33575d31d8e540eb78735453acc2dbcf2d231afde"
+    },
+    "raw/scc/highlow_range/highlow_range.vgm": {
+      "file_count": 36,
+      "sha256": "df5773602f612ab8d2b242e2d3ed0c4b2eabce4d0ce2077c8c113d4fc2312db5"
+    },
+    "normal/scc/legato_patch_mix/legato_patch_mix.vgm": {
+      "file_count": 36,
+      "sha256": "20761f0215f00750fe8de810942d2798894e4a873c8937b76bf5a20f04b50192"
+    },
+    "raw/scc/legato_patch_mix/legato_patch_mix.vgm": {
+      "file_count": 36,
+      "sha256": "44092f17c4d00f1277bd5f3cfe30a789850ac25b59f73948e3d2f164f02a004f"
+    },
+    "normal/scc/patch_change_midnote/patch_change_midnote.vgm": {
+      "file_count": 36,
+      "sha256": "7ddd1e3169adca9171718348956c90c6e90638d85096eb2648ef687c3e9297bd"
+    },
+    "raw/scc/patch_change_midnote/patch_change_midnote.vgm": {
+      "file_count": 36,
+      "sha256": "3d752c3143e804ae7b1640456326c66f38cc9568b7d3b474a6510a830e282f3e"
+    },
+    "normal/scc/redundant_fnum_writes/redundant_fnum_writes.vgm": {
+      "file_count": 36,
+      "sha256": "654166b30c463a8d44908939947f67786ef965ad647acec32222dc5e91a88f55"
+    },
+    "raw/scc/redundant_fnum_writes/redundant_fnum_writes.vgm": {
+      "file_count": 36,
+      "sha256": "0ae06ac98a74f99d629c3d7b514835c5f47408191432d66dc09126832c64fb11"
+    },
+    "normal/scc/release_retrigger/release_retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "a37e53a0e1cf192eadfe30dcb1bafdc39dfec4cdfae1703b0d6c7975a2486f66"
+    },
+    "raw/scc/release_retrigger/release_retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "e9ad72759bdaa4ce1598a683671bdf5659b98935ef09f5f1aa69ce12f518d0a5"
+    },
+    "normal/scc/retrigger/retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "50ab51cad5276bc3439f6552d998e53d9db14a3d7e41f738a60bf0f7f858f013"
+    },
+    "raw/scc/retrigger/retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "4c934c12b525aad8ba714a08aa87a6fe38848af4a3e642654da5773c8daa7597"
+    },
+    "normal/scc/scale_chromatic/scale_chromatic.vgm": {
+      "file_count": 36,
+      "sha256": "bc0ba6ea969ca70a0e2338a6cf070cfda7d4ad5356d48bb18c2c99ec7f7a3e22"
+    },
+    "raw/scc/scale_chromatic/scale_chromatic.vgm": {
+      "file_count": 36,
+      "sha256": "8706c132c6b24c08cba2dbbde83c21c603366010258a63e674fea05c33b659ee"
+    },
+    "normal/scc/scale_rom1/scale_rom1.vgm": {
+      "file_count": 36,
+      "sha256": "63ba71753924c04e8403986d9f213cd70834ed73d739fd2f89a233b6e1ba20cd"
+    },
+    "raw/scc/scale_rom1/scale_rom1.vgm": {
+      "file_count": 36,
+      "sha256": "58acc88833ba69e1415e7acc416d4a7f6ec51ae2610accfe6bf379c2ae961c32"
+    },
+    "normal/scc/short_pulses/short_pulses.vgm": {
+      "file_count": 36,
+      "sha256": "477f334a243af89fe86b48a95d98153a4c7c7b0bcfea7349dd456c5d24767c48"
+    },
+    "raw/scc/short_pulses/short_pulses.vgm": {
+      "file_count": 36,
+      "sha256": "361bd8d096fb9fe680f81245793719e1aa663c0866f7502e556b3bd6e15ee428"
+    },
+    "normal/scc/volume_sweep/volume_sweep.vgm": {
+      "file_count": 36,
+      "sha256": "6c502b2cbcc7a3ce29b7856a4785a1a2c915d7669f3237b99ff793c35b01eb43"
+    },
+    "raw/scc/volume_sweep/volume_sweep.vgm": {
+      "file_count": 36,
+      "sha256": "a01a275fd6895a086b15ea0356565e2c23f827d3a0aa373f182ad18217f148ff"
+    },
+    "clock_normal/scc/3ch_test/3ch_test.vgm": {
+      "file_count": 36,
+      "sha256": "3048cb224f49ad5ecf40ff13db6ee1925675d33f59f21e2a7be7e1dc8aa2ccfc"
+    },
+    "clock_raw/scc/3ch_test/3ch_test.vgm": {
+      "file_count": 36,
+      "sha256": "b30079f25c0413a49099f5a29de8d92353ecfcaa26b142daacc17ec761dc02fe"
+    },
+    "clock_log_normal/scc/3ch_test/3ch_test.vgm": {
+      "file_count": 36,
+      "sha256": "3048cb224f49ad5ecf40ff13db6ee1925675d33f59f21e2a7be7e1dc8aa2ccfc"
+    },
+    "clock_log_raw/scc/3ch_test/3ch_test.vgm": {
+      "file_count": 36,
+      "sha256": "b30079f25c0413a49099f5a29de8d92353ecfcaa26b142daacc17ec761dc02fe"
+    },
+    "clock_normal/scc/block_boundary/block_boundary.vgm": {
+      "file_count": 36,
+      "sha256": "33d864421f0baa9dc380c75267b5a3491eaa6a16ca4a2ca3b97a69b68e07cf8f"
+    },
+    "clock_raw/scc/block_boundary/block_boundary.vgm": {
+      "file_count": 36,
+      "sha256": "8a4d630c8d796b70a7723cf5a7495ddc77172d7efcc547ef9a8aa5e5abcd865f"
+    },
+    "clock_log_normal/scc/block_boundary/block_boundary.vgm": {
+      "file_count": 36,
+      "sha256": "33d864421f0baa9dc380c75267b5a3491eaa6a16ca4a2ca3b97a69b68e07cf8f"
+    },
+    "clock_log_raw/scc/block_boundary/block_boundary.vgm": {
+      "file_count": 36,
+      "sha256": "8a4d630c8d796b70a7723cf5a7495ddc77172d7efcc547ef9a8aa5e5abcd865f"
+    },
+    "clock_normal/scc/chords_mix/chords_mix.vgm": {
+      "file_count": 36,
+      "sha256": "ae1f60dd52ffcdd5c268e0970e8911ed299e3047211dbd1f6af15b29528a2390"
+    },
+    "clock_raw/scc/chords_mix/chords_mix.vgm": {
+      "file_count": 36,
+      "sha256": "41377af2057f8a57bc64a40794e7dc772b7c72ae0ba200e35fc299d00530b016"
+    },
+    "clock_log_normal/scc/chords_mix/chords_mix.vgm": {
+      "file_count": 36,
+      "sha256": "ae1f60dd52ffcdd5c268e0970e8911ed299e3047211dbd1f6af15b29528a2390"
+    },
+    "clock_log_raw/scc/chords_mix/chords_mix.vgm": {
+      "file_count": 36,
+      "sha256": "41377af2057f8a57bc64a40794e7dc772b7c72ae0ba200e35fc299d00530b016"
+    },
+    "clock_normal/scc/highlow_range/highlow_range.vgm": {
+      "file_count": 36,
+      "sha256": "d283e1ae93aedd51a24b99c33575d31d8e540eb78735453acc2dbcf2d231afde"
+    },
+    "clock_raw/scc/highlow_range/highlow_range.vgm": {
+      "file_count": 36,
+      "sha256": "df5773602f612ab8d2b242e2d3ed0c4b2eabce4d0ce2077c8c113d4fc2312db5"
+    },
+    "clock_log_normal/scc/highlow_range/highlow_range.vgm": {
+      "file_count": 36,
+      "sha256": "d283e1ae93aedd51a24b99c33575d31d8e540eb78735453acc2dbcf2d231afde"
+    },
+    "clock_log_raw/scc/highlow_range/highlow_range.vgm": {
+      "file_count": 36,
+      "sha256": "df5773602f612ab8d2b242e2d3ed0c4b2eabce4d0ce2077c8c113d4fc2312db5"
+    },
+    "clock_normal/scc/legato_patch_mix/legato_patch_mix.vgm": {
+      "file_count": 36,
+      "sha256": "20761f0215f00750fe8de810942d2798894e4a873c8937b76bf5a20f04b50192"
+    },
+    "clock_raw/scc/legato_patch_mix/legato_patch_mix.vgm": {
+      "file_count": 36,
+      "sha256": "44092f17c4d00f1277bd5f3cfe30a789850ac25b59f73948e3d2f164f02a004f"
+    },
+    "clock_log_normal/scc/legato_patch_mix/legato_patch_mix.vgm": {
+      "file_count": 36,
+      "sha256": "20761f0215f00750fe8de810942d2798894e4a873c8937b76bf5a20f04b50192"
+    },
+    "clock_log_raw/scc/legato_patch_mix/legato_patch_mix.vgm": {
+      "file_count": 36,
+      "sha256": "44092f17c4d00f1277bd5f3cfe30a789850ac25b59f73948e3d2f164f02a004f"
+    },
+    "clock_normal/scc/patch_change_midnote/patch_change_midnote.vgm": {
+      "file_count": 36,
+      "sha256": "7ddd1e3169adca9171718348956c90c6e90638d85096eb2648ef687c3e9297bd"
+    },
+    "clock_raw/scc/patch_change_midnote/patch_change_midnote.vgm": {
+      "file_count": 36,
+      "sha256": "3d752c3143e804ae7b1640456326c66f38cc9568b7d3b474a6510a830e282f3e"
+    },
+    "clock_log_normal/scc/patch_change_midnote/patch_change_midnote.vgm": {
+      "file_count": 36,
+      "sha256": "7ddd1e3169adca9171718348956c90c6e90638d85096eb2648ef687c3e9297bd"
+    },
+    "clock_log_raw/scc/patch_change_midnote/patch_change_midnote.vgm": {
+      "file_count": 36,
+      "sha256": "3d752c3143e804ae7b1640456326c66f38cc9568b7d3b474a6510a830e282f3e"
+    },
+    "clock_normal/scc/redundant_fnum_writes/redundant_fnum_writes.vgm": {
+      "file_count": 36,
+      "sha256": "654166b30c463a8d44908939947f67786ef965ad647acec32222dc5e91a88f55"
+    },
+    "clock_raw/scc/redundant_fnum_writes/redundant_fnum_writes.vgm": {
+      "file_count": 36,
+      "sha256": "0ae06ac98a74f99d629c3d7b514835c5f47408191432d66dc09126832c64fb11"
+    },
+    "clock_log_normal/scc/redundant_fnum_writes/redundant_fnum_writes.vgm": {
+      "file_count": 36,
+      "sha256": "654166b30c463a8d44908939947f67786ef965ad647acec32222dc5e91a88f55"
+    },
+    "clock_log_raw/scc/redundant_fnum_writes/redundant_fnum_writes.vgm": {
+      "file_count": 36,
+      "sha256": "0ae06ac98a74f99d629c3d7b514835c5f47408191432d66dc09126832c64fb11"
+    },
+    "clock_normal/scc/release_retrigger/release_retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "a37e53a0e1cf192eadfe30dcb1bafdc39dfec4cdfae1703b0d6c7975a2486f66"
+    },
+    "clock_raw/scc/release_retrigger/release_retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "e9ad72759bdaa4ce1598a683671bdf5659b98935ef09f5f1aa69ce12f518d0a5"
+    },
+    "clock_log_normal/scc/release_retrigger/release_retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "a37e53a0e1cf192eadfe30dcb1bafdc39dfec4cdfae1703b0d6c7975a2486f66"
+    },
+    "clock_log_raw/scc/release_retrigger/release_retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "e9ad72759bdaa4ce1598a683671bdf5659b98935ef09f5f1aa69ce12f518d0a5"
+    },
+    "clock_normal/scc/retrigger/retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "50ab51cad5276bc3439f6552d998e53d9db14a3d7e41f738a60bf0f7f858f013"
+    },
+    "clock_raw/scc/retrigger/retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "4c934c12b525aad8ba714a08aa87a6fe38848af4a3e642654da5773c8daa7597"
+    },
+    "clock_log_normal/scc/retrigger/retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "50ab51cad5276bc3439f6552d998e53d9db14a3d7e41f738a60bf0f7f858f013"
+    },
+    "clock_log_raw/scc/retrigger/retrigger.vgm": {
+      "file_count": 36,
+      "sha256": "4c934c12b525aad8ba714a08aa87a6fe38848af4a3e642654da5773c8daa7597"
+    },
+    "clock_normal/scc/scale_chromatic/scale_chromatic.vgm": {
+      "file_count": 36,
+      "sha256": "bc0ba6ea969ca70a0e2338a6cf070cfda7d4ad5356d48bb18c2c99ec7f7a3e22"
+    },
+    "clock_raw/scc/scale_chromatic/scale_chromatic.vgm": {
+      "file_count": 36,
+      "sha256": "8706c132c6b24c08cba2dbbde83c21c603366010258a63e674fea05c33b659ee"
+    },
+    "clock_log_normal/scc/scale_chromatic/scale_chromatic.vgm": {
+      "file_count": 36,
+      "sha256": "bc0ba6ea969ca70a0e2338a6cf070cfda7d4ad5356d48bb18c2c99ec7f7a3e22"
+    },
+    "clock_log_raw/scc/scale_chromatic/scale_chromatic.vgm": {
+      "file_count": 36,
+      "sha256": "8706c132c6b24c08cba2dbbde83c21c603366010258a63e674fea05c33b659ee"
+    },
+    "clock_normal/scc/scale_rom1/scale_rom1.vgm": {
+      "file_count": 36,
+      "sha256": "63ba71753924c04e8403986d9f213cd70834ed73d739fd2f89a233b6e1ba20cd"
+    },
+    "clock_raw/scc/scale_rom1/scale_rom1.vgm": {
+      "file_count": 36,
+      "sha256": "58acc88833ba69e1415e7acc416d4a7f6ec51ae2610accfe6bf379c2ae961c32"
+    },
+    "clock_log_normal/scc/scale_rom1/scale_rom1.vgm": {
+      "file_count": 36,
+      "sha256": "63ba71753924c04e8403986d9f213cd70834ed73d739fd2f89a233b6e1ba20cd"
+    },
+    "clock_log_raw/scc/scale_rom1/scale_rom1.vgm": {
+      "file_count": 36,
+      "sha256": "58acc88833ba69e1415e7acc416d4a7f6ec51ae2610accfe6bf379c2ae961c32"
+    },
+    "clock_normal/scc/short_pulses/short_pulses.vgm": {
+      "file_count": 36,
+      "sha256": "f53fc5c8f017d5c93de8e0a554d9e311ddf309ce12d050ec318cd7cc711d1eb8"
+    },
+    "clock_raw/scc/short_pulses/short_pulses.vgm": {
+      "file_count": 36,
+      "sha256": "0bc3fd02cd1229d08c1748a52321b0c9a1d7d1c5dd9ebfcdb7ef2adf4e648c2a"
+    },
+    "clock_log_normal/scc/short_pulses/short_pulses.vgm": {
+      "file_count": 36,
+      "sha256": "f53fc5c8f017d5c93de8e0a554d9e311ddf309ce12d050ec318cd7cc711d1eb8"
+    },
+    "clock_log_raw/scc/short_pulses/short_pulses.vgm": {
+      "file_count": 36,
+      "sha256": "0bc3fd02cd1229d08c1748a52321b0c9a1d7d1c5dd9ebfcdb7ef2adf4e648c2a"
+    },
+    "clock_normal/scc/volume_sweep/volume_sweep.vgm": {
+      "file_count": 36,
+      "sha256": "6c502b2cbcc7a3ce29b7856a4785a1a2c915d7669f3237b99ff793c35b01eb43"
+    },
+    "clock_raw/scc/volume_sweep/volume_sweep.vgm": {
+      "file_count": 36,
+      "sha256": "a01a275fd6895a086b15ea0356565e2c23f827d3a0aa373f182ad18217f148ff"
+    },
+    "clock_log_normal/scc/volume_sweep/volume_sweep.vgm": {
+      "file_count": 36,
+      "sha256": "6c502b2cbcc7a3ce29b7856a4785a1a2c915d7669f3237b99ff793c35b01eb43"
+    },
+    "clock_log_raw/scc/volume_sweep/volume_sweep.vgm": {
+      "file_count": 36,
+      "sha256": "a01a275fd6895a086b15ea0356565e2c23f827d3a0aa373f182ad18217f148ff"
+    }
+  },
+  "reference_correction": "Base converter with only K051649 detection fixed: 0x9C uint32 LE, header boundary >= 0xA0, mask 0x3FFFFFFF. No Segment refactor in reference. clock_* copies set 0x9C to 1789773 Hz."
+}

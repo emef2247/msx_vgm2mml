@@ -218,9 +218,38 @@ def _has_sound(nodes):
     return False
 
 
-def annotate_sync_points(text, line_width=120, min_gap=0):
+def annotate_sync_points(text, line_width=120, min_gap=0, drop_silent=False):
     """Replace local tick counts with shared step comments without retiming notes."""
     tracks, boundaries, header = analyze_mml(text)
+    if drop_silent:
+        tracks = {ch: nodes for ch, nodes in tracks.items() if _has_sound(nodes)}
+        boundaries = {ch: bounds for ch, bounds in boundaries.items() if ch in tracks}
+        header = [line for line in header if not _TRACK.match(line)]
+        if not any(ch in tracks for ch in '9abcdefgh'):
+            cleaned = []
+            in_voice = False
+            for line in header:
+                if re.match(r'^@v\d+\s*=', line):
+                    in_voice = '}' not in line
+                    continue
+                if in_voice:
+                    if '}' in line:
+                        in_voice = False
+                    continue
+                if 'OPLL part' in line or 'OPLL Voice Table' in line or line.startswith(';@voice') or line.startswith('; ================='):
+                    continue
+                cleaned.append(line)
+            header = cleaned
+    # PSG and SCC share the envelope bank; emit shared definitions only once.
+    seen_envelopes = set()
+    unique_header = []
+    for line in header:
+        if re.match(r'^@e\d+\s*=', line):
+            if line in seen_envelopes:
+                continue
+            seen_envelopes.add(line)
+        unique_header.append(line)
+    header = unique_header
     marks = sync_points(tracks, boundaries, min_gap=min_gap)
     ordered_marks = sorted(marks)
     rendered, allocations = [], {}

@@ -502,11 +502,18 @@ def write_psg_mml(segments, output_dir, stem, debug=True, raw_ticks=False):
 
 
 def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
-                    debug=True, raw_ticks=False):
+                    debug=True, raw_ticks=False, envelope_bank=None):
     """Compatibility entry point: CSV -> Segments -> MGSDRV MML."""
     segments = build_segments(input_path, output_dir, stem, dump_passes)
     name = stem if stem is not None else os.path.splitext(os.path.basename(input_path))[0]
-    return write_psg_mml(segments, output_dir, name, debug, raw_ticks)
+    result = write_psg_mml(segments, output_dir, name, debug, raw_ticks)
+    if envelope_bank is not None:
+        from mml_envelopes import render
+        target = render(segments, 'psg', envelope_bank, raw_ticks,
+                        dump_path=os.path.join(output_dir, f'{name}.psg.target_notes.csv') if dump_passes else None)
+        with open(os.path.join(output_dir, f'{name}.psg.target.mml'), 'w', newline='\n') as fh:
+            fh.write(target)
+    return result
 
 
 if __name__ == '__main__':

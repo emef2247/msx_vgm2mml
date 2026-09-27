@@ -1423,6 +1423,13 @@ See [MML sync points](mml_sync.md) for the implemented scope and tests.
 
 # 45. Final Rule for Agents
 
+Target-stage envelope projection (2026-09-28): keep source Segments unchanged.
+Remove silent tracks from final merged output and defer rest-time state changes
+until the next sounding interval. Use explicit 60 Hz volume holds for inferred
+software envelopes; do not assume fitted interpolation parameters reproduce
+observed register values. Preserve hardware envelope operation and pitch-write
+boundaries. Dump target note intervals and selected envelope IDs for inspection.
+
 When uncertain whether to simplify, merge, normalize, quantize, discard,
 or reinterpret data:
 

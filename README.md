@@ -44,6 +44,8 @@ outputs/stem/stem.mml
 PSG/SCCは、イベントCSV → Segment → MMLの段階に分けて処理します。
 構成と中間フォーマットは [PSG/SCC Segment pipeline](docs/psg_scc_segments.md) を参照してください。
 統合MMLのstepコメントは、再生中の全チャンネルで音符・休符の境界が揃う位置に自動挿入します。
+PSG/SCCは休符だけのチャンネルと休符中の不要な設定を省き、一定音程の音量推移をソフトウェアエンベロープへ抽出します。
+`--dump-passes` では抽出した区間を `*.target_notes.csv`、適用後の音源別MMLを `*.target.mml` に保存します。
 仕様と出力例は [同期ポイント](docs/mml_sync.md) を参照してください。
 テストはリポジトリのルートで `python -m unittest discover -s tests -v` を実行します。
 

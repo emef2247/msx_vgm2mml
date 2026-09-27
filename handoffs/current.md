@@ -4,6 +4,14 @@ Date: 2026-09-28
 Status: ready to resume
 
 ## Last completed
+- Added target-stage PSG/SCC rest cleanup and software-envelope extraction in
+  py/mml_envelopes.py. Source Segments are unchanged; target_notes CSV and target
+  MML are retained with --dump-passes. Shared envelope bank is limited to 32.
+- Removed silent tracks from final body, allocation and sync-point calculation.
+- Checked both supplied envelope fixtures in standard/raw modes and gra2_003:
+  rendered pitch/volume/mode/wave state matches Segment intervals tick by tick.
+- Full suite of 29 tests passed, then all six envelope tests passed after adding
+  hardware-envelope/retrigger and definition-limit fallback coverage.
 - Corrected SCC to five channels, one enable bit per channel, and shared
   waveform updates for channels 4/5 (MML 7/8).
 - SCC PASS1 now describes post-write state until the next event; PASS2 does
@@ -45,8 +53,11 @@ Status: ready to resume
 
 ## Unfinished
 - No required implementation remains for automatic shared sync comments.
-- Next steps requested by the user: remove rest-only channels and unnecessary
-  software-envelope commands on rests; extract and apply envelope definitions.
+- Completed rest-only track removal, deferred rest-time controls, and explicit
+  volume-hold envelope definitions. Fitting compact linear ramps (= syntax) is
+  not implemented; supplied references therefore differ in envelope spelling.
+- Supplied envelope reference lengths differ from VGM-derived timing by 3 ticks
+  for 001 and 2 ticks for 002; do not claim exact reference-file equality.
 - gra2_002 is not yet an exact match to the hand-authored reference: initial
   timing, PSG behavior and envelope representation remain distinct. Allocation
   weights are textual estimates, not measurements from an MML compiler.
