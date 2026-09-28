@@ -27,12 +27,18 @@ class TimedToken:
     children: tuple = ()
 
 
-def _parse(body):
+_RHYTHM_TOKEN = re.compile(
+    r'\s+|\[|\]\d*|\*\d+|v[bsmch]?[-+]?\d+|'
+    r'l(?:%\d+|\d+)\.*|(?:[bsmch]+|r)(?:%\d+|\d+|:)?\.*', re.I)
+_RHYTHM_NOTE = re.compile(r'(?:[bsmch]+|r)(%\d+|\d+|:)?(\.*)', re.I)
+
+
+def _parse(body, rhythm=False):
     """Keep finite loop structure; reject unsupported syntax rather than miscount."""
     root, stack = [], []
     current = root
     position = 0
-    for match in _TOKEN.finditer(body):
+    for match in (_RHYTHM_TOKEN if rhythm else _TOKEN).finditer(body):
         if match.start() != position:
             raise ValueError(f'Unsupported MML near {body[position:position + 24]!r}')
         position = match.end()
@@ -106,9 +112,10 @@ def _time(nodes, state, macros, expanding=()):
             match = re.fullmatch(r'l(%\d+|\d+)(\.*)', node, re.I)
             state['default'] = _duration(*match.groups(), state['default'])
         else:
-            match = _NOTE.fullmatch(node)
+            match = (_RHYTHM_NOTE if state.get('rhythm') else _NOTE).fullmatch(node)
             if match:
-                state['step'] += _duration(*match.groups(), state['default'])
+                length, dots = match.groups()
+                state['step'] += _duration('' if length == ':' else length, dots, state['default'])
         result.append(TimedToken(node, start, state['step']))
     return result
 
@@ -139,8 +146,9 @@ def analyze_mml(text):
               re.finditer(r'^\*(\d+)\s*=\s*\{([^}]*)\}', text, re.M)}
     tracks, boundaries = {}, {}
     for channel, lines in bodies.items():
-        state = dict(step=0, default=48, tokens=0)
-        nodes = _time(_parse(' '.join(lines)), state, macros)
+        rhythm = channel == 'f' and bool(re.search(r'^#opll_mode\s+1\b', text, re.M))
+        state = dict(step=0, default=48, tokens=0, rhythm=rhythm)
+        nodes = _time(_parse(' '.join(lines), rhythm=rhythm), state, macros)
         bounds = {0}
         for node in _leaves(nodes):
             if node.end > node.start:
@@ -203,7 +211,22 @@ def proportional_allocations(usage, total=15000):
     return result
 
 
-def _has_sound(nodes):
+def _has_sound(nodes, rhythm=False):
+    if rhythm:
+        volumes = dict.fromkeys('bsmch', 8)
+        for node in _leaves(nodes):
+            token = node.text.lower()
+            match = re.fullmatch(r'v([bsmch]?)([-+]?\d+)', token)
+            if match:
+                which, amount = match.groups()
+                for letter in which or 'bsmch':
+                    value = volumes[letter] + int(amount) if amount.startswith(('+', '-')) else int(amount)
+                    volumes[letter] = max(0, min(15, value))
+            elif node.end > node.start and token[0] != 'r':
+                letters = re.match(r'[bsmch]+', token)
+                if letters and any(volumes[c] > 0 for c in letters[0]):
+                    return True
+        return False
     volume = 8
     for node in _leaves(nodes):
         token = node.text.lower()
@@ -221,8 +244,9 @@ def _has_sound(nodes):
 def annotate_sync_points(text, line_width=120, min_gap=0, drop_silent=False):
     """Replace local tick counts with shared step comments without retiming notes."""
     tracks, boundaries, header = analyze_mml(text)
+    rhythm_mode = bool(re.search(r'^#opll_mode\s+1\b', text, re.M))
     if drop_silent:
-        tracks = {ch: nodes for ch, nodes in tracks.items() if _has_sound(nodes)}
+        tracks = {ch: nodes for ch, nodes in tracks.items() if _has_sound(nodes, rhythm_mode and ch == 'f')}
         boundaries = {ch: bounds for ch, bounds in boundaries.items() if ch in tracks}
         header = [line for line in header if not _TRACK.match(line)]
         if not any(ch in tracks for ch in '9abcdefgh'):
@@ -281,7 +305,7 @@ def annotate_sync_points(text, line_width=120, min_gap=0, drop_silent=False):
         # Textual size estimate of the emitted track (not its playback duration).
         used = sum(len(re.sub(r'\s', '', line.split(' ', 1)[1]))
                    for line in body if not line.startswith(';'))
-        allocations[channel] = used if _has_sound(nodes) else 0
+        allocations[channel] = used if _has_sound(nodes, rhythm_mode and channel == 'f') else 0
         rendered.extend(body + [''])
 
     # Replace old per-chip allocations with one shared budget.

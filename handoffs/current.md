@@ -72,3 +72,57 @@ Status: ready to resume
 - Do not discard event/PASS evidence or replace chip-specific fields with OPLL defaults.
 - Do not mistake 0xCC for SCC or infer valid conversion from old-output equality alone.
 - Do not overwrite private fixtures or regenerate regression hashes to hide a mismatch.
+
+## OPLL rhythm inspection update (2026-09-28)
+
+Added native `.opll.segments.csv` output before target voice assignment,
+including rhythm channels. Preserved legacy dumps and MML behavior. Added
+optional reference parity tests for traces, PASS1-4 and rhythm Segment fields,
+and synthetic edge-expansion tests. Private reference data remains untracked.
+Next: assess remaining edge cases through the complete pipeline, then agree
+on a common rhythm schema before implementing rhythm MML output. Do not
+interpret source rhythm flags as independent triggers; use keyon and channel.
+
+Validation: all 37 unittest methods passed (including 134 conversion cases
+and all three optional rhythm references). CLI sample Segment CSV contains
+282 rhythm rows; merged sample MML is byte-identical to the pre-change output.
+
+## Rhythm grouping update
+
+Added rhythm_patterns.py and group/definition/occurrence CSVs under --dump-passes.
+Preserves native Segment data and MML output. Exact adjacent repeats only;
+no timing tolerance or common OPNA schema yet. Tests reconstruct timing and
+hit states from exported patterns and check every source reference, duplicates,
+volume/pitch distinctions, initial silence and the unknown final gap.
+Next: review sample patterns before implementing MGSDRV rhythm rendering.
+
+Validation: all 42 unittest methods passed, including the existing 134-case
+conversion regression. Sample: 282 input hits, 213 groups, 18 definitions and
+71 occurrences; expanded pattern data matches groups and source references.
+The sample merged MML remains byte-identical to the previous output.
+
+## Timing field note
+
+Recorded the external oplldrv/libkss timing evidence and sample recalculation
+in field_notes/2026-09-28_mgsdrv_libkss_timing.md, linked from project knowledge.
+This is documentation only: do not globally replace the existing 60 Hz clock.
+Future timing profiles must separate VGM samples, playback frames and MML steps.
+
+## Rhythm MML output update
+
+Implemented rhythm_mml.py, OPLL target projection selection, rhythm-aware sync
+and allocation, and five semantic tests. Exact loops and absolute per-drum
+levels preserve group onsets/volumes. Legacy melodic variants remain unchanged.
+All 47 tests passed. Six fixtures in both modes match grouped rhythm events.
+All eight isolated rhythm outputs compile with MGSC 1.11 / mgsc-js 2.0.0;
+full sample normal/raw and sx01v raw compile. Other full outputs hit source
+length or melodic track buffer limits. No listening test performed.
+Next: user playback review; overall melodic size/allocation tuning remains
+separate. Do not apply a global 59.94 Hz correction or collapse duplicate hits.
+
+Rhythm tail correction: target end includes the latest OPLL trace tick as
+well as Segment ends. Attack-only rhythm Segments omit the final key-off;
+using their ends alone truncated the last cymbal in rhythm_only_test02.
+The fixture now ends at tick 77 rather than 41, retaining its tick-40 attack.
+This does not reconstruct unlogged trailing VGM waits or acoustic decay.
+Seven rhythm renderer tests pass, including normal/raw tail checks.

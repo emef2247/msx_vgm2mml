@@ -717,6 +717,12 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     # Build segments (tick-based final-state evaluation)
     segments,bpm = _build_segments(trace_path)
 
+    if dump_passes:
+        from opll_segments import dump_segments
+        dump_segments(segments, os.path.join(output_dir, f'{stem}.opll.segments.csv'))
+        from rhythm_patterns import dump_analysis
+        dump_analysis(segments, output_dir, stem)
+
     # Assign voice IDs using the voice CSV (user-patch tracking)
     voice_table, user_patches, warnings = _assign_voice_ids(segments, voice_csv_path)
 
@@ -746,6 +752,17 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     compress_path = os.path.join(output_dir, f'{stem}.opll.pass3.compress.MGS.mml')
     with open(compress_path, 'w', newline='\n') as fh:
         fh.write(compress_mml_text(mml_text))
+
+    from rhythm_mml import render as render_rhythm
+    target_text = compress_mml_text(simple_mgs_pct_text if raw_ticks else mml_text)
+    # Rhythm Segments retain attacks only: the final key-off can be later.
+    import csv
+    with open(trace_path, newline='') as stream:
+        trace_end = max((int(row['ticks']) for row in csv.DictReader(stream)
+                         if row.get('ticks')), default=0)
+    target_text += render_rhythm(segments, raw_ticks=raw_ticks, end_tick=trace_end)
+    with open(os.path.join(output_dir, f'{stem}.opll.target.mml'), 'w', newline='\n') as fh:
+        fh.write(target_text)
 
     if not debug:
         return compress_mgs_pct_path if raw_ticks else compress_path

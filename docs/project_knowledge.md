@@ -1442,3 +1442,52 @@ or reinterpret data:
 
 If the answer to step 5 becomes "no", the change requires strong
 justification.
+
+## OPLL rhythm inspection (2026-09-28)
+
+The main MML path now dumps all native OPLL Segments before target voice
+assignment to `.opll.segments.csv` with --dump-passes. Legacy pass0 remains.
+Rhythm channels 9..13 represent BD/SD/TOM/CYM/HH, not MML track IDs.
+For rhythm_expand, keyon is the per-instrument rising-edge result; the
+bd/sd/tom/tc/hh fields retain source flags and must not each be interpreted
+as a fresh trigger. PASS4 includes non-trigger rows omitted from Segments.
+Reference parity is not proof of all chip edge cases. MML rhythm output and
+a common cross-chip schema remain separate work. See docs/opll_rhythm.md.
+
+## Rhythm grouping and exact repetition analysis
+
+Native OPLL Segments remain unchanged. rhythm_patterns.py groups eligible
+rhythm triggers by existing 60 Hz tick, retaining duplicate hits, source times
+and channel/index references. Separate definitions and ordered occurrences
+encode exact adjacent repeats; equality includes gaps, instrument volume and
+pitch state, and native interval lengths. No timing tolerance, quantization,
+phrase inference or acoustic duration inference is applied. The final gap is
+unknown, not an inferred rest. The stage cannot restore earlier lost triggers.
+See docs/opll_rhythm.md for schemas and extraction limits.
+
+## MGSDRV / libkss timing observation
+
+The msxplay.com sample timing is consistent with approximately 735.77 samples
+per playback frame at 44100 Hz, rather than exactly 60 Hz. This is a measured
+libkss playback observation, not a universal MGSDRV constant. Preserve VGM
+timestamps and distinguish driver frames from MML steps. See
+[measurement and scope](../field_notes/2026-09-28_mgsdrv_libkss_timing.md)
+before changing timing conversion. Current converter timing is unchanged.
+
+## Rhythm target projection
+
+Main output now includes MGSDRV rhythm track f from exact Segment groups.
+The target renderer applies per-instrument levels, combines simultaneous
+instruments, and renders exact adjacent repeats as finite loops. Sync and
+allocation parse rhythm only for f in OPLL mode 1. Long encoded gaps continue
+as rests, not new attacks. Same-tick duplicate instruments are rejected.
+The final positive length is a target encoding choice, not acoustic decay.
+No source timing correction or raw/state reinterpretation was made. See
+docs/opll_rhythm.md for validation and unrepresented source-state limits.
+
+Rhythm tail correction: target end includes the latest OPLL trace tick as
+well as Segment ends. Attack-only rhythm Segments omit the final key-off;
+using their ends alone truncated the last cymbal in rhythm_only_test02.
+The fixture now ends at tick 77 rather than 41, retaining its tick-40 attack.
+This does not reconstruct unlogged trailing VGM waits or acoustic decay.
+Seven rhythm renderer tests pass, including normal/raw tail checks.

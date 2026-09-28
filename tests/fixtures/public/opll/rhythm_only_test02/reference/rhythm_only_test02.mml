@@ -1,0 +1,9 @@
+;[name=rhythm_only_test02 lpf=1]
+#opll_mode 1
+#tempo 120
+#title { "OPLL Rhythm Tiny Test 02" }
+
+f l16 vb15vs15vh15vm15vc15
+
+f brrr srrr hrrr mrrr crrr
+f b:s:h:m:c:r4
