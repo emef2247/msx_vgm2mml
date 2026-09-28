@@ -72,3 +72,17 @@ Status: ready to resume
 - Do not discard event/PASS evidence or replace chip-specific fields with OPLL defaults.
 - Do not mistake 0xCC for SCC or infer valid conversion from old-output equality alone.
 - Do not overwrite private fixtures or regenerate regression hashes to hide a mismatch.
+
+## OPLL rhythm inspection update (2026-09-28)
+
+Added native `.opll.segments.csv` output before target voice assignment,
+including rhythm channels. Preserved legacy dumps and MML behavior. Added
+optional reference parity tests for traces, PASS1-4 and rhythm Segment fields,
+and synthetic edge-expansion tests. Private reference data remains untracked.
+Next: assess remaining edge cases through the complete pipeline, then agree
+on a common rhythm schema before implementing rhythm MML output. Do not
+interpret source rhythm flags as independent triggers; use keyon and channel.
+
+Validation: all 37 unittest methods passed (including 134 conversion cases
+and all three optional rhythm references). CLI sample Segment CSV contains
+282 rhythm rows; merged sample MML is byte-identical to the pre-change output.

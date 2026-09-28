@@ -717,6 +717,10 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     # Build segments (tick-based final-state evaluation)
     segments,bpm = _build_segments(trace_path)
 
+    if dump_passes:
+        from opll_segments import dump_segments
+        dump_segments(segments, os.path.join(output_dir, f'{stem}.opll.segments.csv'))
+
     # Assign voice IDs using the voice CSV (user-patch tracking)
     voice_table, user_patches, warnings = _assign_voice_ids(segments, voice_csv_path)
 

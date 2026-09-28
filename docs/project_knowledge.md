@@ -1442,3 +1442,14 @@ or reinterpret data:
 
 If the answer to step 5 becomes "no", the change requires strong
 justification.
+
+## OPLL rhythm inspection (2026-09-28)
+
+The main MML path now dumps all native OPLL Segments before target voice
+assignment to `.opll.segments.csv` with --dump-passes. Legacy pass0 remains.
+Rhythm channels 9..13 represent BD/SD/TOM/CYM/HH, not MML track IDs.
+For rhythm_expand, keyon is the per-instrument rising-edge result; the
+bd/sd/tom/tc/hh fields retain source flags and must not each be interpreted
+as a fresh trigger. PASS4 includes non-trigger rows omitted from Segments.
+Reference parity is not proof of all chip edge cases. MML rhythm output and
+a common cross-chip schema remain separate work. See docs/opll_rhythm.md.

@@ -195,3 +195,8 @@ If the generated MML is too large, you may need to:
 
 ## License
 MIT License
+
+### OPLL Segment inspection
+
+`--dump-passes` also writes `<stem>.opll.segments.csv`, including melody and
+rhythm channels before target voice assignment. See `docs/opll_rhythm.md`.
