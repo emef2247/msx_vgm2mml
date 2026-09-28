@@ -7,6 +7,7 @@ import csv
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
+from mml_utils import compact_state_token
 
 
 @dataclass
@@ -136,6 +137,9 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None):
 
         def set_value(key, value, token):
             if current.get(key) != value:
+                if key in ('octave', 'volume'):
+                    prefix = 'o' if key == 'octave' else 'v'
+                    token = compact_state_token(prefix, value, current.get(key))
                 body.append(token)
                 current[key] = value
 

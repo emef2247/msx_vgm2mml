@@ -1513,3 +1513,59 @@ Legacy per-chip melodic variant files and legacy voice assignment remain for
 regression comparison; corrected final output comes from `.opll.target.mml`.
 Use `.opll.target_notes.csv` for final target voice mappings, not legacy pass0
 voice IDs. The shared Segment schema is unchanged.
+
+## Rhythm notation state
+
+Segment-derived patterns remain authoritative. rhythm_notation.py only
+shortens target notation: absolute instrument-volume deduplication and one
+profitable global default length. Loop entry must account for both incoming
+state and the preceding iteration's exit; ordinary linear deduplication can
+corrupt later iterations. Keep pattern/occurrence CSVs intact. Before/after
+target dumps and character metrics are available with --dump-passes.
+Sync formatting wraps preserved loop text across track-prefixed lines;
+physical newlines must not reset state or expand a repeat. Melody and macro
+optimization remain pending.
+
+## MGSDRV octave and voice numbering verification
+
+The final OPLL projection must use MGSDRV octave numbering, not scientific
+pitch octave labels. MGSC 1.11 + libkss-js 3.0.0 experimentally writes block 3
+for `9 @9v12o4a4` and block 2 for `o3a4`. The source grider begins with Fnum
+290/block 3; scientific A3 must therefore render as MGSDRV o4 a. The prior
+target renderer emitted one octave too low. target_note now uses MIDI // 12,
+including the lowest block without the legacy scientific-octave clamp.
+Legacy melodic variant output remains unchanged for regression comparison.
+
+YM2413 register instrument 1..15 maps to MGSDRV @0..@14. YM2413 instrument
+0 selects its shared user registers; generated MML uses allocated user IDs
+starting at @16. These MML IDs are not hardware ROM table indices: 16..18 in
+a ROM table describing rhythm patches do not reserve MML @16..@18.
+The msxplay-js public/demo/rom.mml example confirms @0/@16 for Violin, etc.
+https://github.com/digital-sound-antiques/msxplay-js/blob/main/public/demo/rom.mml
+
+Controlled MGSC/libkss roundtrips of the same patch defined as @16 and @v20,
+with matching selections, produce identical user registers 00..07. Renumbering
+is safe provided definition and selection agree. The final operator field is
+WF (waveform); DT in the older reference is a comment and does not alter the
+parameter order. Do not change the data order to match a comment label.
+
+## Relative melody notation and export-tail observation
+
+Final PSG/SCC/OPLL melodic renderers now use >/< for one-octave changes and
+)/( for one-volume changes when the previously emitted state is known.
+Initial values and larger changes remain absolute. Rest-time source changes
+are deferred; relative commands use emitted state, not skipped source state.
+Rhythm instrument volumes and Segment/pattern data remain unchanged.
+
+Validation: 63 unittest methods pass. MGSC/libkss checks of absolute versus
+relative PSG/OPLL phrases have identical ordered register states. Full grider
+has 1934 matching distinct register snapshots after grouping interrupt writes.
+PCM and raw VGM bytes are not bit-identical: command processing can change
+within-frame write timing. Do not claim sample-exact audio equivalence.
+
+The reference grider MML ends in an infinite repeat without an explicit fade.
+Its input VGM has no loop and ends at 121.948390 s, only 19 samples after the
+last chip write. A visible WAV fade/release tail may come from export/playback
+handling; the screenshot alone cannot establish its origin. No automatic fade
+or inferred tail padding was added. Preserve captured data versus target
+encoding/export choices as separate concerns.

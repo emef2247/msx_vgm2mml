@@ -9,12 +9,48 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'py'))
-from opll_target import decode_patch, render
+from opll_target import decode_patch, render, target_note
+from mml_utils import compact_state_token
 from mml_sync import analyze_mml, _leaves
 from test_rhythm_patterns import segment
 
 
 class OpllTarget(unittest.TestCase):
+    def test_relative_tokens_require_known_one_step_state(self):
+        for prefix, value, old, expected in [
+                ('o', 4, None, 'o4'), ('v', 12, None, 'v12'),
+                ('o', 5, 4, '>'), ('o', 3, 4, '<'),
+                ('v', 13, 12, ')'), ('v', 11, 12, '('),
+                ('o', 6, 4, 'o6'), ('v', 9, 12, 'v9'),
+                ('@', 17, 16, '@17')]:
+            self.assertEqual(compact_state_token(prefix, value, old), expected)
+
+    def test_relative_controls_follow_emitted_state_across_rests(self):
+        rows = [segment(0, volume=3, tick_end=4, inst=1, fnum=290, block=3),
+                segment(4, volume=15, tick_end=8, inst=1, fnum=290, block=0),
+                segment(8, volume=2, tick_end=12, inst=1, fnum=290, block=4),
+                segment(12, volume=3, tick_end=16, inst=1, fnum=290, block=3)]
+        text = render({0: rows}, raw_ticks=True)
+        self.assertIn('v12 o4', text)
+        self.assertIn(') >', text)
+        self.assertIn('( <', text)
+        self.assertNotIn('o1', text)
+
+    def test_mgs_octaves_match_driver_register_blocks(self):
+        # MGSC 1.11/libkss: o4 a writes block 3; o3 a writes block 2.
+        for block in range(8):
+            self.assertEqual(target_note(290, block), (block + 1, 'a'))
+            self.assertEqual(target_note(172, block), (block + 1, 'c'))
+        self.assertEqual(target_note(0, 3), (1, 'r'))
+
+    def test_all_rom_instruments_keep_mgs_numbering(self):
+        for inst in range(1, 16):
+            text = render({0: [segment(0, volume=0, tick_end=10,
+                                      inst=inst, fnum=290, block=3)]})
+            tokens = [n.text for n in _leaves(analyze_mml(text)[0]['9'])]
+            self.assertIn('@' + str(inst - 1), tokens)
+            self.assertIn('o4', tokens)
+
     def test_register_layout_and_waveforms(self):
         self.assertEqual(decode_patch(bytes.fromhex('71611e17d0780017')),
                          (30, 7, 13,0,0,0,0,1,0,1,1,1,0,

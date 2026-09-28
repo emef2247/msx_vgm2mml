@@ -762,7 +762,20 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     with open(trace_path, newline='') as stream:
         trace_end = max((int(row['ticks']) for row in csv.DictReader(stream)
                          if row.get('ticks')), default=0)
-    target_text += render_rhythm(segments, raw_ticks=raw_ticks, end_tick=trace_end)
+    from rhythm_notation import optimize as optimize_rhythm
+    rhythm_before = render_rhythm(segments, raw_ticks=raw_ticks, end_tick=trace_end)
+    rhythm_after = optimize_rhythm(rhythm_before, raw_ticks=raw_ticks)
+    target_text += rhythm_after
+    if dump_passes:
+        header = '#opll_mode 1\n' + ('#tempo 75\n' if raw_ticks else '#tempo 225\n')
+        for label, text in (('before', rhythm_before), ('after', rhythm_after)):
+            with open(os.path.join(output_dir, f'{stem}.opll.rhythm.{label}.target.mml'), 'w', newline='\n') as fh:
+                fh.write(header + text)
+        with open(os.path.join(output_dir, f'{stem}.opll.rhythm.optimization.csv'), 'w', newline='') as fh:
+            writer = csv.writer(fh)
+            writer.writerow(('stage', 'characters', 'non_whitespace_characters'))
+            for label, text in (('before', rhythm_before), ('after', rhythm_after)):
+                writer.writerow((label, len(text), len(''.join(text.split()))))
     with open(os.path.join(output_dir, f'{stem}.opll.target.mml'), 'w', newline='\n') as fh:
         fh.write(target_text)
 

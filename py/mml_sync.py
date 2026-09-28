@@ -294,10 +294,13 @@ def annotate_sync_points(text, line_width=120, min_gap=0, drop_silent=False):
                 flush()
                 body.append(f'; ch{channel} --- step {node.start} : {marks[node.start]} ---')
                 emitted.add(node.start)
-            if pending and pending_size + len(node.text) + 1 > line_width:
-                flush()
-            pending.append(node.text)
-            pending_size += len(node.text) + 1
+            # Preserved loops can exceed the compiler's physical line limit.
+            # Whitespace wrapping keeps brackets and playback state intact.
+            for word in node.text.split():
+                if pending and pending_size + len(word) + 1 > line_width:
+                    flush()
+                pending.append(word)
+                pending_size += len(word) + 1
         flush()
         total = nodes[-1].end
         if total in marks and total not in emitted:
