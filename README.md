@@ -204,3 +204,8 @@ rhythm channels before target voice assignment. See `docs/opll_rhythm.md`.
 The same option writes `.opll.rhythm.groups.csv`, `.opll.rhythm.patterns.csv`
 and `.opll.rhythm.occurrences.csv` for lossless tick grouping and exact repeats.
 These analysis tables do not yet change the generated MML.
+
+The main converter now renders OPLL rhythm on track `f`, including simultaneous
+hits, per-instrument volumes and exact finite repeats. Rhythm participates in
+shared sync marks and the 15000 allocation pool. Source timing still uses the
+existing 60 Hz analysis; no libkss timing correction is applied.

@@ -105,7 +105,7 @@ def _build_merged_mml(stem: str, song_dir: str,
         mml_path = os.path.join(song_dir,
                                 f'{stem}.{chip_ext}.{suffix}')
         target_path = os.path.join(song_dir, f'{stem}.{chip_ext}.target.mml')
-        if target and chip_key in ('psg', 'scc') and os.path.exists(target_path):
+        if target and chip_key in ('psg', 'scc', 'opll') and os.path.exists(target_path):
             mml_path = target_path
         body_parts.append(separator + '\n')
         body_parts.append(_extract_from_alloc(mml_path))
@@ -222,7 +222,7 @@ def main():
         fh.write(merged_text)
     print(f"Merged MML: {merged_path}")
     if not args.debug and not args.dump_passes:
-        for chip in ('psg', 'scc'):
+        for chip in ('psg', 'scc', 'opll'):
             os.remove(os.path.join(song_dir, f'{base_name}.{chip}.target.mml'))
 
     # ── Step 6: Clean up intermediate files in non-debug mode ─────

@@ -1473,3 +1473,21 @@ libkss playback observation, not a universal MGSDRV constant. Preserve VGM
 timestamps and distinguish driver frames from MML steps. See
 [measurement and scope](../field_notes/2026-09-28_mgsdrv_libkss_timing.md)
 before changing timing conversion. Current converter timing is unchanged.
+
+## Rhythm target projection
+
+Main output now includes MGSDRV rhythm track f from exact Segment groups.
+The target renderer applies per-instrument levels, combines simultaneous
+instruments, and renders exact adjacent repeats as finite loops. Sync and
+allocation parse rhythm only for f in OPLL mode 1. Long encoded gaps continue
+as rests, not new attacks. Same-tick duplicate instruments are rejected.
+The final positive length is a target encoding choice, not acoustic decay.
+No source timing correction or raw/state reinterpretation was made. See
+docs/opll_rhythm.md for validation and unrepresented source-state limits.
+
+Rhythm tail correction: target end includes the latest OPLL trace tick as
+well as Segment ends. Attack-only rhythm Segments omit the final key-off;
+using their ends alone truncated the last cymbal in rhythm_only_test02.
+The fixture now ends at tick 77 rather than 41, retaining its tick-40 attack.
+This does not reconstruct unlogged trailing VGM waits or acoustic decay.
+Seven rhythm renderer tests pass, including normal/raw tail checks.

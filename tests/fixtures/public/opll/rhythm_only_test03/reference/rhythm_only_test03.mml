@@ -1,0 +1,7 @@
+;[name=rhythm_only_test03 lpf=1]
+#opll_mode 1
+#tempo 120
+#title { "OPLL Rhythm Tiny Test 03" }
+
+f vb15vs15vh12vc10l16
+f [cb8h:h:s8h:vs-2sh:vs+2cb:s:h:h:|bs8h:h:]2 cs:s:cs:s:
