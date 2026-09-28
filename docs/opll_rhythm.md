@@ -35,3 +35,37 @@ the reference converter handles every chip behavior correctly.
 
 Next stages are complete-pipeline edge-case coverage, explicit state/trigger
 separation for a shared schema, and finally MGSDRV rhythm rendering.
+
+## Tick groups and exact patterns
+
+`--dump-passes` additionally writes three independent analysis tables:
+
+- `<stem>.opll.rhythm.groups.csv`: one group per occupied 60 Hz tick. `hits`
+  is a JSON list with instrument, native attenuation and pitch state. Each
+  hit has `channel` and zero-based `segment_index`, referencing that channel's
+  rows in `.opll.segments.csv`. Source timestamps and duplicate same-instrument
+  hits are retained; sharing a tick does not imply the same source timestamp.
+- `<stem>.opll.rhythm.patterns.csv`: pattern definitions, one relative step
+  per row, with exact outgoing gap and hit signatures.
+- `<stem>.opll.rhythm.occurrences.csv`: ordered pattern IDs, starting group
+  and absolute tick, unit group count, and adjacent repetition count.
+
+The final group's `gap_ticks` is blank: the interval to a next trigger is
+unknown. No acoustic release or song-end rest is inferred. Initial silence
+is represented by the first absolute tick. Segment interval lengths and
+shared pitch-register state participate in equality, as well as instruments,
+volumes, multiplicity and outgoing gaps. IDs and absolute timestamps do not.
+Reordering different instruments at one tick is not modeled as a new pattern;
+the original timestamps remain in group hits and native Segments.
+
+Extraction chooses the adjacent repeat saving the most groups at the current
+position, preferring shorter units on ties. Unmatched groups become single-step
+definitions, which can also be reused. Pattern IDs are deterministic for an
+input but are not persistent across edits. This is an exact, greedy analysis,
+not bar/phrase detection or optimal compression. A one-tick difference prevents
+a match. No source Segment is modified and no MML loop is emitted yet.
+
+The grouping stage preserves every eligible input Segment, including duplicate
+same-tick triggers. It cannot recover events discarded by earlier passes or
+represent volume-only writes absent from the input Segments. Existing raw and
+state CSVs remain the evidence for those future investigations.

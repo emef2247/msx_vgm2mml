@@ -200,3 +200,7 @@ MIT License
 
 `--dump-passes` also writes `<stem>.opll.segments.csv`, including melody and
 rhythm channels before target voice assignment. See `docs/opll_rhythm.md`.
+
+The same option writes `.opll.rhythm.groups.csv`, `.opll.rhythm.patterns.csv`
+and `.opll.rhythm.occurrences.csv` for lossless tick grouping and exact repeats.
+These analysis tables do not yet change the generated MML.

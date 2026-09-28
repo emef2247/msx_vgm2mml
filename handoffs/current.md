@@ -86,3 +86,24 @@ interpret source rhythm flags as independent triggers; use keyon and channel.
 Validation: all 37 unittest methods passed (including 134 conversion cases
 and all three optional rhythm references). CLI sample Segment CSV contains
 282 rhythm rows; merged sample MML is byte-identical to the pre-change output.
+
+## Rhythm grouping update
+
+Added rhythm_patterns.py and group/definition/occurrence CSVs under --dump-passes.
+Preserves native Segment data and MML output. Exact adjacent repeats only;
+no timing tolerance or common OPNA schema yet. Tests reconstruct timing and
+hit states from exported patterns and check every source reference, duplicates,
+volume/pitch distinctions, initial silence and the unknown final gap.
+Next: review sample patterns before implementing MGSDRV rhythm rendering.
+
+Validation: all 42 unittest methods passed, including the existing 134-case
+conversion regression. Sample: 282 input hits, 213 groups, 18 definitions and
+71 occurrences; expanded pattern data matches groups and source references.
+The sample merged MML remains byte-identical to the previous output.
+
+## Timing field note
+
+Recorded the external oplldrv/libkss timing evidence and sample recalculation
+in field_notes/2026-09-28_mgsdrv_libkss_timing.md, linked from project knowledge.
+This is documentation only: do not globally replace the existing 60 Hz clock.
+Future timing profiles must separate VGM samples, playback frames and MML steps.
