@@ -1491,3 +1491,25 @@ using their ends alone truncated the last cymbal in rhythm_only_test02.
 The fixture now ends at tick 77 rather than 41, retaining its tick-40 attack.
 This does not reconstruct unlogged trailing VGM waits or acoustic decay.
 Seven rhythm renderer tests pass, including normal/raw tail checks.
+
+## OPLL target voice and note correction
+
+The final projection now lives in opll_target.py. Decode registers 00/01 as
+operator flags, 02 as modulator KL/TL, 03 as carrier KL/WF/FB, 04/05 as AR/DR,
+and 06/07 as SL/RR. MGSDRV operator WF is modulator bit 3 / carrier bit 4
+of register 03, and FB is its low three bits. The previous main renderer
+used an incorrect interleaved register layout.
+
+MGSDRV ROM voices @0..@14 correspond to YM2413 instruments 1..15. User
+definitions and selections use @16 upwards, avoiding ROM-number collisions.
+The supplied fifteen user definitions now match the hand-written reference
+including waveform bits. Rests do not allocate unused user definitions.
+Long note splitting must use ties; splitting a held note into untied notes
+creates unwanted attacks. Source Segment boundaries are otherwise preserved.
+The existing same-tick final-patch policy is retained. Arbitrary mid-note
+global patch changes still require separate state/segmentation validation.
+
+Legacy per-chip melodic variant files and legacy voice assignment remain for
+regression comparison; corrected final output comes from `.opll.target.mml`.
+Use `.opll.target_notes.csv` for final target voice mappings, not legacy pass0
+voice IDs. The shared Segment schema is unchanged.

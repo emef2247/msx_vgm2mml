@@ -754,7 +754,9 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
         fh.write(compress_mml_text(mml_text))
 
     from rhythm_mml import render as render_rhythm
-    target_text = compress_mml_text(simple_mgs_pct_text if raw_ticks else mml_text)
+    from opll_target import render as render_melody
+    target_dump = os.path.join(output_dir, f'{stem}.opll.target_notes.csv') if dump_passes else None
+    target_text = render_melody(segments, voice_csv_path, raw_ticks, target_dump)
     # Rhythm Segments retain attacks only: the final key-off can be later.
     import csv
     with open(trace_path, newline='') as stream:

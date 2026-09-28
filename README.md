@@ -209,3 +209,8 @@ The main converter now renders OPLL rhythm on track `f`, including simultaneous
 hits, per-instrument volumes and exact finite repeats. Rhythm participates in
 shared sync marks and the 15000 allocation pool. Source timing still uses the
 existing 60 Hz analysis; no libkss timing correction is applied.
+
+Main OPLL target output uses MGSDRV ROM voices @0..@14 and explicit user
+voice definitions starting at @16. Long notes use exact lengths and tied
+continuations when split. --dump-passes includes `.opll.target_notes.csv`
+with the selected target voice and source patch bytes for each sounding Segment.
