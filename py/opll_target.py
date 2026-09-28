@@ -1,8 +1,9 @@
 """MGSDRV melodic projection with distinct ROM/user voices and tied lengths."""
 import csv
+import math
 from bisect import bisect_right
 from mml_envelopes import length_tokens
-from mml_utils import track_id_to_mgsdrv
+from mml_utils import track_id_to_mgsdrv, compact_state_token
 
 
 def decode_patch(patch):
@@ -22,8 +23,17 @@ def decode_patch(patch):
     return (patch[2] & 63, patch[3] & 7, *operators)
 
 
+def target_note(fnum, block):
+    """MGSDRV o4 uses OPLL block 3 (one above scientific octave naming)."""
+    if not fnum:
+        return 1, 'r'
+    frequency = 49716.0 * fnum * (1 << block) / (1 << 19)
+    midi = round(69 + 12 * math.log2(frequency / 440.0))
+    return max(1, min(8, midi // 12)), ('c', 'c+', 'd', 'd+', 'e', 'f',
+                                                   'f+', 'g', 'g+', 'a', 'a+', 'b')[midi % 12]
+
+
 def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
-    from opll_mml import _opll_note
 
     updates = []
     if voice_csv_path:
@@ -43,7 +53,7 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
             if seg.tick_start > cursor:
                 body.append(length_tokens('r', seg.tick_start - cursor, raw_ticks))
             cursor = seg.tick_end
-            octave, note = _opll_note(seg.fnum, seg.block)
+            octave, note = target_note(seg.fnum, seg.block)
             if not seg.keyon or not seg.fnum or seg.vol == 15 or note == 'r':
                 body.append(length_tokens('r', length, raw_ticks))
                 continue
@@ -64,7 +74,7 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
             for key, value, prefix in (('voice', voice, '@'), ('volume', 15-seg.vol, 'v'),
                                         ('octave', octave, 'o')):
                 if current.get(key) != value:
-                    body.append(f'{prefix}{value}')
+                    body.append(compact_state_token(prefix, value, current.get(key)))
                     current[key] = value
             body.append(length_tokens(note, length, raw_ticks))
             evidence.append((ch, index, seg.tick_start, seg.tick_end, seg.inst,

@@ -6,6 +6,16 @@ Tone table and note/octave/scale conversion utilities for MSX PSG/SCC.
 import math
 
 
+def compact_state_token(prefix, value, previous=None):
+    """Use a one-step relative command only when emitted state is known."""
+    if previous is not None and abs(value - previous) == 1:
+        if prefix == 'o':
+            return '>' if value > previous else '<'
+        if prefix == 'v':
+            return ')' if value > previous else '('
+    return f'{prefix}{value}'
+
+
 def estimate_mml_used(items):
     """Estimate used bytes from a list of MML item strings.
 

@@ -137,3 +137,51 @@ Custom-voice reference: all 15 definitions and alternating selections match
 in normal/raw modes; MGSC 1.11 compiles normal output. No listening check.
 Next: user audition; remaining mid-note patch scheduling and source Segment
 boundary interpretation are separate from this target-format correction.
+
+## Latest: rhythm notation optimization
+
+Added py/rhythm_notation.py and tests/test_rhythm_notation.py. Final rhythm
+output deduplicates absolute volumes safely across loop boundaries and uses
+one default length if shorter. Pattern discovery remains Segment-based; no
+new loops or macros are inferred from text. Added before/after target dumps
+and optimization metrics under --dump-passes. Fixed physical line wrapping
+inside long preserved loops after MGSC rejected an overlong line.
+
+Six fixtures in normal/raw modes preserve attacks, volumes and duration.
+All 24 isolated before/after rhythm files compile with MGSC 1.11. Sample
+normal rhythm text: 1175 -> 633 characters; compiled bytes: 736 -> 449.
+Next: extend Segment-based pattern analysis and notation reduction to melody;
+macro extraction remains optional. No files staged or committed by the agent.
+
+Full unittest discovery passed all 59 tests after the line-wrapping fix.
+
+## Latest: OPLL octave correction after voice review
+
+Fixed final target notes being one octave too low: MGSDRV octave = MIDI // 12.
+Verified block 3 from o4 a versus block 2 from o3 a through MGSC/libkss.
+Voice number mapping and custom patch decoding were correct and are unchanged.
+Equivalent @16 and @v20 definitions/selectors produce identical user registers.
+Generated grider compiles and its opening melody block now matches the source.
+Added all-eight-block pitch tests and all-fifteen-ROM-instrument mapping tests.
+No files staged or committed. Full audio equivalence remains unproven.
+
+## Relative melody notation and export-tail observation
+
+Final PSG/SCC/OPLL melodic renderers now use >/< for one-octave changes and
+)/( for one-volume changes when the previously emitted state is known.
+Initial values and larger changes remain absolute. Rest-time source changes
+are deferred; relative commands use emitted state, not skipped source state.
+Rhythm instrument volumes and Segment/pattern data remain unchanged.
+
+Validation: 63 unittest methods pass. MGSC/libkss checks of absolute versus
+relative PSG/OPLL phrases have identical ordered register states. Full grider
+has 1934 matching distinct register snapshots after grouping interrupt writes.
+PCM and raw VGM bytes are not bit-identical: command processing can change
+within-frame write timing. Do not claim sample-exact audio equivalence.
+
+The reference grider MML ends in an infinite repeat without an explicit fade.
+Its input VGM has no loop and ends at 121.948390 s, only 19 samples after the
+last chip write. A visible WAV fade/release tail may come from export/playback
+handling; the screenshot alone cannot establish its origin. No automatic fade
+or inferred tail padding was added. Preserve captured data versus target
+encoding/export choices as separate concerns.

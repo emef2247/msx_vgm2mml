@@ -37,6 +37,10 @@ def sounding_timeline(text, raw=True):
             elif re.fullmatch(r'@\d+', t): wave = int(t[1:]); env = 0
             elif re.fullmatch(r'v\d+', t): volume = int(t[1:]); hw = False
             elif re.fullmatch(r'o\d+', t): octave = int(t[1:])
+            elif t == '>': octave += 1
+            elif t == '<': octave -= 1
+            elif t == ')': volume = min(15, volume + 1); hw = False
+            elif t == '(': volume = max(0, volume - 1); hw = False
             elif re.fullmatch(r'/\d+', t): mode = int(t[1:])
             elif re.fullmatch(r'n\d+', t): noise = int(t[1:])
             elif re.fullmatch(r'm\d+', t): period = int(t[1:])

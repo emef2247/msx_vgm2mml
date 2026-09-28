@@ -117,3 +117,33 @@ using their ends alone truncated the last cymbal in rhythm_only_test02.
 The fixture now ends at tick 77 rather than 41, retaining its tick-40 attack.
 This does not reconstruct unlogged trailing VGM waits or acoustic decay.
 Seven rhythm renderer tests pass, including normal/raw tail checks.
+
+## State-aware notation optimization
+
+`rhythm_notation.py` runs after Segment-based grouping and rhythm rendering.
+It removes repeated absolute per-instrument volume commands across physical
+lines. A command inside a loop is removed only if it is redundant on both
+first entry and subsequent iterations, including nested loops. The initial
+renderer still emits independently initialized pattern units.
+
+One global default length (`lN`, or exact `l%N`) is selected only when it
+shortens the emitted text. Matching attacks use colons and matching rests
+omit their lengths. No timing tolerance or quantization is introduced.
+Pattern IDs, occurrences and source Segment CSVs remain unchanged. Macro
+extraction and melodic notation optimization are future work.
+
+With --dump-passes, before/after rhythm target MML and an optimization CSV
+record the textual changes and character counts. These standalone dumps
+are intermediate files; sync formatting supplies allocation and line wrapping.
+Long preserved loops now wrap at whitespace without expanding their repeats,
+avoiding compiler errors from excessive physical line lengths.
+
+Validation covers repeated volumes, loop entry/back-edge state, nested loops,
+compound hits, exact lengths, and multiline loops. Six fixtures in normal
+and raw modes retain identical attack times, per-instrument levels and end
+times. All 24 isolated before/after rhythm files compile with MGSC 1.11
+(mgsc-js 2.0.0). For sample in normal mode, rhythm text falls from 1175 to
+633 characters, and compiled rhythm usage from 736 to 449 bytes. These
+measurements do not claim full-song compilation or audio equivalence.
+
+Full unittest discovery passed all 59 tests after the line-wrapping fix.

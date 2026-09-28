@@ -214,3 +214,12 @@ Main OPLL target output uses MGSDRV ROM voices @0..@14 and explicit user
 voice definitions starting at @16. Long notes use exact lengths and tied
 continuations when split. --dump-passes includes `.opll.target_notes.csv`
 with the selected target voice and source patch bytes for each sounding Segment.
+
+## Rhythm notation optimization
+
+Final rhythm MML omits redundant instrument-volume commands and selects a
+single default length when it reduces text size. Exact patterns still come
+from Segment analysis; this pass does not discover new loops or macros.
+`--dump-passes` retains `.opll.rhythm.before.target.mml`,
+`.opll.rhythm.after.target.mml`, and `.opll.rhythm.optimization.csv`.
+See docs/opll_rhythm.md for scope and validation.
