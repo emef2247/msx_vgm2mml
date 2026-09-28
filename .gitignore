@@ -206,3 +206,7 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 outputs/02_StartingPoint_log.psg/
+
+# Local-only fixtures (not redistributed)
+tests/fixtures/local_only/**
+!tests/fixtures/local_only/README.md
