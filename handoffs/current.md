@@ -126,3 +126,14 @@ using their ends alone truncated the last cymbal in rhythm_only_test02.
 The fixture now ends at tick 77 rather than 41, retaining its tick-40 attack.
 This does not reconstruct unlogged trailing VGM waits or acoustic decay.
 Seven rhythm renderer tests pass, including normal/raw tail checks.
+
+## OPLL custom voice and notation correction
+
+Added opll_target.py and tests/test_opll_target.py. Final merged OPLL output
+uses correct YM2413 patch decoding, ROM @0..@14 and user @16+ definitions,
+and exact note lengths with ties on splits. Legacy variants remain unchanged
+for regression comparisons. Target note CSV records source index and patch.
+Custom-voice reference: all 15 definitions and alternating selections match
+in normal/raw modes; MGSC 1.11 compiles normal output. No listening check.
+Next: user audition; remaining mid-note patch scheduling and source Segment
+boundary interpretation are separate from this target-format correction.
