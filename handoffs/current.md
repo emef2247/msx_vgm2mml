@@ -343,3 +343,11 @@ Public mixed-envelope fixtures pass in standard and raw modes. This is not
 sample-exact audio verification. Envelope extraction boundaries are unchanged.
 Further work: gesture-aware percussion grouping and nested note-level phrases;
 base-volume normalization and parametric envelope inference remain unimplemented.
+
+## CLI metadata and default artifacts (2026-09-29)
+
+Merged metadata name now defaults to the input stem. --name and --title override
+name/title independently; --tile aliases --title. Output filenames remain unchanged.
+Normal cleanup now covers all three chip pipelines, including absent chips, whose
+empty legacy compress variants previously leaked into the output directory.
+Debug and pass-dump modes remain available. No music conversion behavior changed.
