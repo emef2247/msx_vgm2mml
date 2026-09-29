@@ -252,10 +252,10 @@ and OPLL melody; see `docs/melody_patterns.md` for limits.
 # Automatic MML macros
 
 Normal target output now shares repeated PSG, SCC and OPLL melodic command
-sequences through MGSDRV macros. Candidates are ranked by source-character
+sequences, including OPLL rhythm, through MGSDRV macros. Candidates are ranked by source-character
 savings across tracks (no fixed chip priority). Existing synchronization marks,
 loops and allocation remain intact. Up to 32 non-recursive definitions are
-emitted, only when the resulting file is smaller. OPLL rhythm notation is not
-macroized in this first implementation. Macros reduce source length, not
+emitted, only when the resulting file is smaller. Rhythm and melody use separate
+candidate pools to retain their distinct syntax. Macros reduce source length, not
 necessarily compiled track memory. `--dump-passes` retains the pre-macro chip
 outputs; the merged MML contains the final definitions and calls.
