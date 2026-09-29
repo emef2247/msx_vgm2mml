@@ -93,6 +93,74 @@ def segment_timeline(folder, stem):
 
 
 class EnvelopeTests(unittest.TestCase):
+    def test_global_selection_is_order_independent_and_prefers_long_curves(self):
+        from collections import Counter
+        short = [((15, n + 1), (10, 1), (5, 1)) for n in range(35)]
+        long = ((14, 100), (9, 100), (2, 100))
+        a, b = EnvelopeBank(), EnvelopeBank()
+        a.select(Counter(dict([(c, 1000) for c in short] + [(long, 1)])))
+        b.select(Counter(dict([(long, 1)] + [(c, 1000) for c in reversed(short)])))
+        self.assertEqual(a.curves, b.curves)
+        self.assertEqual(a.curves[long], 1)
+        self.assertLessEqual(len(a.curves), 32)
+
+    def test_prefix_sharing_checks_release_and_every_observed_tick(self):
+        from collections import Counter
+        from mml_envelopes import curve_prefix
+        long = ((12, 4), (8, 4), (3, 4))
+        short = ((12, 4), (8, 2))
+        release = ((12, 4), (7, 2))
+        self.assertTrue(curve_prefix(short, long))
+        self.assertFalse(curve_prefix(release, long))
+        bank = EnvelopeBank()
+        bank.select(Counter({long: 1, short: 1, release: 1}))
+        self.assertEqual(bank.aliases[short], bank.curves[long])
+        self.assertNotIn(release, bank.aliases)
+        base = SccSegment('vCtrl', 0, 0, 0, 4, 400, 12, 4, 'c', 0, (), 400, 1, 1, 0, '', 1)
+        bank.prepared = True
+        text = render({0: [base, replace(base, ticks=4, l=2, volume=8)]}, 'scc', bank, True)
+        self.assertEqual([x[2] for x in sounding_timeline(text)['4']], [12]*4 + [8]*2)
+
+
+    def test_segment_dump_records_actual_envelope_selection(self):
+        from chip_segments import dump_segments
+        base = SccSegment('vCtrl', 0, 0, 0, 2, 400, 10, 4, 'c', 0, (), 400, 1, 1, 0, '', 1)
+        rows = [base, replace(base, ticks=2, volume=8), replace(base, ticks=4, volume=6),
+                replace(base, ticks=6, l=0), replace(base, ticks=6, volume=0, scale='r'),
+                replace(base, ticks=8, volume=12)]
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'test.scc.segments.csv'
+            target = Path(folder) / 'test.scc.target_notes.csv'
+            for full in (False, True):
+                bank = EnvelopeBank()
+                if full:
+                    for n in range(31): bank.register(((15, n + 1), (3, 1)))
+                dump_segments(path, {0: rows}, SccSegment)
+                with path.open(newline='') as stream: original = list(csv.DictReader(stream))
+                text = render({0: rows}, 'scc', bank, dump_path=target)
+                with path.open(newline='') as stream: actual = list(csv.DictReader(stream))
+                for before, after in zip(original, actual):
+                    self.assertEqual(before, {k: after[k] for k in before})
+                expected = ('0', 'inline') if full else ('1', 'software')
+                self.assertEqual([(r['envelope_id'], r['envelope_kind']) for r in actual],
+                                 [expected] * 3 + [('', 'zero_length'), ('', 'rest'), ('0', 'constant')])
+                self.assertIn('@e' + expected[0], text)
+                first = path.read_bytes()
+                render({0: rows}, 'scc', bank, dump_path=target)
+                self.assertEqual(path.read_bytes(), first)
+
+    def test_hardware_and_silent_channel_have_no_software_id(self):
+        from chip_segments import dump_segments
+        hw = PsgSegment('evS', 0, 0, 0, 3, 400, 0, 4, 'c', 0, (), 1, 0, 1, 100, 9, 0, 16)
+        rows = {0: [hw], 1: [replace(hw, ch=1, envelope_enabled=0, scale='r')]}
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'test.psg.segments.csv'
+            dump_segments(path, rows, PsgSegment)
+            render(rows, 'psg', EnvelopeBank(), dump_path=Path(folder) / 'test.psg.target_notes.csv')
+            with path.open(newline='') as stream: actual = list(csv.DictReader(stream))
+            self.assertEqual([(r['envelope_id'], r['envelope_kind']) for r in actual],
+                             [('', 'hardware'), ('', 'rest')])
+
     def test_rest_settings_deferred_and_curve_exact(self):
         base = SccSegment('vCtrl', 0, 0, 0, 2, 400, 10, 4, 'c', 0, (), 400, 1, 1, 0, '', 1)
         segments = {0: [base, replace(base, ticks=2, volume=8), replace(base, ticks=4, volume=6),

@@ -722,6 +722,8 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
         dump_segments(segments, os.path.join(output_dir, f'{stem}.opll.segments.csv'))
         from rhythm_patterns import dump_analysis
         dump_analysis(segments, output_dir, stem)
+        from melody_patterns import dump_analysis as dump_melody
+        dump_melody(segments, "opll", output_dir, stem, voice_csv_path)
 
     # Assign voice IDs using the voice CSV (user-patch tracking)
     voice_table, user_patches, warnings = _assign_voice_ids(segments, voice_csv_path)

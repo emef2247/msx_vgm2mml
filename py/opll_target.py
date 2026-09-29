@@ -35,6 +35,10 @@ def target_note(fnum, block):
 
 def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
 
+    from melody_patterns import analyze
+    from melody_loops import project, dump_projection
+    analysis = analyze(segments, "opll", voice_csv_path)
+    before_lines, loop_report = [], []
     updates = []
     if voice_csv_path:
         with open(voice_csv_path, newline='') as stream:
@@ -45,8 +49,10 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
     patches, lines, evidence = {}, [], []
     for ch in range(6):
         body, current, cursor = [], {}, 0
+        boundaries = {}
         sounding = False
         for index, seg in enumerate(segments.get(ch, ())):
+            boundaries[index] = len(body)
             length = seg.tick_end - seg.tick_start
             if length <= 0:
                 continue
@@ -79,7 +85,11 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
             body.append(length_tokens(note, length, raw_ticks))
             evidence.append((ch, index, seg.tick_start, seg.tick_end, seg.inst,
                              voice, patch_hex, note, octave, 15-seg.vol))
+        boundaries[len(segments.get(ch, ()))] = len(body)
         if sounding:
+            before_lines.append(track_id_to_mgsdrv(ch + 9) + ' ' + ' '.join(body))
+            body, report = project(body, boundaries, analysis[ch], ch)
+            loop_report.extend(report)
             lines.append(track_id_to_mgsdrv(ch + 9) + ' ' + ' '.join(body))
     header = ['#tempo 75' if raw_ticks else '#tempo 225', '#alloc 9=0']
     for patch, voice in patches.items():
@@ -94,4 +104,6 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
             writer.writerow(('ch', 'segment_index', 'tick_start', 'tick_end', 'source_inst',
                              'target_voice', 'patch_hex', 'note', 'octave', 'volume'))
             writer.writerows(evidence)
-    return '\n'.join(header + lines) + '\n'
+    result = '\n'.join(header + lines) + '\n'
+    dump_projection(dump_path, '\n'.join(header + before_lines) + '\n', result, loop_report)
+    return result

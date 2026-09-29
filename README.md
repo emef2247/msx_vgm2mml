@@ -223,3 +223,10 @@ from Segment analysis; this pass does not discover new loops or macros.
 `--dump-passes` retains `.opll.rhythm.before.target.mml`,
 `.opll.rhythm.after.target.mml`, and `.opll.rhythm.optimization.csv`.
 See docs/opll_rhythm.md for scope and validation.
+
+## Melody pattern analysis
+
+`--dump-passes` also writes per-chip `.melody.patterns.csv`,
+`.melody.occurrences.csv` and `.melody.markings.csv`. These describe exact
+adjacent Segment repeats and retain source-row references. Eligible candidates become finite MML loops without changing expanded commands; see [melody pattern analysis](docs/melody_patterns.md) for equality
+rules, reconstruction and the limits of these loop candidates.
