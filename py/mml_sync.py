@@ -101,7 +101,8 @@ def _time(nodes, state, macros, expanding=()):
             name = node[1:]
             if name in expanding or name not in macros:
                 raise ValueError(f'Undefined or recursive MML macro *{name}')
-            children = _time(macros[name], state, macros, expanding + (name,))
+            children = _time(_parse(macros[name], rhythm=state.get('rhythm', False)),
+                             state, macros, expanding + (name,))
             result.append(TimedToken(node, start, state['step'], tuple(children)))
             continue
         state['tokens'] += 1
@@ -141,7 +142,7 @@ def analyze_mml(text):
             if not re.match(r'^\s*;\s*(?:tick count:|ch[1-9a-h]\s+(?:start|end:)|ch[1-9a-h]\s+--- step|sync marks|sync points:)', line, re.I):
                 header.append(line)
         brace_depth += code.count('{') - code.count('}')
-    macros = {m.group(1): _parse(m.group(2)) for m in
+    macros = {m.group(1): m.group(2) for m in
               re.finditer(r'^\*(\d+)\s*=\s*\{([^}]*)\}', text, re.M)}
     tracks, boundaries = {}, {}
     for channel, lines in bodies.items():

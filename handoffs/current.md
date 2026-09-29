@@ -487,3 +487,15 @@ crossed; balanced loops and ties are preserved; no recursive definitions.
 Allocation stays based on pre-macro text, since macro calls do not save binary
 track bytes. GRA2_08 reallocated fixture shrinks 28600 -> 16600 characters;
 expanded tokens/timing match. New tests cover melodic chips, loops and ties.
+# OPLL rhythm macro completion (2026-09-30)
+
+tests/test_rhythm_pipeline.py now includes optional local grider, using the same
+attack/volume/duration checks as the public fixtures; missing input skips only
+the local test. No private fixture is added to version control.
+
+Rhythm now participates in automatic macros in its own grammar pool. Existing
+Segment exact-repeat grouping/loop projection remains unchanged. mml_sync parses
+macro definitions at call time with the calling track's grammar. Added public
+pipeline checks for rhythm_only_test01..03 and sample, plus synthetic rhythm
+macro/sync equivalence coverage. Sample emits rhythm macros containing existing
+loops. Short fixtures need not produce macros when there is no text benefit.

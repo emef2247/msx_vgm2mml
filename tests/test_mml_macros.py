@@ -35,3 +35,14 @@ class Macros(unittest.TestCase):
     def test_existing_macros_and_small_input_unchanged(self):
         for text in ('9 c4\n', '*0 = { c4 }\n9 *0\n'):
             self.assertEqual(compress_macros(text), text)
+
+    def test_rhythm_macros_preserve_combined_hits_and_levels(self):
+        from test_rhythm_mml import attacks
+        text = '#opll_mode 1\n'
+        for i in range(8):
+            text += f'; sync {i}\nf vb15 vs12 vh10 l16 bs: h: s8 h: [b: h:]2 r8\n'
+        result = compress_macros(text)
+        self.assertIn('*0 =', result)
+        self.assertEqual(expanded(text), expanded(result))
+        self.assertEqual(attacks(text), attacks(result))
+        self.assertEqual(expanded(result), expanded(__import__('mml_sync').annotate_sync_points(result)))

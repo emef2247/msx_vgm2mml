@@ -147,3 +147,29 @@ times. All 24 isolated before/after rhythm files compile with MGSC 1.11
 measurements do not claim full-song compilation or audio equivalence.
 
 Full unittest discovery passed all 59 tests after the line-wrapping fix.
+# Rhythm loops and macros (2026-09-30)
+
+Existing Segment groups retain instrument, source indices, intervals, volume and
+shared pitch-register state. Exact adjacent group repeats already produce MML
+loops; non-adjacent repeated emitted sequences can now use the shared automatic
+macro pass. Rhythm candidates compete on actual source-character savings, but
+are never shared with melodic candidates. Macros may contain balanced existing
+loops. They do not cross synchronization comments or alter allocation.
+
+The sync analyzer parses a macro body using the calling track's grammar, so
+combined hits, colon lengths, and per-instrument volumes remain interpretable.
+Short fixtures may select no macros when definition overhead exceeds savings.
+No approximate pattern matching, retiming, or new hardware-state inference is
+introduced. Compiled-memory savings are not claimed.
+
+Public end-to-end checks cover rhythm_only_test01..03 and msxplay sample. They
+compare every emitted attack's tick, instrument and volume against the existing
+rhythm groups CSV, and verify final duration (including the minimum one-tick
+terminal attack). Synthetic tests also compare expanded commands through macros
+and sync formatting. Artifacts are under outputs/rhythm_macro_check/.
+
+The same regression check also covers local_only/opll/msxplay.com/grider when
+grider.vgm is available; otherwise that test is skipped. It verifies generated
+rhythm attacks, instrument volumes and final duration against the groups/trace
+CSVs. This Python test does not invoke MGSC or assert audio identity. Private
+fixture contents remain outside git.

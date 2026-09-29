@@ -27,8 +27,6 @@ def compress_macros(text, limit=32):
     for number in range(limit):
         candidates = defaultdict(list)
         for bi, (ch, nodes) in enumerate(blocks):
-            if rhythm and ch == 'f':
-                continue
             for start in range(len(nodes)):
                 if nodes[start] == '&' or nodes[start].startswith('*'):
                     continue
