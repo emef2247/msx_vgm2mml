@@ -230,3 +230,15 @@ See docs/opll_rhythm.md for scope and validation.
 `.melody.occurrences.csv` and `.melody.markings.csv`. These describe exact
 adjacent Segment repeats and retain source-row references. Eligible candidates become finite MML loops without changing expanded commands; see [melody pattern analysis](docs/melody_patterns.md) for equality
 rules, reconstruction and the limits of these loop candidates.
+
+### Output metadata and default artifacts
+
+By default, `vgm2mml.py` produces only `<stem>.mml`. Both the player metadata
+`;[name=<stem> lpf=1]` and `#title` use the input filename without its extension.
+Use `--name "Player name"` and `--title "Song title"` to override them independently;
+`--tile` is accepted as an alias for `--title`. These options do not rename the output.
+`--dump-passes` retains analysis artifacts; `--debug` retains legacy MML variants.
+
+```sh
+python vgm2mml.py song.vgm --outdir outputs/song --name song --title "Song Title"
+```

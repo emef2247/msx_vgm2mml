@@ -69,7 +69,8 @@ def _extract_from_alloc(mml_path: str) -> str:
 def _build_merged_mml(stem: str, song_dir: str,
                       has_psg: bool, has_scc: bool, has_opll: bool,
                       raw_ticks: bool = False, sync_min_gap: int = 1000,
-                      target: bool = True) -> str:
+                      target: bool = True, name: str | None = None,
+                      title: str | None = None) -> str:
     """Build the merged MML text from per-chip compress outputs.
 
     The merged file has a single global header followed by PSG, SCC, and OPLL
@@ -78,10 +79,10 @@ def _build_merged_mml(stem: str, song_dir: str,
     from the ``#alloc`` line (chip-level header is stripped).
     """
     lines = []
-    lines.append(';[name=psg lpf=1]')
+    lines.append(f';[name={stem if name is None else name} lpf=1]')
     lines.append('#opll_mode 1')
     lines.append('#tempo 75' if raw_ticks else '#tempo 225')
-    lines.append(f'#title {{ "{stem}"}}')
+    lines.append(f'#title {{ "{stem if title is None else title}"}}')
     lines.append('')
 
     parts = [
@@ -122,6 +123,9 @@ def main():
     parser.add_argument('vgm', help='Input VGM file')
     parser.add_argument('--outdir', default=None,
                         help='Output directory (default: <vgm_stem>_log/ next to vgm)')
+    parser.add_argument('--name', help='Override the player metadata name (default: input stem)')
+    parser.add_argument('--title', '--tile', dest='title',
+                        help='Override #title (default: input stem; --tile is an alias)')
     parser.add_argument('--dump-passes', action='store_true',
                         help='Keep event log/trace CSVs and write pass0-3 and PSG/SCC Segment CSVs')
     parser.add_argument('--debug', action='store_true',
@@ -143,6 +147,11 @@ def main():
     args = parser.parse_args()
     if args.sync_min_gap < 0:
         parser.error('--sync-min-gap must be nonnegative')
+
+    for field, value in (('name', args.name), ('title', args.title)):
+        if value is not None and (any(c in value for c in '\r\n') or
+                                  (']' in value if field == 'name' else '"' in value)):
+            parser.error(f'--{field} contains a character that would break the MML header')
 
     vgm_path = args.vgm
     if not os.path.isfile(vgm_path):
@@ -218,7 +227,8 @@ def main():
     merged_text = _build_merged_mml(base_name, song_dir,
                                     has_psg, has_scc, has_opll,
                                     raw_ticks=args.raw_ticks,
-                                    sync_min_gap=args.sync_min_gap)
+                                    sync_min_gap=args.sync_min_gap,
+                                    name=args.name, title=args.title)
     merged_path = os.path.join(song_dir, f'{base_name}.mml')
     with open(merged_path, 'w', newline='\n') as fh:
         fh.write(merged_text)
@@ -239,14 +249,9 @@ def main():
                     os.remove(csv_path)
                 except OSError:
                     pass
-        # Remove per-chip compress intermediate files for chips present in input.
-        chips_to_clean = []
-        if has_psg:
-            chips_to_clean.append('psg')
-        if has_scc:
-            chips_to_clean.append('scc')
-        if has_opll:
-            chips_to_clean.append('opll')
+        # Every pipeline writes these variants, including absent chips.
+        # Debug mode retains them; normal output must not leak empty-chip files.
+        chips_to_clean = ('psg', 'scc', 'opll')
 
         for chip in chips_to_clean:
             for suffix in ('pass3.compress.MGS.mml', 'pass3.compress.MGS_pct.mml'):
