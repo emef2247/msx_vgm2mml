@@ -236,7 +236,7 @@ rules, reconstruction and the limits of these loop candidates.
 By default, `vgm2mml.py` produces only `<stem>.mml`. Both the player metadata
 `;[name=<stem> lpf=1]` and `#title` use the input filename without its extension.
 Use `--name "Player name"` and `--title "Song title"` to override them independently;
-`--tile` is accepted as an alias for `--title`. These options do not rename the output.
+These options do not rename the output.
 `--dump-passes` retains analysis artifacts; `--debug` retains legacy MML variants.
 
 ```sh

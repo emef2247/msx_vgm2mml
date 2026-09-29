@@ -129,8 +129,8 @@ def main():
     parser.add_argument('--outdir', default=None,
                         help='Output directory (default: <vgm_stem>_log/ next to vgm)')
     parser.add_argument('--name', help='Override the player metadata name (default: input stem)')
-    parser.add_argument('--title', '--tile', dest='title',
-                        help='Override #title (default: input stem; --tile is an alias)')
+    parser.add_argument('--title', dest='title',
+                        help='Override #title (default: input stem)')
     parser.add_argument('--dump-passes', action='store_true',
                         help='Keep event log/trace CSVs and write pass0-3 and PSG/SCC Segment CSVs')
     parser.add_argument('--debug', action='store_true',
