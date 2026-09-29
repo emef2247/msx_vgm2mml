@@ -53,7 +53,7 @@ class PublicConversionTests(unittest.TestCase):
                 self.assertEqual(timeline(annotate_sync_points(unannotated, min_gap=1000, drop_silent=True)), timeline(annotated))
                 with patch.object(vgm2mml, 'annotate_sync_points', lambda text, **kwargs: text):
                     legacy = vgm2mml._build_merged_mml(stem, str(output), *flags,
-                                                      raw_ticks=mode.endswith('raw'), target=False)
+                                                      raw_ticks=mode.endswith('raw'), target=False, name='psg')
                 if flags[1]:
                     # The old SCC hashes encode four-channel, stale-pitch and
                     # lost-duration bugs. Check post-write states independently
@@ -76,7 +76,7 @@ class PublicConversionTests(unittest.TestCase):
                     continue
                 artifacts = {}
                 for path in output.iterdir():
-                    if path.name.endswith(('.melody.loops.csv', '.melody.patterns.csv', '.melody.occurrences.csv', '.melody.markings.csv', '.opll.rhythm.optimization.csv', '.opll.rhythm.groups.csv', '.opll.rhythm.patterns.csv', '.opll.rhythm.occurrences.csv', '.opll.segments.csv', '.psg.segments.csv', '.scc.segments.csv', '.scc.waveforms.csv', '.target.mml', '.target_notes.csv')):
+                    if path.name.endswith(('.performed.units.csv', '.performed.loops.csv', '.envelope_candidates.csv', '.melody.loops.csv', '.melody.patterns.csv', '.melody.occurrences.csv', '.melody.markings.csv', '.opll.rhythm.optimization.csv', '.opll.rhythm.groups.csv', '.opll.rhythm.patterns.csv', '.opll.rhythm.occurrences.csv', '.opll.segments.csv', '.psg.segments.csv', '.scc.segments.csv', '.scc.waveforms.csv', '.target.mml', '.target_notes.csv')):
                         continue
                     data = legacy.encode('utf-8') if path.name == f'{stem}.mml' else path.read_bytes()
                     if path.name == f'{stem}_log.scc.csv' and not flags[1]:

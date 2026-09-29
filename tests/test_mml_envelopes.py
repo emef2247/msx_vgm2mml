@@ -44,6 +44,8 @@ def sounding_timeline(text, raw=True):
             elif re.fullmatch(r'/\d+', t): mode = int(t[1:])
             elif re.fullmatch(r'n\d+', t): noise = int(t[1:])
             elif re.fullmatch(r'm\d+', t): period = int(t[1:])
+            elif re.fullmatch(r'y11,\d+', t): period = (period & 0xff00) | int(t.split(',')[1])
+            elif re.fullmatch(r'y12,\d+', t): period = (period & 255) | (int(t.split(',')[1]) << 8)
             elif re.fullmatch(r's\d+', t): shape = int(t[1:]); hw = True
             elif t == '&': tie = True
             elif node.end > node.start:
@@ -85,7 +87,7 @@ def segment_timeline(folder, stem):
             enabled = int(row['mode'] if chip == 'psg' else row['enabled'])
             sample = None
             if pitch != 'r' and enabled and (vol or hw):
-                amp = ('hw', int(143.03493 * int(row['envelope_period'])), int(row['envelope_shape'])) if hw else vol
+                amp = ('hw', int(row['envelope_period']), int(row['envelope_shape'])) if hw else vol
                 config = (enabled, int(row['noise_period']) if enabled & 2 else 0) if chip == 'psg' else (int(row['waveform_id']),)
                 sample = (pitch, int(row['octave']), amp, config)
             samples.extend([sample] * length)
@@ -198,7 +200,7 @@ class EnvelopeTests(unittest.TestCase):
         text = render({0: [hw, replace(hw, ticks=3, ev_type='aVC', envelope_enabled=0, volume=8)]},
                       'psg', EnvelopeBank(), True)
         states = sounding_timeline(text)['1']
-        self.assertEqual(states[0][2], ('hw', int(143.03493 * 100), 9))
+        self.assertEqual(states[0][2], ('hw', 100, 9))
         self.assertEqual(states[3][2], 8)
 
     def test_definition_overflow_falls_back_to_tied_volume_changes(self):

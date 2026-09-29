@@ -1690,3 +1690,39 @@ With `--dump-passes`, `<stem>.<chip>.envelope_candidates.csv` records the select
 ID, definition/exact_prefix/inline status, observed duration, occurrences and
 volume runs. Segment envelope annotations retain the actual selected IDs.
 This does not infer unseen tails, release parameters or base-volume offsets.
+
+## Performed-unit loop projection
+
+PSG/SCC complete extracted notes and OPLL patch-aware note Segments feed a
+second, nested pattern projection. PSG noise-containing intervals ending in
+rest may form coarse percussion candidates, retaining all internal states.
+Candidate equality alone never authorizes rewriting: emitted command sequences
+must repeat exactly. Limit emitted nesting to two levels and counts to 255.
+Segment dumps keep original fields and add performed-unit/hierarchy metadata.
+See docs/melody_patterns.md for reports, ambiguity and validation limits.
+
+## Loop-preserving synchronization (2026-09-29)
+
+Shared sync candidates now require top-level token boundaries in every active
+track, intersected with existing tie-safe leaf boundaries. Entire loops (including
+all iterations and nested loops) and macro calls remain intact. No annotation-time
+expansion is performed. Applies to PSG, SCC, OPLL melody and OPLL rhythm through
+the common final formatter. min_gap remains a minimum, not a forced interval;
+zero selects all safe common boundaries, and start/end remain mandatory.
+Ended tracks do not constrain later marks. Physical-line wrapping is unchanged.
+
+Gra2_005 MGSC 1.11 total used bytes: 4794 -> 3848, compilation succeeds.
+Gra2_003 isolated track sum: 26951 -> 21603, plus 886 definition bytes. It still
+exceeds the 15000 track budget; do not claim the complete song now compiles.
+Gra2_003 output text is 46960 characters, below the tested wrapper source limit.
+Expanded command and per-tick comparisons remain required alongside loop retention.
+
+## PSG/SCC sound reproduction correction
+
+Main target output now treats hardware-envelope m as a raw register period,
+using direct y11/y12 writes for zero. Explicit PSG/SCC tuning plus signed detune
+preserves observed tone periods within MGSDRV's -127..127 detune range.
+Out-of-range cases warn and are marked in target_notes.csv. See
+field_notes/2026-09-29_psg_scc_periods.md for independent MGSC/libkss evidence.
+Source Segments and legacy debug renderer baselines remain unchanged. Old
+pitch-name-only comparisons were insufficient to verify actual output frequency.

@@ -36,7 +36,7 @@ outputs/stem/stem.mml
 | オプション | 説明 |
 |-----------|------|
 | `--outdir OUTDIR` | MML ファイルの出力先ディレクトリを指定 |
-| `--sync-min-gap N` | 同期コメントの最小間隔（出力MMLのstep、既定1000）。0で全同期点を表示。開始・終端は常に表示 |
+| `--sync-min-gap N` | 同期コメントの最小間隔（出力MMLのstep、既定1000）。0でループ・マクロを分割しない全同期点を表示。開始・終端は常に表示 |
 | `--dump-passes` | イベントlog/trace、PASS0-3、PSG/SCC Segment、SCC波形CSVを保存 |
 | `--debug` | デバッグ用ファイルを出力 |
 | `--raw-ticks` | 音長を `%` tick 形式（例: `c%%N`）で出力（デフォルトは音価形式） |
@@ -242,3 +242,10 @@ Use `--name "Player name"` and `--title "Song title"` to override them independe
 ```sh
 python vgm2mml.py song.vgm --outdir outputs/song --name song --title "Song Title"
 ```
+
+With `--dump-passes`, `.performed.units.csv` and `.performed.loops.csv` expose
+complete-note/percussion candidates and nested loops. Segment CSVs also carry
+performed-unit IDs and hierarchy paths. PSG percussion grouping is conservative:
+noise-containing intervals with a trailing rest are candidates, not inferred
+original driver macros. Exact command-preserving nested loops support PSG/SCC
+and OPLL melody; see `docs/melody_patterns.md` for limits.

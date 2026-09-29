@@ -37,6 +37,9 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
 
     from melody_patterns import analyze
     from melody_loops import project, dump_projection
+    from performed_patterns import Unit, compress, dump_units
+    from types import SimpleNamespace
+    performed = {}
     analysis = analyze(segments, "opll", voice_csv_path)
     before_lines, loop_report = [], []
     updates = []
@@ -88,7 +91,22 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
         boundaries[len(segments.get(ch, ()))] = len(body)
         if sounding:
             before_lines.append(track_id_to_mgsdrv(ch + 9) + ' ' + ' '.join(body))
+            items = analysis[ch][0]
+            units = [Unit(i, i + 1, 'note' if segments[ch][i].keyon else 'rest',
+                          item.signature()) for i, item in enumerate(items)]
+            commands = [' '.join(body[boundaries[i]:boundaries[i + 1]]) for i in range(len(items))]
+            performed_text, hierarchy = compress(units, commands)
+            notes = [SimpleNamespace(start=item.tick, length=item.duration,
+                                     segment_indices=[i]) for i, item in enumerate(items)]
+            performed[ch] = (notes, units, hierarchy)
             body, report = project(body, boundaries, analysis[ch], ch)
+            selected = len(performed_text) <= len(' '.join(body))
+            if selected:
+                body = [performed_text]
+                report = [(*r[:-1], 'performed_projection_selected') for r in report]
+            else:
+                for entry in hierarchy:
+                    entry['status'] = 'legacy_projection_selected'
             loop_report.extend(report)
             lines.append(track_id_to_mgsdrv(ch + 9) + ' ' + ' '.join(body))
     header = ['#tempo 75' if raw_ticks else '#tempo 225', '#alloc 9=0']
@@ -104,6 +122,7 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
             writer.writerow(('ch', 'segment_index', 'tick_start', 'tick_end', 'source_inst',
                              'target_voice', 'patch_hex', 'note', 'octave', 'volume'))
             writer.writerows(evidence)
+    dump_units(dump_path, performed)
     result = '\n'.join(header + lines) + '\n'
     dump_projection(dump_path, '\n'.join(header + before_lines) + '\n', result, loop_report)
     return result
