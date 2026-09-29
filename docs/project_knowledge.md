@@ -1569,3 +1569,124 @@ last chip write. A visible WAV fade/release tail may come from export/playback
 handling; the screenshot alone cannot establish its origin. No automatic fade
 or inferred tail padding was added. Preserve captured data versus target
 encoding/export choices as separate concerns.
+
+## Melody Segment pattern candidates
+
+melody_patterns.py applies the existing greedy exact tandem-repeat search to
+per-channel PSG/SCC/OPLL Segment signatures. Timing is relative in definitions;
+source index/time/ticks remain in markings. State equality includes articulation,
+chip controls, SCC waveform content and OPLL user-patch content/interior writes.
+Do not match user patches using instrument zero or target voice ID alone.
+Unknown patches are conservatively distinct. Zero-duration rows remain ordered.
+
+With --dump-passes, three melody CSVs allow reconstruction without changing
+source Segment values or final MML. These are candidates, not proof of safe MML loops.
+State at the loop entry/back-edge, shared chip state and envelope continuity
+must be addressed by a later target projection. No macro extraction or timing
+tolerance was introduced. See docs/melody_patterns.md.
+
+## Pattern metadata in Segment CSVs
+
+The main --dump-passes pipeline appends segment_index, pattern_id,
+occurrence_id, repeat_index, pattern_step, pattern_segments and pattern_repeats
+to each chip's existing segments.csv. Original cells and row order are preserved;
+in-memory Segments remain unchanged. IDs are local to each chip/channel and
+all indices are zero-based. pattern_segments is the unit size; pattern_repeats
+is the number of consecutive repetitions in the occurrence. Filter
+pattern_repeats > 1 to inspect adjacent repeats alongside pitch/volume/state.
+Unmatched singleton candidates still have IDs with pattern_repeats = 1.
+OPLL rhythm rows (channels 9..13) have blank melody-pattern columns.
+The separate analysis CSVs remain available for definition-level inspection.
+
+Validation: seven melody-pattern tests pass, including original-cell retention,
+channel-local indices, zero-length rows, blank rhythm metadata and idempotence.
+
+## Target volume-envelope IDs in Segment CSVs
+
+PSG/SCC rendering appends envelope_id and envelope_kind to segments.csv when
+--dump-passes is enabled. IDs are the actual shared MML @e IDs, not separately
+allocated analysis IDs. Every positive-length source Segment contributing to
+an extracted note receives that note's selection, including merged volume runs.
+
+Kinds: software = extracted @e curve; constant = constant-volume @e0;
+inline = tied explicit volume changes using @e0 (including bank-limit fallback);
+hardware = PSG hardware envelope, no software ID; rest = no assignment;
+zero_length = an event without its own rendered interval, no assignment.
+Silent channels retain blank IDs. Pattern columns and all source cells are
+preserved. Internal Segments, MML and the existing target_notes CSV are unchanged.
+OPLL hardware instrument envelopes are not part of this PSG/SCC software bank.
+
+Eight envelope tests passed, covering merged rows, bank overflow, hardware,
+silent channels, zero-length rows, cell preservation and repeatable annotation.
+The public PSG/SCC 001 fixture retains identical final MML and existing CSV
+cells, including pattern metadata.
+
+## MML loop projection
+
+Final PSG/SCC/OPLL melody renderers now project Segment-derived candidates
+through melody_loops.py. No MML string-pattern discovery is performed: candidate
+positions and unit lengths come from melody_patterns.analyze. Every iteration
+boundary must coincide with a complete rendered note boundary. Candidates that
+cut an extracted envelope note are retained as ordinary MML.
+
+Within a candidate, only consecutive units with exactly identical emitted
+command sequences are replaced by finite loops, and only when text is shorter.
+An initial iteration with different initialization is retained. This preserves
+the expanded command stream exactly, including relative octave/volume commands,
+envelope selections and tied continuations. Loop counts are split at 255.
+No additional state resets, quantization, macros or new note boundaries are
+introduced. This conservative first implementation leaves many candidates
+uncompressed. Sync annotation can expand loops crossing a synchronization mark.
+
+With --dump-passes, inspect `.melody.before.target.mml`,
+`.melody.after.target.mml` and `.melody.loops.csv`. The report references ch,
+pattern_id and occurrence_id and gives candidate/looped repetition counts and
+an applied/skip status. Existing Segment annotations keep their candidate IDs.
+The dump files are per-chip intermediates, before final merge/sync formatting.
+
+Validation includes exact expanded-command equivalence, distinct first entry,
+relative changes, envelope/tie boundary rejection, large repeat counts and
+unmatched material. In normal mode, grider final MML changes from 32660 to
+32438 characters; public PSG/SCC 001 changes from 8330 to 7834 characters.
+Both grider versions compile with MGSC 1.11; regenerated VGM has the same
+1934 ordered distinct interrupt-grouped register snapshots. This is not a
+claim of sample-exact audio or optimal compression. Its padded MGS file size
+remains 11264 bytes, so text reduction is not a binary-size guarantee.
+
+## User direction: musical structure and long envelopes (2026-09-29)
+
+Use the supplied reference MML and ROM-analysis commentary as an evaluation
+oracle for intended musical structure, not merely a source of arbitrary repeated
+register patterns. Distinguish percussion gestures, repeated note/rest motifs,
+nested phrases, reusable subroutines and outer song loops. Do not paste private
+musical content into tracked documentation or hard-code a fixture's phrases.
+
+The reference reuses envelope definitions across different note lengths and
+base volumes. Matching entire observed volume-run tuples is too restrictive:
+short notes can be observed prefixes of a longer shared envelope. Detect attack
+boundaries and preserve envelope restart/continuation semantics before comparing
+phrases. A mode-changing percussion gesture must not be absorbed into a volume
+curve alone. Reference annotations inform validation; VGM observations remain
+primary input. Do not invent an unobserved envelope tail.
+
+The user prefers longer envelopes when the shared bank is limited, for MML size
+reduction. Prioritize longer genuinely varying volume trajectories; inspect
+saved explicit volume commands and definition/reference overhead as a benefit
+check and tie-breaker. A long constant hold alone must not consume a new slot.
+Evaluate the shared PSG/SCC candidate bank together, not SCC first. Do not
+replace this preference with frequency-only ranking of expanded loop copies.
+
+Next implementation target: recover representative long PSG envelope behavior,
+reuse compatible observed prefixes/base-level variants with exact target
+semantics, then match note/rest motifs and nested phrases using those envelope
+identities. Keep Segment, note/envelope, pattern and occurrence mappings visible.
+
+## Shared envelope selection
+
+PSG and SCC now contribute candidates to one bank before target rendering.
+Longer varying curves have priority; only full observed-tick equality permits
+sharing a prefix of a longer definition. No source-driver identity is required.
+With `--dump-passes`, `<stem>.<chip>.envelope_candidates.csv` records the selected
+ID, definition/exact_prefix/inline status, observed duration, occurrences and
+volume runs. Segment envelope annotations retain the actual selected IDs.
+This does not infer unseen tails, release parameters or base-volume offsets.

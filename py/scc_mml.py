@@ -444,13 +444,15 @@ def process_scc_csv(input_path, output_dir, dump_passes=True, stem=None,
     """Compatibility entry point: CSV -> Segments -> MGSDRV MML."""
     analysis = build_segments(input_path, output_dir, dump_passes, stem)
     name = stem if stem is not None else os.path.splitext(os.path.splitext(os.path.basename(input_path))[0])[0]
+    if dump_passes:
+        from melody_patterns import dump_analysis
+        dump_analysis(analysis.segments, "scc", output_dir, name)
     result = write_scc_mml(analysis, output_dir, name, debug, raw_ticks)
     if envelope_bank is not None:
-        from mml_envelopes import render
-        target = render(analysis.segments, 'scc', envelope_bank, raw_ticks, analysis.waveforms,
-                        dump_path=os.path.join(output_dir, f'{name}.scc.target_notes.csv') if dump_passes else None)
-        with open(os.path.join(output_dir, f'{name}.scc.target.mml'), 'w', newline='\n') as fh:
-            fh.write(target)
+        envelope_bank.submit(analysis.segments, 'scc',
+                             os.path.join(output_dir, f'{name}.scc.target.mml'),
+                             raw_ticks=raw_ticks, waveforms=analysis.waveforms,
+                             dump_path=os.path.join(output_dir, f'{name}.scc.target_notes.csv') if dump_passes else None)
     return result
 
 

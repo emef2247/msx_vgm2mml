@@ -24,11 +24,12 @@ def assert_valid_marks(test, text, min_gap=0):
     # Count time in each rendered prefix independently of the comment number.
     states = {ch: dict(step=0, default=48, tokens=0) for ch in tracks}
     seen = {ch: set() for ch in tracks}
+    pending = {ch: [] for ch in tracks}
     macros = {m[1]: _parse(m[2]) for m in re.finditer(r'^\*(\d+)\s*=\s*\{([^}]*)\}', text, re.M)}
     for line in text.splitlines():
         music = re.match(r'^([1-9a-h])\s+(.*)$', line)
         if music and music[1] in states:
-            _time(_parse(music[2]), states[music[1]], macros)
+            pending[music[1]].append(music[2])
         mark = re.match(r'; ch([1-9a-h]) --- step (\d+) : (.*?) ---', line)
         if mark:
             channel, step, label = mark[1], int(mark[2]), mark[3]
@@ -36,9 +37,13 @@ def assert_valid_marks(test, text, min_gap=0):
             test.assertEqual(label, marks[step])
             test.assertNotIn(step, seen[channel])
             seen[channel].add(step)
+            _time(_parse(' '.join(pending[channel])), states[channel], macros)
+            pending[channel].clear()
             actual = states[channel]['step']
             test.assertEqual(step, actual)
     for channel, nodes in tracks.items():
+        _time(_parse(' '.join(pending[channel])), states[channel], macros)
+        test.assertEqual(states[channel]['step'], nodes[-1].end)
         test.assertEqual(seen[channel], {step for step in marks if step <= nodes[-1].end})
 
 

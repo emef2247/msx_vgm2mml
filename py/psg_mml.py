@@ -506,13 +506,15 @@ def process_psg_csv(input_path, output_dir, stem=None, dump_passes=True,
     """Compatibility entry point: CSV -> Segments -> MGSDRV MML."""
     segments = build_segments(input_path, output_dir, stem, dump_passes)
     name = stem if stem is not None else os.path.splitext(os.path.basename(input_path))[0]
+    if dump_passes:
+        from melody_patterns import dump_analysis
+        dump_analysis(segments, "psg", output_dir, name)
     result = write_psg_mml(segments, output_dir, name, debug, raw_ticks)
     if envelope_bank is not None:
-        from mml_envelopes import render
-        target = render(segments, 'psg', envelope_bank, raw_ticks,
-                        dump_path=os.path.join(output_dir, f'{name}.psg.target_notes.csv') if dump_passes else None)
-        with open(os.path.join(output_dir, f'{name}.psg.target.mml'), 'w', newline='\n') as fh:
-            fh.write(target)
+        envelope_bank.submit(segments, 'psg',
+                             os.path.join(output_dir, f'{name}.psg.target.mml'),
+                             raw_ticks=raw_ticks,
+                             dump_path=os.path.join(output_dir, f'{name}.psg.target_notes.csv') if dump_passes else None)
     return result
 
 

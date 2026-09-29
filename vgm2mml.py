@@ -181,7 +181,7 @@ def main():
     has_opll = _has_chip_data(opll_trace_csv)
 
     # ── Step 2: SCC MML pipeline ─────────────────────────────────
-    envelope_bank = EnvelopeBank()
+    envelope_bank = EnvelopeBank(deferred=True)
     scc_csv = scc_trace_csv if args.scc_input == 'trace' else scc_log_csv
 
     scc_mml_path = process_scc_csv(scc_csv, song_dir, stem=base_name,
@@ -202,6 +202,8 @@ def main():
                                    envelope_bank=envelope_bank)
     if args.debug:
         print(f"PSG MML: {psg_mml_path}")
+
+    envelope_bank.flush()
 
     # ── Step 4: OPLL MML pipeline ────────────────────────────────
     opll_mml_path = process_opll_csv(opll_trace_csv, song_dir, stem=base_name,
