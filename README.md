@@ -249,3 +249,13 @@ performed-unit IDs and hierarchy paths. PSG percussion grouping is conservative:
 noise-containing intervals with a trailing rest are candidates, not inferred
 original driver macros. Exact command-preserving nested loops support PSG/SCC
 and OPLL melody; see `docs/melody_patterns.md` for limits.
+# Automatic MML macros
+
+Normal target output now shares repeated PSG, SCC and OPLL melodic command
+sequences through MGSDRV macros. Candidates are ranked by source-character
+savings across tracks (no fixed chip priority). Existing synchronization marks,
+loops and allocation remain intact. Up to 32 non-recursive definitions are
+emitted, only when the resulting file is smaller. OPLL rhythm notation is not
+macroized in this first implementation. Macros reduce source length, not
+necessarily compiled track memory. `--dump-passes` retains the pre-macro chip
+outputs; the merged MML contains the final definitions and calls.

@@ -478,3 +478,12 @@ See docs/pitch_roundtrip.md for commands, scope and dependency versions.
 User suggests deriving a pitch table from original MML and reference CSV.
 gra2_002 and gra2_008 original MML already declare a custom #psg_tune table;
 validate that mapping first. Do not force a game-specific table on all VGM.
+# Automatic target macros (2026-09-30)
+
+py/mml_macros.py is applied after sync formatting in normal target output.
+PSG/SCC/OPLL melody participate, ranked by source-character savings. Rhythm
+is excluded pending rhythm-aware shared macro parsing. No sync boundary is
+crossed; balanced loops and ties are preserved; no recursive definitions.
+Allocation stays based on pre-macro text, since macro calls do not save binary
+track bytes. GRA2_08 reallocated fixture shrinks 28600 -> 16600 characters;
+expanded tokens/timing match. New tests cover melodic chips, loops and ties.

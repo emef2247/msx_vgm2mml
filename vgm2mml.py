@@ -30,6 +30,7 @@ from scc_mml import process_scc_csv
 from psg_mml import process_psg_csv
 from opll_mml import process_opll_csv
 from mml_sync import annotate_sync_points
+from mml_macros import compress_macros
 from mml_envelopes import EnvelopeBank
 from psg_scc_target import TUNING_HEADER
 
@@ -117,7 +118,8 @@ def _build_merged_mml(stem: str, song_dir: str,
     result = ''.join(body_parts)
     if not result.endswith('\n'):
         result += '\n'
-    return annotate_sync_points(result, min_gap=sync_min_gap, drop_silent=target)
+    formatted = annotate_sync_points(result, min_gap=sync_min_gap, drop_silent=target)
+    return compress_macros(formatted) if target else formatted
 
 
 def main():
