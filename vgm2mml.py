@@ -31,6 +31,7 @@ from psg_mml import process_psg_csv
 from opll_mml import process_opll_csv
 from mml_sync import annotate_sync_points
 from mml_envelopes import EnvelopeBank
+from psg_scc_target import TUNING_HEADER
 
 
 def _has_chip_data(csv_path: str) -> bool:
@@ -81,6 +82,8 @@ def _build_merged_mml(stem: str, song_dir: str,
     lines = []
     lines.append(f';[name={stem if name is None else name} lpf=1]')
     lines.append('#opll_mode 1')
+    if target and (has_psg or has_scc):
+        lines.append(TUNING_HEADER)
     lines.append('#tempo 75' if raw_ticks else '#tempo 225')
     lines.append(f'#title {{ "{stem if title is None else title}"}}')
     lines.append('')

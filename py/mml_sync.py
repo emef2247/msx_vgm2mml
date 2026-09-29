@@ -3,7 +3,6 @@
 The clock is the target MML clock: %48 is a quarter note. Source ticks and
 Segment analysis are not changed. This is not a general MGSDRV compiler.
 """
-from bisect import bisect_right
 from collections import Counter
 from dataclasses import dataclass
 import re
@@ -165,14 +164,21 @@ def analyze_mml(text):
 
 
 def sync_points(tracks, boundaries, min_gap=0):
-    """All still-playing channels must have a boundary; ended tracks are silent."""
+    """Choose shared boundaries outside complete loops/macros.
+
+    A composite token is indivisible for annotation, including its repeated
+    iterations. Existing leaf boundaries still exclude tied-note joins.
+    Ended tracks do not constrain later synchronization points.
+    """
     if min_gap < 0:
         raise ValueError('Minimum sync gap must be nonnegative')
     totals = {ch: nodes[-1].end for ch, nodes in tracks.items()}
     if not totals:
         return {}
     end = max(totals.values())
-    votes = Counter(step for bounds in boundaries.values() for step in bounds)
+    safe = {ch: boundaries[ch] & ({0} | {n.start for n in nodes} | {n.end for n in nodes})
+            for ch, nodes in tracks.items()}
+    votes = Counter(step for bounds in safe.values() for step in bounds)
     marks = {0: 'start'}
     previous = 0
     for step in sorted(votes):
@@ -184,17 +190,6 @@ def sync_points(tracks, boundaries, min_gap=0):
             previous = step
     marks[end] = 'end'
     return marks
-
-
-def _split_nodes(nodes, marks):
-    """Keep complete loops/macros; expand only ones crossed by a sync mark."""
-    for node in nodes:
-        index = bisect_right(marks, node.start)
-        crosses = index < len(marks) and marks[index] < node.end
-        if node.children and crosses:
-            yield from _split_nodes(node.children, marks)
-        else:
-            yield node
 
 
 def proportional_allocations(usage, total=15000):
@@ -275,7 +270,6 @@ def annotate_sync_points(text, line_width=120, min_gap=0, drop_silent=False):
         unique_header.append(line)
     header = unique_header
     marks = sync_points(tracks, boundaries, min_gap=min_gap)
-    ordered_marks = sorted(marks)
     rendered, allocations = [], {}
     for channel, nodes in tracks.items():
         pending, pending_size = [], 0
@@ -289,7 +283,7 @@ def annotate_sync_points(text, line_width=120, min_gap=0, drop_silent=False):
                 pending.clear()
                 pending_size = 0
 
-        for node in _split_nodes(nodes, ordered_marks):
+        for node in nodes:
             if node.start in marks and node.start not in emitted:
                 flush()
                 body.append(f'; ch{channel} --- step {node.start} : {marks[node.start]} ---')
@@ -327,7 +321,7 @@ def annotate_sync_points(text, line_width=120, min_gap=0, drop_silent=False):
     header = clean_header
     if shares:
         header.append('#alloc { ' + ', '.join(f'{ch}={value}' for ch, value in shares.items()) + ' }')
-    note = '; sync marks: all active channels at token boundaries; clock: %48 = quarter'
+    note = '; sync marks: all active channels at loop-safe token boundaries; clock: %48 = quarter'
     # Extracting track lines leaves their separators in the header. Keep only
     # one blank line between the remaining definitions and comments.
     compact_header = []

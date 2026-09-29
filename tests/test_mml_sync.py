@@ -22,7 +22,7 @@ def assert_valid_marks(test, text, min_gap=0):
     tracks, boundaries, _ = analyze_mml(text)
     marks = sync_points(tracks, boundaries, min_gap=min_gap)
     # Count time in each rendered prefix independently of the comment number.
-    states = {ch: dict(step=0, default=48, tokens=0) for ch in tracks}
+    states = {ch: dict(step=0, default=48, tokens=0, rhythm=(ch == 'f' and '#opll_mode 1' in text)) for ch in tracks}
     seen = {ch: set() for ch in tracks}
     pending = {ch: [] for ch in tracks}
     macros = {m[1]: _parse(m[2]) for m in re.finditer(r'^\*(\d+)\s*=\s*\{([^}]*)\}', text, re.M)}
@@ -37,12 +37,12 @@ def assert_valid_marks(test, text, min_gap=0):
             test.assertEqual(label, marks[step])
             test.assertNotIn(step, seen[channel])
             seen[channel].add(step)
-            _time(_parse(' '.join(pending[channel])), states[channel], macros)
+            _time(_parse(' '.join(pending[channel]), rhythm=states[channel]['rhythm']), states[channel], macros)
             pending[channel].clear()
             actual = states[channel]['step']
             test.assertEqual(step, actual)
     for channel, nodes in tracks.items():
-        _time(_parse(' '.join(pending[channel])), states[channel], macros)
+        _time(_parse(' '.join(pending[channel]), rhythm=states[channel]['rhythm']), states[channel], macros)
         test.assertEqual(states[channel]['step'], nodes[-1].end)
         test.assertEqual(seen[channel], {step for step in marks if step <= nodes[-1].end})
 
@@ -52,13 +52,17 @@ class SyncTests(unittest.TestCase):
         source = '1 [c%12]120\n4 [r%12]120\n'
         tracks, bounds, _ = analyze_mml(source)
         self.assertEqual(list(sync_points(tracks, bounds, min_gap=700)),
-                         [0, 708, 1416, 1440])
+                         [0, 1440])
         result = annotate_sync_points(source, min_gap=700)
         self.assertEqual(timeline(source), timeline(result))
         assert_valid_marks(self, result, min_gap=700)
         self.assertNotIn('step 700 ', result)
-        self.assertEqual(len(sync_points(tracks, bounds, min_gap=0)), 121)
+        self.assertEqual(len(sync_points(tracks, bounds, min_gap=0)), 2)
         self.assertEqual(list(sync_points(tracks, bounds, min_gap=2000)), [0, 1440])
+        flat = '1 ' + 'c%12 ' * 120 + '\n4 ' + 'r%12 ' * 120 + '\n'
+        flat_tracks, flat_bounds, _ = analyze_mml(flat)
+        self.assertEqual(list(sync_points(flat_tracks, flat_bounds, min_gap=700)),
+                         [0, 708, 1416, 1440])
         with self.assertRaises(ValueError):
             annotate_sync_points(source, min_gap=-1)
 
@@ -80,8 +84,17 @@ class SyncTests(unittest.TestCase):
     def test_inline_nested_repeats_and_delta_commands(self):
         source = '#tempo 75\n1 o4v10 [>[(c%3]2 <d%6]2\n4 [g%6]4\n'
         result = self.assert_preserved(source)
-        self.assertIn('; ch1 --- step 6 : token-boundary 2/2ch ---', result)
-        self.assertIn('; ch4 --- step 18 : token-boundary 2/2ch ---', result)
+        self.assertNotIn('step 6 :', result)
+        self.assertNotIn('step 18 :', result)
+        self.assertIn('[g%6]4', result)
+
+    def test_mixed_parts_skip_internal_loop_boundaries(self):
+        source = '#opll_mode 1\n1 [c%3 d%3]4 e%6\n4 [g%6]4 a%6\n9 [c%12]2 d%6\nf [b%6]4 s%6\n'
+        result = self.assert_preserved(source)
+        self.assertIn('step 24 : token-boundary 4/4ch', result)
+        self.assertNotIn('step 12 :', result)
+        for loop in ('[c%3 d%3]4', '[g%6]4', '[c%12]2', '[b%6]4'):
+            self.assertIn(loop, result)
 
     def test_repeat_is_kept_when_no_sync_point_inside(self):
         result = self.assert_preserved('1 [c%3]4\n4 g%12\n')
@@ -110,7 +123,8 @@ class SyncTests(unittest.TestCase):
                   '1 *1\nh e%3 f%3\n')
         result = self.assert_preserved(source)
         self.assertIn('@s00 = { 00 00 }', result)
-        self.assertIn('; chh --- step 3 : token-boundary 2/2ch ---', result)
+        self.assertNotIn('step 3 :', result)
+        self.assertIn('1 *1', result)
 
     def test_unknown_or_infinite_syntax_is_not_silently_miscounted(self):
         for body in ('[c%3]0', '*99', 'c%3 ! d%3'):

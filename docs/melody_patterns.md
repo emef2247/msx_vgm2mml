@@ -134,3 +134,64 @@ Validation update: full discovery ran 77 tests; only the line-by-line sync test
 helper failed on multiline loops. It now parses complete prefixes between marks
 and checks final duration. All 11 sync tests pass on rerun; five new loop tests
 pass. Twelve normal/raw chip projections have identical expanded timelines.
+
+## Performed units and nested loops (2026-09-29)
+
+`performed_patterns.py` adds a source-derived performed-unit layer without
+changing note boundaries or envelope extraction. PSG/SCC units start from complete
+extracted notes/rests. A PSG sounding interval followed by a rest, containing noise,
+is conservatively grouped with its trailing rest as a `percussion_candidate`.
+Mode, noise period, tone period, volume trajectory and hardware-envelope settings
+remain in its constituent signatures. This is an inferred coarse gesture, not a
+recovered original drum macro. Uninterrupted or ambiguously separated hits are
+not split by a new heuristic. Duration variants are not merged or truncated.
+
+The hierarchy detects exact adjacent repeats of these units, then searches each
+repeated phrase for inner repeats. OPLL melody uses its existing complete Segment
+notes and patch-aware signatures. Source timing, envelope and patch differences
+prevent candidate equality. The greedy search is not an optimal grammar recovery.
+There are at most two emitted loop levels and 255 repetitions per loop command.
+Only equal emitted command iterations are looped; different initialization stays
+outside. Ties and complete envelope notes remain inside one unit. The result
+expands to exactly the original commands, including relative state changes.
+The smaller textual result of legacy and performed-unit projection is selected
+per channel. Text savings do not guarantee smaller compiled bytes per channel.
+
+With `--dump-passes`, `.performed.units.csv` retains constituent Segment indices,
+relative signatures and hierarchy paths. `.performed.loops.csv` records channel,
+pattern/occurrence/parent IDs, depth, unit range, repeat count and application status.
+IDs are local to the channel and this analysis, distinct from raw Segment pattern
+IDs. Segment CSVs append `performed_unit_id`, `performed_unit_kind`, and JSON
+`performed_loop_path`; existing source, pattern and envelope columns are retained.
+Zero-length source rows not contributing to a rendered note have blank unit IDs.
+Nested occurrence records describe source occurrences, including copies represented
+by one loop body. `legacy_projection_selected` means this hierarchy was not emitted.
+Existing before/after target MML dumps show the actual selected projection.
+
+Validation: synthetic nested phrases, differing initialization, counts above 255,
+tied notes, release differences, noise/mode trajectories and source-cell preservation.
+Gra2_005 expanded commands and all six per-tick state timelines match; MGSC 1.11
+compiles it with 4806 used bytes (previous shared-envelope output: 5286).
+No book-specific commands, source addresses or fixture-specific phrases are used.
+Further work includes continuous-drum onset inference, duration-variant gesture
+families, non-adjacent macros and compiled-size-aware selection.
+
+## Cost-aware repeat placement (2026-09-29)
+
+The performed-unit compressor now compares its original greedy hierarchy with
+an alternative dynamic-programming placement of non-overlapping repeats. The
+alternative considers emitted command length, overlapping starts and shorter
+repeat counts, while still requiring identical source-unit signatures and exact
+command iterations. Initialization differences can stay outside a repeat.
+Both strategies recursively search inner repeats; maximum depth/count limits
+remain two/255. The shorter textual projection wins, with greedy winning ties.
+The performed loop report records `strategy` (`unit_count` or `text_cost`).
+This is a text-cost optimization, not an exact model of MGSDRV compiled size.
+
+Gra2_005 selected output: 12688 -> 12575 characters; MGSC used bytes 4806 -> 4794.
+A weighted-only experiment used 4754 bytes but had longer text on some channels;
+that experiment is not the production selection policy. Expanded command streams
+and per-tick states of the selected output match the source-derived baseline.
+No note timing, gesture boundaries, envelope selection or voice mapping changed.
+Larger future gains likely require non-adjacent reusable phrases or a validated
+compiled-byte cost model; do not claim current selection is byte-optimal.

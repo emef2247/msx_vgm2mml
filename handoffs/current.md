@@ -351,3 +351,130 @@ name/title independently; --tile aliases --title. Output filenames remain unchan
 Normal cleanup now covers all three chip pipelines, including absent chips, whose
 empty legacy compress variants previously leaked into the output directory.
 Debug and pass-dump modes remain available. No music conversion behavior changed.
+
+## Performed units and nested loops (2026-09-29)
+
+`performed_patterns.py` adds a source-derived performed-unit layer without
+changing note boundaries or envelope extraction. PSG/SCC units start from complete
+extracted notes/rests. A PSG sounding interval followed by a rest, containing noise,
+is conservatively grouped with its trailing rest as a `percussion_candidate`.
+Mode, noise period, tone period, volume trajectory and hardware-envelope settings
+remain in its constituent signatures. This is an inferred coarse gesture, not a
+recovered original drum macro. Uninterrupted or ambiguously separated hits are
+not split by a new heuristic. Duration variants are not merged or truncated.
+
+The hierarchy detects exact adjacent repeats of these units, then searches each
+repeated phrase for inner repeats. OPLL melody uses its existing complete Segment
+notes and patch-aware signatures. Source timing, envelope and patch differences
+prevent candidate equality. The greedy search is not an optimal grammar recovery.
+There are at most two emitted loop levels and 255 repetitions per loop command.
+Only equal emitted command iterations are looped; different initialization stays
+outside. Ties and complete envelope notes remain inside one unit. The result
+expands to exactly the original commands, including relative state changes.
+The smaller textual result of legacy and performed-unit projection is selected
+per channel. Text savings do not guarantee smaller compiled bytes per channel.
+
+With `--dump-passes`, `.performed.units.csv` retains constituent Segment indices,
+relative signatures and hierarchy paths. `.performed.loops.csv` records channel,
+pattern/occurrence/parent IDs, depth, unit range, repeat count and application status.
+IDs are local to the channel and this analysis, distinct from raw Segment pattern
+IDs. Segment CSVs append `performed_unit_id`, `performed_unit_kind`, and JSON
+`performed_loop_path`; existing source, pattern and envelope columns are retained.
+Zero-length source rows not contributing to a rendered note have blank unit IDs.
+Nested occurrence records describe source occurrences, including copies represented
+by one loop body. `legacy_projection_selected` means this hierarchy was not emitted.
+Existing before/after target MML dumps show the actual selected projection.
+
+Validation: synthetic nested phrases, differing initialization, counts above 255,
+tied notes, release differences, noise/mode trajectories and source-cell preservation.
+Gra2_005 expanded commands and all six per-tick state timelines match; MGSC 1.11
+compiles it with 4806 used bytes (previous shared-envelope output: 5286).
+No book-specific commands, source addresses or fixture-specific phrases are used.
+Further work includes continuous-drum onset inference, duration-variant gesture
+families, non-adjacent macros and compiled-size-aware selection.
+
+Validation completion: all 84 tests passed. Gra2_005 normal/raw expanded commands
+and per-tick states match; grider's six OPLL melody command streams match and
+MGSC compiles the final output. Legacy report statuses explicitly indicate when
+the performed projection was selected. No staging or commit was performed.
+
+## Cost-aware repeat placement (2026-09-29)
+
+The performed-unit compressor now compares its original greedy hierarchy with
+an alternative dynamic-programming placement of non-overlapping repeats. The
+alternative considers emitted command length, overlapping starts and shorter
+repeat counts, while still requiring identical source-unit signatures and exact
+command iterations. Initialization differences can stay outside a repeat.
+Both strategies recursively search inner repeats; maximum depth/count limits
+remain two/255. The shorter textual projection wins, with greedy winning ties.
+The performed loop report records `strategy` (`unit_count` or `text_cost`).
+This is a text-cost optimization, not an exact model of MGSDRV compiled size.
+
+Gra2_005 selected output: 12688 -> 12575 characters; MGSC used bytes 4806 -> 4794.
+A weighted-only experiment used 4754 bytes but had longer text on some channels;
+that experiment is not the production selection policy. Expanded command streams
+and per-tick states of the selected output match the source-derived baseline.
+No note timing, gesture boundaries, envelope selection or voice mapping changed.
+Larger future gains likely require non-adjacent reusable phrases or a validated
+compiled-byte cost model; do not claim current selection is byte-optimal.
+
+Cost-placement validation: full suite of 84 tests passed; the added cost-selection
+invariant test and all six performed-pattern tests subsequently passed. Gra2_005
+normal/raw expanded commands and per-tick states match. MGSC 1.11 compiles the
+normal output with 4794 used bytes. Output: outputs/gra2_weighted/gra2_005.mml.
+
+## Non-adjacent macro investigation and gra2_003
+
+See field_notes/2026-09-29_macro_compression.md. Added optional local regression
+checks for gra2_003 and gra2_005; both pass expanded-command and per-tick state
+comparisons. No automatic macro emission or default sync/allocation change.
+Macro experiments reduce text but leave real-fixture compiled sizes unchanged.
+Gra2_003 requires 26951 track bytes at default sync spacing (plus 886 definitions).
+Keeping only start/end sync experimentally reduces tracks to 21603, still above
+15000. Prioritize loop-aware sync placement and measured byte cost over assuming
+macros are runtime compression. Generated source also exceeds the local mgsc-js
+49152-byte source limit before whitespace/comment compaction.
+
+## Loop-preserving synchronization (2026-09-29)
+
+Shared sync candidates now require top-level token boundaries in every active
+track, intersected with existing tie-safe leaf boundaries. Entire loops (including
+all iterations and nested loops) and macro calls remain intact. No annotation-time
+expansion is performed. Applies to PSG, SCC, OPLL melody and OPLL rhythm through
+the common final formatter. min_gap remains a minimum, not a forced interval;
+zero selects all safe common boundaries, and start/end remain mandatory.
+Ended tracks do not constrain later marks. Physical-line wrapping is unchanged.
+
+Gra2_005 MGSC 1.11 total used bytes: 4794 -> 3848, compilation succeeds.
+Gra2_003 isolated track sum: 26951 -> 21603, plus 886 definition bytes. It still
+exceeds the 15000 track budget; do not claim the complete song now compiles.
+Gra2_003 output text is 46960 characters, below the tested wrapper source limit.
+Expanded command and per-tick comparisons remain required alongside loop retention.
+
+## PSG/SCC sound reproduction correction
+
+Main target output now treats hardware-envelope m as a raw register period,
+using direct y11/y12 writes for zero. Explicit PSG/SCC tuning plus signed detune
+preserves observed tone periods within MGSDRV's -127..127 detune range.
+Out-of-range cases warn and are marked in target_notes.csv. See
+field_notes/2026-09-29_psg_scc_periods.md for independent MGSC/libkss evidence.
+Source Segments and legacy debug renderer baselines remain unchanged. Old
+pitch-name-only comparisons were insufficient to verify actual output frequency.
+# Pitch roundtrip verifier
+
+Reference-note audit now available in scripts/check_reference_pitch.py.
+gra2_002: all 310 pitch changes match on all 8 tracks. gra2_008 two iterations:
+1391 reference pitch changes match, one extra PSG ch3 observed change (889,
+tick1940, CSV line5320) remains unexplained. Formula for both PSG/SCC is
+(reference tuning[note] >> (octave-1)) - signed detune. No extra SCC -1.
+Four synthetic parser/projection checks pass. No converter tuning change made.
+
+Added scripts/verify_pitch_roundtrip.py, scripts/mml_to_vgm.mjs and
+py/roundtrip_pitch.py. Existing reference Segment CSVs remain untouched.
+Six synthetic comparator checks pass. gra2_002 completes full MGSC/libkss
+roundtrip but zero-offset comparison has differences; onset timing must be
+separated from period errors before diagnosing the tuning formula.
+See docs/pitch_roundtrip.md for commands, scope and dependency versions.
+User suggests deriving a pitch table from original MML and reference CSV.
+gra2_002 and gra2_008 original MML already declare a custom #psg_tune table;
+validate that mapping first. Do not force a game-specific table on all VGM.

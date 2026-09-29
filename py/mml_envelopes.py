@@ -8,6 +8,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 from mml_utils import compact_state_token
+from psg_scc_target import TUNING_HEADER, period_detune, envelope_period_tokens, rendered_period
 
 
 @dataclass
@@ -201,6 +202,8 @@ def length_tokens(pitch, ticks, raw_ticks, tie=False):
 def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None):
     from melody_patterns import analyze
     from melody_loops import project, dump_projection
+    from performed_patterns import project_notes, dump_units
+    performed = {}
     analysis = analyze(segments, chip)
     before_lines, loop_report = [], []
     notes = extract_notes(segments, chip)
@@ -216,6 +219,7 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None):
         body = []
         cursor = 0
         boundaries = {}
+        note_cuts = []
 
         def set_value(key, value, token):
             if current.get(key) != value:
@@ -226,6 +230,7 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None):
                 current[key] = value
 
         for note in rows:
+            note_cuts.append(len(body))
             boundaries[note.segment_indices[0]] = len(body)
             seg = note.segment
             if note.start > cursor:
@@ -234,7 +239,7 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None):
             if note.rest:
                 body.append(length_tokens('r', note.length, raw_ticks))
                 boundaries[note.segment_indices[-1] + 1] = len(body)
-                dump_rows.append((track, note.start, cursor, 'rest', '', ''))
+                dump_rows.append((track, note.start, cursor, 'rest', '', '', '', '', ''))
                 continue
             hw = chip == 'psg' and seg.envelope_enabled
             env = bank.curves.get(tuple(note.runs), bank.aliases.get(tuple(note.runs))) if len(note.runs) > 1 and not hw else None
@@ -256,10 +261,12 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None):
                 if seg.mode & 2:
                     set_value('noise', seg.noise_period, f'n{seg.noise_period}')
             set_value('octave', seg.octave, f'o{seg.octave}')
+            detune = period_detune(seg)
+            set_value('detune', detune, f'\\{detune}')
             if hw:
                 # v disables hardware envelopes, so apply it before s.
                 set_value('volume', 15, 'v15')
-                set_value('period', seg.envelope_period, f'm{int(143.03493 * seg.envelope_period)}')
+                set_value('period', seg.envelope_period, envelope_period_tokens(seg.envelope_period))
                 body.append(f's{seg.envelope_shape}')
                 current['hw'] = True
                 current.pop('env', None)
@@ -279,25 +286,45 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None):
                         body.append(length_tokens(seg.scale, duration, raw_ticks, tie=index > 0))
             boundaries[note.segment_indices[-1] + 1] = len(body)
             dump_rows.append((track, note.start, cursor, 'note', '' if env is None else env,
-                              ';'.join(f'{v}:{n}' for v, n in note.runs)))
+                              ';'.join(f'{v}:{n}' for v, n in note.runs),
+                              detune, rendered_period(seg), int(rendered_period(seg) == seg.tone_period)))
+        note_cuts.append(len(body))
         before_lines.append(f'{track} ' + ' '.join(body))
+        performed_text, units, hierarchy = project_notes(rows, chip, body, note_cuts)
+        performed[ch] = (rows, units, hierarchy)
         body, report = project(body, boundaries, analysis[ch], ch)
+        # Choose the smaller equivalent projection, preserving both reports.
+        selected = len(performed_text) <= len(' '.join(body))
+        for entry in hierarchy:
+            if not selected:
+                entry['status'] = 'legacy_projection_selected'
+        if selected:
+            body = [performed_text]
+            report = [(*r[:-1], 'performed_projection_selected') for r in report]
         loop_report.extend(report)
         lines.append(f'{track} ' + ' '.join(body))
     header = [f'#alloc {ch + (1 if chip == "psg" else 4)}=0' for ch in notes]
     if not header:
         header = ['#alloc 0=0']
     header.insert(0, '#tempo 75' if raw_ticks else '#tempo 225')
+    header.insert(0, TUNING_HEADER)
     header.extend(f'@s{i:02d} = {{{wave}}}' for i, wave in enumerate(waveforms))
     header.extend(bank.definitions(used))
     if dump_path:
         with Path(dump_path).open('w', newline='', encoding='utf-8') as fh:
             writer = csv.writer(fh)
-            writer.writerow(('track', 'tick_start', 'tick_end', 'kind', 'envelope_id', 'volume_runs'))
+            writer.writerow(('track', 'tick_start', 'tick_end', 'kind', 'envelope_id', 'volume_runs', 'target_detune',
+                             'target_tone_period', 'period_exact'))
             writer.writerows(dump_rows)
         segment_path = Path(str(dump_path).replace('.target_notes.csv', '.segments.csv'))
         if segment_path != Path(dump_path) and segment_path.exists():
             annotate_envelopes(segment_path, segments, envelope_assignments)
+    approximated = sum(1 for row in dump_rows if row[3] == 'note' and row[-1] == 0)
+    if approximated:
+        import warnings
+        warnings.warn(f'{chip}: {approximated} notes exceed MGSDRV detune range; '
+                      'tone periods are approximated (see target_notes.csv with --dump-passes)')
+    dump_units(dump_path, performed)
     result = '\n'.join(header + [''] + lines) + '\n'
     dump_projection(dump_path, '\n'.join(header + [''] + before_lines) + '\n', result, loop_report)
     return result
