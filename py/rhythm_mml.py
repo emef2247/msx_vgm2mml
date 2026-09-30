@@ -1,7 +1,36 @@
 """Project exact rhythm groups to MGSDRV track f without retiming Segments."""
 from rhythm_patterns import group_segments, find_patterns
+from dataclasses import replace
+import warnings
 
 LETTERS = {'BD': 'b', 'SD': 's', 'TOM': 'm', 'CYM': 'c', 'HH': 'h'}
+
+
+def _target_groups(groups):
+    """Collapse only identical same-time retriggers with no intervening duration.
+
+    Source groups/Segments remain lossless. Distinct sub-tick events still fail
+    explicitly rather than being silently lost or shifted to another tick.
+    """
+    result = []
+    for group in groups:
+        hits, positions = [], {}
+        for hit in group.hits:
+            if hit.instrument in positions:
+                index = positions[hit.instrument]
+                previous = hits[index]
+                if (previous.interval == 0 and previous.source_time == hit.source_time
+                        and previous.state == hit.state):
+                    warnings.warn(f'Collapsed zero-duration same-time {hit.instrument} retrigger '
+                                  f'at tick {group.tick} for MGSDRV; source CSV retains both events',
+                                  RuntimeWarning)
+                    hits[index] = hit
+                    continue
+                raise ValueError(f'Cannot represent multiple {hit.instrument} triggers at tick {group.tick} in MGSDRV rhythm MML')
+            positions[hit.instrument] = len(hits)
+            hits.append(hit)
+        result.append(replace(group, hits=tuple(hits)))
+    return tuple(result)
 
 
 def _timed(token, steps, raw):
@@ -17,7 +46,7 @@ def _timed(token, steps, raw):
 
 
 def render(segments, raw_ticks=False, end_tick=None):
-    groups = group_segments(segments)
+    groups = _target_groups(group_segments(segments))
     if not groups:
         return ''
     factor = 1 if raw_ticks else 3

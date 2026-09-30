@@ -49,9 +49,10 @@ def _lengths(nodes, default):
             output.append((_lengths(node[0], default), node[1]))
         else:
             match = _HIT.fullmatch(node)
-            if match and _duration(match[2], match[3], 48) == default:
-                # A colon terminates a compound rhythm hit; rests need none.
-                node = match[1] + ('' if match[1] == 'r' else ':')
+            if match and match[1] != 'r' and _duration(match[2], match[3], 48) == default:
+                # Bare rhythm r is ambiguous before loops/volume commands in
+                # MGSC 1.11. Keep explicit rest lengths; hits use a colon.
+                node = match[1] + ':'
             output.append(node)
     return output
 

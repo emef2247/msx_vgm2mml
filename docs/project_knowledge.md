@@ -1726,3 +1726,11 @@ Out-of-range cases warn and are marked in target_notes.csv. See
 field_notes/2026-09-29_psg_scc_periods.md for independent MGSC/libkss evidence.
 Source Segments and legacy debug renderer baselines remain unchanged. Old
 pitch-name-only comparisons were insufficient to verify actual output frequency.
+## Zero-duration OPLL events
+
+Do not equate l=0 with an irrelevant event. Partial-register pitch states may
+be consolidated for a quantized target, but key/rhythm edges must be extracted
+and retained before reducing state updates. Keep source timestamp and order;
+same quantized tick does not imply the same source time. The agreed design and
+its unverified assumptions are recorded in
+[zero-length event notes](../field_notes/2026-09-30_opll_zero_length_events.md).
