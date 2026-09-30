@@ -265,3 +265,32 @@ Use `python scripts/batch_vgm_to_mgs.py INPUT_DIR --outdir OUTPUT_DIR` to
 recursively convert VGM and compile MGS with optional mgsc-js. Per-file failures
 are retained in results.csv/results.json; buffer allocations are not adjusted.
 See [setup and usage](docs/batch_mgs.md).
+# GD3 titles
+
+Without `--title`, the converter reads VGM GD3 metadata and generates
+`[System]Name(Release date) Title Author`. `--gd3-language ja` (default) prefers
+Japanese with English fallback for each field; `--gd3-language en` reverses
+that preference for track, game and author. System always uses the English
+field (omitted if absent). Release date is language-independent. Full-width
+ASCII in System and Release date is normalized to half-width. Missing fields omit their
+delimiters; absent, empty or malformed GD3 falls back to the input stem.
+Explicit `--title` always wins. Metadata name (`--name`) and filenames do not
+change. Merged MML is UTF-8.
+
+Generated titles are sanitized for MML syntax and limited to 240 CP932 bytes
+(whole characters), with a warning on truncation. This is a conservative MGSC
+physical-line safeguard, not a fixed MGS title-field size. MGS stores its title
+as a variable-length CRLF-terminated text field. MGSC 1.11 probes accepted a
+240-byte title and rejected 250 bytes with the emitted header syntax. The
+explicit `--title` override is not automatically truncated.
+# Manual allocation overrides
+
+Use `--alloc "9=1800, a=3780, b=1480, c=2850, d=4750, f=600"` to override
+selected channels in the final merged `#alloc`. Unspecified channels retain
+their automatic allocations. Channel letters are case-insensitive; duplicate
+channels and invalid/non-integer values are rejected. Overrides are applied
+after formatting/macros and are not redistributed to enforce the default total
+budget. Actual compiler capacity is still checked by MGSC.
+
+`scripts/batch_vgm_to_mgs.py` also accepts `--alloc`, applying the same overrides
+to every input in that batch. Per-chip intermediate MML remains unchanged.

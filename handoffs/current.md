@@ -537,3 +537,22 @@ repaired. WBIII08/12 identical startup rhythm collisions are one VGM sample apar
 target coalescing now also permits gaps up to 1/44100 second within one tick,
 with equal state and zero preceding interval. Warn and retain all source CSVs;
 do not generalize this to arbitrary sub-tick collisions.
+## GD3 automatic titles (2026-10-01)
+
+System now uses English only; System and the single release-date field normalize
+full-width ASCII. Track/game/author retain per-field language fallback. User
+confirmed Alest202 Object too big disappears with a shorter explicit title;
+the 240-byte title-line safeguard does not guarantee the whole MGS fits.
+
+py/gd3.py reads bounded UTF-16LE GD3 v1.00 fields. Main CLI uses metadata only
+when --title is absent, with --gd3-language ja/en and per-field fallback.
+Automatic titles have syntax sanitization and a conservative 240-byte CP932
+budget. MGS text field is variable-length; MGSC physical lines are a separate
+constraint. Three unit tests pass and Alest201 Japanese output compiles using
+MGSC-js 2.0.0. Explicit titles and event interpretation are unchanged.
+## Manual allocation override
+
+vgm2mml.py now accepts --alloc with comma-separated channel=bytes entries.
+Only specified tracks override final automatic #alloc; no redistribution or
+total-budget clipping. Batch forwards the same value to each conversion.
+tests/test_mml_alloc.py checks partial/full replacement and invalid input.
