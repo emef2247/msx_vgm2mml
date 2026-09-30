@@ -10,7 +10,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def run_batch(source, output, module=None, node='node', timeout=300, mgsc=None):
+def run_batch(source, output, module=None, node='node', timeout=300, mgsc=None, alloc=None):
     source, output = source.resolve(), output.resolve()
     if source == output or output in source.parents or source in output.parents:
         raise ValueError('Input and output trees must be separate')
@@ -45,6 +45,8 @@ def run_batch(source, output, module=None, node='node', timeout=300, mgsc=None):
         stages = [('convert', [sys.executable, str(ROOT/'vgm2mml.py'), str(path), '--outdir', str(folder)]),
                   ('compile', [native, str(mml), str(mgs)] if native else [node, str(ROOT/'scripts/compile_mgs.mjs'), str(mml), str(mgs)] +
                    ([str(module.resolve())] if module else []))]
+        if alloc is not None:
+            stages[0][1].extend(['--alloc', alloc])
         for stage, command in stages:
             log = folder / (stage+'.log')
             row['log'] = str(log.relative_to(output))
@@ -83,9 +85,10 @@ if __name__ == '__main__':
     parser.add_argument('--mgsc-module', type=Path)
     parser.add_argument('--node', default='node')
     parser.add_argument('--timeout', type=int, default=300)
+    parser.add_argument('--alloc', help='Allocation overrides forwarded to every conversion')
     args = parser.parse_args()
     try:
-        results = run_batch(args.input_dir, args.outdir, args.mgsc_module, args.node, args.timeout, args.mgsc)
+        results = run_batch(args.input_dir, args.outdir, args.mgsc_module, args.node, args.timeout, args.mgsc, args.alloc)
     except (RuntimeError, ValueError) as error:
         parser.exit(2, str(error)+'\n')
     sys.exit(0 if all(r['status'] == 'success' for r in results) else 1)

@@ -31,6 +31,8 @@ from psg_mml import process_psg_csv
 from opll_mml import process_opll_csv
 from mml_sync import annotate_sync_points
 from mml_macros import compress_macros
+from gd3 import title_from_gd3
+from mml_alloc import parse_alloc, override_alloc
 from mml_envelopes import EnvelopeBank
 from psg_scc_target import TUNING_HEADER
 
@@ -130,7 +132,9 @@ def main():
                         help='Output directory (default: <vgm_stem>_log/ next to vgm)')
     parser.add_argument('--name', help='Override the player metadata name (default: input stem)')
     parser.add_argument('--title', dest='title',
-                        help='Override #title (default: input stem)')
+                        help='Override #title (default: GD3 metadata, then input stem)')
+    parser.add_argument('--gd3-language', choices=['ja', 'en'], default='ja',
+                        help='Preferred GD3 language, with per-field fallback (default: ja)')
     parser.add_argument('--dump-passes', action='store_true',
                         help='Keep event log/trace CSVs and write pass0-3 and PSG/SCC Segment CSVs')
     parser.add_argument('--debug', action='store_true',
@@ -149,6 +153,8 @@ def main():
     parser.add_argument('--sync-min-gap', type=int, default=1000,
                         help='Minimum target-MML steps between sync comments '
                              '(default: 1000; 0: all shared boundaries; end always shown)')
+    parser.add_argument('--alloc', type=parse_alloc,
+                        help='Override selected track allocations, e.g. "9=1800, a=3780"')
     args = parser.parse_args()
     if args.sync_min_gap < 0:
         parser.error('--sync-min-gap must be nonnegative')
@@ -165,6 +171,8 @@ def main():
 
     # Determine base name: "02_StartingPoint"
     base_name = os.path.splitext(os.path.basename(vgm_path))[0]
+    if args.title is None:
+        args.title = title_from_gd3(vgm_path, base_name, args.gd3_language)
 
     if args.outdir:
         song_dir = args.outdir
@@ -234,8 +242,9 @@ def main():
                                     raw_ticks=args.raw_ticks,
                                     sync_min_gap=args.sync_min_gap,
                                     name=args.name, title=args.title)
+    merged_text = override_alloc(merged_text, args.alloc)
     merged_path = os.path.join(song_dir, f'{base_name}.mml')
-    with open(merged_path, 'w', newline='\n') as fh:
+    with open(merged_path, 'w', encoding='utf-8', newline='\n') as fh:
         fh.write(merged_text)
     print(f"Merged MML: {merged_path}")
     if not args.debug and not args.dump_passes:
