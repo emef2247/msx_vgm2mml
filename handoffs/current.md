@@ -489,6 +489,11 @@ track bytes. GRA2_08 reallocated fixture shrinks 28600 -> 16600 characters;
 expanded tokens/timing match. New tests cover melodic chips, loops and ties.
 # OPLL rhythm macro completion (2026-09-30)
 
+GF2SMS03 startup fix: rhythm_mml target projection coalesces identical same-time
+HH retriggers when the first interval is zero, with a warning. Source CSVs stay
+unchanged. Distinct sub-tick collisions remain errors. Reproduction now generates
+MML; eight rhythm renderer tests pass including duration/state discrimination.
+
 tests/test_rhythm_pipeline.py now includes optional local grider, using the same
 attack/volume/duration checks as the public fixtures; missing input skips only
 the local test. No private fixture is added to version control.
@@ -499,3 +504,9 @@ macro definitions at call time with the calling track's grammar. Added public
 pipeline checks for rhythm_only_test01..03 and sample, plus synthetic rhythm
 macro/sync equivalence coverage. Sample emits rhythm macros containing existing
 loops. Short fixtures need not produce macros when there is no text benefit.
+## Zero-length event discussion recorded
+
+See field_notes/2026-09-30_opll_zero_length_events.md before extending the
+GF2SMS03 target workaround. Future normalization should separate final tick
+state from trigger history. No broad l=0 merge/refactor was implemented in
+this documentation update; hardware/emulator audibility remains unverified.

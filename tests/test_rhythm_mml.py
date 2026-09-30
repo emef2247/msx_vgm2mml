@@ -75,6 +75,18 @@ class RhythmMml(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'multiple BD triggers'):
             render({9: [segment(2), segment(2)]})
 
+    def test_identical_zero_time_retrigger_is_target_only(self):
+        rows = {13: [segment(0, tick_end=0), segment(0, tick_end=9)]}
+        before = repr(rows)
+        with self.assertWarnsRegex(RuntimeWarning, 'zero-duration same-time HH'):
+            text = '#opll_mode 1\n' + render(rows)
+        self.assertEqual(attacks(text), [(0, 'h', 12)])
+        self.assertEqual(analyze_mml(text)[0]['f'][-1].end, 27)
+        self.assertEqual(repr(rows), before)
+        for change in ({'time': 0.001}, {'vol': 4}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                render({13: [segment(0, tick_end=0), segment(0, **change)]})
+
     def test_silent_rhythm_removed_and_mode_zero_f_is_melodic(self):
         text = '#opll_mode 1\n' + render({9: [segment(2, volume=15)]})
         self.assertNotIn('\nf ', annotate_sync_points(text, drop_silent=True))

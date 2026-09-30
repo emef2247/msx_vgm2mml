@@ -9,6 +9,11 @@ from test_rhythm_mml import attacks
 
 
 class RhythmNotation(unittest.TestCase):
+    def test_rest_before_loop_retains_explicit_length(self):
+        after = self.check('f r%18 [vh9 h%18]2 ' + 'h%18 ' * 12 + '\n')
+        self.assertIn('r%18', after)
+        self.assertNotRegex(after, r'\br\s')
+
     def check(self, body, raw=False):
         before = '#opll_mode 1\n' + body
         after = '#opll_mode 1\n' + optimize(body, raw)
@@ -39,7 +44,7 @@ class RhythmNotation(unittest.TestCase):
         self.check('f vb15 vs12 bs8 [vb15 b8 [vs12 s8 vs10 s8]2 vs12 s8]3\n')
 
     def test_raw_exact_lengths_do_not_round(self):
-        after = self.check('f vh12 h%7 h%7 h%8 h%7 h%7 r%7\n', raw=True)
+        after = self.check('f vh12 h%7 h%7 h%8 ' + 'h%7 ' * 8 + 'r%7\n', raw=True)
         self.assertIn('l%7', after)
         self.assertIn('h%8', after)
 

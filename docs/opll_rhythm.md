@@ -149,6 +149,19 @@ measurements do not claim full-song compilation or audio equivalence.
 Full unittest discovery passed all 59 tests after the line-wrapping fix.
 # Rhythm loops and macros (2026-09-30)
 
+MGSC 1.11 probe: `f l%18 r [vh9 h:]2` fails with Bad MML, while
+`f l%18 r%18 [vh9 h:]2` compiles. Rhythm rest lengths therefore remain
+explicit even when they equal the default length. This fixes GF2SMS01 without
+changing its attacks, durations or macro selection policy.
+
+MGSDRV projection coalesces consecutive same-instrument hits only when their
+source timestamps and complete captured state match and the earlier hit has
+zero interval. A RuntimeWarning reports this target-only approximation. Raw
+trace, Segments and group CSVs retain both writes; pattern analysis in the
+source dumps remains unchanged. Different timestamps, states, or nonzero prior
+intervals still raise an explicit unrepresentable-collision error. GF2SMS03
+contains this zero-time HH startup case; do not generalize it to sub-tick rolls.
+
 Existing Segment groups retain instrument, source indices, intervals, volume and
 shared pitch-register state. Exact adjacent group repeats already produce MML
 loops; non-adjacent repeated emitted sequences can now use the shared automatic
