@@ -87,6 +87,15 @@ class RhythmMml(unittest.TestCase):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 render({13: [segment(0, tick_end=0), segment(0, **change)]})
 
+    def test_one_sample_startup_retrigger(self):
+        with self.assertWarnsRegex(RuntimeWarning, 'one-sample'):
+            text = '#opll_mode 1\n' + render({10: [segment(0, tick_end=0),
+                segment(0, time=1/44100, tick_end=10)]})
+        self.assertEqual(attacks(text), [(0, 's', 12)])
+        for tick, time in ((0, 2/44100), (1, 1/60+2/44100)):
+            with self.assertRaises(ValueError):
+                render({10: [segment(tick, tick_end=tick), segment(tick, time=time)]})
+
     def test_silent_rhythm_removed_and_mode_zero_f_is_melodic(self):
         text = '#opll_mode 1\n' + render({9: [segment(2, volume=15)]})
         self.assertNotIn('\nf ', annotate_sync_points(text, drop_silent=True))
