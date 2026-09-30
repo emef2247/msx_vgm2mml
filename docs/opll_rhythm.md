@@ -149,6 +149,13 @@ measurements do not claim full-song compilation or audio equivalence.
 Full unittest discovery passed all 59 tests after the line-wrapping fix.
 # Rhythm loops and macros (2026-09-30)
 
+2026-10-01 update: WBIII08 and WBIII12 contain identical-state zero-tick
+retriggers separated by one VGM sample (1/44100 second), including events
+mid-song. Target coalescing permits this narrowly bounded gap in the same tick,
+with a warning; it is an approximation, not proof of equivalent chip behavior.
+Larger gaps or changed state still fail explicitly. Trace/Segment/group CSVs
+remain unchanged. This extends the same-timestamp-only rule below.
+
 MGSC 1.11 probe: `f l%18 r [vh9 h:]2` fails with Bad MML, while
 `f l%18 r%18 [vh9 h:]2` compiles. Rhythm rest lengths therefore remain
 explicit even when they equal the default length. This fixes GF2SMS01 without

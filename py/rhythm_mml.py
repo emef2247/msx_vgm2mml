@@ -19,9 +19,12 @@ def _target_groups(groups):
             if hit.instrument in positions:
                 index = positions[hit.instrument]
                 previous = hits[index]
-                if (previous.interval == 0 and previous.source_time == hit.source_time
+                same_time = previous.source_time == hit.source_time
+                adjacent_sample = (0 <= hit.source_time - previous.source_time
+                                   <= 1 / 44100 + 1e-12)
+                if (previous.interval == 0 and (same_time or adjacent_sample)
                         and previous.state == hit.state):
-                    warnings.warn(f'Collapsed zero-duration same-time {hit.instrument} retrigger '
+                    warnings.warn(f'Collapsed zero-duration {"same-time" if same_time else "one-sample"} {hit.instrument} retrigger '
                                   f'at tick {group.tick} for MGSDRV; source CSV retains both events',
                                   RuntimeWarning)
                     hits[index] = hit

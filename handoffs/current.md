@@ -510,3 +510,30 @@ See field_notes/2026-09-30_opll_zero_length_events.md before extending the
 GF2SMS03 target workaround. Future normalization should separate final tick
 state from trigger history. No broad l=0 merge/refactor was implemented in
 this documentation update; hardware/emulator audibility remains unverified.
+## Local catalog and batch MGS (2026-10-01)
+
+Batch now prefers native mgsc from PATH, supports --mgsc, and uses positional
+input/output arguments. JS fallback remains for environments without native
+MGSC. Compilation success also requires nonempty output; failure logs are
+printed. This Windows session could not launch WSL (E_ACCESSDENIED), so the
+user-requested complete native run remains unverified here.
+
+User outputs/mgs compilation failures included ERR_MODULE_NOT_FOUND for mgsc-js,
+before MGSC ran. Batch now preflights module loading/initialization before any
+conversion and reports setup separately. msxplay's public UI delegates directly
+to MGSC.compile, as does our helper. Do not diagnose these old reports as MML
+syntax or buffer errors. Tests cover setup failure and continuing genuine errors.
+
+Validation: 56 requested VGMs convert after the fix. Initial regression run had
+55 passes and WBIII12 failure before the mid-song one-sample extension; WBIII12
+then passed on rerun. Batch MGSC result: 52 successes, four track-buffer failures
+(Alest202, Alest204, Alest208, Alest214), intentionally not repaired. Logs and
+reports are in outputs/local_mgs_check/. Batch continuation/stale-output test
+and nine rhythm renderer tests pass.
+
+Added 56 optional local conversion regressions and scripts/batch_vgm_to_mgs.py
+with an MGSC JS helper; see docs/batch_mgs.md. Buffer failures are reported, not
+repaired. WBIII08/12 identical startup rhythm collisions are one VGM sample apart:
+target coalescing now also permits gaps up to 1/44100 second within one tick,
+with equal state and zero preceding interval. Warn and retain all source CSVs;
+do not generalize this to arbitrary sub-tick collisions.

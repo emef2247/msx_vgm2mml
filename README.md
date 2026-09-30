@@ -259,3 +259,9 @@ emitted, only when the resulting file is smaller. Rhythm and melody use separate
 candidate pools to retain their distinct syntax. Macros reduce source length, not
 necessarily compiled track memory. `--dump-passes` retains the pre-macro chip
 outputs; the merged MML contains the final definitions and calls.
+# Batch MGS compilation
+
+Use `python scripts/batch_vgm_to_mgs.py INPUT_DIR --outdir OUTPUT_DIR` to
+recursively convert VGM and compile MGS with optional mgsc-js. Per-file failures
+are retained in results.csv/results.json; buffer allocations are not adjusted.
+See [setup and usage](docs/batch_mgs.md).
