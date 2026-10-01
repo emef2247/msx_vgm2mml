@@ -55,7 +55,8 @@ class _Segment:
         'tick_start',   # keyon=1区間の開始点 [tick]
         'tick_end',     # keyon=1区間の終了点 [tick]
         'tempo',        # BPM. 今のところ曲全体のBPM
-        'onset',        #　keyon=1の開始点であることを示すマーカー 0:　keyon=1を維持又はkeyon=0 1: 1: keyon区間の開始 keyon: 0--> 1
+        'onset',        # Inferred audible start; includes recovery from vol=15.
+        'key_on_edge',  # Observed keyon 0->1, independent of volume.
         'ioi',          # IOI（Inter‑Onset Interval). keyon=1 区間の 実際の長さ（tick). keyon=1でioi=0はまだkeyonが継続中を表す(ioi未確定のためioi=0)
         'min_ioi',      # ioi の最小値 音符の最小長さ. tempo 計算の基準
         'mode_ioi',     # ioi の最繁値(mode) 
@@ -170,6 +171,7 @@ class _Segment:
         vol_ch8       ,
         sus_ch8       ,
         block_ch8     ,
+        key_on_edge=0,
 
     ):
 
@@ -181,6 +183,7 @@ class _Segment:
         self.tick_end     = 0
         self.tempo         = tempo
         self.onset         = onset
+        self.key_on_edge   = key_on_edge
         self.ioi           = ioi
         self.min_ioi       = min_ioi
         self.mode_ioi      = mode_ioi
@@ -372,6 +375,9 @@ def pass2_compute_onsets_and_ioi(events):
             keyon = _ival(ev.get("keyon"))
             vol   = _ival(ev.get("vol"))
 
+            ev['key_on_edge'] = int(ev.get('#type') != 'rhythm'
+                                      and not prev_keyon and keyon == 1)
+
             if ev.get("#type") == "rhythm":
 
                 ev["onset"] = 0
@@ -462,6 +468,7 @@ def pass2_compute_onsets_and_ioi(events):
 
             # posedge 済みなので keyon=1 が onset
             ev["onset"] = 1 if keyon == 1 else 0
+            ev['key_on_edge'] = ev['onset']
 
         # --------------------------------------------------------
         # r_ioi

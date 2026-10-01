@@ -294,3 +294,10 @@ budget. Actual compiler capacity is still checked by MGSC.
 
 `scripts/batch_vgm_to_mgs.py` also accepts `--alloc`, applying the same overrides
 to every input in that batch. Per-chip intermediate MML remains unchanged.
+
+## OPLL key-on count checks
+
+Compare source and exported VGM key-on counts, or supply a CSV of VGM pairs
+for regression. Reports contain per-VGM totals and per-channel count shortages/
+excesses summed over the song, without a quality score or timing comparison.
+See [OPLL key-on counts](docs/opll_keyon_counts.md).

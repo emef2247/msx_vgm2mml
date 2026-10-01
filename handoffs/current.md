@@ -574,3 +574,79 @@ fixture_helpers in this checkout. MGSC compilation/playback was not checked.
 Restored the test-only SCC clock helper as tests/vgm_test_support.py so it
 does not compete with tests/fixtures in shell completion. Updated its import
 and excluded the new collision diagnostic CSV from legacy artifact hashes.
+
+
+## OPLL continuous notes and source retriggers (2026-10-01)
+
+Target rendering now carries zero-duration onset markers to the next timed
+interval, slurs continuous intervals and uses q0 when a following pitch/state
+interval must keep key-on. Restore q8 for a genuine note end. MGSC 1.11/libkss
+roundtrip showed & alone still reattacked on pitch changes; q0 retained key-on.
+Do not merge same-pitch key-off/on source events: the old PASS3 retrigger merge
+removed real attacks and has been bypassed in Segment construction.
+
+YsSMS01 source/export/fixed key-on counts for channels 0..4:
+110/2507/110, 28/19/27, 158/139/158, 152/167/152, 111/110/111.
+The remaining ch1 count is a source onset at tick 5951 with zero duration at
+EOF, which has no timed target note. Source pitch modulation still rounds to
+MGSDRV note names; this change does not promise sample-exact reproduction.
+Use scripts/check_opll_key_edges.py reference.vgm actual.vgm --outdir <dir>
+for separate traces, Segment dumps, key_edges.csv and count summary. Counts
+alone are not timing equivalence; CSV retains explicit times with no alignment.
+Generated checks are under outputs/ys_retrigger_check; no private data is tracked.
+
+Validation: 9 OPLL target tests and 25 rhythm tests pass; MGSC 1.11/libkss
+compiled/rendered YsSMS01 successfully. Paired 558 timed onsets; raw tick
+offsets range 2..7 across playback, not sample-exact alignment. Regenerate
+outputs/ys_retrigger_check/fixed/YsSMS01.mml for user listening.
+
+Alest202 evaluated per isolated track due to 20770-byte compiled track total.
+ch0/ch1 attack counts match; ch2/ch3 differ by terminal zero-duration edges;
+ch4 count equality hides one extra short retrigger and terminal-edge omission.
+See field_notes/2026-10-01_alest202_retrigger_check.md. Conversion code unchanged
+during this evaluation; volume-15 recovery versus true key edges remains to inspect.
+
+Pre-fix Alest202 export comparison confirms excessive melodic retriggers:
+887/2876/1169/1914/3425 versus source 164/163/398/515/515. Attached MML
+compiles with 14834 track bytes, whereas fixed isolated tracks total 20770.
+No additional conversion change during comparison; see Alest202 field note.
+
+
+## Current state: coalescing withdrawn (2026-10-01)
+
+Removed projected same-note coalescing after the user reported missing opening
+guitar in Alest202. Keep YsSMS01 slur/q0 retrigger fixes and source key-edge
+preservation. The user will compare YsSMS01 with its original VGM. Do not
+continue compression experiments now. Existing coalesced artifacts are failed
+experimental output and must not be recommended for playback or used as goldens.
+Opening guitar loss remains unexplained; raw key counts do not prove sound.
+
+Read-only follow-up reviewed duplicate_write_opl3 and vgm-conv's YM2413-to-OPL
+converter. Conditional A/B ordering, optional waits and key-dependent RR mapping
+are recorded in field_notes/2026-10-01_opll_key_and_envelope.md. Neither reviewed
+path proves forced off/on for repeated key-high writes. No conversion behavior
+changed; do not infer that this review resolves the weak-sound report.
+
+Onset audit correction: preserve legacy onset, add independent key_on_edge;
+target retriggers and continuation gates now use only observed key edges.
+OPLL Segments preserve apparently silent rows instead of folding away keys or
+register states. Keyed vol=15 intervals emit v0 notes rather than rests.
+No coalescing/compression experiment restored. YsSMS01 roundtrips with the
+same attack counts; Alest202 checked per isolated track because full capacity
+is still exceeded. See outputs/opll_onset_review and the OPLL field note.
+Do not claim that these checks resolve the reported lighter/missing sound.
+
+The user accepts the current changes and reports a substantial retrigger
+improvement. End audio investigation here. Relevant checks pass after a small
+test-only macro-body API correction in test_mml_sync.py; MGSC/libkss roundtrip
+checks are complete. Changes remain uncommitted for the user's review/commit.
+
+Evaluation scope agreed with the user: key-on counts only. No timing,
+frequency, volume metrics or combined score. check_opll_key_edges.py now emits
+keyon_totals.csv and accepts --pairs for existing reference/exported VGM pairs.
+missing_keyon/extra_keyon mean summed per-channel count shortages/excesses;
+they are not time-matched event identities. Rhythm attacks are excluded.
+Four count tests pass. Checked YsSMS01 current export (559/558, shortage 1)
+and Alest202 PREVIOUS msxplay export (1755/10271, excess 8516). Do not label
+the latter as the current corrected conversion. Sources/exports are untouched;
+the tool does not compile or export MGS. See docs/opll_keyon_counts.md.

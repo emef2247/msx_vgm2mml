@@ -21,7 +21,7 @@ from segment_utils import (
     _int, _Segment,pass0_read_csv,
     pass1_compute_l, pass1_dump_csv,
 	pass2_compute_onsets_and_ioi,pass2_mark_legato_vibrato_portamento_envelope,pass2_expand_rhythm,pass2_compute_fl_kl_vl,pass2_dump_csv,
-	pass3_merge_silent_rests,pass3_merge_retrigger_note,pass3_dump_csv,
+	pass3_dump_csv,
 	pass4_compute_beats,pass4_dump_csv,
 )
 
@@ -220,16 +220,17 @@ def _build_segments(trace_csv_path,
     # onsetの検出とIOI(Inter‑Onset Interval:IOIの間隔)の算出, tempoの導出
     events = pass2_compute_onsets_and_ioi(events)
 
-    # l=0を削除した後、fl,kl,blからlegato, vibrate, volume envelopeを判定
+    # Retain l=0 states while annotating legato, vibrato and volume changes.
     events = pass2_mark_legato_vibrato_portamento_envelope(events)
     if debug:
         pass2_dump_csv(events, trace_csv_path)
 
-    # 無音状態(v=15 又は keyon=0) の連続したeventをマージ
-    events = pass3_merge_silent_rests(events)
-
-    # retriggerのためのkeyoffを一つのeventにマージ
-    events = pass3_merge_retrigger_note(events) 
+    # Keep key and register states even at maximum attenuation. Merging
+    # apparently silent rows can lose off/on edges and envelope continuity.
+    # Rest/phrase compression belongs in the target renderer.
+    for event in events:
+        event['tick_start'] = _int(event, 'ticks', 0)
+        event['tick_end'] = event['tick_start'] + _int(event, 'l', 0)
 
     if debug:
         pass3_dump_csv(events, trace_csv_path)
@@ -330,6 +331,7 @@ def _build_segments(trace_csv_path,
                 ch            = _int(ev, "ch", 0),
                 ticks         = _int(ev, "ticks", 0),
                 onset         = _int(ev, "onset", 0),
+                key_on_edge   = _int(ev, "key_on_edge", 0),
                 tempo         = _int(ev, "tempo", 0),
                 ioi           = _int(ev, "ioi", 0),
                 min_ioi       = min_ioi,

@@ -1751,3 +1751,58 @@ source times and state tuples (ordered by rhythm_patterns.STATE_FIELDS).
 This supersedes the earlier identical-state, one-sample-only target rule.
 The 16 reported FIREHAWK/FRAY/ILCITY/TOGZL/XAK cases are optional local
 conversion regressions; private fixture data is not bundled.
+
+
+## OPLL continuous notes and source retriggers (2026-10-01)
+
+Target rendering now carries zero-duration onset markers to the next timed
+interval, slurs continuous intervals and uses q0 when a following pitch/state
+interval must keep key-on. Restore q8 for a genuine note end. MGSC 1.11/libkss
+roundtrip showed & alone still reattacked on pitch changes; q0 retained key-on.
+Do not merge same-pitch key-off/on source events: the old PASS3 retrigger merge
+removed real attacks and has been bypassed in Segment construction.
+
+YsSMS01 source/export/fixed key-on counts for channels 0..4:
+110/2507/110, 28/19/27, 158/139/158, 152/167/152, 111/110/111.
+The remaining ch1 count is a source onset at tick 5951 with zero duration at
+EOF, which has no timed target note. Source pitch modulation still rounds to
+MGSDRV note names; this change does not promise sample-exact reproduction.
+Use scripts/check_opll_key_edges.py reference.vgm actual.vgm --outdir <dir>
+for separate traces, Segment dumps, key_edges.csv and count summary. Counts
+alone are not timing equivalence; CSV retains explicit times with no alignment.
+Generated checks are under outputs/ys_retrigger_check; no private data is tracked.
+
+Public OPLL regression checks now assert retained source attacks (key-on edges
+and recovery from attenuation 15), alongside expanded target timeline checks.
+Old OPLL artifact hashes encoded retrigger merging and are no longer the oracle.
+
+
+## Withdrawn OPLL coalescing experiment (2026-10-01)
+
+The user reported that the opening Alest202 guitar disappeared after projected
+same-note coalescing. The optimization has been removed and rendering is back
+to the YsSMS01 retrigger fix (slur/q0 and preserved source key edges).
+Key-on counts and compile success were insufficient validation. Do not reinstate
+coalescing without checking audible onset/envelope/patch behavior against source.
+The precise cause is not established. No audio equivalence claim is warranted.
+
+## OPLL inferred onset versus source key edge (2026-10-01)
+
+Keep the legacy `onset` annotation (including attenuation-15 recovery) for
+analysis, but never use it as permission to restart a hardware envelope.
+`key_on_edge` independently records keyon 0->1, including edges at attenuation
+15 and zero tick duration. PASS2/PASS3 and Segment CSVs expose both fields.
+Target slur/gate decisions use key_on_edge, not onset. Pattern signatures retain
+both so source attacks cannot be substituted with volume recovery gestures.
+
+OPLL Segments no longer merge apparently silent rows: that merge discarded
+key transitions and pitch/state changes at maximum attenuation. A keyed
+nonzero-frequency interval at source vol=15 renders as a note with v0, retaining
+key continuity; it is not replaced with a rest. Actual key-off still ends the
+target note. This does not implement source release tails or sample-exact timing.
+
+MGSC 1.11/libkss synthetic roundtrip preserves key-high across attenuation
+15->3->15->4 and emits only the two explicit source attacks. Alest202 now retains
+all source melodic edges in Segments; the previous ch0/ch1/ch2 losses were
+5/5/1 edges. YsSMS01 had no nonedge onsets, so this correction alone cannot
+explain its reported lighter sound. See the OPLL key/envelope field note.

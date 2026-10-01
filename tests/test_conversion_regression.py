@@ -74,6 +74,30 @@ class PublicConversionTests(unittest.TestCase):
                             expected_states.extend([(pitch, get_octave(frequency), volume)] * (duration * factor))
                         self.assertEqual([state[:3] for state in actual.get(ch, [])], expected_states)
                     continue
+                if flags[2]:
+                    # Old OPLL snapshots folded real same-pitch retriggers.
+                    # Guard key edges independently rather than bless those hashes.
+                    from opll import _build_segments
+                    segments, _ = _build_segments(str(output / f'{stem}_trace.opll.csv'))
+                    expected_onsets = dict.fromkeys(range(6), 0)
+                    expected_edges = dict.fromkeys(range(6), 0)
+                    states = dict.fromkeys(range(6), (0, 15))
+                    with (output / f'{stem}_trace.opll.csv').open(newline='') as stream:
+                        for row in csv.DictReader(stream):
+                            ch = int(row['ch'])
+                            if ch not in states or not row.get('keyon'):
+                                continue
+                            keyon = int(row['keyon'])
+                            volume = int(row['vol'])
+                            old_key, old_volume = states[ch]
+                            expected_edges[ch] += bool(keyon and not old_key)
+                            expected_onsets[ch] += bool(keyon and volume < 15
+                                                        and (not old_key or old_volume == 15))
+                            states[ch] = (keyon, volume)
+                    for ch in range(6):
+                        self.assertEqual(sum(s.onset for s in segments[ch]), expected_onsets[ch])
+                        self.assertEqual(sum(s.key_on_edge for s in segments[ch]), expected_edges[ch])
+                    continue
                 artifacts = {}
                 for path in output.iterdir():
                     if path.name.endswith(('.performed.units.csv', '.performed.loops.csv', '.envelope_candidates.csv', '.melody.loops.csv', '.melody.patterns.csv', '.melody.occurrences.csv', '.melody.markings.csv', '.opll.rhythm.collisions.csv', '.opll.rhythm.optimization.csv', '.opll.rhythm.groups.csv', '.opll.rhythm.patterns.csv', '.opll.rhythm.occurrences.csv', '.opll.segments.csv', '.psg.segments.csv', '.scc.segments.csv', '.scc.waveforms.csv', '.target.mml', '.target_notes.csv')):

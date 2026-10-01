@@ -25,7 +25,8 @@ def assert_valid_marks(test, text, min_gap=0):
     states = {ch: dict(step=0, default=48, tokens=0, rhythm=(ch == 'f' and '#opll_mode 1' in text)) for ch in tracks}
     seen = {ch: set() for ch in tracks}
     pending = {ch: [] for ch in tracks}
-    macros = {m[1]: _parse(m[2]) for m in re.finditer(r'^\*(\d+)\s*=\s*\{([^}]*)\}', text, re.M)}
+    # _time parses macro bodies in the calling track's melody/rhythm mode.
+    macros = {m[1]: m[2] for m in re.finditer(r'^\*(\d+)\s*=\s*\{([^}]*)\}', text, re.M)}
     for line in text.splitlines():
         music = re.match(r'^([1-9a-h])\s+(.*)$', line)
         if music and music[1] in states:
