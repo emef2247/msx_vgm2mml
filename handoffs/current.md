@@ -650,3 +650,13 @@ Four count tests pass. Checked YsSMS01 current export (559/558, shortage 1)
 and Alest202 PREVIOUS msxplay export (1755/10271, excess 8516). Do not label
 the latter as the current corrected conversion. Sources/exports are untouched;
 the tool does not compile or export MGS. See docs/opll_keyon_counts.md.
+
+## 2026-10-01: declared VGM loop metadata
+- Added read-only loop boundary inspection and optional .vgm.loop.csv dumps.
+- Source samples and legacy wait-clock time remain separate; no KEYON/reset or MML loop emission.
+- Seven synthetic tests cover boundaries, payloads, legacy waits and unchanged traces.
+- Segment annotations and MML loop notation remain the next stage.
+- User regression completed; loop metadata and compressed input fixes are ready for integration.
+- Added gzip-signature input detection shared by trace decoding and GD3. VGM <1.50 / zero data-offset headers start at 0x40. Invalid headers/offsets fail explicitly.
+- All 42 PS1FM/FFMSX fixtures now produce OPLL register traces; representative MML conversions succeeded.
+- Regression conversion_failed entries are deleted duplicate RType fixtures, per user; do not treat them as decoder failures.

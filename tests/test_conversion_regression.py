@@ -100,7 +100,7 @@ class PublicConversionTests(unittest.TestCase):
                     continue
                 artifacts = {}
                 for path in output.iterdir():
-                    if path.name.endswith(('.performed.units.csv', '.performed.loops.csv', '.envelope_candidates.csv', '.melody.loops.csv', '.melody.patterns.csv', '.melody.occurrences.csv', '.melody.markings.csv', '.opll.rhythm.collisions.csv', '.opll.rhythm.optimization.csv', '.opll.rhythm.groups.csv', '.opll.rhythm.patterns.csv', '.opll.rhythm.occurrences.csv', '.opll.segments.csv', '.psg.segments.csv', '.scc.segments.csv', '.scc.waveforms.csv', '.target.mml', '.target_notes.csv')):
+                    if path.name.endswith(('.vgm.loop.csv', '.performed.units.csv', '.performed.loops.csv', '.envelope_candidates.csv', '.melody.loops.csv', '.melody.patterns.csv', '.melody.occurrences.csv', '.melody.markings.csv', '.opll.rhythm.collisions.csv', '.opll.rhythm.optimization.csv', '.opll.rhythm.groups.csv', '.opll.rhythm.patterns.csv', '.opll.rhythm.occurrences.csv', '.opll.segments.csv', '.psg.segments.csv', '.scc.segments.csv', '.scc.waveforms.csv', '.target.mml', '.target_notes.csv')):
                         continue
                     data = legacy.encode('utf-8') if path.name == f'{stem}.mml' else path.read_bytes()
                     if path.name == f'{stem}_log.scc.csv' and not flags[1]:

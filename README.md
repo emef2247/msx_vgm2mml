@@ -196,6 +196,14 @@ If the generated MML is too large, you may need to:
 ## License
 MIT License
 
+### Declared VGM loop inspection
+
+`--dump-passes` (or `--debug`) writes `<stem>.vgm.loop.csv` with the
+header loop address, declared sample count, observed start/end samples and
+validation status. This records the source loop without repeating playback,
+resetting chip state or adding KEYONs. Infinite MML loops and Segment loop
+annotations are not emitted yet. See [VGM loop metadata](docs/vgm_loop.md).
+
 ### OPLL Segment inspection
 
 `--dump-passes` also writes `<stem>.opll.segments.csv`, including melody and
@@ -301,3 +309,8 @@ Compare source and exported VGM key-on counts, or supply a CSV of VGM pairs
 for regression. Reports contain per-VGM totals and per-channel count shortages/
 excesses summed over the song, without a quality score or timing comparison.
 See [OPLL key-on counts](docs/opll_keyon_counts.md).
+
+### Compressed VGM input
+
+Input is detected by its contents: gzip-compressed VGM is accepted even with a
+`.vgm` extension, as well as `.vgz`. GD3 metadata uses the same decompressed bytes.

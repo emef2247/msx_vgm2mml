@@ -1,11 +1,11 @@
 """Read optional GD3 metadata without changing the VGM event pipeline."""
-from pathlib import Path
+from vgm_io import read_vgm_bytes
 import struct
 import warnings
 
 
 def read_gd3(path):
-    data = Path(path).read_bytes()
+    data = read_vgm_bytes(path)
     if len(data) < 0x18 or data[:4] != b'Vgm ':
         return None
     relative = struct.unpack_from('<I', data, 0x14)[0]

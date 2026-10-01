@@ -731,7 +731,8 @@ class _OpllState:
 # VGM parser
 # ─────────────────────────────────────────────────────────────────
 
-def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, str, str, str, str, str, str]:
+def parse_vgm(vgm_path: str, output_dir: str | None = None, *,
+              loop_metadata: dict | None = None, dump_loop: bool = False) -> tuple[str, str, str, str, str, str, str, str]:
     """
     Parse a VGM file and write PSG, SCC, and OPLL log/trace CSVs.
 
@@ -741,15 +742,27 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, s
 
     Note: 0x77 and 0x7a wait commands are treated as 0-sample waits to match
     the reference Tcl vgm_read.tcl behaviour (see module docstring).
+    Optional loop_metadata receives independently inspected source-loop facts;
+    dump_loop writes them to <stem>.vgm.loop.csv without changing traces.
     """
-    with open(vgm_path, 'rb') as fh:
-        raw = fh.read()
+    from vgm_io import read_vgm_bytes
+    raw = read_vgm_bytes(vgm_path)
+    if len(raw) < 0x40 or raw[:4] != b'Vgm ':
+        raise ValueError('Invalid or truncated VGM header')
+
+    from vgm_loop import read_loop_metadata, dump_loop_metadata
+    metadata = read_loop_metadata(raw)
+    if loop_metadata is not None:
+        loop_metadata.update(metadata)
 
     # ── Header ──────────────────────────────────────────────────
     # VGM_data_offset field is at absolute byte 0x34 (4-byte LE).
     # Data starts at absolute offset:  0x34 + VGM_data_offset.
-    vgm_data_offset = struct.unpack_from('<I', raw, 0x34)[0]
-    data_start = 0x34 + vgm_data_offset
+    vgm_version = struct.unpack_from('<I', raw, 0x08)[0]
+    vgm_data_offset = struct.unpack_from('<I', raw, 0x34)[0] if vgm_version >= 0x150 else 0
+    data_start = 0x34 + vgm_data_offset if vgm_data_offset else 0x40
+    if not 0x40 <= data_start < len(raw):
+        raise ValueError('VGM data offset is outside the file')
 
     # VGM spec: if a chip's clock is 0, the chip is not installed and its
     # data commands must be ignored.
@@ -757,7 +770,6 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, s
     # K051649 (SCC/SCC+) clock is at header offset 0x9C, added in VGM 1.61.
     # 0xCC is ES5503, not SCC. Do not read command bytes as an extended header.
     # Only process 0xD2 (K051649) commands when the clock is non-zero.
-    vgm_version = struct.unpack_from('<I', raw, 0x08)[0] if len(raw) >= 0x0C else 0
     has_k051649 = False
     if vgm_version >= 0x161 and min(len(raw), data_start) >= 0xA0:
         k051649_clock = struct.unpack_from('<I', raw, 0x9C)[0]
@@ -815,6 +827,8 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None) -> tuple[str, str, s
     if output_dir is None:
         output_dir = os.path.dirname(os.path.abspath(vgm_path))
     os.makedirs(output_dir, exist_ok=True)
+    if dump_loop:
+        dump_loop_metadata(os.path.join(output_dir, f'{base_name}.vgm.loop.csv'), metadata)
 
     psg_log_csv    = os.path.join(output_dir, f"{base_name}_log.psg.csv")
     scc_log_csv    = os.path.join(output_dir, f"{base_name}_log.scc.csv")

@@ -185,7 +185,8 @@ def main():
 
     # ── Step 1: Parse VGM → SCC + PSG + OPLL log/trace CSVs ──────
     (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
-     opll_log_csv, opll_trace_csv, opll_voice_csv, opll_regs_csv) = parse_vgm(vgm_path, song_dir)
+     opll_log_csv, opll_trace_csv, opll_voice_csv, opll_regs_csv) = parse_vgm(
+         vgm_path, song_dir, dump_loop=args.debug or args.dump_passes)
 
     if args.debug:
         print(f"PSG log:       {psg_log_csv}")
