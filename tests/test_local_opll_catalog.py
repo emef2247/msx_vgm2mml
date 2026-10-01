@@ -32,3 +32,14 @@ for directory, prefix, count in [('www.smspower.org/WBIII','WBIII',14),
     for number in range(1, count+1):
         stem = f'{prefix}{number:02d}'
         setattr(LocalOpllCatalog, 'test_'+stem, make_test(f'{directory}/{stem}.vgm'))
+
+# Quantized same-instrument rhythm collisions, including changed source state.
+for relative in (
+    'FIREHAWK/FHAWK18', 'FRAY/FRAY03', 'FRAY/FRAY04', 'FRAY/FRAY09',
+    'FRAY/FRAY14', 'FRAY/FRAY23', 'ILCITY/ILCITY06',
+    'TOGZL/TOGZL23', 'TOGZL/TOGZL25', 'TOGZL/TOGZL27',
+    'XAK_I/XAK_I_02', 'XAK_I/XAK_I_26', 'XAK_I/XAK_I_35', 'XAK_I/XAK_I_41',
+    'XAK_II/XAK_II12', 'XAK_II/XAK_II30',
+):
+    setattr(LocalOpllCatalog, 'test_'+Path(relative).name,
+            make_test('vgmrips.net/'+relative+'.vgm'))

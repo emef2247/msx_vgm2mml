@@ -556,3 +556,21 @@ vgm2mml.py now accepts --alloc with comma-separated channel=bytes entries.
 Only specified tracks override final automatic #alloc; no redistribution or
 total-budget clipping. Batch forwards the same value to each conversion.
 tests/test_mml_alloc.py checks partial/full replacement and invalid input.
+
+
+## Latest fix (2026-10-01)
+
+Quantized duplicate rhythm hits no longer stop target MML generation: the
+last zero-duration same-instrument hit per tick wins. Source Segments remain
+unchanged; --dump-passes adds *.opll.rhythm.collisions.csv. See
+docs/opll_rhythm.md for the approximation and retained evidence.
+Added all 16 reported fixtures to optional local OPLL conversion regressions.
+VGM header loop work remains paused; do not resume it as part of this fix.
+
+Validation: all 16 requested conversions and final rhythm attack/volume comparisons
+passed; 25 rhythm tests passed. test_conversion_regression.py could not import
+fixture_helpers in this checkout. MGSC compilation/playback was not checked.
+
+Restored the test-only SCC clock helper as tests/vgm_test_support.py so it
+does not compete with tests/fixtures in shell completion. Updated its import
+and excluded the new collision diagnostic CSV from legacy artifact hashes.

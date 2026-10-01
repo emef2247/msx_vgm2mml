@@ -78,23 +78,43 @@ class RhythmMml(unittest.TestCase):
     def test_identical_zero_time_retrigger_is_target_only(self):
         rows = {13: [segment(0, tick_end=0), segment(0, tick_end=9)]}
         before = repr(rows)
-        with self.assertWarnsRegex(RuntimeWarning, 'zero-duration same-time HH'):
+        with self.assertWarnsRegex(RuntimeWarning, 'zero-duration same-time'):
             text = '#opll_mode 1\n' + render(rows)
         self.assertEqual(attacks(text), [(0, 'h', 12)])
         self.assertEqual(analyze_mml(text)[0]['f'][-1].end, 27)
         self.assertEqual(repr(rows), before)
-        for change in ({'time': 0.001}, {'vol': 4}):
-            with self.subTest(change=change), self.assertRaises(ValueError):
-                render({13: [segment(0, tick_end=0), segment(0, **change)]})
+        with self.assertWarns(RuntimeWarning):
+            text = '#opll_mode 1\n' + render({13: [segment(0, tick_end=0),
+                segment(0, time=0.001, vol=4)]})
+        self.assertEqual(attacks(text), [(0, 'h', 11)])
+
+    def test_quantized_collisions_keep_last_state_and_source_evidence(self):
+        rows = {9: [segment(2, tick_end=2),
+                    segment(2, time=2/60+0.01, vol=5, tick_end=4)],
+                13: [segment(2), segment(5)]}
+        before = repr(rows)
+        for raw in (False, True):
+            with tempfile.TemporaryDirectory() as folder:
+                path = Path(folder) / 'collisions.csv'
+                with self.assertWarnsRegex(RuntimeWarning, 'quantized-tick'):
+                    text = '#opll_mode 1\n' + render(rows, raw, collision_path=path)
+                factor = 1 if raw else 3
+                self.assertEqual(attacks(text), [(2*factor, 'b', 10),
+                                                (2*factor, 'h', 12), (5*factor, 'h', 12)])
+                with path.open(newline='') as stream:
+                    report = list(csv.DictReader(stream))
+                self.assertEqual(len(report), 1)
+                self.assertEqual(report[0]['kept_segment_index'], '1')
+                self.assertEqual(json.loads(report[0]['kept_state'])[0], 5)
+        self.assertEqual(repr(rows), before)
 
     def test_one_sample_startup_retrigger(self):
         with self.assertWarnsRegex(RuntimeWarning, 'one-sample'):
             text = '#opll_mode 1\n' + render({10: [segment(0, tick_end=0),
                 segment(0, time=1/44100, tick_end=10)]})
         self.assertEqual(attacks(text), [(0, 's', 12)])
-        for tick, time in ((0, 2/44100), (1, 1/60+2/44100)):
-            with self.assertRaises(ValueError):
-                render({10: [segment(tick, tick_end=tick), segment(tick, time=time)]})
+        with self.assertRaises(ValueError):
+            render({10: [segment(1, tick_end=1), segment(1, time=0)]})
 
     def test_silent_rhythm_removed_and_mode_zero_f_is_melodic(self):
         text = '#opll_mode 1\n' + render({9: [segment(2, volume=15)]})
