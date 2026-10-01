@@ -765,7 +765,9 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
         trace_end = max((int(row['ticks']) for row in csv.DictReader(stream)
                          if row.get('ticks')), default=0)
     from rhythm_notation import optimize as optimize_rhythm
-    rhythm_before = render_rhythm(segments, raw_ticks=raw_ticks, end_tick=trace_end)
+    rhythm_before = render_rhythm(segments, raw_ticks=raw_ticks, end_tick=trace_end,
+                                  collision_path=os.path.join(output_dir, f'{stem}.opll.rhythm.collisions.csv')
+                                  if dump_passes else None)
     rhythm_after = optimize_rhythm(rhythm_before, raw_ticks=raw_ticks)
     target_text += rhythm_after
     if dump_passes:

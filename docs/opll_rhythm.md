@@ -193,3 +193,20 @@ grider.vgm is available; otherwise that test is skipped. It verifies generated
 rhythm attacks, instrument volumes and final duration against the groups/trace
 CSVs. This Python test does not invoke MGSC or assert audio identity. Private
 fixture contents remain outside git.
+
+
+## Quantized rhythm collisions (2026-10-01)
+
+MGSDRV target projection keeps the last attack for each instrument at each
+60 Hz tick when the earlier attack has zero tick duration. Source timestamps,
+states and rhythm Segments are unchanged. This deliberately loses sub-tick
+retrigger information in MML, including differing volume/pitch state; it is
+not evidence that the source edges were redundant. No later attack is shifted.
+Positive-duration duplicate entries or reversed source time still fail.
+
+Warnings summarize collisions per render. With --dump-passes,
+<stem>.opll.rhythm.collisions.csv lists the dropped/kept Segment indices,
+source times and state tuples (ordered by rhythm_patterns.STATE_FIELDS).
+This supersedes the earlier identical-state, one-sample-only target rule.
+The 16 reported FIREHAWK/FRAY/ILCITY/TOGZL/XAK cases are optional local
+conversion regressions; private fixture data is not bundled.

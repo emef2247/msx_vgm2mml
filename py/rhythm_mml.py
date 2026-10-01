@@ -2,37 +2,52 @@
 from rhythm_patterns import group_segments, find_patterns
 from dataclasses import replace
 import warnings
+import csv
+import json
 
 LETTERS = {'BD': 'b', 'SD': 's', 'TOM': 'm', 'CYM': 'c', 'HH': 'h'}
 
 
-def _target_groups(groups):
-    """Collapse only identical same-time retriggers with no intervening duration.
+def _target_groups(groups, collision_path=None):
+    """Keep the last same-instrument attack in a quantized target tick.
 
-    Source groups/Segments remain lossless. Distinct sub-tick events still fail
-    explicitly rather than being silently lost or shifted to another tick.
+    Source groups retain every edge. MGSDRV cannot encode a positive interval
+    between these attacks; do not invent one or change later onset times.
     """
-    result = []
+    result, collisions = [], []
     for group in groups:
         hits, positions = [], {}
         for hit in group.hits:
             if hit.instrument in positions:
                 index = positions[hit.instrument]
                 previous = hits[index]
+                if previous.interval != 0 or hit.source_time < previous.source_time:
+                    raise ValueError(f'Cannot represent multiple {hit.instrument} triggers at tick {group.tick} in MGSDRV rhythm MML')
                 same_time = previous.source_time == hit.source_time
-                adjacent_sample = (0 <= hit.source_time - previous.source_time
-                                   <= 1 / 44100 + 1e-12)
-                if (previous.interval == 0 and (same_time or adjacent_sample)
-                        and previous.state == hit.state):
-                    warnings.warn(f'Collapsed zero-duration {"same-time" if same_time else "one-sample"} {hit.instrument} retrigger '
-                                  f'at tick {group.tick} for MGSDRV; source CSV retains both events',
-                                  RuntimeWarning)
-                    hits[index] = hit
-                    continue
-                raise ValueError(f'Cannot represent multiple {hit.instrument} triggers at tick {group.tick} in MGSDRV rhythm MML')
+                adjacent_sample = hit.source_time - previous.source_time <= 1 / 44100 + 1e-12
+                reason = ('same-time' if same_time else 'one-sample' if adjacent_sample
+                          else 'quantized-tick')
+                collisions.append((group.tick, hit.instrument, reason,
+                                   previous.segment_index, hit.segment_index,
+                                   previous.source_time, hit.source_time,
+                                   json.dumps(previous.state), json.dumps(hit.state)))
+                hits[index] = hit
+                continue
             positions[hit.instrument] = len(hits)
             hits.append(hit)
         result.append(replace(group, hits=tuple(hits)))
+    if collision_path is not None:
+        with open(collision_path, 'w', encoding='utf-8', newline='') as stream:
+            writer = csv.writer(stream)
+            writer.writerow(('tick', 'instrument', 'reason', 'dropped_segment_index',
+                             'kept_segment_index', 'dropped_source_time',
+                             'kept_source_time', 'dropped_state', 'kept_state'))
+            writer.writerows(collisions)
+    if collisions:
+        reasons = ', '.join(sorted({row[2] for row in collisions}))
+        warnings.warn(f'Collapsed {len(collisions)} zero-duration {reasons} rhythm retrigger(s) '
+                      'for MGSDRV; last attack per instrument/tick wins; '
+                      'source CSV retains all events', RuntimeWarning)
     return tuple(result)
 
 
@@ -48,8 +63,8 @@ def _timed(token, steps, raw):
     return result
 
 
-def render(segments, raw_ticks=False, end_tick=None):
-    groups = _target_groups(group_segments(segments))
+def render(segments, raw_ticks=False, end_tick=None, collision_path=None):
+    groups = _target_groups(group_segments(segments), collision_path)
     if not groups:
         return ''
     factor = 1 if raw_ticks else 3

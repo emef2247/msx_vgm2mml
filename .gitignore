@@ -210,3 +210,11 @@ outputs/02_StartingPoint_log.psg/
 # Local-only fixtures (not redistributed)
 tests/fixtures/local_only/**
 !tests/fixtures/local_only/README.md
+outputs/
+run_gf2sms.sh
+run_gra2.sh
+run_local_only_regression.sh
+tests/fixtures/local_only/
+tests/fixtures/public/psg_opll/msxplay.com/sample/reference/vgm2tx802/
+tests/fixtures/public/psg_scc/001/reference/*.mgs
+tests/fixtures/public/psg_scc/002/reference/*.mgs
