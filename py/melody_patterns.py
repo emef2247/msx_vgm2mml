@@ -10,7 +10,7 @@ from rhythm_patterns import find_patterns
 
 
 FIELDS = {
-    'opll': ('ev_type', 'keyon', 'onset', 'is_legato', 'is_vibrato',
+    'opll': ('ev_type', 'keyon', 'key_on_edge', 'onset', 'is_legato', 'is_vibrato',
              'is_portamento', 'is_envelope', 'fnum', 'block', 'inst', 'vol', 'sus'),
     'psg': ('ev_type', 'tone_period', 'volume', 'octave', 'scale', 'mode',
             'noise_period', 'envelope_enabled', 'envelope_period',

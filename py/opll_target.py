@@ -40,7 +40,6 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
     from performed_patterns import Unit, compress, dump_units
     from types import SimpleNamespace
     performed = {}
-    analysis = analyze(segments, "opll", voice_csv_path)
     before_lines, loop_report = [], []
     updates = []
     if voice_csv_path:
@@ -48,25 +47,37 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
             for row in csv.DictReader(stream):
                 if row['#type'] == 'patch':
                     updates.append((int(row['ticks']), bytes.fromhex(row['patch_hex'])))
+    analysis = analyze(segments, "opll", voice_csv_path)
     times = [tick for tick, _ in updates]
     patches, lines, evidence = {}, [], []
     for ch in range(6):
         body, current, cursor = [], {}, 0
         boundaries = {}
         sounding = False
+        active, pending_edge, previous_key = False, False, False
         for index, seg in enumerate(segments.get(ch, ())):
             boundaries[index] = len(body)
+            edge = bool(getattr(seg, 'key_on_edge', seg.keyon and not previous_key))
+            pending_edge |= edge
+            previous_key = bool(seg.keyon)
+            if not seg.keyon:
+                active = False
             length = seg.tick_end - seg.tick_start
             if length <= 0:
                 continue
             if seg.tick_start > cursor:
                 body.append(length_tokens('r', seg.tick_start - cursor, raw_ticks))
+                active = False
             cursor = seg.tick_end
             octave, note = target_note(seg.fnum, seg.block)
-            if not seg.keyon or not seg.fnum or seg.vol == 15 or note == 'r':
+            if not seg.keyon or not seg.fnum or note == 'r':
                 body.append(length_tokens('r', length, raw_ticks))
+                active, pending_edge = False, False
                 continue
             sounding = True
+            if active and not pending_edge:
+                body.append("&")
+            active, pending_edge = True, False
             patch_hex = ''
             if seg.inst:
                 voice = seg.inst - 1  # MGSDRV ROM instruments are @0..@14.
@@ -85,9 +96,29 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
                 if current.get(key) != value:
                     body.append(compact_state_token(prefix, value, current.get(key)))
                     current[key] = value
+            # q0 preserves key-on across a pitch/state change; & alone only
+            # prevented reattack for equal pitches in the MGSC/libkss probe.
+            following = segments.get(ch, ())[index + 1:]
+            continuation = False
+            end = seg.tick_end
+            later_key = bool(seg.keyon)
+            for later in following:
+                later_edge = bool(getattr(later, 'key_on_edge', later.keyon and not later_key))
+                if (not later.keyon or later_edge
+                        or later.tick_start != end):
+                    break
+                later_key = bool(later.keyon)
+                if later.tick_end > later.tick_start:
+                    continuation = bool(later.fnum)
+                    break
+            gate = 0 if continuation else 8
+            if current.get('gate', 8) != gate:
+                body.append(f'q{gate}')
+                current['gate'] = gate
             body.append(length_tokens(note, length, raw_ticks))
             evidence.append((ch, index, seg.tick_start, seg.tick_end, seg.inst,
-                             voice, patch_hex, note, octave, 15-seg.vol))
+                             voice, patch_hex, note, octave, 15-seg.vol,
+                             seg.keyon, int(edge), getattr(seg, 'onset', 0)))
         boundaries[len(segments.get(ch, ()))] = len(body)
         if sounding:
             before_lines.append(track_id_to_mgsdrv(ch + 9) + ' ' + ' '.join(body))
@@ -120,7 +151,8 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
         with open(dump_path, 'w', newline='', encoding='utf-8') as stream:
             writer = csv.writer(stream)
             writer.writerow(('ch', 'segment_index', 'tick_start', 'tick_end', 'source_inst',
-                             'target_voice', 'patch_hex', 'note', 'octave', 'volume'))
+                             'target_voice', 'patch_hex', 'note', 'octave', 'volume',
+                             'source_keyon', 'key_on_edge', 'onset'))
             writer.writerows(evidence)
     dump_units(dump_path, performed)
     result = '\n'.join(header + lines) + '\n'

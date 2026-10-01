@@ -3,6 +3,7 @@ import csv
 from pathlib import Path
 import re
 import subprocess
+import struct
 import sys
 import tempfile
 import unittest
@@ -25,9 +26,9 @@ class OpllTarget(unittest.TestCase):
                 ('@', 17, 16, '@17')]:
             self.assertEqual(compact_state_token(prefix, value, old), expected)
 
-    def test_relative_controls_follow_emitted_state_across_rests(self):
+    def test_relative_controls_follow_emitted_state_across_keyoff_rests(self):
         rows = [segment(0, volume=3, tick_end=4, inst=1, fnum=290, block=3),
-                segment(4, volume=15, tick_end=8, inst=1, fnum=290, block=0),
+                segment(4, volume=15, keyon=0, tick_end=8, inst=1, fnum=290, block=0),
                 segment(8, volume=2, tick_end=12, inst=1, fnum=290, block=4),
                 segment(12, volume=3, tick_end=16, inst=1, fnum=290, block=3)]
         text = render({0: rows}, raw_ticks=True)
@@ -35,6 +36,92 @@ class OpllTarget(unittest.TestCase):
         self.assertIn(') >', text)
         self.assertIn('( <', text)
         self.assertNotIn('o1', text)
+
+    def test_continuous_state_changes_tie_but_zero_length_key_edges_retrigger(self):
+        rows = [segment(0, tick_end=4, inst=1, fnum=290, block=3, key_on_edge=1),
+                segment(4, tick_end=8, inst=1, fnum=291, block=3, vol=4),
+                segment(8, tick_end=8, inst=1, fnum=291, block=3, key_on_edge=1),
+                segment(8, tick_end=12, inst=1, fnum=291, block=3)]
+        for raw in (False, True):
+            text = render({0: rows}, raw_ticks=raw)
+            tokens = list(_leaves(analyze_mml(text)[0]['9']))
+            self.assertEqual(sum(n.text == '&' for n in tokens), 1)
+            self.assertEqual(tokens[-1].end, 12*(1 if raw else 3))
+        rows[2].key_on_edge = 0
+        rows[2].keyon = 0
+        self.assertEqual(render({0: rows}, raw_ticks=True).count('&'), 1)
+
+    def test_attenuation_recovery_is_not_a_key_edge(self):
+        from segment_utils import pass2_compute_onsets_and_ioi
+        rows = [dict({'#type': 'instVol'}, ch=0, ticks=tick, l=4,
+                     keyon=key, vol=volume, fnum=290, block=3)
+                for tick, key, volume in ((0, 1, 15), (4, 1, 3),
+                                          (8, 1, 15), (12, 1, 4), (16, 0, 4))]
+        events = pass2_compute_onsets_and_ioi(rows)
+        self.assertEqual([e['onset'] for e in events], [0, 1, 0, 1, 0])
+        self.assertEqual([e['key_on_edge'] for e in events], [1, 0, 0, 0, 0])
+        segments = [segment(e['ticks'], volume=e['vol'], keyon=e['keyon'],
+                            tick_end=e['ticks'] + e['l'], inst=1, fnum=290, block=3,
+                            onset=e['onset'], key_on_edge=e['key_on_edge']) for e in events]
+        for raw in (False, True):
+            nodes = list(_leaves(analyze_mml(render({0: segments}, raw_ticks=raw))[0]['9']))
+            notes = [n for n in nodes if n.end > n.start and not n.text.startswith('r')]
+            self.assertEqual(len(notes) - sum(n.text == '&' for n in nodes), 1)
+            self.assertEqual(sum(n.text == '&' for n in nodes), 3)
+            self.assertIn('v0', [n.text for n in nodes])
+            self.assertEqual(nodes[-1].end, 20 * (1 if raw else 3))
+
+    def test_maximum_attenuation_keeps_register_states_and_zero_tick_key_edges(self):
+        from vgm_reader import parse_vgm
+        from opll import _build_segments
+        from opll_segments import dump_segments
+        header = bytearray(0x100)
+        header[:4] = b'Vgm '
+        struct.pack_into('<I', header, 8, 0x161)
+        struct.pack_into('<I', header, 0x10, 3579545)
+        struct.pack_into('<I', header, 0x34, 0x100 - 0x34)
+        # Key-on at attenuation 15, pitch change, zero-tick off/on, recovery.
+        commands = bytes.fromhex('51 30 1f 51 10 22 51 20 17 61 7c 0b '
+                                 '51 10 23 61 7c 0b 51 20 07 51 20 17 '
+                                 '61 7c 0b 51 30 13 61 7c 0b 51 20 07 66')
+        struct.pack_into('<I', header, 4, len(header) + len(commands) - 4)
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / 'mute_edges.vgm'
+            source.write_bytes(header + commands)
+            paths = parse_vgm(str(source), folder)
+            segments, _ = _build_segments(paths[5])
+            rows = segments[0]
+            self.assertEqual(sum(s.key_on_edge for s in rows), 2)
+            self.assertTrue(any(not s.keyon and s.tick_start == s.tick_end for s in rows))
+            self.assertTrue(any(s.fnum == 291 and s.vol == 15 for s in rows))
+            self.assertEqual(sum(s.onset for s in rows), 1)
+            dump = Path(folder) / 'segments.csv'
+            dump_segments(segments, dump)
+            with dump.open(newline='') as stream:
+                exported = list(csv.DictReader(stream))
+            self.assertEqual(sum(int(r['key_on_edge']) for r in exported if r['ch'] == '0'), 2)
+
+    def test_ys_source_retriggers_survive_segment_construction(self):
+        source = ROOT / 'tests/fixtures/local_only/opll/www.smspower.org/YSSMS/YsSMS01.vgm'
+        if not source.exists():
+            self.skipTest('Optional local Ys fixture unavailable')
+        from vgm_reader import parse_vgm
+        from opll import _build_segments
+        with tempfile.TemporaryDirectory() as folder:
+            paths = parse_vgm(str(source), folder)
+            segments, _ = _build_segments(paths[5])
+            state, expected = {}, dict.fromkeys(range(6), 0)
+            with open(paths[7], newline='') as stream:
+                for row in csv.DictReader(stream):
+                    ch = int(row['addr'], 0)-0x20
+                    if ch not in expected:
+                        continue
+                    value = int(row['val'])
+                    old = state.get(ch, 0)
+                    state[ch] = value
+                    expected[ch] += bool(value & 16 and not old & 16)
+            for ch in range(6):
+                self.assertEqual(sum(s.key_on_edge for s in segments[ch]), expected[ch])
 
     def test_mgs_octaves_match_driver_register_blocks(self):
         # MGSC 1.11/libkss: o4 a writes block 3; o3 a writes block 2.
