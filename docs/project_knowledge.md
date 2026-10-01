@@ -1806,3 +1806,11 @@ MGSC 1.11/libkss synthetic roundtrip preserves key-high across attenuation
 all source melodic edges in Segments; the previous ch0/ch1/ch2 losses were
 5/5/1 edges. YsSMS01 had no nonedge onsets, so this correction alone cannot
 explain its reported lighter sound. See the OPLL key/envelope field note.
+
+## Declared VGM loops
+The header field at 0x1C is relative to 0x1C; zero means no loop. Record the command boundary before consuming it. Preserve chip state and do not add a KEYON at this boundary. Source-sample time and legacy trace wait time are distinct. See docs/vgm_loop.md.
+
+Compressed VGM input must be detected by the gzip signature, not the extension.
+Read GD3 and command headers after decompression. VGM versions below 1.50 and
+a zero data-offset field use data start 0x40. Reject invalid headers/offsets
+instead of silently producing an empty conversion.
