@@ -58,6 +58,7 @@ def weighted_patterns(units, commands):
     overlapping repeat. Dynamic programming considers shorter repeat counts too.
     """
     keys = [u.signature() for u in units]
+    validation = [getattr(u, 'validation_key', u.signature()) for u in units]
     n = len(keys)
     cost = [0] * (n + 1)
     choices = [(1, 1)] * n
@@ -73,6 +74,7 @@ def weighted_patterns(units, commands):
             while start + width * count <= n:
                 a = start + width * (count - 1)
                 if (keys[start:start + width] != keys[a:a + width] or
+                        validation[start:start + width] != validation[a:a + width] or
                         commands[start:start + width] != commands[a:a + width]):
                     break
                 # Splitting counts above 255 is supported by the renderer.
@@ -125,16 +127,20 @@ def _compress(units, commands, max_depth, weighted):
                        unit_width=width, repeats=use.repeats, status='candidate')
             report.append(row)
             iterations = []
+            validations = []
             for repeat in range(use.repeats):
                 a = start + repeat * width
                 iterations.append(visit(a, a + width, depth + 1, occurrence))
+                validations.append(tuple(getattr(u, 'validation_key', u.signature())
+                                         for u in units[a:a + width]))
             # Initialization may make the first iteration different. Compress
             # only consecutive equal emitted iterations, retaining the others.
             pieces, applied = [], False
             a = 0
             while a < len(iterations):
                 b = a + 1
-                while b < len(iterations) and iterations[b] == iterations[a]:
+                while (b < len(iterations) and iterations[b] == iterations[a]
+                       and validations[b] == validations[a]):
                     b += 1
                 plain = ' '.join(iterations[a:b])
                 remaining, chunks = b - a, []
@@ -149,7 +155,8 @@ def _compress(units, commands, max_depth, weighted):
                 else:
                     pieces.append(plain)
                 a = b
-            row['status'] = 'applied' if applied else 'different_commands_or_no_saving'
+            row['status'] = ('applied' if applied else 'different_state'
+                             if len(set(validations)) > 1 else 'different_commands_or_no_saving')
             output.append(' '.join(pieces))
         return ' '.join(output)
 
@@ -163,6 +170,7 @@ def compress(units, commands, max_depth=2):
     chosen, strategy = (weighted, 'text_cost') if len(weighted[0]) < len(greedy[0]) else (greedy, 'unit_count')
     for row in chosen[1]:
         row['strategy'] = strategy
+        row['candidate_status'] = row['status']
     return chosen
 
 
@@ -184,7 +192,8 @@ def dump_units(dump_path, channels):
         for unit_id, unit in enumerate(units):
             members = notes[unit.start:unit.end]
             paths = [dict(occurrence_id=r['occurrence_id'], pattern_id=r['pattern_id'],
-                          depth=r['depth'], status=r['status'], strategy=r['strategy']) for r in report
+                          depth=r['depth'], status=r['status'], strategy=r['strategy'],
+                          candidate_status=r['candidate_status']) for r in report
                      if r['unit_start'] <= unit_id < r['unit_end']]
             indices = [index for n in members for index in n.segment_indices]
             unit_rows.append((ch, unit_id, unit.kind, members[0].start,
@@ -198,7 +207,7 @@ def dump_units(dump_path, channels):
                          'segment_indices', 'signature', 'loop_path'))
         writer.writerows(unit_rows)
     fields = ('ch', 'occurrence_id', 'parent_id', 'depth', 'pattern_id', 'unit_start',
-              'unit_end', 'unit_width', 'repeats', 'status', 'strategy')
+              'unit_end', 'unit_width', 'repeats', 'status', 'strategy', 'candidate_status')
     with open(prefix + '.loops.csv', 'w', newline='', encoding='utf-8') as stream:
         writer = csv.DictWriter(stream, fieldnames=fields)
         writer.writeheader()

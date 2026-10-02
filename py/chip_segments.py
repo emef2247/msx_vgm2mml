@@ -5,7 +5,7 @@ interpretation; ``time`` retains the source CSV timestamp. No repeat compression
 or target-length quantization is performed here.
 """
 import csv
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict, dataclass, field, fields
 import json
 
 
@@ -24,6 +24,9 @@ class Segment:
     # Exact analyzed row, including legacy fields not yet given semantic names.
     # Renderers use named fields exclusively; this is diagnostic evidence.
     pass3_row: tuple[str, ...]
+    # Absolute 44100 Hz source sample boundaries, never derived from time/ticks.
+    vgmticks: int | None = field(default=None, kw_only=True)
+    vgmticks_end: int | None = field(default=None, kw_only=True)
 
     @property
     def tick_start(self):

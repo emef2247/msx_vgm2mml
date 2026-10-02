@@ -6,9 +6,8 @@ Usage: python vgm_reader.py <vgm_file> [output_dir]
 Log CSV  (*_log.scc.csv)  : events grouped by channel (Tcl scc.tcl output)
 Trace CSV (*_trace.scc.csv): events in chronological VGM-stream order (Tcl trace)
 
-Note: 0x77 and 0x7a wait commands are intentionally treated as 0-sample waits
-to match the reference Tcl vgm_read.tcl behaviour (these handlers omit the
-update_global_time call in the Tcl source).
+All chip clocks share the VGM data-stream origin. Wait commands accumulate
+integer 44100 Hz samples before conversion to seconds.
 """
 import struct
 import sys
@@ -16,6 +15,14 @@ import os
 
 sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import get_ticks
+
+
+def _source_row(state, cols, width):
+    if state._include_vgmticks:
+        # OPLL has a legacy unnamed trailing header column.
+        cols += [''] * (width - len(cols))
+        cols.append('' if state._vgmticks is None else str(state._vgmticks))
+    return ','.join(cols)
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -26,8 +33,9 @@ class _PsgState:
     NUM_CH = 3
 
     def __init__(self):
+        self._include_vgmticks = False
+        self._vgmticks = None
         self._global_time = 0.0
-        self._start_time  = 0.0
         self._common_time = 0.0
 
         # registers (broadcast regs are stored per-channel for easy CSV output)
@@ -49,9 +57,7 @@ class _PsgState:
     # ── time ────────────────────────────────────────────────────
     def _update_time(self, time_s: float):
         self._global_time = time_s
-        if self._start_time == 0:
-            self._start_time = time_s
-        self._common_time = time_s - self._start_time
+        self._common_time = time_s
 
     # ── PSG mode from vVCtrl ────────────────────────────────────
     @staticmethod
@@ -83,7 +89,7 @@ class _PsgState:
             str(self.ioParallel1[ch]),
             str(self.ioParallel2[ch]),
         ]
-        return ','.join(cols)   # 34 fields
+        return _source_row(self, cols, 34)   # 34 fields
 
     # ── main write entry point ───────────────────────────────────
     def write(self, time_s: float, address: int, value: int):
@@ -192,7 +198,7 @@ class _PsgState:
                'fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,'
                'envShape,ioParallel1,ioParallel2')
         with open(out_path, 'w', newline='\n') as fh:
-            fh.write(hdr + '\n')
+            fh.write(hdr + (',vgmticks' if self._include_vgmticks else '') + '\n')
             for ch in range(self.NUM_CH):
                 for row in self.log_buf[ch]:
                     fh.write(row + '\n')
@@ -205,7 +211,7 @@ class _PsgState:
                'fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,'
                'envShape,ioParallel1,ioParallel2')
         with open(out_path, 'w', newline='\n') as fh:
-            fh.write(hdr + '\n')
+            fh.write(hdr + (',vgmticks' if self._include_vgmticks else '') + '\n')
             for row in self.trace_buf:
                 fh.write(row + '\n')
 
@@ -218,8 +224,9 @@ class _SccState:
     NUM_CH = 5
 
     def __init__(self):
+        self._include_vgmticks = False
+        self._vgmticks = None
         self._global_time = 0.0
-        self._start_time  = 0.0
         self._common_time = 0.0
 
         self.f1Ctrl  = [0] * self.NUM_CH
@@ -243,9 +250,7 @@ class _SccState:
     # ── time ────────────────────────────────────────────────────
     def _update_time(self, time_s: float):
         self._global_time = time_s
-        if self._start_time == 0:
-            self._start_time = time_s
-        self._common_time = time_s - self._start_time
+        self._common_time = time_s
 
     # ── SCC enable bit ───────────────────────────────────────────
     @staticmethod
@@ -290,7 +295,7 @@ class _SccState:
             str(self.vCtrl[ch]),
             str(self.enCtrl[ch]),
         ]
-        return ','.join(cols)   # 28 fields
+        return _source_row(self, cols, 28)   # 28 fields
 
     def _log(self, ch: int, type_: str):
         """Append a row to both the per-channel log buffer and the trace buffer."""
@@ -398,7 +403,7 @@ class _SccState:
                'oDiff,envlp,envlpIndex,nE,nF,offset,data,wtblIndex,'
                'f1Ctrl,f2Ctrl,vCtrl,enCtrl')
         with open(out_path, 'w', newline='\n') as fh:
-            fh.write(hdr + '\n')
+            fh.write(hdr + (',vgmticks' if self._include_vgmticks else '') + '\n')
             for ch in range(self.NUM_CH):
                 for row in self.log_buf[ch]:
                     fh.write(row + '\n')
@@ -410,7 +415,7 @@ class _SccState:
                'oDiff,envlp,envlpIndex,nE,nF,offset,data,wtblIndex,'
                'f1Ctrl,f2Ctrl,vCtrl,enCtrl')
         with open(out_path, 'w', newline='\n') as fh:
-            fh.write(hdr + '\n')
+            fh.write(hdr + (',vgmticks' if self._include_vgmticks else '') + '\n')
             for row in self.trace_buf:
                 fh.write(row + '\n')
 
@@ -466,8 +471,9 @@ class _OpllState:
     _REGS_HEADER  = '#type,time,ticks,addr,val,ch'
 
     def __init__(self):
+        self._include_vgmticks = False
+        self._vgmticks = None
         self._global_time = 0.0
-        self._start_time: float | None = None
         self._common_time = 0.0
         self.fnum_low = [0] * self.NUM_CH   # 0x10-0x18 LSB (all ch)
         self.fnum_msb = [0] * self.NUM_CH   # keyBlk[0]...keyBlk[8] LSB (all ch)
@@ -485,9 +491,7 @@ class _OpllState:
 
     def _update_time(self, time_s: float):
         self._global_time = time_s
-        if self._start_time is None:
-            self._start_time = time_s
-        self._common_time = time_s - self._start_time
+        self._common_time = time_s
 
     def fnum9(self, ch: int) -> int:
         """Assembled OPLL 9bit F-Number (all ch, will be 0 if not set)."""
@@ -569,7 +573,7 @@ class _OpllState:
             '', '', '', '',
             '', '', '', '',
         ]
-        return ','.join(cols)
+        return _source_row(self, cols, 57)
 
     def _row_rhythm_vol(self, ch: int, type_: str) -> str:
         t     = self._common_time
@@ -584,7 +588,7 @@ class _OpllState:
             '', '', '', '',
             '', '', '', '',
         ]
-        return ','.join(cols)
+        return _source_row(self, cols, 57)
 
     def _log(self, ch: int, type_: str):
         row = self._row(ch, type_)
@@ -609,7 +613,7 @@ class _OpllState:
             str(self.fnum9(7)), str(self._vol(7)), str(self._sus(7)), str(self._block(7)),
             str(self.fnum9(8)), str(self._vol(8)), str(self._sus(8)), str(self._block(8)),
         ]
-        self.trace_buf.append(','.join(cols))
+        self.trace_buf.append(_source_row(self, cols, 57))
 
     def _voice_row(self, type_: str, ch: int, inst: int, vol: int) -> str:
         t     = self._common_time
@@ -618,13 +622,13 @@ class _OpllState:
             type_, repr(t), str(ch), str(ticks),
             str(inst), str(vol), self._patch_hex(),
         ]
-        return ','.join(cols)
+        return _source_row(self, cols, 7)
 
     def _regs_row(self, type_: str, addr: int, val: int, ch: int) -> str:
         t = self._common_time
         ticks = get_ticks(t)
         cols = [type_, repr(t), str(ticks), f'0x{addr:02X}', str(val), str(ch)]
-        return ','.join(cols)
+        return _source_row(self, cols, 6)
 
     def write(self, time_s: float, address: int, value: int):
         self._update_time(time_s)
@@ -700,14 +704,14 @@ class _OpllState:
 
 
     def output_trace_csv(self, out_path: str):
-        header = self._HEADER
+        header = self._HEADER + (',vgmticks' if self._include_vgmticks else '')
         with open(out_path, 'w', newline='\n') as fh:
             fh.write(header + '\n')
             for row in self.trace_buf:
                 fh.write(row + '\n')
 
     def output_log_csv(self, out_path: str):
-        header = self._HEADER
+        header = self._HEADER + (',vgmticks' if self._include_vgmticks else '')
         with open(out_path, 'w', newline='\n') as fh:
             fh.write(header + '\n')
             for ch in range(self.NUM_CH):
@@ -717,13 +721,13 @@ class _OpllState:
 
     def output_voice_csv(self, out_path: str):
         with open(out_path, 'w', newline='\n') as fh:
-            fh.write(self._VOICE_HEADER + '\n')
+            fh.write(self._VOICE_HEADER + (',vgmticks' if self._include_vgmticks else '') + '\n')
             for row in self.voice_trace_buf:
                 fh.write(row + '\n')
 
     def output_regs_csv(self, out_path: str):
         with open(out_path, 'w', newline='\n') as fh:
-            fh.write(self._REGS_HEADER + '\n')
+            fh.write(self._REGS_HEADER + (',vgmticks' if self._include_vgmticks else '') + '\n')
             for row in self.regs_trace_buf:
                 fh.write(row + '\n')
 
@@ -732,7 +736,8 @@ class _OpllState:
 # ─────────────────────────────────────────────────────────────────
 
 def parse_vgm(vgm_path: str, output_dir: str | None = None, *,
-              loop_metadata: dict | None = None, dump_loop: bool = False) -> tuple[str, str, str, str, str, str, str, str]:
+              loop_metadata: dict | None = None, dump_loop: bool = False,
+              include_vgmticks: bool = False) -> tuple[str, str, str, str, str, str, str, str]:
     """
     Parse a VGM file and write PSG, SCC, and OPLL log/trace CSVs.
 
@@ -740,10 +745,10 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None, *,
         (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
          opll_log_csv, opll_trace_csv, opll_voice_csv, opll_regs_csv)
 
-    Note: 0x77 and 0x7a wait commands are treated as 0-sample waits to match
-    the reference Tcl vgm_read.tcl behaviour (see module docstring).
+    All waits count toward one absolute source clock shared by all chips.
     Optional loop_metadata receives independently inspected source-loop facts;
-    dump_loop writes them to <stem>.vgm.loop.csv without changing traces.
+    dump_loop writes them to <stem>.vgm.loop.csv. include_vgmticks appends
+    integer sample boundaries without changing rendering or quantizing time.
     """
     from vgm_io import read_vgm_bytes
     raw = read_vgm_bytes(vgm_path)
@@ -779,54 +784,40 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None, *,
     psg  = _PsgState()
     scc  = _SccState()
     opll = _OpllState()
-    global_time = 0.0
-    pos = data_start
-
-    while pos < len(raw):
-        cmd = raw[pos]; pos += 1
-
+    from vgm_timing import command_times
+    source_times = {}
+    for state in (psg, scc, opll):
+        state._include_vgmticks = include_vgmticks
+    for event in command_times(raw):
+        if include_vgmticks:
+            source_times[event.address] = event
+        for state in (psg, scc, opll):
+            state._vgmticks = event.vgmticks
+        global_time = event.vgmticks / 44100.0
+        cmd, pos = event.command, event.address + 1
         if cmd == 0x66:
             break
-        elif cmd == 0x61:
-            nn = struct.unpack_from('<H', raw, pos)[0]; pos += 2
-            global_time += nn / 44100.0
-        elif cmd == 0x62:
-            global_time += 735 / 44100.0
-        elif cmd == 0x63:
-            global_time += 882 / 44100.0
-        elif 0x70 <= cmd <= 0x7F:
-            # 0x77 and 0x7a: the Tcl vgm_read.tcl handlers compute a local
-            # time variable but never call update_global_time, so they
-            # effectively add 0 samples.  Replicate that behaviour here so
-            # the Python-generated trace CSV is byte-for-byte identical to
-            # the Tcl reference.
-            if cmd not in (0x77, 0x7a):
-                global_time += ((cmd & 0xF) + 1) / 44100.0
-        elif cmd == 0xA0:
-            aa = raw[pos]; pos += 1
-            dd = raw[pos]; pos += 1
-            psg.write(global_time, aa, dd)
+        if cmd == 0xA0:
+            psg.write(global_time, raw[pos], raw[pos + 1])
         elif cmd == 0x51:
-            aa = raw[pos]; pos += 1
-            dd = raw[pos]; pos += 1
-            opll.write(global_time, aa, dd)
-        elif cmd == 0xD2:
-            pp = raw[pos]; pos += 1
-            aa = raw[pos]; pos += 1
-            dd = raw[pos]; pos += 1
-            # Only route to SCC state machine when the K051649 chip is
-            # declared in the VGM header.  A clock of 0 means the chip is
-            # absent; writing to it would produce spurious SCC output.
-            if has_k051649:
-                base = {0: 0x9800, 1: 0x9880, 2: 0x988A, 3: 0x988F}.get(pp, 0x9800)
-                scc.write_scc(global_time, base + aa, dd)
-        # Other commands: single byte already consumed, skip
+            opll.write(global_time, raw[pos], raw[pos + 1])
+        elif cmd == 0xD2 and has_k051649:
+            pp, aa, dd = raw[pos:pos + 3]
+            base = {0: 0x9800, 1: 0x9880, 2: 0x988A, 3: 0x988F}.get(pp, 0x9800)
+            scc.write_scc(global_time, base + aa, dd)
 
     # ── Write CSVs ───────────────────────────────────────────────
     base_name = os.path.splitext(os.path.basename(vgm_path))[0]
     if output_dir is None:
         output_dir = os.path.dirname(os.path.abspath(vgm_path))
     os.makedirs(output_dir, exist_ok=True)
+    if include_vgmticks:
+        import csv
+        from dataclasses import asdict
+        with open(os.path.join(output_dir, f'{base_name}.vgm.timing.csv'), 'w', newline='') as stream:
+            writer = csv.DictWriter(stream, fieldnames=('address', 'command', 'vgmticks', 'wait_samples'))
+            writer.writeheader()
+            writer.writerows(asdict(event) for event in source_times.values())
     if dump_loop:
         dump_loop_metadata(os.path.join(output_dir, f'{base_name}.vgm.loop.csv'), metadata)
 

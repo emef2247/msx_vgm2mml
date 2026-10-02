@@ -38,6 +38,7 @@ outputs/stem/stem.mml
 | `--outdir OUTDIR` | MML ファイルの出力先ディレクトリを指定 |
 | `--sync-min-gap N` | 同期コメントの最小間隔（出力MMLのstep、既定1000）。0でループ・マクロを分割しない全同期点を表示。開始・終端は常に表示 |
 | `--dump-passes` | イベントlog/trace、PASS0-3、PSG/SCC Segment、SCC波形CSVを保存 |
+| `--vgmticks` | trace/pass/Segmentに丸め前のVGMサンプル時刻を併記。Segment保存には`--dump-passes`も指定 |
 | `--debug` | デバッグ用ファイルを出力 |
 | `--raw-ticks` | 音長を `%` tick 形式（例: `c%%N`）で出力（デフォルトは音価形式） |
 
@@ -268,6 +269,12 @@ candidate pools to retain their distinct syntax. Macros reduce source length, no
 necessarily compiled track memory. `--dump-passes` retains the pre-macro chip
 outputs; the merged MML contains the final definitions and calls.
 # Batch MGS compilation
+
+Batch regression also exports each compiled MGS through libkss and reports
+OPLL melodic KEYON totals, shortages and excesses in `results.csv`/`results.json`.
+Use `--skip-keyon-counts` to compile without playback comparison, or
+`--libkss-module` to select the installed playback module. See
+[batch dependency setup](docs/batch_mgs.md).
 
 Use `python scripts/batch_vgm_to_mgs.py INPUT_DIR --outdir OUTPUT_DIR` to
 recursively convert VGM and compile MGS with optional mgsc-js. Per-file failures

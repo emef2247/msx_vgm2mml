@@ -188,6 +188,38 @@ remain two/255. The shorter textual projection wins, with greedy winning ties.
 The performed loop report records `strategy` (`unit_count` or `text_cost`).
 This is a text-cost optimization, not an exact model of MGSDRV compiled size.
 
+## OPLL performed-note candidates (2026-10-01)
+
+OPLL now has an additional performed-note layer in `opll_note_units.py`.
+Continuous keyed intervals are grouped across pitch/volume register updates.
+Observed rising edges, key-off transitions and timing gaps delimit units;
+zero-duration key transitions still split them. Original Segments are retained.
+This does not coalesce emitted notes or alter gate/tie behavior.
+
+Candidate equality first uses note/rest kind and total duration. Replacement
+also requires equal positive-duration source-state trajectories (FNUM/BLOCK,
+volume, instrument/user patch and sustain) and identical expanded emitted
+commands. Equal adjacent source states may be compared as one trajectory run.
+Zero-duration state writes remain source members but do not enter the rendered
+trajectory; their key transitions still define boundaries. Analysis flags are
+not audible-state equality fields. No timing tolerance or pitch approximation
+is added to the loop matcher.
+
+The shorter of performed-note and existing Segment-based projections is chosen
+per channel. Existing projections remain the fallback; neither source text nor
+compiled capacity is guaranteed optimal after the separate macro stage.
+`.performed.units.csv` and Segment `performed_unit_id` now identify complete
+OPLL note/rest units with all constituent Segment indices. Loop reports retain
+`candidate_status` separately from the final selection status, including
+`different_state` when equal durations fail state validation. The same reason
+is included in Segment `performed_loop_path`.
+
+Measured compiled used bytes: sample 3489 -> 2963, sx01v 9189 -> 9125,
+grider 12954 -> 13096. Expanded melodic commands/times match the pre-change
+renderer in all three and Alest202. Alest202 remains unchanged and buffer-full;
+gra2_001 still exceeds the JS compiler source-size limit. These are remaining
+capacity problems, not resolved by this first note-unit layer.
+
 Gra2_005 selected output: 12688 -> 12575 characters; MGSC used bytes 4806 -> 4794.
 A weighted-only experiment used 4754 bytes but had longer text on some channels;
 that experiment is not the production selection policy. Expanded command streams

@@ -95,10 +95,13 @@ def build_segments(input_path, output_dir, stem=None, dump_passes=True):
     # Read raw CSV lines into logBuffer per channel
     log_buffer = {}   # ch -> list of raw CSV line strings
     ch_list = []
+    has_vgmticks = False
 
     with open(input_path, 'r', newline='') as f:
         for line in f:
             line = line.rstrip('\n').rstrip('\r')
+            if line.startswith('#'):
+                has_vgmticks = 'vgmticks' in line.split(',')
             if not line.strip() or line.strip().startswith('#') or line.strip().replace(',', '') == '':
                 continue
             cols = line.split(',')
@@ -118,6 +121,9 @@ def build_segments(input_path, output_dir, stem=None, dump_passes=True):
     os.makedirs(output_dir, exist_ok=True)
 
     PSG_HEADER = "#type,time,ch,ticks,l,fL,v,fV,f,fF,o,scale,en,fEn,vDiff,vCnt,oDiff,envlp,envlpIndex,nE,nF,offset,data,wtbIndex,fCtrlA,fCtrlB,wNCtrl,vVCtrl,aVCtrl,envPCtrlL,envPCtrlM,envShape,ioParallel1,ioParallel2"
+
+    if has_vgmticks:
+        PSG_HEADER += ',vgmticks'
 
     # -------------------------------------------------------
     # Pass 0: compute ticks from time, store as list-of-lists
@@ -181,6 +187,8 @@ def build_segments(input_path, output_dir, stem=None, dump_passes=True):
 
                 # --- process line_stamp ---
                 line_temp = list(line_stamp)
+                if has_vgmticks:
+                    line_temp.append(line[34])
                 type_ = line_stamp[COL_TYPE]
 
                 # l = ticks(current) - ticks(lineStamp)
@@ -241,6 +249,8 @@ def build_segments(input_path, output_dir, stem=None, dump_passes=True):
         # Last line (lineStamp = last element, l = 0)
         if line_stamp is not None and n > 0:
             line_temp = list(line_stamp)
+            if has_vgmticks:
+                line_temp.append(line_stamp[34])
             type_ = line_stamp[COL_TYPE]
 
             l = 0
@@ -272,7 +282,7 @@ def build_segments(input_path, output_dir, stem=None, dump_passes=True):
     if dump_passes:
         pass1_path = os.path.join(output_dir, f"{output_name_body}.psg.pass1.csv")
         with open(pass1_path, 'w', newline='\n') as f:
-            f.write(PSG_HEADER + '\n')
+            f.write(PSG_HEADER + (',vgmticks_end' if has_vgmticks else '') + '\n')
             for ch in ch_list:
                 for row in temp_buffer1[ch]:
                     f.write(_row_to_csv(row) + '\n')
@@ -300,7 +310,7 @@ def build_segments(input_path, output_dir, stem=None, dump_passes=True):
     if dump_passes:
         pass2_path = os.path.join(output_dir, f"{output_name_body}.psg.pass2.csv")
         with open(pass2_path, 'w', newline='\n') as f:
-            f.write(PSG_HEADER + '\n')
+            f.write(PSG_HEADER + (',vgmticks_end' if has_vgmticks else '') + '\n')
             for ch in ch_list:
                 for row in temp_buffer2[ch]:
                     f.write(_row_to_csv(row) + '\n')
@@ -308,7 +318,9 @@ def build_segments(input_path, output_dir, stem=None, dump_passes=True):
     # -------------------------------------------------------
     # Pass 3: add lDiff, vDiff, oDiff, cnt columns
     # -------------------------------------------------------
-    PSG_HEADER3 = PSG_HEADER + ",vDiff,oDiff,cnt"
+    PSG_HEADER3 = (PSG_HEADER.rsplit(",vgmticks", 1)[0] if has_vgmticks else PSG_HEADER) + ",vDiff,oDiff,cnt"
+    if has_vgmticks:
+        PSG_HEADER3 += ",vgmticks,vgmticks_end"
     temp_buffer3 = {}
     for ch in ch_list:
         temp_buffer3[ch] = []
@@ -326,7 +338,7 @@ def build_segments(input_path, output_dir, stem=None, dump_passes=True):
                 cnt += 1
             else:
                 cnt = 1
-            new_row = list(row) + [str(l_diff), str(o_diff), str(cnt)]
+            new_row = list(row[:34]) + [str(l_diff), str(o_diff), str(cnt)] + list(row[34:])
             temp_buffer3[ch].append(new_row)
             l_stamp = l
             v_diff_stamp = v_diff
@@ -349,6 +361,8 @@ def build_segments(input_path, output_dir, stem=None, dump_passes=True):
 
 def _to_segment(row):
     return PsgSegment(
+        vgmticks=int(row[37]) if len(row) > 37 and row[37] else None,
+        vgmticks_end=int(row[38]) if len(row) > 38 and row[38] else None,
         ev_type=row[COL_TYPE], time=float(row[COL_TIME] or 0), ch=_int(row[COL_CH]),
         ticks=_int(row[COL_TICKS]), l=_int(row[COL_L]),
         tone_period=_int(row[COL_F]), volume=_int(row[COL_V]),

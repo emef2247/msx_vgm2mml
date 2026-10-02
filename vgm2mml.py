@@ -137,6 +137,8 @@ def main():
                         help='Preferred GD3 language, with per-field fallback (default: ja)')
     parser.add_argument('--dump-passes', action='store_true',
                         help='Keep event log/trace CSVs and write pass0-3 and PSG/SCC Segment CSVs')
+    parser.add_argument('--vgmticks', action='store_true',
+                        help='Append absolute VGM sample positions to trace/Segment evidence; does not retime MML')
     parser.add_argument('--debug', action='store_true',
                         help='Write all chip-specific MML variants and raw CSV files '
                              'in addition to the merged <stem>.mml output')
@@ -186,7 +188,8 @@ def main():
     # ── Step 1: Parse VGM → SCC + PSG + OPLL log/trace CSVs ──────
     (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
      opll_log_csv, opll_trace_csv, opll_voice_csv, opll_regs_csv) = parse_vgm(
-         vgm_path, song_dir, dump_loop=args.debug or args.dump_passes)
+         vgm_path, song_dir, dump_loop=args.debug or args.dump_passes,
+         include_vgmticks=args.vgmticks)
 
     if args.debug:
         print(f"PSG log:       {psg_log_csv}")

@@ -81,12 +81,12 @@ def _row_to_csv(row):
     return ','.join(str(v) for v in row)
 
 
-def _parse_input_line(line):
+def _parse_input_line(line, include_vgmticks=False):
     """Split a CSV line into a padded list of NUM_COLS normalised strings."""
     parts = line.split(',')
     while len(parts) < NUM_COLS:
         parts.append(EMPTY)
-    parts = parts[:NUM_COLS]
+    parts = parts[:NUM_COLS + int(include_vgmticks)]
     return [_norm(p) for p in parts]
 
 
@@ -152,7 +152,7 @@ class _EnvlpTracker:
 # Pass 0
 # ---------------------------------------------------------------------------
 
-def _pass0(log_buffer, ch_list):
+def _pass0(log_buffer, ch_list, include_vgmticks=False):
     """Recalculate ticks, update wtbIndex for completed waveforms.
 
     Returns:
@@ -166,7 +166,7 @@ def _pass0(log_buffer, ch_list):
         temp_buf0[ch] = []
         wave_id = 0
         for raw_line in log_buffer[ch]:
-            row = _parse_input_line(raw_line)
+            row = _parse_input_line(raw_line, include_vgmticks)
 
             # Recalculate ticks from time
             time_s = float(row[COL_TIME]) if row[COL_TIME] not in ('', EMPTY) else 0.0
@@ -205,6 +205,8 @@ def _pass1(temp_buf0, ch_list):
         previous_v = 0
         for index, source in enumerate(rows):
             row = list(source)
+            if len(row) > NUM_COLS:
+                row.append(rows[index + 1][NUM_COLS] if index + 1 < len(rows) else row[NUM_COLS])
             tick = _int(row[COL_TICKS])
             end = _int(rows[index + 1][COL_TICKS]) if index + 1 < len(rows) else tick
             f = _get_frequency(row) & 0xfff
@@ -345,10 +347,13 @@ def build_segments(input_path, output_dir, dump_passes=True, stem=None):
     # ---- Read input CSV ----
     log_buffer = {}
     ch_list = []
+    has_vgmticks = False
 
     with open(input_path, 'r', newline='') as fh:
         for line in fh:
             line = line.rstrip('\r\n')
+            if line.startswith('#'):
+                has_vgmticks = 'vgmticks' in line.split(',')
             if not line or line.lstrip().startswith('#'):
                 continue
             if not line.replace(',', '').strip():
@@ -361,32 +366,32 @@ def build_segments(input_path, output_dir, dump_passes=True, stem=None):
             log_buffer[ch].append(line)
 
     # ---- Pass 0 ----
-    temp_buf0, wtb_tracker = _pass0(log_buffer, ch_list)
+    temp_buf0, wtb_tracker = _pass0(log_buffer, ch_list, has_vgmticks)
     if dump_passes:
         _write_csv(
             os.path.join(output_dir, f'{file_name_body}.scc.pass0.csv'),
-            SCC_HEADER_PASS0, ch_list, temp_buf0)
+            SCC_HEADER_PASS0 + (',vgmticks' if has_vgmticks else ''), ch_list, temp_buf0)
 
     # ---- Pass 1 ----
     temp_buf1 = _pass1(temp_buf0, ch_list)
     if dump_passes:
         _write_csv(
             os.path.join(output_dir, f'{file_name_body}.scc.pass1.csv'),
-            SCC_HEADER_PASS1, ch_list, temp_buf1)
+            SCC_HEADER_PASS1 + (',vgmticks,vgmticks_end' if has_vgmticks else ''), ch_list, temp_buf1)
 
     # ---- Pass 2 ----
     temp_buf2 = _pass2(temp_buf1, ch_list)
     if dump_passes:
         _write_csv(
             os.path.join(output_dir, f'{file_name_body}.scc.pass2.csv'),
-            SCC_HEADER_PASS23, ch_list, temp_buf2)
+            SCC_HEADER_PASS23 + (',vgmticks,vgmticks_end' if has_vgmticks else ''), ch_list, temp_buf2)
 
     # ---- Pass 3 ----
     temp_buf3, _envlp = _pass3(temp_buf2, ch_list)
     if dump_passes:
         _write_csv(
             os.path.join(output_dir, f'{file_name_body}.scc.pass3.csv'),
-            SCC_HEADER_PASS23, ch_list, temp_buf3)
+            SCC_HEADER_PASS23 + (',vgmticks,vgmticks_end' if has_vgmticks else ''), ch_list, temp_buf3)
 
     waveforms = tuple(wtb_tracker.bytes_list)
     segments = {ch: [_to_segment(row, waveforms) for row in temp_buf3[ch]] for ch in ch_list}
@@ -404,6 +409,8 @@ def build_segments(input_path, output_dir, dump_passes=True, stem=None):
 def _to_segment(row, waveforms):
     wave_id = _int(row[COL_WTBINDEX])
     return SccSegment(
+        vgmticks=int(row[28]) if len(row) > 28 and row[28] not in ('', EMPTY) else None,
+        vgmticks_end=int(row[29]) if len(row) > 29 and row[29] not in ('', EMPTY) else None,
         ev_type=row[COL_TYPE], time=float(row[COL_TIME]) if row[COL_TIME] not in ('', EMPTY) else 0,
         ch=_int(row[COL_CH]), ticks=_int(row[COL_TICKS]), l=_int(row[COL_L]),
         tone_period=_int(row[COL_F]), previous_tone_period=_int(row[COL_FF]),

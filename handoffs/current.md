@@ -660,3 +660,76 @@ the tool does not compile or export MGS. See docs/opll_keyon_counts.md.
 - Added gzip-signature input detection shared by trace decoding and GD3. VGM <1.50 / zero data-offset headers start at 0x40. Invalid headers/offsets fail explicitly.
 - All 42 PS1FM/FFMSX fixtures now produce OPLL register traces; representative MML conversions succeeded.
 - Regression conversion_failed entries are deleted duplicate RType fixtures, per user; do not treat them as decoder failures.
+
+## Integrated batch KEYON regression
+- Batch MGS conversion now exports the existing compiled MGS using libkss and compares OPLL melodic key-on counts by default; no second MML conversion or compilation.
+- CSV/JSON retain four counts plus separate comparison status/error. Missing dependencies, export caps and failures leave counts blank.
+- --skip-keyon-counts restores compile-only operation; --libkss-module selects an explicit playback module.
+- grider end-to-end export/count check succeeded. No audio equivalence or optimized allocation is claimed.
+
+## OPLL performed-note loop layer
+- Added source-linked note/rest grouping and duration-first repeat candidates. True key edges (including zero-tick ones) still delimit units.
+- Equal durations alone never authorize replacement: complete rendered trajectories and command iterations must match. Existing Segment loops remain a fallback.
+- Segment CSVs retain unit membership; loop reports and paths retain candidate rejection/selection separately.
+- Sample/sx01v compile into fewer bytes; grider has shorter source but larger compiled tracks. Alest202 buffer-full and gra2_001 source-size overflow remain unresolved.
+- Expanded melodic commands/times were checked against HEAD renderer for all four OPLL inputs; representative MGSC and MGS-export KEYON checks were run. No chip-specific heuristics or new timing/pitch tolerance.
+
+## Reference-loop validation (three songs only)
+- User excluded gra2_001; inspect sample, grider and sx01v only.
+- Added a bounded reference-loop window audit with source CSV line links, state sequences and interval dumps. Four parser tests pass. Approximate window mismatches are inspection leads, not failed conversion assertions.
+- Ordinary repeated instructions can produce identical source states while some integer tick boundaries differ by one tick. Do not discard pitch/volume/voice differences or relax production equality without a separate decision.
+- Existing generated MGS files compiled and were exported back into Segment CSVs. Per-song KEYON shortages are 5/38/11; positive keyed-unit shortages are 1/3/1, all source duration one tick. Counts are inventories, not matched missing-event or acoustic-quality scores.
+- Isolated first-state pitch/volume differences remain for detailed trajectory inspection. No conversion behavior was changed for this audit.
+- Findings and limitations: field_notes/2026-10-01_reference_loop_validation.md. Local detailed outputs: Codex workspace outputs/reference-loop-audit. Do not commit private fixture data or claim full byte/patch/noise/WAV equivalence.
+
+## Sample reference-loop diagnosis
+- Regenerated only public sample with --dump-passes, and checked actual final loops after macro expansion against reference phrases. See field_notes/2026-10-01_sample_loop_diagnosis.md and Codex outputs/sample-loop-diagnosis/reference_loop_verdicts.csv.
+- Reference line 22 (9/a) is not recovered as a complete two-iteration loop. Its corresponding 28 note/rest units have identical non-timing positive-state sequences, but 5/13 units differ in duration by one tick. Current duration and timed-trajectory equality fail: a concrete missed loop involving timing, not merely a possibility.
+- Reference lines 25-27 (b/c/d) also lack complete loops, despite identical source-unit validation keys. Initialization/octave command differences are the separate obstruction; do not attribute these to jitter.
+- Line 20 is partially looped (setup first, remaining three iterations); line 21 and lines 28-30 are fully looped. PSG/rhythm repeated cores are looped at shifted boundaries, without reference last-pass exits.
+- No tolerance, new vgmticks field or renderer changes were made. The origin of the one-tick differences (source waits versus floating point/60 Hz quantization) is not established. User asked first to diagnose whether reference loops are recovered; do not broaden to a catalog regression.
+
+## Isolated sample musical-length experiment
+- Reference-guided local helper uses tempo120/l16/q6/q7/q2 but derives note/pitch/volume/voice order from native Segments. Not a production change or automatic timing estimator.
+- MML6453 ->4341 characters; MGSC total used2963 ->2410 bytes, OPLL melodic used2137 ->972. Fully recovered first-pass reference melodic loops5/12 ->12/12. Initialization layout also improves, so savings are not purely timing relaxation.
+- Source snapshots unchanged; compressed normalized commands/times exactly equal uncompressed normalized stream. Maximum boundary shift2.625 source ticks; correction CSV retained.
+- MGS export604 KEYONs, same as baseline. With declared1ms intermediate-state inspection threshold and raw time, all604 substantive keyed-note state sequences match. Rhythm instrument/volume sequence282hits and custom-patch byte sequences match. Unfiltered differences retained; no WAV equivalence claimed.
+- Playable artifact and helper: Codex outputs/sample-note-length-experiment. Findings: field_notes/2026-10-01_sample_note_length_experiment.md. Do not enable this reference-guided method for other fixtures without a separate request and general timing inference design.
+
+## Shared source timing and sample reference audit (2026-10-02)
+- User corrected the intended clock policy: all chips share the VGM stream origin;
+  all waits must count. Reader now accumulates integer samples, including formerly
+  skipped 0x77/0x7A and DAC waits/overrides, and derives time without chip rebasing.
+- `--vgmticks --dump-passes` adds absolute samples and source interval ends to
+  trace/pass/Segment CSVs; old CSVs retain unavailable samples as None. Command
+  timing evidence is also dumped. No musical normalization was enabled.
+- New audit: scripts/compare_reference_vgmticks.py; see docs/vgm_timing.md and
+  field_notes/2026-10-02_sample_vgmticks.md. Public sample evidence and compiled
+  MML are in Codex outputs/sample-vgmticks/with-source-clock; audit is in comparison.
+- OPLL 32 comparable later repetitions: at most 139 samples of raw timing difference,
+  stable states agree; four rounded-offset windows differ by at most one 60 Hz tick.
+  PSG and rhythm each have eight comparable repetitions with equal state sequences
+  but different sample timing. PSG alignment is reference-specific, not a KEYON rule.
+- Sample MML is identical with/without evidence flag and compiles with MGSC.
+  Public conversion regression and bounded timing/chip/target/rhythm tests passed.
+  SCC's old synthetic test origin hack was removed in favor of absolute write times.
+- Next permitted work is to review source jitter versus musical normalization policy.
+  Do not silently enable normalization, run a broad catalog or overwrite fixtures.
+
+## Shared timing adoption after local regression (2026-10-02)
+- User completed PSG/SCC, PSG/OPLL and OPLL batch runs. Reviewed CSV/JSON agree:
+  669 reported inputs, 399 MGS successes, 269 Track buffer full failures, one
+  missing-input failure. The user deliberately deleted the temporary exported
+  YsSMS01.vgm; ignore that case for adoption. Present inputs have no observed
+  converter exceptions. No generated outputs were changed during review.
+- All 399 compiled inputs completed OPLL melodic KEYON comparison. Count
+  differences remain (including large PRIMK/FMPAC shortages); they are not a
+  timing-change attribution or proof of specific missing events. Rhythm and
+  PSG/SCC notes are outside this metric.
+- Recorded totals, evidence paths and limits in
+  field_notes/2026-10-02_vgmticks_regression.md. User approved production adoption
+  and will commit this record, create a PR and merge into main themselves.
+  Do not perform those git actions on their behalf.
+- After that merge, the next requested task is musical duration normalization.
+  Preserve raw sample evidence and distinguish corrected target timing from
+  observed source intervals. Normalization remains disabled at this checkpoint.

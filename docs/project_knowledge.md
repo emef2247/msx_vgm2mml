@@ -1808,9 +1808,29 @@ all source melodic edges in Segments; the previous ch0/ch1/ch2 losses were
 explain its reported lighter sound. See the OPLL key/envelope field note.
 
 ## Declared VGM loops
-The header field at 0x1C is relative to 0x1C; zero means no loop. Record the command boundary before consuming it. Preserve chip state and do not add a KEYON at this boundary. Source-sample time and legacy trace wait time are distinct. See docs/vgm_loop.md.
+The header field at 0x1C is relative to 0x1C; zero means no loop. Record the command boundary before consuming it. Preserve chip state and do not add a KEYON at this boundary. Trace time now uses the same absolute source-sample clock as loop metadata. See docs/vgm_loop.md and docs/vgm_timing.md.
 
 Compressed VGM input must be detected by the gzip signature, not the extension.
 Read GD3 and command headers after decompression. VGM versions below 1.50 and
 a zero data-offset field use data start 0x40. Reject invalid headers/offsets
 instead of silently producing an empty conversion.
+
+## Shared source clock and optional sample evidence
+
+VGM wait samples are accumulated as integers at 44100 Hz. Every chip uses the
+same origin at stream sample zero; do not rebase each chip at its first write.
+All waits count, including short waits 0x77/0x7A, DAC waits and overrides.
+Command payloads must be skipped by length rather than scanned as commands.
+Trace time is derived from the accumulated samples; 60 Hz ticks remain a target
+quantization and are not source timing evidence.
+
+`--vgmticks` preserves absolute start/end samples in trace/pass/Segment dumps.
+Missing source samples in old CSVs remain unavailable, not inferred from rounded
+time. Source interval ends are not necessarily musical gate ends. Same-sample
+writes stay ordered, and physical sub-tick intervals must not disappear solely
+because their derived 60 Hz length is zero. See docs/vgm_timing.md.
+
+Raw sample timing may still vary between reference-MML repetitions. Keep exact
+evidence and diagnostic stable-state views separate from a future tolerant loop
+or musical-normalization policy. The sample PSG volume-reset alignment is only
+a reference-specific audit method and must not become a general KEYON definition.

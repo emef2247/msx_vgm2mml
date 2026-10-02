@@ -1,6 +1,6 @@
 # Batch VGM to MGS
 
-Native `mgsc` on PATH is preferred; Node.js and mgsc-js are not needed in that
+Native `mgsc` on PATH is preferred; mgsc-js is not needed in that
 case. The native CLI is invoked as `mgsc INPUT.mml OUTPUT.mgs`. Specify an
 executable explicitly with `--mgsc /usr/local/bin/mgsc`.
 
@@ -22,14 +22,14 @@ python scripts/batch_vgm_to_mgs.py tests/fixtures/local_only/opll --outdir outpu
 ```
 
 Alternatively pass `--mgsc-module /absolute/path/to/mgsc-js/dist/index.js`.
-No libkss dependency is needed. Input/output trees must be separate. The tool
+Compilation alone needs no libkss dependency (`--skip-keyon-counts`). Input/output trees must be separate. The tool
 checks that Node can load and initialize MGSC before any conversion. Missing
 mgsc-js is an environment/setup error, not an MML compilation error. In WSL,
 run the npm installation from this repository in WSL (a globally installed
 package is not sufficient for the helper's module resolution).
 
 The tool
-recursively finds .vgm files, retains their relative directories, and creates
+recursively finds .vgm/.vgz files, retains their relative directories, and creates
 a per-input directory containing generated MML, MGS on success, and convert.log
 and compile.log. Existing MML/MGS for the same input in that output directory
 are replaced on reruns. Source files are never modified.
@@ -40,6 +40,41 @@ their exact message remains in the log. Exit status is 1 if any input failed.
 Failures do not stop later files. No allocation adjustment or music truncation
 is performed. `--timeout` sets the per-stage timeout in seconds (default 300).
 MGS compilation does not prove playback equivalence.
+
+## Integrated OPLL key-on counts
+
+By default each successfully compiled MGS is exported to
+`<stem>.roundtrip.vgm` with libkss and compared against its source VGM.
+Neither VGM-to-MML conversion nor MGS compilation is repeated for this check.
+Install the optional playback dependency in the repository:
+
+```sh
+npm install --no-save --package-lock=false libkss-js
+python scripts/batch_vgm_to_mgs.py tests/fixtures/local_only/opll --outdir outputs/mgs
+```
+
+Alternatively use `--libkss-module /absolute/path/to/libkss-js/dist/index.js`.
+Node.js is needed for playback even when using native MGSC.
+Use `--skip-keyon-counts` for the previous conversion/compilation-only workflow.
+
+`results.csv` and `results.json` also contain `reference_keyon`, `actual_keyon`,
+`missing_keyon`, `extra_keyon`, `keyon_status`, and `keyon_error`.
+Compilation `status` remains independent. `keyon_status` is `compared`,
+`not_compiled`, `unavailable` (dependency failure), `error`, or `disabled`.
+Unperformed comparisons have blank counts, never fabricated zeros.
+Count differences do not make compilation unsuccessful; exit status is 1 when
+conversion/compilation or an enabled comparison cannot complete.
+
+`keyon_setup.log` records playback setup. Each successful export retains the
+VGM, `keyon.log`, and a `keyon/` folder with both sides' traces, key edges and
+summary JSON. Segment reconstruction is omitted in this batch count-only check;
+the standalone comparison command still supports detailed Segment dumps.
+
+Playback uses one pass (`loop: 1`), with a safety duration of the source header's
+total samples plus 25% and two seconds. A zero source duration or an export
+reaching the duration limit is reported as incomplete instead of supplying
+misleading counts. A timeout/error affects that comparison only; later inputs
+still run. See [key-on count semantics](opll_keyon_counts.md).
 
 Optional conversion regressions cover WBIII01..14, ThBSMS01..05, YsSMS01..20,
 and Alest201..217. Missing local files skip individually; private data is not

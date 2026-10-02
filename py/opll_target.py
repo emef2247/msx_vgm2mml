@@ -38,7 +38,7 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
     from melody_patterns import analyze
     from melody_loops import project, dump_projection
     from performed_patterns import Unit, compress, dump_units
-    from types import SimpleNamespace
+    from opll_note_units import group_notes
     performed = {}
     before_lines, loop_report = [], []
     updates = []
@@ -126,10 +126,17 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
             units = [Unit(i, i + 1, 'note' if segments[ch][i].keyon else 'rest',
                           item.signature()) for i, item in enumerate(items)]
             commands = [' '.join(body[boundaries[i]:boundaries[i + 1]]) for i in range(len(items))]
-            performed_text, hierarchy = compress(units, commands)
-            notes = [SimpleNamespace(start=item.tick, length=item.duration,
-                                     segment_indices=[i]) for i, item in enumerate(items)]
-            performed[ch] = (notes, units, hierarchy)
+            legacy_performed_text, _ = compress(units, commands)
+            note_members, note_units = group_notes(segments[ch], items)
+            note_commands = [' '.join(body[boundaries[n.segment_indices[0]]:
+                                           boundaries[n.segment_indices[-1] + 1]])
+                             for n in note_members]
+            performed_text, hierarchy = compress(note_units, note_commands)
+            performed[ch] = (note_members, note_units, hierarchy)
+            if len(legacy_performed_text) < len(performed_text):
+                performed_text = legacy_performed_text
+                for entry in hierarchy:
+                    entry['status'] = 'legacy_projection_selected'
             body, report = project(body, boundaries, analysis[ch], ch)
             selected = len(performed_text) <= len(' '.join(body))
             if selected:

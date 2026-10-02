@@ -4,7 +4,7 @@ import struct
 
 
 def read_loop_metadata(raw):
-    """Keep source samples separate from the reader's legacy trace clock.
+    """Observe samples on the same global clock used by the reader.
 
     Unsupported commands stop inspection: a payload byte must never be
     mistaken for a command boundary. This does not change trace decoding.
@@ -84,9 +84,7 @@ def read_loop_metadata(raw):
             result['status'] = 'inside_command'
             return result
         samples += wait
-        # Preserve the existing Tcl-compatible trace timing as a separate fact.
-        if cmd not in (0x77, 0x7a) and not 0x80 <= cmd <= 0x8f:
-            trace_samples += {0x62: 735, 0x63: 882}.get(cmd, wait)
+        trace_samples += wait
         pos += size
     result['status'] = 'missing_end_command'
     return result

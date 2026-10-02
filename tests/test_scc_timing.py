@@ -60,12 +60,11 @@ class SccTimingTests(unittest.TestCase):
             state.write_scc(0, 0x9880 + ch * 2, 0xe0)
             state.write_scc(0, 0x9881 + ch * 2, 5)
             state.write_scc(0, 0x988a + ch, 10)
-        # Set the time origin before nonzero timestamps (legacy reader clock).
-        state._start_time = -1
+        # State writes use the shared VGM origin, including setup at sample zero.
         for tick, volume, low in ((10, 9, 0x40), (20, 8, 0x40), (30, 8, 0xe0), (40, 0, 0xe0)):
             for ch in range(5):
-                state.write_scc(tick / 60 - 1, 0x9880 + ch * 2, low)
-                state.write_scc(tick / 60 - 1, 0x988a + ch, volume)
+                state.write_scc(tick / 60, 0x9880 + ch * 2, low)
+                state.write_scc(tick / 60, 0x988a + ch, volume)
         with tempfile.TemporaryDirectory() as folder:
             trace = Path(folder) / 'trace.csv'
             state.output_trace_csv(trace)
