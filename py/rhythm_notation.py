@@ -77,7 +77,8 @@ def optimize(text, raw_ticks=False):
                     candidates.add(_duration(match[2], match[3], 48))
     collect(nodes)
     for length in sorted(candidates):
-        suffix = str(192 // length) if not raw_ticks and 192 % length == 0 else f'%{length}'
+        suffix = (str(192 // length) if not raw_ticks and 192 % length == 0
+                  and 192 // length in (1, 2, 4, 8, 16, 32, 64) else f'%{length}')
         trial = f'l{suffix} ' + spelling(_lengths(nodes, length))
         if len(trial) < len(best):
             best = trial

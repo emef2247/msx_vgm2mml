@@ -733,3 +733,51 @@ the tool does not compile or export MGS. See docs/opll_keyon_counts.md.
 - After that merge, the next requested task is musical duration normalization.
   Preserve raw sample evidence and distinguish corrected target timing from
   observed source intervals. Normalization remains disabled at this checkpoint.
+
+## Optional musical normalization implemented (2026-10-02)
+- User requested source-inferred correction on sample, then bounded benchmarks
+  of sample/grider/sx01v. Added py/note_normalization.py and --normalize-lengths
+  to converter and batch CLI. Default conversion is unchanged; no Git commit,
+  staging, branch switch or PR was performed.
+- Fit a common OPLL onset clock, project notes/gates and rhythm, retime PSG/SCC
+  commands without scaling frame envelopes. Native traces/Segments stay intact.
+  Unsafe/uncertain projection retains all conventional target parts. grider
+  abstains because no sufficiently confident shared clock was found.
+- Corrected sample: 6333 ->3544 characters, MGSC used2956 ->1678 bytes,
+  source/export KEYON609/609. sx01v:17428 ->11248 characters, used9128 ->7183,
+  KEYON1615/1615. grider unchanged25243/13075, KEYON2596/2559.
+- Ordered pitch/volume/voice state runs agree for sample/sx01v with explicit
+  44-sample intermediate inspection threshold; rhythm instrument/volume counts
+  and sequences also agree. No WAV equivalence or general PSG/SCC-only clock
+  estimator is claimed. Full evidence and limits in the benchmark field note.
+- Artifacts: Codex outputs/length-normalization/{sample,grider,sx01v}/normalized.
+  Normalization JSON plus dump-only note/loop CSVs distinguish target correction
+  from source samples. Exact loop expansion and effective setter-state equality
+  are checked before writing target files. Sample CLI native CSV identity and
+  default public conversion regression passed.
+- Bounded verification finished: 39 tests passed across normalization, rhythm
+  rendering/notation, batch and public conversion suites; git diff --check clean.
+  Saved native Segment CSVs match byte-for-byte across all three benchmark cases.
+- Next: user listening and opt-in regression; do not auto-enable correction,
+  copy reference tempos, run a broad catalog or overwrite fixture evidence.
+
+## User-run normalization regression reviewed (2026-10-02)
+- Recorded completed PSG+OPLL (26) and OPLL (565) runs in
+  field_notes/2026-10-02_normalize_lengths_regression.md. CSV/JSON agree;
+  per-input correction reports were reviewed. PSG/SCC-only interrupted run is
+  not needed for this comparison and receives no correction with current inference.
+- Correction applied to 3/26 and 101/565 inputs. Current compilation: 346 success,
+  243 buffer_error, 2 compile_failed; no current conversion exceptions.
+- Compare shared input paths: five OPLL buffer errors resolved (Alest208/211,
+  FRAY06/11, ILCITY23), but XEVIFS07/08 newly fail Invalid length on r%1 at
+  inferred tempo149. OPLL catalog adds22 F1SPRT3D paths and removes2 temp exports;
+  do not attribute raw success-total growth to correction. PSG+OPLL statuses unchanged.
+- All five buffer-resolved cases are among26 applied songs whose MGS export
+  reaches its duration cap. Compilation success is not completed fidelity checking.
+  Paired completed OPLL set285: shortage1941->1848, excess32->32;12 inputs
+  improve,273 unchanged,none worsen. Incomplete cases are outside that comparison.
+- Pending: minimum-length regression and export-duration/termination investigation,
+  then per-note semantic correction policy and larger phrase/last-pass-exit loops.
+  The95% heuristic is provisional; user questioned it and favors semantic bounds.
+- User will commit/push codex/normalize-lengths. This review only writes records;
+  no code fixes, staging, commit/push, catalog rerun or fixture changes performed.

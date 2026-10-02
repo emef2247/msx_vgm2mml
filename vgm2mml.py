@@ -20,6 +20,7 @@ Example:
 import sys
 import os
 import argparse
+import json
 
 # Allow importing py/ siblings from the repository root
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -74,7 +75,7 @@ def _build_merged_mml(stem: str, song_dir: str,
                       has_psg: bool, has_scc: bool, has_opll: bool,
                       raw_ticks: bool = False, sync_min_gap: int = 1000,
                       target: bool = True, name: str | None = None,
-                      title: str | None = None) -> str:
+                      title: str | None = None, tempo: int | None = None) -> str:
     """Build the merged MML text from per-chip compress outputs.
 
     The merged file has a single global header followed by PSG, SCC, and OPLL
@@ -87,7 +88,7 @@ def _build_merged_mml(stem: str, song_dir: str,
     lines.append('#opll_mode 1')
     if target and (has_psg or has_scc):
         lines.append(TUNING_HEADER)
-    lines.append('#tempo 75' if raw_ticks else '#tempo 225')
+    lines.append(f'#tempo {tempo}' if tempo is not None else '#tempo 75' if raw_ticks else '#tempo 225')
     lines.append(f'#title {{ "{stem if title is None else title}"}}')
     lines.append('')
 
@@ -139,6 +140,8 @@ def main():
                         help='Keep event log/trace CSVs and write pass0-3 and PSG/SCC Segment CSVs')
     parser.add_argument('--vgmticks', action='store_true',
                         help='Append absolute VGM sample positions to trace/Segment evidence; does not retime MML')
+    parser.add_argument('--normalize-lengths', action='store_true',
+                        help='Infer a shared musical clock and normalize target note lengths; retain source samples')
     parser.add_argument('--debug', action='store_true',
                         help='Write all chip-specific MML variants and raw CSV files '
                              'in addition to the merged <stem>.mml output')
@@ -160,6 +163,8 @@ def main():
     args = parser.parse_args()
     if args.sync_min_gap < 0:
         parser.error('--sync-min-gap must be nonnegative')
+    if args.normalize_lengths and args.raw_ticks:
+        parser.error('--normalize-lengths cannot be combined with --raw-ticks')
 
     for field, value in (('name', args.name), ('title', args.title)):
         if value is not None and (any(c in value for c in '\r\n') or
@@ -189,7 +194,7 @@ def main():
     (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
      opll_log_csv, opll_trace_csv, opll_voice_csv, opll_regs_csv) = parse_vgm(
          vgm_path, song_dir, dump_loop=args.debug or args.dump_passes,
-         include_vgmticks=args.vgmticks)
+         include_vgmticks=args.vgmticks or args.normalize_lengths)
 
     if args.debug:
         print(f"PSG log:       {psg_log_csv}")
@@ -240,12 +245,32 @@ def main():
     if args.debug:
         print(f"OPLL MML: {opll_mml_path}")
 
+    # Optional target-only normalization; legacy passes and Segment dumps stay native.
+    normalized_tempo = None
+    if args.normalize_lengths:
+        from note_normalization import normalize_outputs
+        from psg import build_segments as build_psg
+        from scc import build_segments as build_scc
+        controls = {}
+        if has_psg:
+            controls['psg'] = build_psg(psg_csv, song_dir, base_name, dump_passes=False)
+        if has_scc:
+            controls['scc'] = build_scc(scc_csv, song_dir, dump_passes=False, stem=base_name).segments
+        normalized_tempo = normalize_outputs(opll_trace_csv, opll_voice_csv, song_dir,
+                                             base_name, args.dump_passes or args.debug, controls)
+        if normalized_tempo is not None:
+            print(f'Note normalization: applied (tempo {normalized_tempo})')
+        else:
+            with open(os.path.join(song_dir, f'{base_name}.normalization.json'), encoding='utf-8') as stream:
+                reason = json.load(stream)['reason']
+            print(f'Note normalization: unchanged ({reason})')
+
     # ── Step 5: Build merged MML ──────────────────────────────────
     merged_text = _build_merged_mml(base_name, song_dir,
                                     has_psg, has_scc, has_opll,
                                     raw_ticks=args.raw_ticks,
                                     sync_min_gap=args.sync_min_gap,
-                                    name=args.name, title=args.title)
+                                    name=args.name, title=args.title, tempo=normalized_tempo)
     merged_text = override_alloc(merged_text, args.alloc)
     merged_path = os.path.join(song_dir, f'{base_name}.mml')
     with open(merged_path, 'w', encoding='utf-8', newline='\n') as fh:

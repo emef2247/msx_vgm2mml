@@ -79,3 +79,9 @@ still run. See [key-on count semantics](opll_keyon_counts.md).
 Optional conversion regressions cover WBIII01..14, ThBSMS01..05, YsSMS01..20,
 and Alest201..217. Missing local files skip individually; private data is not
 included. Run `python -m unittest discover -s tests -p test_local_opll_catalog.py`.
+
+`--normalize-lengths` forwards optional musical duration correction to each
+conversion. It does not change the default or run conversion twice. Per-input
+`convert.log` and `<stem>.normalization.json` report applied/unchanged status;
+compiled MGS and KEYON comparison use that same output. See
+[normalization behavior and limits](note_normalization.md).

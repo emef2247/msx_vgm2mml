@@ -21,9 +21,10 @@ class BatchMgs(unittest.TestCase):
                 return subprocess.CompletedProcess(command,0,b'Bad MML',b'diagnostic')
             with patch('batch_vgm_to_mgs.shutil.which', return_value='/usr/local/bin/mgsc'), \
                  patch('batch_vgm_to_mgs.subprocess.run', side_effect=run):
-                rows = run_batch(source,out,keyon=False)
+                rows = run_batch(source,out,keyon=False,normalize_lengths=True)
             self.assertEqual(len(calls),2)
             self.assertEqual(calls[1][0],'/usr/local/bin/mgsc')
+            self.assertIn('--normalize-lengths', calls[0])
             self.assertEqual(calls[1][1:], [str(out/'a.vgm/a.mml'),str(out/'a.vgm/a.mgs')])
             self.assertEqual(rows[0]['status'],'compile_failed')
             self.assertIn('diagnostic',(out/'a.vgm/compile.log').read_text())
