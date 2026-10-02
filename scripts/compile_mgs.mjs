@@ -15,7 +15,14 @@ if (input === '--check') {
   console.log('MGSC initialized successfully');
   process.exit(0);
 }
-const result = MGSC.compile(fs.readFileSync(input, 'utf8'));
+const bytes = fs.readFileSync(input);
+let source;
+try {
+  source = new TextDecoder('utf-8', {fatal: true}).decode(bytes);
+} catch {
+  source = new TextDecoder('shift_jis').decode(bytes);
+}
+const result = MGSC.compile(source);
 console.log(result.rawMessage);
 if (!result.success) process.exit(1);
 fs.writeFileSync(output, result.mgs);

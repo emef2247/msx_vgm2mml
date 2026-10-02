@@ -273,7 +273,7 @@ def main():
                                     name=args.name, title=args.title, tempo=normalized_tempo)
     merged_text = override_alloc(merged_text, args.alloc)
     merged_path = os.path.join(song_dir, f'{base_name}.mml')
-    with open(merged_path, 'w', encoding='utf-8', newline='\n') as fh:
+    with open(merged_path, 'w', encoding='cp932', errors='replace', newline='\n') as fh:
         fh.write(merged_text)
     print(f"Merged MML: {merged_path}")
     if not args.debug and not args.dump_passes:

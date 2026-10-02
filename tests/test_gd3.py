@@ -19,8 +19,13 @@ class Gd3(unittest.TestCase):
 
     def test_languages_and_field_fallback(self):
         fields=['Track','曲','Game','ゲーム','MSX2','','Author','作者','1989','writer','notes']
-        self.assertEqual(self.title(fields),'[MSX2]ゲーム(1989) 曲 作者')
-        self.assertEqual(self.title(fields,'en'),'[MSX2]Game(1989) Track Author')
+        self.assertEqual(self.title(fields),'[MSX2] ゲーム(1989) 曲 作者')
+        self.assertEqual(self.title(fields,'en'),'[MSX2] Game(1989) Track Author')
+
+    def test_system_without_game_or_date_has_space(self):
+        fields=['Final Fantasy', '', '', '', 'MSX', '', '', '', '', '', '']
+        self.assertEqual(self.title(fields), '[MSX] Final Fantasy')
+        self.assertEqual(self.title(['曲'] + ['']*10).encode('cp932').decode('cp932'), '曲')
 
     def test_missing_and_malformed(self):
         self.assertEqual(self.title(['']*11),'test')
@@ -30,8 +35,8 @@ class Gd3(unittest.TestCase):
     def test_system_is_english_and_date_width_is_normalized(self):
         fields=['Track','曲','Game','ゲーム','ＭＳＸ２','日本語機種','Author','作者',
                 '１９８９－１１','writer','notes']
-        self.assertEqual(self.title(fields),'[MSX2]ゲーム(1989-11) 曲 作者')
-        self.assertEqual(self.title(fields,'en'),'[MSX2]Game(1989-11) Track Author')
+        self.assertEqual(self.title(fields),'[MSX2] ゲーム(1989-11) 曲 作者')
+        self.assertEqual(self.title(fields,'en'),'[MSX2] Game(1989-11) Track Author')
         fields[4] = ''
         self.assertEqual(self.title(fields),'ゲーム(1989-11) 曲 作者')
 
