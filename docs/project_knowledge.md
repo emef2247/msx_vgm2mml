@@ -1834,3 +1834,18 @@ Raw sample timing may still vary between reference-MML repetitions. Keep exact
 evidence and diagnostic stable-state views separate from a future tolerant loop
 or musical-normalization policy. The sample PSG volume-reset alignment is only
 a reference-specific audit method and must not become a general KEYON definition.
+
+## Optional source-inferred musical duration projection
+
+`--normalize-lengths` is a target-stage inference, not a rewrite of Segment
+timing. Keep native integer samples and edges, and record corrected positions,
+gate ratios, omitted sub-millisecond target intermediates and source indices.
+One fitted clock must serve all chips. Apply all part projections together or
+keep conventional output when clock confidence/representability fails.
+
+Reference MML may validate compression but must not supply production note,
+tempo or gate choices. Frame-based software envelopes do not scale with musical
+tempo. Exact loop expansion and effective state equivalence after setter pruning
+are separate checks. Count equality is not audio equivalence, and reference
+one-loop playback may have a different horizon from the source VGM capture.
+See docs/note_normalization.md and the 2026-10-02 benchmark field note.

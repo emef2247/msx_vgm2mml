@@ -9,6 +9,11 @@ from test_rhythm_mml import attacks
 
 
 class RhythmNotation(unittest.TestCase):
+    def test_short_step_default_does_not_use_unsupported_divisor(self):
+        after = self.check('f vh12 ' + 'h%2 ' * 12 + '\n')
+        self.assertNotIn('l96', after)
+        self.assertIn('l%2', after)
+
     def test_rest_before_loop_retains_explicit_length(self):
         after = self.check('f r%18 [vh9 h%18]2 ' + 'h%18 ' * 12 + '\n')
         self.assertIn('r%18', after)

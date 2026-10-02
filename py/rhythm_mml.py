@@ -51,19 +51,24 @@ def _target_groups(groups, collision_path=None):
     return tuple(result)
 
 
-def _timed(token, steps, raw):
+def _timed(token, steps, raw, minimum_steps=1):
     """Long inter-onset gaps continue as rests, never as repeated attacks."""
     result = []
     while steps > 0:
         length = min(steps, 255)
-        suffix = str(192 // length) if not raw and 192 % length == 0 else f'%{length}'
+        if length < minimum_steps:
+            raise ValueError('Rhythm interval is below the target minimum length')
+        if 0 < steps - length < minimum_steps:
+            length -= minimum_steps - (steps - length)
+        suffix = (str(192 // length) if not raw and 192 % length == 0
+                  and 192 // length in (1, 2, 4, 8, 16, 32, 64) else f'%{length}')
         result.append(token + suffix)
         token = 'r'
         steps -= length
     return result
 
 
-def render(segments, raw_ticks=False, end_tick=None, collision_path=None):
+def render(segments, raw_ticks=False, end_tick=None, collision_path=None, minimum_steps=1):
     groups = _target_groups(group_segments(segments), collision_path)
     if not groups:
         return ''
@@ -72,7 +77,7 @@ def render(segments, raw_ticks=False, end_tick=None, collision_path=None):
     if end_tick is not None:
         end = max(end, end_tick)
     patterns, occurrences = find_patterns(groups)
-    tokens = _timed('r', groups[0].tick * factor, raw_ticks)
+    tokens = _timed('r', groups[0].tick * factor, raw_ticks, minimum_steps)
     for occurrence in occurrences:
         count = len(patterns[occurrence.pattern_id])
         unit = groups[occurrence.group_start:occurrence.group_start + count]
@@ -92,7 +97,7 @@ def render(segments, raw_ticks=False, end_tick=None, collision_path=None):
             # The final attack needs a positive encoded length. Use the known
             # analysis end, with one source tick minimum; this is not decay.
             gap = group.gap if group.gap is not None else max(1, end - group.tick)
-            body.extend(_timed(''.join(notes), gap * factor, raw_ticks))
+            body.extend(_timed(''.join(notes), gap * factor, raw_ticks, minimum_steps))
         # Every unit sets its required volumes independently of incoming state.
         remaining = occurrence.repeats
         while remaining:

@@ -10,7 +10,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'py'))
-from rhythm_mml import render
+from rhythm_mml import render, _timed
 from mml_sync import analyze_mml, _leaves, annotate_sync_points
 from test_rhythm_patterns import segment
 
@@ -30,6 +30,13 @@ def attacks(text):
 
 
 class RhythmMml(unittest.TestCase):
+    def test_high_tempo_split_keeps_a_representable_final_rest(self):
+        text = 'f ' + ' '.join(_timed('b', 256, True, minimum_steps=2))
+        nodes = list(_leaves(analyze_mml(text)[0]['f']))
+        self.assertEqual(nodes[-1].end, 256)
+        self.assertTrue(all(n.end - n.start >= 2 for n in nodes if n.end > n.start))
+        self.assertEqual(len(attacks(text)), 1)
+
     def test_final_keyoff_time_survives_attack_only_segments(self):
         for raw in (False, True):
             factor = 1 if raw else 3
