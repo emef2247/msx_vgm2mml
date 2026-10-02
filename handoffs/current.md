@@ -715,3 +715,21 @@ the tool does not compile or export MGS. See docs/opll_keyon_counts.md.
   SCC's old synthetic test origin hack was removed in favor of absolute write times.
 - Next permitted work is to review source jitter versus musical normalization policy.
   Do not silently enable normalization, run a broad catalog or overwrite fixtures.
+
+## Shared timing adoption after local regression (2026-10-02)
+- User completed PSG/SCC, PSG/OPLL and OPLL batch runs. Reviewed CSV/JSON agree:
+  669 reported inputs, 399 MGS successes, 269 Track buffer full failures, one
+  missing-input failure. The user deliberately deleted the temporary exported
+  YsSMS01.vgm; ignore that case for adoption. Present inputs have no observed
+  converter exceptions. No generated outputs were changed during review.
+- All 399 compiled inputs completed OPLL melodic KEYON comparison. Count
+  differences remain (including large PRIMK/FMPAC shortages); they are not a
+  timing-change attribution or proof of specific missing events. Rhythm and
+  PSG/SCC notes are outside this metric.
+- Recorded totals, evidence paths and limits in
+  field_notes/2026-10-02_vgmticks_regression.md. User approved production adoption
+  and will commit this record, create a PR and merge into main themselves.
+  Do not perform those git actions on their behalf.
+- After that merge, the next requested task is musical duration normalization.
+  Preserve raw sample evidence and distinguish corrected target timing from
+  observed source intervals. Normalization remains disabled at this checkpoint.
