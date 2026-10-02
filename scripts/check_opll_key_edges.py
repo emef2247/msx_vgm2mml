@@ -35,15 +35,16 @@ def extract(path):
     return edges
 
 
-def compare_files(reference, actual, outdir):
+def compare_files(reference, actual, outdir, *, segment_dumps=True):
     summary = {}
     edge_sets = {}
     for label, source in (('reference', reference), ('actual', actual)):
         output = outdir / label
         output.mkdir(parents=True, exist_ok=True)
         paths = parse_vgm(str(source), str(output))
-        segments, _ = _build_segments(paths[5])
-        dump_segments(segments, output / (source.stem + '.opll.segments.csv'))
+        if segment_dumps:
+            segments, _ = _build_segments(paths[5])
+            dump_segments(segments, output / (source.stem + '.opll.segments.csv'))
         edges = extract(paths[7])
         edge_sets[label] = edges
         with (output / 'key_edges.csv').open('w', encoding='utf-8', newline='') as stream:

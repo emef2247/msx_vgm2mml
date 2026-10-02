@@ -326,6 +326,8 @@ def _build_segments(trace_csv_path,
             ms2_vol = _opll_vol_to_ms2(vol_opll)
 
             seg = _Segment(
+                vgmticks      = int(ev['vgmticks']) if ev.get('vgmticks') not in (None, '') else None,
+                vgmticks_end  = int(ev['vgmticks_end']) if ev.get('vgmticks_end') not in (None, '') else None,
                 ev_type       = ev["#type"],
                 time          = float(ev["time"]),
                 ch            = _int(ev, "ch", 0),

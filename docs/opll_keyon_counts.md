@@ -30,7 +30,12 @@ For regression, supply a CSV with `reference,actual` columns and an optional
 python scripts/check_opll_key_edges.py --pairs pairs.csv --outdir outputs/keyon_regression
 ```
 
-The tool reads existing VGM pairs; it does not compile or export MGS itself.
+This standalone tool reads existing VGM pairs; it does not compile or export MGS itself.
 Failed/unavailable pairs have status `error` and blank counts, and later pairs
 still run. Each successful pair retains register traces, native Segment dumps,
 `key_edges.csv` and a JSON summary. Regression artifacts use `case_0001` etc.
+
+`batch_vgm_to_mgs.py` now performs the MGS export and count comparison after
+successful compilation by default, adding the same four count fields to its
+CSV/JSON results. It reuses the compiled MGS without converting the source to
+MML a second time. See [batch setup and failure states](batch_mgs.md).

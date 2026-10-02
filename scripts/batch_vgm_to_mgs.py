@@ -6,15 +6,48 @@ from pathlib import Path
 import subprocess
 import shutil
 import sys
+import struct
+import math
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'py'))
+from vgm_io import read_vgm_bytes
+from check_opll_key_edges import compare_files
+
+KEYON_FIELDS = ('reference_keyon', 'actual_keyon', 'missing_keyon', 'extra_keyon')
 
 
-def run_batch(source, output, module=None, node='node', timeout=300, mgsc=None, alloc=None):
+def check_keyons(source, mgs, folder, node, module, timeout):
+    """Export existing MGS once and compare counts, without regenerating MML."""
+    actual = folder / (source.stem + '.roundtrip.vgm')
+    actual.unlink(missing_ok=True)
+    raw = read_vgm_bytes(source)
+    samples = struct.unpack_from('<I', raw, 0x18)[0]
+    if not samples:
+        raise ValueError('Source VGM has no declared duration; key-on comparison skipped')
+    # Allow driver timing/initialization overhead; libkss stops at song end.
+    duration = math.ceil(samples / 44100 * 1250 + 2000)
+    command = [node, str(ROOT / 'scripts/mgs_to_vgm.mjs'), str(mgs), str(actual), str(duration)]
+    if module:
+        command.append(str(module.resolve()))
+    proc = subprocess.run(command, capture_output=True, timeout=timeout)
+    text = (proc.stdout + proc.stderr).decode('utf-8', errors='replace')
+    (folder / 'keyon.log').write_text(text, encoding='utf-8')
+    if proc.returncode or not actual.is_file() or not actual.stat().st_size:
+        raise ValueError(text or 'MGS export produced no VGM')
+    exported = read_vgm_bytes(actual)
+    exported_samples = struct.unpack_from('<I', exported, 0x18)[0]
+    if exported_samples / 44.1 >= duration - 20:
+        raise ValueError('MGS export reached its duration limit; comparison is incomplete')
+    return compare_files(source, actual, folder / 'keyon', segment_dumps=False)
+
+
+def run_batch(source, output, module=None, node='node', timeout=300, mgsc=None, alloc=None,
+              keyon=True, libkss_module=None):
     source, output = source.resolve(), output.resolve()
     if source == output or output in source.parents or source in output.parents:
         raise ValueError('Input and output trees must be separate')
-    files = sorted(p for p in source.rglob('*') if p.is_file() and p.suffix.lower() == '.vgm')
+    files = sorted(p for p in source.rglob('*') if p.is_file() and p.suffix.lower() in ('.vgm', '.vgz'))
     if not files:
         raise ValueError('No VGM files found')
     native = shutil.which(str(mgsc)) if mgsc else (None if module else shutil.which('mgsc'))
@@ -32,6 +65,21 @@ def run_batch(source, output, module=None, node='node', timeout=300, mgsc=None, 
             raise RuntimeError('MGSC setup failed before conversion:\n' +
                                (setup.stdout+setup.stderr).decode('utf-8', errors='replace'))
     output.mkdir(parents=True, exist_ok=True)
+    keyon_setup_error = ''
+    if keyon:
+        check = [node, str(ROOT / 'scripts/mgs_to_vgm.mjs'), '--check', '-', '-']
+        if libkss_module:
+            check.append(str(libkss_module.resolve()))
+        try:
+            setup = subprocess.run(check, capture_output=True, timeout=timeout)
+            if setup.returncode:
+                keyon_setup_error = (setup.stdout + setup.stderr).decode('utf-8', errors='replace')
+                keyon_setup_error = keyon_setup_error or 'libkss setup failed'
+        except (OSError, subprocess.TimeoutExpired) as error:
+            keyon_setup_error = str(error)
+        (output / 'keyon_setup.log').write_text(keyon_setup_error or 'libkss available\n', encoding='utf-8')
+        if keyon_setup_error:
+            print('KEYON comparison unavailable: ' + keyon_setup_error, file=sys.stderr)
     rows = []
     for path in files:
         relative = path.relative_to(source)
@@ -39,9 +87,11 @@ def run_batch(source, output, module=None, node='node', timeout=300, mgsc=None, 
         folder.mkdir(parents=True, exist_ok=True)
         mml, mgs = folder / (path.stem+'.mml'), folder / (path.stem+'.mgs')
         # Never let an earlier successful artifact look like this run's success.
-        for artifact in (mml, mgs):
+        for artifact in (mml, mgs, folder / (path.stem + '.roundtrip.vgm')):
             artifact.unlink(missing_ok=True)
         row = dict(input=str(relative), status='conversion_failed', mgs='', log='')
+        row.update(dict.fromkeys(KEYON_FIELDS, ''))
+        row.update(keyon_status='not_compiled' if keyon else 'disabled', keyon_error='')
         stages = [('convert', [sys.executable, str(ROOT/'vgm2mml.py'), str(path), '--outdir', str(folder)]),
                   ('compile', [native, str(mml), str(mgs)] if native else [node, str(ROOT/'scripts/compile_mgs.mjs'), str(mml), str(mgs)] +
                    ([str(module.resolve())] if module else []))]
@@ -68,6 +118,16 @@ def run_batch(source, output, module=None, node='node', timeout=300, mgsc=None, 
                 break
         else:
             row.update(status='success', mgs=str(mgs.relative_to(output)))
+            if keyon:
+                if keyon_setup_error:
+                    row.update(keyon_status='unavailable', keyon_error=keyon_setup_error)
+                else:
+                    try:
+                        row.update(check_keyons(path, mgs, folder, node, libkss_module, timeout),
+                                   keyon_status='compared')
+                    except (OSError, ValueError, struct.error, subprocess.TimeoutExpired) as error:
+                        row.update(keyon_status='error', keyon_error=str(error))
+                        (folder / 'keyon.log').write_text(str(error), encoding='utf-8')
         rows.append(row)
         with (output/'results.csv').open('w', encoding='utf-8', newline='') as stream:
             writer = csv.DictWriter(stream, fieldnames=list(row))
@@ -86,9 +146,12 @@ if __name__ == '__main__':
     parser.add_argument('--node', default='node')
     parser.add_argument('--timeout', type=int, default=300)
     parser.add_argument('--alloc', help='Allocation overrides forwarded to every conversion')
+    parser.add_argument('--skip-keyon-counts', action='store_true', help='Disable MGS playback and OPLL key-on comparison')
+    parser.add_argument('--libkss-module', type=Path, help='Explicit libkss-js entry point for MGS export')
     args = parser.parse_args()
     try:
-        results = run_batch(args.input_dir, args.outdir, args.mgsc_module, args.node, args.timeout, args.mgsc, args.alloc)
+        results = run_batch(args.input_dir, args.outdir, args.mgsc_module, args.node, args.timeout, args.mgsc, args.alloc,
+                            keyon=not args.skip_keyon_counts, libkss_module=args.libkss_module)
     except (RuntimeError, ValueError) as error:
         parser.exit(2, str(error)+'\n')
-    sys.exit(0 if all(r['status'] == 'success' for r in results) else 1)
+    sys.exit(0 if all(r['status'] == 'success' and r['keyon_status'] in ('compared', 'disabled') for r in results) else 1)

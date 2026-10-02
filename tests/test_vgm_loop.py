@@ -32,11 +32,11 @@ class VgmLoopTests(unittest.TestCase):
         self.assertEqual(result['loop_start_samples'], 0)
         self.assertEqual(result['decoded_loop_samples'], 735)
 
-    def test_loop_on_wait_and_legacy_clock(self):
+    def test_loop_on_wait_and_shared_clock(self):
         result = read_loop_metadata(vgm(bytes([0x77, 0x7a, 0x62, 0x61, 100, 0, 0x66]), 3, 100))
         self.assertEqual(result['status'], 'valid')
         self.assertEqual(result['loop_start_samples'], 754)
-        self.assertAlmostEqual(result['loop_start_trace_seconds'], 735 / 44100)
+        self.assertAlmostEqual(result['loop_start_trace_seconds'], 754 / 44100)
         self.assertEqual(result['decoded_loop_samples'], 100)
 
     def test_offset_inside_write_is_not_a_boundary(self):

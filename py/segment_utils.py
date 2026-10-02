@@ -49,6 +49,8 @@ class _Segment:
 
     __slots__ = (
         'ev_type',      # trace.csv type（fNumL / fNumH / keyBlk / vol / inst / rhythm)今のところレジスタアクセスの区別。意図としてはeventのタイプ
+        'vgmticks',     # Absolute source sample position; None for legacy CSV.
+        'vgmticks_end', # Source interval boundary, not a target gate.
         'time',         # global time [s], そのeventが起きた時間
         'ch',           # チェンネル
         'ticks',        # 1 tick = 1/60s
@@ -172,9 +174,13 @@ class _Segment:
         sus_ch8       ,
         block_ch8     ,
         key_on_edge=0,
+        vgmticks=None,
+        vgmticks_end=None,
 
     ):
 
+        self.vgmticks      = vgmticks
+        self.vgmticks_end  = vgmticks_end
         self.ev_type       = ev_type
         self.time          = time
         self.ch            = ch
@@ -302,6 +308,10 @@ def pass1_compute_l(events):
                 ev["l"] = next_tick - tick
             else:
                 ev["l"] = 0  # 最後の行
+
+            if 'vgmticks' in ev:
+                next_sample = buf[i + 1].get('vgmticks') if i + 1 < n else ev.get('vgmticks')
+                ev['vgmticks_end'] = next_sample
 
             # fl, kl はとりあえず 0 に固定
             ev["fl"] = _ival(ev.get("fl"), 0)
