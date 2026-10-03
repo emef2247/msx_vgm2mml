@@ -42,7 +42,8 @@ def title_from_gd3(path, fallback, language='ja'):
                        else ' ' if c == '\u3000' else c for c in value).strip()
     system = ascii_width(fields[4])
     date = ascii_width(fields[8])
-    prefix = (f'[{system}]' if system else '') + game + (f'({date})' if date else '')
+    prefix = ' '.join(x for x in (f'[{system}]' if system else '',
+                                 game + (f'({date})' if date else '')) if x)
     title = ' '.join(x for x in (prefix, track, author) if x) or fallback
     # GD3 is untrusted text, not MML syntax. Keep generated headers single-line.
     title = ' '.join(title.split()).translate(str.maketrans({'"': "'", ';':'；', '{':'（', '}':'）'}))

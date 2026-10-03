@@ -49,7 +49,7 @@ class PublicConversionTests(unittest.TestCase):
                 with patch.object(vgm2mml, 'annotate_sync_points', lambda text, **kwargs: text):
                     unannotated = vgm2mml._build_merged_mml(stem, str(output), *flags,
                                                           raw_ticks=mode.endswith('raw'))
-                annotated = (output / f'{stem}.mml').read_text(encoding='utf-8')
+                annotated = (output / f'{stem}.mml').read_text(encoding='cp932')
                 self.assertEqual(timeline(annotate_sync_points(unannotated, min_gap=1000, drop_silent=True)), timeline(annotated))
                 with patch.object(vgm2mml, 'annotate_sync_points', lambda text, **kwargs: text):
                     legacy = vgm2mml._build_merged_mml(stem, str(output), *flags,

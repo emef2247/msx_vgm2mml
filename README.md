@@ -263,17 +263,19 @@ KEYON totals and per-channel count shortages/excesses summed over the song.
 Unperformed comparisons have blank counts, not zeros. Compare conventional and
 normalized `results.csv` files to inspect changes in `buffer_error` and counts.
 See [setup and usage](docs/batch_mgs.md).
+
 # GD3 titles
 
 Without `--title`, the converter reads VGM GD3 metadata and generates
-`[System]Name(Release date) Title Author`. `--gd3-language ja` (default) prefers
+`[System] Name(Release date) Title Author`. `--gd3-language ja` (default) prefers
 Japanese with English fallback for each field; `--gd3-language en` reverses
 that preference for track, game and author. System always uses the English
 field (omitted if absent). Release date is language-independent. Full-width
 ASCII in System and Release date is normalized to half-width. Missing fields omit their
 delimiters; absent, empty or malformed GD3 falls back to the input stem.
 Explicit `--title` always wins. Metadata name (`--name`) and filenames do not
-change. Merged MML is UTF-8.
+change. Merged MML is Shift-JIS (CP932) for MSX/MGSDRV display. Characters
+not representable in CP932 are replaced with `?`. Intermediate CSV remains UTF-8.
 
 Generated titles are sanitized for MML syntax and limited to 240 CP932 bytes
 (whole characters), with a warning on truncation. This is a conservative MGSC

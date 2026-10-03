@@ -781,3 +781,65 @@ the tool does not compile or export MGS. See docs/opll_keyon_counts.md.
   The95% heuristic is provisional; user questioned it and favors semantic bounds.
 - User will commit/push codex/normalize-lengths. This review only writes records;
   no code fixes, staging, commit/push, catalog rerun or fixture changes performed.
+
+## Title-grouped MGS collection utility
+- Usage documented in docs/collect_mgs.md on 2026-10-03: preview/copy/overwrite,
+  title-folder mapping and collision handling. README intentionally unchanged.
+- Added scripts/collect_mgs.py for user-requested MSX player folder layout:
+  <title>/<track>.vgm/<track>.mgs -> <outdir>/<title>/<track>.mgs, also .vgz.
+  Other layouts use the immediate parent. File names and contents are preserved.
+- Supports --dry-run and explicit --overwrite; identical outputs skip. Duplicate
+  destinations are checked before copying. Conversion/compilation is not rerun.
+- User clarified this is a personal listening utility, not a primary project
+  output feature: removed its usage from README. The project output remains MML;
+  MGS compilation/playback serves verification. No user output tree was populated
+  automatically.
+
+## Bounded authored-loop inventory
+- User requested OPLL reference-loop statistics plus phrase lengths, with the
+  same method available for a later PSG/SCC comparison. Added
+  scripts/audit_mml_loops.py and six focused tests; uses bounded reference parser.
+- OPLL subtree currently has only grider/sx01v MML: 55 source loop definitions,
+  69 channel-expanded definitions, 49 finite,6 infinite,23 last-pass exits,
+  6 enclosing nested loops,max depth2. Grider's song loop encloses rhythm loops.
+- Phrase steps range12..7872 with 48=quarter; 2/4/8-whole-note phrases coexist
+  with short repeats. Separate ordinary/common/final/expanded lengths retained.
+  Field note: field_notes/2026-10-02_opll_reference_loop_statistics.md.
+- CSV/JSON outputs in Codex outputs/mml-loop-statistics/opll. No fixture edits,
+  conversion reruns, PSG/SCC survey, staging or commit actions. Unknown syntax
+  is reported as unsupported; macro calls/loop-internal portamento aren't yet
+  supported by the length audit. Next may be PSG/SCC survey with scope controls
+  or loop recovery comparison; source statistics alone do not prove recovery.
+
+## User-run PSG/SCC loop inventory reviewed
+- Scope corrected on 2026-10-03 following user confirmation: only seventeen
+  original msxplay gra2 scores are valid; exclude with_sync_mark split/marked
+  variants and all VGM-derived NEMESIS2 conversion outputs. Added audit
+  --exclude-dir option. Scoped reports in Codex outputs/mml-loop-statistics/
+  psg_scc-original:17 found,3 parsed(002/008/017),14 unsupported;36 definitions,
+  30 finite,6 infinite,0 observed exits,5 with children,max depth2. Full coverage
+  requires macro/control parser support; prior mixed totals below are historical.
+  Field note updated; no conversion, compilation, fixture or Git mutations.
+- Recorded results and interpretation in
+  field_notes/2026-10-02_psg_scc_loop_statistics.md. User's run found189 files,
+  parsed115,unsupported74;4253 definitions,4235 finite,18 infinite,0 exits,
+  15 enclosing-child loops,max depth2. No re-audit or parser change was made.
+- Major scope bias: msxplay/gra2 has95 parsed files but89 have no loops; six
+  loop-bearing files are three versions each of002/008 (108 definitions).
+  NEMESIS2 has20 parsed files,16 zero-loop; remaining files supply4145 definitions
+  (97.5% of total), with converter-style headers and tiny loops. Do not equate
+  that mixture with the authored OPLL two-score reference population.
+- All74 unsupported in msxplay:46 macro-call rejections,28 unsupported lexer
+  syntax (including h with multiple arguments). Fourteen of17 original gra2
+  scores aren't parsed. Zero | counts do not establish that PSG/SCC lacks exits.
+- 3800/4253 bodies have<=3 score steps. Raw steps across tempo75/225 aren't
+  physical-duration comparisons. Next: improve audit coverage and select one
+  original reference per song before drawing chip-group structure conclusions.
+
+## GD3 title display correction (2026-10-03)
+- Final merged MML now uses CP932 (Shift-JIS) for native MGSC/MSX Japanese titles;
+  unrepresentable characters become ?. Intermediate CSV encoding is unchanged.
+- GD3 system prefix is separated from the following text by one space, including
+  missing game/date cases. Existing game/date parentheses and explicit title
+  override semantics remain unchanged. JS compile/export helpers accept UTF-8
+  and CP932 input. README and focused GD3 tests updated.

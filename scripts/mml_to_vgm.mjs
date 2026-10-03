@@ -7,7 +7,14 @@ const {MGSC} = mgscModule.default ?? mgscModule;
 const {KSS, KSSPlay} = await import(pathToFileURL(libkssPath).href);
 await MGSC.initialize();
 await KSSPlay.initialize();
-const result = MGSC.compile(fs.readFileSync(mml, 'utf8'));
+const bytes = fs.readFileSync(mml);
+let source;
+try {
+  source = new TextDecoder('utf-8', {fatal: true}).decode(bytes);
+} catch {
+  source = new TextDecoder('shift_jis').decode(bytes);
+}
+const result = MGSC.compile(source);
 console.log(result.rawMessage);
 if (!result.success) process.exit(2);
 const kss = KSS.createUniqueInstance(result.mgs, 'roundtrip.mgs');
