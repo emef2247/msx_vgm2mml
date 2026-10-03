@@ -1033,3 +1033,28 @@ the tool does not compile or export MGS. See docs/opll_keyon_counts.md.
 - Recorded in field_notes/2026-10-03_gra2_005_unrestricted_depth_validation.md.
   Local artifacts are Codex outputs/gra2-unrestricted-depth. No audio roundtrip
   claim; this short fixture does not exercise deeper-than-two legacy repeats.
+
+## OPLL continuous-note child-loop recovery (2026-10-03)
+- Implemented only in the separate test checkout at
+  I:/wsl/repositories/emef2247/test/msx_vgm2mml. The original checkout and its
+  active regression were left unchanged; do not copy back or stage automatically.
+- Added opll_inner_loops.py: retain outer note/phrase plans and source-linked
+  child Segment plans, then project unchanged target controls through both.
+  Keep parent-only spelling as an alternative and assert exact expansion.
+  Native key edges, notes, timing, patches, PSG/SCC and envelope order unchanged.
+- --dump-passes adds child pattern/occurrence paths directly to OPLL Segment
+  rows, plus per-channel child marker/candidate CSVs. Source IDs and ranges
+  remain available separately from whether the child is emitted.
+- FFMSX01 default MML shrinks49922->7944 characters, compiles through MGSC1.11
+  JS with ordinary15000 track allocations, and uses5999 total bytes. All8735
+  OPLL/4647 PSG native rows,14 trace/pass dumps and expanded timed final commands
+  are preserved. Legacy loops/enhanced macros remain7659 characters/5426 bytes;
+  the repair recovers capacity, not global minimum size.
+- sample4913, grider24721 and gra2_0058313 characters are unchanged; sx01v
+  grows15024->15048 (one child loop,4 additional compiled bytes). All eight
+  paired conversions compile; Segments, passes and expanded commands match.
+- Results and limits: field_notes/2026-10-03_opll_inner_loop_validation.md.
+  All55 focused tests pass, including public conversion, sync and macros;
+  git diff --check passes.
+  Wider catalog regression/listening is next; no native WSL or audio roundtrip
+  claim. Final macro-aware global alternative selection remains future work.

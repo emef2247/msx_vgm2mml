@@ -51,12 +51,11 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
     analysis = analyze(segments, "opll", voice_csv_path)
     source_plans = {}
     if source_loops and source_loops != 'after':
-        from source_loop_plan import SourceLoopPlan
+        from opll_inner_loops import OpllLoopPlan
         for ch in range(num_channels):
             if ch in analysis:
                 members, source_units = group_notes(segments[ch], analysis[ch][0])
-                plan = SourceLoopPlan.build(((u.kind, u.duration, u.validation_key) for u in source_units),
-                                            strategy=source_strategy)
+                plan = OpllLoopPlan.build(members, source_units, analysis[ch][0], source_strategy)
                 source_plans[ch] = (plan, members, source_units)
     times = [tick for tick, _ in updates]
     patches, lines, evidence = {}, [], []
@@ -134,15 +133,12 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
             before_lines.append(track_id_to_mgsdrv(ch + 9) + ' ' + ' '.join(body))
             if source_loops:
                 if source_loops == 'after':
-                    from source_loop_plan import SourceLoopPlan
+                    from opll_inner_loops import OpllLoopPlan
                     members, source_units = group_notes(segments[ch], analysis[ch][0])
-                    plan = SourceLoopPlan.build(((u.kind, u.duration, u.validation_key) for u in source_units),
-                                                strategy=source_strategy)
+                    plan = OpllLoopPlan.build(members, source_units, analysis[ch][0], source_strategy)
                     source_plans[ch] = (plan, members, source_units)
                 plan, members, source_units = source_plans[ch]
-                note_commands = [' '.join(body[boundaries[n.segment_indices[0]]:
-                                              boundaries[n.segment_indices[-1] + 1]]) for n in members]
-                text, hierarchy = plan.render(note_commands)
+                text, hierarchy = plan.render(body, boundaries)
                 performed[ch] = (members, source_units,
                                  [{k: v for k, v in row.items() if k != 'emitted_repeats'} for row in hierarchy])
                 lines.append(track_id_to_mgsdrv(ch + 9) + ' ' + text)
@@ -190,6 +186,10 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
                              'source_keyon', 'key_on_edge', 'onset'))
             writer.writerows(evidence)
     dump_units(dump_path, performed)
+    if dump_path and source_loops:
+        from opll_inner_loops import annotate_segments
+        annotate_segments(str(dump_path).replace('.target_notes.csv', '.segments.csv'),
+                          {ch: value[0] for ch, value in source_plans.items()})
     result = '\n'.join(header + lines) + '\n'
     dump_projection(dump_path, '\n'.join(header + before_lines) + '\n', result, loop_report)
     return result

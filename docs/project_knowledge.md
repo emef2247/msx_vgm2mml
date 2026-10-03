@@ -1882,3 +1882,20 @@ Count stored source representatives for the envelope bank, still prioritizing
 long curves; render all expanded occurrences to preserve initialization/state.
 --legacy-loops restores the earlier envelope-first PSG/SCC implementation.
 See docs/melody_patterns.md for source/Segment mapping and curve-count dumps.
+
+## Continuous OPLL notes can contain compressible subphrases (2026-10-03)
+
+Do not treat an outer continuous-note unit as an opaque leaf for compression.
+Its complete trajectory may differ from other notes while repeated pitch/state
+subphrases within it remain exactly equal. Preserve a separate reversible child
+plan over its original Segment members, then project the unchanged target
+commands through child and parent plans before macro selection. Retain the
+parent-only projection as a spelling alternative. This is compression of
+existing controls, not a new key/retrigger interpretation.
+
+FFMSX01 exposed this distinction: outer-only OPLL structure inflated melodic
+track text and compiled track buffers. Its unchanged PSG tracks then received
+too little of the shared proportional allocation. Macro priority alone was not
+the cause. Source equality, exact expanded timed commands, MML character count
+and ordinary-allocation MGSC compilation are complementary checks; smaller
+macro text alone does not establish that track buffers will fit.

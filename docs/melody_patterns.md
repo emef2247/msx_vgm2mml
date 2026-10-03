@@ -289,3 +289,33 @@ software envelope IDs from stored representatives, then render/project all
 occurrences and select macros. Source volume trajectories are available to the
 loop matcher before envelope selection. `--legacy-loops` retains envelope-first
 processing; OPLL does not use this PSG/SCC software-envelope selection stage.
+
+## OPLL loops within continuous notes (2026-10-03)
+
+Continuous-note grouping is an outer boundary, not a reason to discard repeats
+inside a long keyed interval. `opll_inner_loops.OpllLoopPlan` retains the outer
+note/phrase plan and builds child source plans over each note's ordered Segment
+members. Child equality uses the complete existing Segment pattern signature,
+including relative timing, register state and user-patch evidence. True key
+edges, key-off and timing gaps continue to delimit the outer notes.
+
+Generate the same expanded target commands first, including initialization,
+volume/octave changes, ties and gate commands. Project the child plans and then
+the parent plan over those commands. Compare with the parent-only projection
+and retain the shorter spelling; exact expanded-token equality is checked
+before macro selection. This does not retime notes, synthesize key edges or
+change the software-envelope order in PSG/SCC. `--legacy-loops` retains its
+existing independent path. Neither source layer adds a default nesting cap.
+
+With `--dump-passes`, each OPLL channel's source plan adds
+`*.opll.chN.source_loops.inner_loops.csv` and
+`*.opll.chN.source_loops.inner_repeat_candidates.csv`. The former maps each
+child marker to the owning note, Segment range, pattern/occurrence IDs, parent,
+depth and target projection status; the latter retains overlapping repeat
+alternatives. Segment CSVs append `opll_note_unit_id` and
+`opll_inner_loop_path` (JSON), so these markers can be inspected alongside the
+original register/timing cells. Child IDs are scoped to their channel and are
+separate from outer-plan IDs. Check both `status=applied` and
+`target_selected=true` when identifying emitted children; source candidates
+remain inspectable even when their target spelling is rejected. Later sync or
+macro formatting may change the final spelling further.
