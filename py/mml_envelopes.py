@@ -199,7 +199,7 @@ def length_tokens(pitch, ticks, raw_ticks, tie=False):
     return ' '.join(parts)
 
 
-def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None):
+def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, source_plans=None):
     from melody_patterns import analyze
     from melody_loops import project, dump_projection
     from performed_patterns import project_notes, dump_units
@@ -290,6 +290,15 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None):
                               detune, rendered_period(seg), int(rendered_period(seg) == seg.tone_period)))
         note_cuts.append(len(body))
         before_lines.append(f'{track} ' + ' '.join(body))
+        if source_plans is not None:
+            plan = source_plans[ch]
+            commands = [' '.join(body[note_cuts[i]:note_cuts[i + 1]]) for i in range(len(rows))]
+            text, hierarchy = plan.render(commands)
+            lines.append(f'{track} ' + text)
+            if dump_path:
+                plan.dump(str(dump_path).replace('.target_notes.csv', f'.ch{ch}.source_loops.csv'),
+                          [n.segment_indices for n in rows], hierarchy)
+            continue
         performed_text, units, hierarchy = project_notes(rows, chip, body, note_cuts)
         performed[ch] = (rows, units, hierarchy)
         body, report = project(body, boundaries, analysis[ch], ch)

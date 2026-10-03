@@ -843,3 +843,49 @@ the tool does not compile or export MGS. See docs/opll_keyon_counts.md.
   missing game/date cases. Existing game/date parentheses and explicit title
   override semantics remain unchanged. JS compile/export helpers accept UTF-8
   and CP932 input. README and focused GD3 tests updated.
+
+## Short-first hierarchical loop experiment (2026-10-03)
+- Added pure experimental py/hierarchical_loops.py and isolated
+  scripts/experiment_hierarchical_loops.py; no production converter integration.
+- Compared immediate vs retained candidates on normalized sample/sx01v OPLL
+  note units, original-unit widths<=128, depth<=3; exact trajectory/command
+  expansion asserted. Five tests pass. Private artifacts in Codex outputs/
+  hierarchical-loops; field_notes/2026-10-03_hierarchical_loop_experiment.md
+  documents metrics, source reference statistics, and limits.
+- sample no improvement; sx01v retained saves36 body chars vs existing;
+  immediate worsens244. Not full MML/MGS size metrics. No new audio roundtrip.
+- Harness currently observes target-stage notes after envelope decisions, not
+  yet pre-envelope structural extraction. No individual reference-window recovery
+  certification. Next inspect missed reference intervals and last-pass exits/
+  effective state equality; preserve source data and default output behavior.
+
+## OPLL loop strategy comparison (2026-10-03)
+- User narrowed discussion to loops and deferred envelope ordering. Use exactly
+  sample and sx01v. Prior rejected count-only/gra2_005 report and output tree
+  were deleted. No conclusions from that comparison should be reused.
+- New source_loop_plan creates an executable structure before target command
+  generation; original-unit widths<=128, depth<=3. Both immediate short-first
+  and retained-candidate trees drive emitted MML with exact expansion checks.
+  Default converter unchanged; explicit optional renderer arguments only.
+- scripts/experiment_opll_loop_strategies.py compares current/immediate/retained
+  with all PSG/SCC/envelope/rhythm/macro settings unchanged, normalization off.
+  All six outputs compiled with MGSC1.11; expanded final timed tokens agree.
+- sample text6333/6008/6333 bytes, MGSC used2956/2956/2956. sx01v text
+  17428/17518/17187, MGSC used9128/9428/9168. Thus text savings alone do not
+  justify production adoption. Private outputs/logs are in Codex outputs/
+  opll-loop-strategies; field_notes/2026-10-03_opll_loop_strategies.md records
+  methods and bounds. No audio roundtrip or source-reference loop recall claim.
+- Envelope-order experimental helpers remain available but are deferred; current
+  work and recommended comparisons use the OPLL-only script above. Do not silently
+  substitute fixtures. Next may examine missed reference phrases or binary-cost
+  loop selection if requested. No staging/commit/push performed.
+
+## Reversible OPLL structure update (2026-10-03)
+
+- User corrected the objective: final MML characters plus successful compilation/no buffer_error. The earlier binary-size adoption criterion above is superseded.
+- Added loop_structure.py with exhaustive exact adjacent-repeat candidate catalog, reversible nested tree and alternative intervals. Source width/depth bounds removed; target counts split at 255. Explicit structural experiment only; default converter unchanged.
+- sample current/structural: 6333/6333 characters; sx01v: 17428/17187. All four MGSC compilations succeed, no buffer errors, final expanded timed commands identical. No further size improvement beyond prior retained strategy on these fixtures.
+- Six structural tests, four source-plan tests and five hierarchical tests pass. Candidate/tree CSVs and full artifacts are in Codex outputs/opll-loop-structure. See field_notes/2026-10-03_reversible_loop_structure.md.
+- Macro-aware selective unrolling remains the separate next phase. No staging, commit or push.
+
+- Additional final sx01v syntax inventory: physical loops 73->91, nested loops 4->17, depth 2->3; both outputs already use 32 macros (no bracket loops inside definitions). Recorded per-track counts and structure-aware macro plan in the reversible-loop field note. Next first improve macro search with loops fixed, then compare selective expansion; exact token preservation and MGSC success gate final character ranking.

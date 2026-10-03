@@ -1849,3 +1849,7 @@ tempo. Exact loop expansion and effective state equivalence after setter pruning
 are separate checks. Count equality is not audio equivalence, and reference
 one-loop playback may have a different horizon from the source VGM capture.
 See docs/note_normalization.md and the 2026-10-02 benchmark field note.
+
+## Loop structure and output selection
+
+Preserve reversible source loop markers and overlapping repeat alternatives before macro selection. A short inner loop must remain expandable so later macro extraction can choose another boundary. For the current compression work, rank equivalent final MML by character count and require successful MGSC compilation without buffer errors; minimum compiled byte count is not the objective. See field_notes/2026-10-03_reversible_loop_structure.md.

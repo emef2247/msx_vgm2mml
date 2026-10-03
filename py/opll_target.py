@@ -33,7 +33,8 @@ def target_note(fnum, block):
                                                    'f+', 'g', 'g+', 'a', 'a+', 'b')[midi % 12]
 
 
-def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
+def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, source_loops=False,
+           source_strategy='retained'):
 
     from melody_patterns import analyze
     from melody_loops import project, dump_projection
@@ -48,6 +49,15 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
                 if row['#type'] == 'patch':
                     updates.append((int(row['ticks']), bytes.fromhex(row['patch_hex'])))
     analysis = analyze(segments, "opll", voice_csv_path)
+    source_plans = {}
+    if source_loops and source_loops != 'after':
+        from source_loop_plan import SourceLoopPlan
+        for ch in range(6):
+            if ch in analysis:
+                members, source_units = group_notes(segments[ch], analysis[ch][0])
+                plan = SourceLoopPlan.build(((u.kind, u.duration, u.validation_key) for u in source_units),
+                                            strategy=source_strategy)
+                source_plans[ch] = (plan, members, source_units)
     times = [tick for tick, _ in updates]
     patches, lines, evidence = {}, [], []
     for ch in range(6):
@@ -122,6 +132,24 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None):
         boundaries[len(segments.get(ch, ()))] = len(body)
         if sounding:
             before_lines.append(track_id_to_mgsdrv(ch + 9) + ' ' + ' '.join(body))
+            if source_loops:
+                if source_loops == 'after':
+                    from source_loop_plan import SourceLoopPlan
+                    members, source_units = group_notes(segments[ch], analysis[ch][0])
+                    plan = SourceLoopPlan.build(((u.kind, u.duration, u.validation_key) for u in source_units),
+                                                strategy=source_strategy)
+                    source_plans[ch] = (plan, members, source_units)
+                plan, members, source_units = source_plans[ch]
+                note_commands = [' '.join(body[boundaries[n.segment_indices[0]]:
+                                              boundaries[n.segment_indices[-1] + 1]]) for n in members]
+                text, hierarchy = plan.render(note_commands)
+                performed[ch] = (members, source_units,
+                                 [{k: v for k, v in row.items() if k != 'emitted_repeats'} for row in hierarchy])
+                lines.append(track_id_to_mgsdrv(ch + 9) + ' ' + text)
+                if dump_path:
+                    plan.dump(str(dump_path).replace('.target_notes.csv', f'.ch{ch}.source_loops.csv'),
+                              [n.segment_indices for n in members], hierarchy)
+                continue
             items = analysis[ch][0]
             units = [Unit(i, i + 1, 'note' if segments[ch][i].keyon else 'rest',
                           item.signature()) for i, item in enumerate(items)]
