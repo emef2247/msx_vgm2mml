@@ -34,7 +34,7 @@ def target_note(fnum, block):
 
 
 def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, source_loops=False,
-           source_strategy='retained'):
+           source_strategy='retained', num_channels=6):
 
     from melody_patterns import analyze
     from melody_loops import project, dump_projection
@@ -52,7 +52,7 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
     source_plans = {}
     if source_loops and source_loops != 'after':
         from source_loop_plan import SourceLoopPlan
-        for ch in range(6):
+        for ch in range(num_channels):
             if ch in analysis:
                 members, source_units = group_notes(segments[ch], analysis[ch][0])
                 plan = SourceLoopPlan.build(((u.kind, u.duration, u.validation_key) for u in source_units),
@@ -60,7 +60,7 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
                 source_plans[ch] = (plan, members, source_units)
     times = [tick for tick, _ in updates]
     patches, lines, evidence = {}, [], []
-    for ch in range(6):
+    for ch in range(num_channels):
         body, current, cursor = [], {}, 0
         boundaries = {}
         sounding = False

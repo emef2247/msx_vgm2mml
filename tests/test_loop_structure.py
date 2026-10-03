@@ -56,6 +56,24 @@ class LoopStructureTests(unittest.TestCase):
         self.assertIn(']255',text)
         self.assertEqual(expanded_tokens(text),('c%12',)*300)
 
+    def test_six_levels_survive_target_projection(self):
+        commands = ('c%12',) * 4
+        for note in 'defga':
+            commands = (commands + (note + '%12',)) * 2
+        plan = SourceLoopPlan.build(commands, strategy='structural')
+        text, report = plan.render(commands)
+        self.assertEqual(expanded_tokens(text), commands)
+        self.assertEqual(max(row['depth'] for row in report), 5)
+        depth = maximum = 0
+        for char in text:
+            if char == '[':
+                depth += 1
+                maximum = max(maximum, depth)
+            elif char == ']':
+                depth -= 1
+        self.assertEqual(maximum, 6)
+        self.assertEqual(depth, 0)
+
     def test_different_state_is_not_equal_even_when_pitch_matches(self):
         keys=(('c',12),('c',11))
         self.assertFalse(any(candidates(keys)))

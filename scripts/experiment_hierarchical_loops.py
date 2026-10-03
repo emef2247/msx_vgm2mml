@@ -19,12 +19,12 @@ def main():
     parser.add_argument('--outdir',type=Path,required=True)
     parser.add_argument('--normalize-lengths',action='store_true')
     parser.add_argument('--max-phrase',type=int,default=128)
-    parser.add_argument('--max-depth',type=int,default=3)
+    parser.add_argument('--max-depth',type=int,help='Optional nesting limit; default: unrestricted')
     args=parser.parse_args()
     args.outdir.mkdir(parents=True,exist_ok=True)
     original=performed_patterns.compress
     reports=[]
-    def capture(units,commands,max_depth=2):
+    def capture(units,commands,max_depth=None):
         baseline=original(units,commands,max_depth)
         if not units or not isinstance(units[0],NoteUnit):
             return baseline

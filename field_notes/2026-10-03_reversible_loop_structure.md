@@ -37,11 +37,12 @@ Count physical bracket loops in the final MML, without multiplying by repeat cou
 
 | Metric | Current | Structural |
 | --- | ---: | ---: |
-| Physical loops | 73 | 91 |
+| Track-body loops | 73 | 91 |
 | Loops nested inside another loop | 4 | 17 |
 | Maximum depth | 2 | 3 |
 | Macro definitions | 32 | 32 |
-| Loops in macro definitions | 0 | 0 |
+| Loops in macro definitions | 4 | 4 |
+| Total physical loops including definitions | 77 | 95 |
 
 Per-track loop counts current/structural: 9=4/6, a=18/16, b=6/11, c=5/11, d=4/9, e=25/27, f=11/11. Macro calls are already applied in both final outputs. The unfinished work is structure-aware macro selection, not initial macro support.
 
@@ -57,3 +58,5 @@ The existing text compressor greedily chooses exact repeated command sequences, 
 6. Validate expanded timed commands and compile complete sample/sx01v MML. Rank by final characters among equivalent successfully compiled outputs without buffer errors. Macro substitution alone normally reduces source text rather than compiled track usage; loop retention/expansion can affect compiled usage, so compiler validation remains necessary.
 
 First compare improved search with loop spelling fixed, then add selective loop expansion. This isolates whether gains come from better macro allocation or representation changes. No structure-aware macro implementation was made as part of this planning update.
+
+Inventory correction during the five-fixture follow-up: the earlier parser did not descend into macro definition text. sx01v has four bracket loops in definitions in both variants. The 73/91 counts refer to track bodies; full physical counts are 77/95. The structural increase remains 18 loops.

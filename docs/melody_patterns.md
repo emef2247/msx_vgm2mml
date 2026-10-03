@@ -1,5 +1,38 @@
 # Exact melody pattern candidates
 
+## PSG/SCC structure before envelope assignment (2026-10-03)
+
+The default converter builds the same reversible `SourceLoopPlan` used for
+OPLL before assigning PSG/SCC software envelope IDs. `--legacy-loops` restores
+the previous envelope-first PSG/SCC projection as well as the previous OPLL
+loop projection. Enhanced macros remain independently controlled.
+
+Input units are interpreted notes/rests with their complete duration, pitch,
+chip settings and volume trajectory. Note grouping is independent of selected
+envelope definitions and reference MML; it retains pitch-write boundaries,
+volume rises, PSG hardware-envelope resets and other state changes. There is
+no minimum note or phrase duration derived from a reference envelope. Silent
+settings do not participate in rest signatures because rendering defers them.
+This does not introduce a new policy to divide a sustained note into attacks.
+
+Every exact adjacent repeat candidate, including short and overlapping choices,
+is retained. Envelope selection counts the stored representatives of the
+chosen source tree, not every expanded repetition. Longer observed curves
+still have selection priority. Each original occurrence is rendered with its
+actual running state; only equal command iterations become brackets, and
+expanded target commands are checked exactly. Initialization may stay outside
+the emitted loop. A source marker therefore need not become a physical MML
+bracket, and increased structure does not guarantee fewer final characters.
+
+With `--dump-passes`, each channel writes
+`<stem>.<chip>.ch<N>.source_loops.csv` with note indices, all contributing
+Segment indices, representative flags and projected occurrence statuses.
+The corresponding `.repeat_candidates.csv`, `.loop_structure.csv` and
+`.projection.csv` expose overlapping candidates, marker/parent IDs and actual
+rendering. `<stem>.<chip>.pre_envelope_counts.csv` records expanded versus
+stored curve counts and selected envelope IDs. Existing native Segment data,
+envelope assignments and earlier pass dumps remain available.
+
 With `--dump-passes`, PSG, SCC and OPLL emit three additional files:
 
 - `<stem>.<chip>.melody.patterns.csv`: channel-local pattern definitions.
@@ -150,7 +183,8 @@ The hierarchy detects exact adjacent repeats of these units, then searches each
 repeated phrase for inner repeats. OPLL melody uses its existing complete Segment
 notes and patch-aware signatures. Source timing, envelope and patch differences
 prevent candidate equality. The greedy search is not an optimal grammar recovery.
-There are at most two emitted loop levels and 255 repetitions per loop command.
+The legacy performed-unit compressor has no default nesting-depth limit
+(removed on 2026-10-03), with 255 repetitions per loop command.
 Only equal emitted command iterations are looped; different initialization stays
 outside. Ties and complete envelope notes remain inside one unit. The result
 expands to exactly the original commands, including relative state changes.
@@ -183,8 +217,9 @@ an alternative dynamic-programming placement of non-overlapping repeats. The
 alternative considers emitted command length, overlapping starts and shorter
 repeat counts, while still requiring identical source-unit signatures and exact
 command iterations. Initialization differences can stay outside a repeat.
-Both strategies recursively search inner repeats; maximum depth/count limits
-remain two/255. The shorter textual projection wins, with greedy winning ties.
+Both strategies recursively search inner repeats without a default depth cap;
+each emitted loop still has at most255 repetitions. The shorter textual projection wins,
+with greedy winning ties.
 The performed loop report records `strategy` (`unit_count` or `text_cost`).
 This is a text-cost optimization, not an exact model of MGSDRV compiled size.
 
@@ -227,3 +262,30 @@ and per-tick states of the selected output match the source-derived baseline.
 No note timing, gesture boundaries, envelope selection or voice mapping changed.
 Larger future gains likely require non-adjacent reusable phrases or a validated
 compiled-byte cost model; do not claim current selection is byte-optimal.
+
+## Six-level nesting check (2026-10-03)
+
+The two-level maximum in the 35-block benchmark was an observed final output
+depth, not a configured limit of the default structural pipeline.
+`LoopStructure.build` and `SourceLoopPlan.render` have no nesting-depth cap.
+The remaining legacy performed-unit compressor's default limit was briefly
+raised from two to six, then removed at the user's request. Experimental
+immediate/retained strategies and their wrappers also default to unrestricted
+depth. An explicit `max_depth` remains available only for bounded experiments;
+normal CLI conversion does not supply it. The structural default has not
+acquired a new six-level restriction.
+
+Synthetic six-level source trees/projected MML retain the exact expanded
+commands. Both structural and six-level performed projections compile with
+MGSC 1.11 through mgsc-js. This confirms compiler acceptance for this case;
+it does not establish hardware playback equivalence or deeper nesting support.
+Unrestricted legacy and experimental strategies also pass seven-level exact
+expansion checks; this is algorithm validation, not a compiler-limit claim.
+Exact command comparison may still expand a selected parent loop when entry
+settings differ, regardless of available nesting depth.
+
+For default PSG/SCC conversion, build source loop structure first, then select
+software envelope IDs from stored representatives, then render/project all
+occurrences and select macros. Source volume trajectories are available to the
+loop matcher before envelope selection. `--legacy-loops` retains envelope-first
+processing; OPLL does not use this PSG/SCC software-envelope selection stage.

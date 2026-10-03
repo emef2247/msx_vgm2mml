@@ -43,7 +43,7 @@ def check_keyons(source, mgs, folder, node, module, timeout):
 
 
 def run_batch(source, output, module=None, node='node', timeout=300, mgsc=None, alloc=None,
-              keyon=True, libkss_module=None, normalize_lengths=False):
+              keyon=True, libkss_module=None, normalize_lengths=False, enhance_macros=True, legacy_loops=False):
     source, output = source.resolve(), output.resolve()
     if source == output or output in source.parents or source in output.parents:
         raise ValueError('Input and output trees must be separate')
@@ -99,6 +99,10 @@ def run_batch(source, output, module=None, node='node', timeout=300, mgsc=None, 
             stages[0][1].extend(['--alloc', alloc])
         if normalize_lengths:
             stages[0][1].append('--normalize-lengths')
+        if not enhance_macros:
+            stages[0][1].append('--legacy-macros')
+        if legacy_loops:
+            stages[0][1].append('--legacy-loops')
         for stage, command in stages:
             log = folder / (stage+'.log')
             row['log'] = str(log.relative_to(output))
@@ -150,13 +154,19 @@ if __name__ == '__main__':
     parser.add_argument('--alloc', help='Allocation overrides forwarded to every conversion')
     parser.add_argument('--normalize-lengths', action='store_true',
                         help='Enable optional musical duration normalization for every conversion')
+    parser.add_argument('--enhance-macros', action='store_true', default=True,
+                        help='Enable enhanced macros (now the default)')
+    parser.add_argument('--legacy-macros', dest='enhance_macros', action='store_false',
+                        help='Use the previous macro compressor')
+    parser.add_argument('--legacy-loops', action='store_true',
+                        help='Use the previous OPLL loop projection')
     parser.add_argument('--skip-keyon-counts', action='store_true', help='Disable MGS playback and OPLL key-on comparison')
     parser.add_argument('--libkss-module', type=Path, help='Explicit libkss-js entry point for MGS export')
     args = parser.parse_args()
     try:
         results = run_batch(args.input_dir, args.outdir, args.mgsc_module, args.node, args.timeout, args.mgsc, args.alloc,
                             keyon=not args.skip_keyon_counts, libkss_module=args.libkss_module,
-                            normalize_lengths=args.normalize_lengths)
+                            normalize_lengths=args.normalize_lengths, enhance_macros=args.enhance_macros, legacy_loops=args.legacy_loops)
     except (RuntimeError, ValueError) as error:
         parser.exit(2, str(error)+'\n')
     sys.exit(0 if all(r['status'] == 'success' and r['keyon_status'] in ('compared', 'disabled') for r in results) else 1)

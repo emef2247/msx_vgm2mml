@@ -49,6 +49,19 @@ class NoteNormalizationTests(unittest.TestCase):
         self.assertEqual(self.plan.onset(start + 100), self.plan.onset(start))
         self.assertEqual(self.plan.onset(start + round(self.plan.samples_per_grid)), self.plan.onset(start) + 12)
 
+    def test_nine_channel_projection_with_structural_loops(self):
+        rows = [segment(round(self.plan.phase_samples + i * self.plan.samples_per_grid),
+                        round(self.plan.phase_samples + (i + 1) * self.plan.samples_per_grid))
+                for i in range(8)]
+        with tempfile.TemporaryDirectory() as d:
+            voices = Path(d) / 'voices.csv'
+            voices.write_text('#type,vgmticks,patch_hex\n', encoding='utf-8')
+            text, plain, evidence, loops = render_melody({8: rows}, voices, self.plan,
+                                                       num_channels=9, source_loops=True)
+        self.assertIn('h ', text)
+        self.assertEqual(set(analyze_mml(text)[0]), {'h'})
+        self.assertEqual(melodic_timeline(text), melodic_timeline(plain))
+
     def test_gate_can_represent_fractional_step_without_rounding_to_rest(self):
         length, gate, fitted = _gate(10.5, 12, 7, self.plan)
         self.assertEqual((length, gate, fitted), (12, 7, True))

@@ -36,7 +36,7 @@ class SourceLoopPlan:
     structure: object = None
 
     @classmethod
-    def build(cls, keys, max_phrase=128, max_depth=3, strategy='retained'):
+    def build(cls, keys, max_phrase=128, max_depth=None, strategy='retained'):
         keys = tuple(keys)
         if strategy == 'structural':
             from loop_structure import LoopStructure

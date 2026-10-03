@@ -33,6 +33,19 @@ class PerformedPatterns(unittest.TestCase):
         self.assertLess(len(text), len('o4 c8 [c8]255 [c8]255 [c8]90'))
         self.assertTrue(text.startswith('o4 c8'))
 
+    def test_unrestricted_depth_preserves_commands_and_explicit_experiment_limit(self):
+        commands = ['c%12'] * 4
+        for note in 'defgab':
+            commands = (commands + [note + '%12']) * 2
+        units = [Unit(i, i+1, 'note', (text,)) for i, text in enumerate(commands)]
+        text, report = compress(units, commands)
+        shallow, shallow_report = compress(units, commands, max_depth=2)
+        self.assertEqual(expand(text), expand(' '.join(commands)))
+        self.assertEqual(expand(shallow), expand(text))
+        self.assertEqual(max(r['depth'] for r in report if r['status'] == 'applied'), 6)
+        self.assertLessEqual(max(r['depth'] for r in shallow_report), 1)
+        self.assertLess(len(text), len(shallow))
+
     def test_tied_envelope_is_one_unit_and_release_difference_is_distinct(self):
         units = [Unit(0, 1, 'note', (12, 8, 4)), Unit(1, 2, 'note', (12, 7, 4))]
         commands = ['@e1 c%255 &c%45', '@e2 c%255 &c%45']

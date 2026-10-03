@@ -29,10 +29,12 @@ def main():
     try:
         strategies = ['current'] + [s for s in dict.fromkeys(args.strategies) if s != 'current']
         for strategy in strategies:
-            opll_target.render = (original if strategy == 'current' else
-                                  partial(original, source_loops=True, source_strategy=strategy))
+            def selected_render(*values, **kwargs):
+                kwargs.update(source_loops=strategy != 'current', source_strategy=strategy)
+                return original(*values, **kwargs)
+            opll_target.render = selected_render
             output = args.outdir / strategy
-            sys.argv = ['vgm2mml.py', str(args.input), '--outdir', str(output), '--dump-passes']
+            sys.argv = ['vgm2mml.py', str(args.input), '--outdir', str(output), '--dump-passes', '--legacy-macros']
             runpy.run_path(str(ROOT / 'vgm2mml.py'), run_name='__main__')
             mml = output / (args.input.stem + '.mml')
             text = mml.read_text(encoding='cp932')
@@ -65,7 +67,7 @@ def main():
                    scope='Only OPLL melodic loop strategy changes; PSG/SCC/envelopes/rhythm/macros use the same pipeline',
                    evaluation='Minimize MML characters among successfully compiled, equivalent outputs; buffer_error is a failure',
                    structural_limits='All exact adjacent repeats over the full unit sequence; no phrase/depth/repeat cap',
-                   legacy_experiment_limits=dict(max_phrase_units=128, max_depth=3),
+                   legacy_experiment_limits=dict(max_phrase_units=128, max_depth=None),
                    shortest_compilable=min(eligible, key=lambda r:r['mml_characters'])['strategy'] if eligible else None,
                    runs=reports)
     (args.outdir/'comparison.json').write_text(json.dumps(summary, indent=2), encoding='utf-8')

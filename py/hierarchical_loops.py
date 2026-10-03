@@ -10,8 +10,8 @@ class Node:
     repeats: int = 1
 
 
-def experiment(units, commands, strategy, max_phrase=32, max_depth=3, *, return_tree=False):
-    if max_phrase < 1 or max_depth < 1:
+def experiment(units, commands, strategy, max_phrase=32, max_depth=None, *, return_tree=False):
+    if max_phrase < 1 or (max_depth is not None and max_depth < 1):
         raise ValueError('Phrase width and depth must be positive')
     if len(units) != len(commands):
         raise ValueError('Unit/command length mismatch')
@@ -58,7 +58,7 @@ def experiment(units, commands, strategy, max_phrase=32, max_depth=3, *, return_
                         break
                     count += 1; stop = end+1
                 node = Node(nodes[i].start,nodes[stop-1].end,body,count)
-                if count > 1 and depth(node) <= max_depth and len(render(node)) < len(' '.join(render(c) for c in nodes[i:stop])):
+                if count > 1 and (max_depth is None or depth(node) <= max_depth) and len(render(node)) < len(' '.join(render(c) for c in nodes[i:stop])):
                     nodes[i:stop] = [node]
                 i += 1
         result = tuple(nodes)
@@ -70,7 +70,7 @@ def experiment(units, commands, strategy, max_phrase=32, max_depth=3, *, return_
                 leaf = leaves[start]
                 costs[start] = len(render(leaf))+1+costs[start+1]
                 choices[start] = (leaf,start+1)
-                if not remaining:
+                if remaining == 0:
                     continue
                 for width in range(1,min(max_phrase,(hi-start)//2)+1):
                     signature = keys[start:start+width]
@@ -79,7 +79,7 @@ def experiment(units, commands, strategy, max_phrase=32, max_depth=3, *, return_
                         stop = start+width*count
                         if keys[stop-width:stop] != signature:
                             break
-                        body = solve(start,start+width,remaining-1)
+                        body = solve(start,start+width,None if remaining is None else remaining-1)
                         node = Node(start,stop,body,count)
                         cost = len(render(node))+1+costs[stop]
                         if cost < costs[start]:

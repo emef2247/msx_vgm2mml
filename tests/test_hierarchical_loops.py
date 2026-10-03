@@ -36,5 +36,16 @@ class HierarchicalLoops(unittest.TestCase):
         _,rows=self.run_sequence('aaabaaab','retained',depth=1)
         self.assertTrue(all(r['depth']==1 for r in rows))
 
+    def test_default_depth_is_unrestricted(self):
+        commands = ['c%12'] * 4
+        for note in 'defgab':
+            commands = (commands + [note + '%12']) * 2
+        units = [Unit(i, i+1, 'note', (text,)) for i, text in enumerate(commands)]
+        from source_loop_plan import expanded_tokens
+        for strategy in ('immediate', 'retained'):
+            text, rows = experiment(units, commands, strategy, max_phrase=len(commands))
+            self.assertEqual(expanded_tokens(text), tuple(commands))
+            self.assertEqual(max(row['depth'] for row in rows), 7)
+
 if __name__=='__main__':
     unittest.main()

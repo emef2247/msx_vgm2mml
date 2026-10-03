@@ -41,6 +41,9 @@ outputs/stem/stem.mml
 | `--debug` | デバッグ用ファイルを出力 |
 | `--raw-ticks` | 音長を `%` tick 形式（例: `c%%N`）で出力（デフォルトは音価形式） |
 | `--normalize-lengths` | OPLLの発音間隔から共通の音長基準を推定し、音長・ゲートを補正。既定は無効。適用できない曲は従来出力を維持。`--raw-ticks`との併用不可 |
+| `--legacy-loops` | PSG/SCC/OPLLの可逆なループ構造化を無効にし、従来のループ・エンベロープ処理を使用 |
+| `--legacy-macros` | ループ内部を探索する既定のマクロ強化を無効にし、従来のマクロ処理を使用 |
+| `--enhance-macros` | マクロ強化を明示的に有効化（現在は既定）。`--dump-passes`で採用マクロCSVと候補案の文字数を保存 |
 
 PSG/SCCは、イベントCSV → Segment → MMLの段階に分けて処理します。
 構成と中間フォーマットは [PSG/SCC Segment pipeline](docs/psg_scc_segments.md) を参照してください。
@@ -329,3 +332,22 @@ With `--dump-passes`, conventional target MML, corrected-note evidence and loop
 decision CSVs are retained alongside native Segment dumps.
 See [usage and limits](docs/note_normalization.md)
 and [sample/grider/sx01v measurements](field_notes/2026-10-02_note_normalization_benchmark.md).
+
+### 圧縮方式の比較
+
+PSG/SCC/OPLLの可逆なループ構造化と、全音源のマクロ強化は既定で有効です。
+PSG/SCCでは音量推移を保持した音の反復を先に構造化し、その後で共通の
+ソフトウェアエンベロープを選びます。参照MMLは変換の入力に使用しません。
+`--dump-passes`で音からSegmentへの対応、ループ候補・構造・出力判定、
+エンベロープ候補の構造化前後の出現数を保存します。
+従来の圧縮で比較する場合は、通常変換・バッチのどちらでも
+`--legacy-loops --legacy-macros`を指定してください。音長補正は引き続き
+`--normalize-lengths`を指定したときのみ有効です。
+
+```bash
+python scripts/batch_vgm_to_mgs.py tests/fixtures/local_only/opll --outdir outputs/mgs/default
+python scripts/batch_vgm_to_mgs.py tests/fixtures/local_only/opll --outdir outputs/mgs/legacy --legacy-loops --legacy-macros
+```
+
+OPLLはリズムを使用する曲では6音＋リズム（`#opll_mode 1`）、
+リズムOFFの曲では9音（`#opll_mode 0`）を出力します。

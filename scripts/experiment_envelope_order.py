@@ -4,11 +4,10 @@ import json
 from pathlib import Path
 import runpy
 import sys
-from functools import partial
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'py'))
 import mml_envelopes
-import opll_target
+import pre_envelope_loops
 from pre_envelope_loops import LoopFirstEnvelopeBank, EnvelopeFirstStructuredBank
 from mml_sync import analyze_mml, _leaves
 
@@ -19,15 +18,16 @@ def main():
     parser.add_argument('--outdir',type=Path,required=True)
     args=parser.parse_args()
     original=mml_envelopes.EnvelopeBank
-    original_opll=opll_target.render
+    original_pre=pre_envelope_loops.LoopFirstEnvelopeBank
     results=[]
     expanded_tracks=[]
     try:
         for label,bank in [('current',original),('envelope-first',EnvelopeFirstStructuredBank),
                            ('loop-first',LoopFirstEnvelopeBank)]:
             mml_envelopes.EnvelopeBank=bank
-            opll_target.render = (original_opll if label == 'current' else
-                                  partial(original_opll, source_loops=True if label == 'loop-first' else 'after'))
+            # Keep OPLL's current projection fixed: this comparison changes
+            # only the shared PSG/SCC structure/envelope order.
+            pre_envelope_loops.LoopFirstEnvelopeBank=bank
             out=args.outdir/label
             sys.argv=['vgm2mml.py',str(args.input),'--outdir',str(out),'--dump-passes']
             runpy.run_path(str(ROOT/'vgm2mml.py'),run_name='__main__')
@@ -42,7 +42,7 @@ def main():
                                 opll_software_envelope_selection='not applicable'))
     finally:
         mml_envelopes.EnvelopeBank=original
-        opll_target.render=original_opll
+        pre_envelope_loops.LoopFirstEnvelopeBank=original_pre
     comparison=dict(runs=results, expanded_timed_tokens_equal=all(t == expanded_tracks[0] for t in expanded_tracks),
                     controlled_orders_mml_equal=(args.outdir/'envelope-first'/f'{args.input.stem}.mml').read_bytes() ==
                                                 (args.outdir/'loop-first'/f'{args.input.stem}.mml').read_bytes(),
