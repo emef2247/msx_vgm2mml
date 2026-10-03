@@ -39,6 +39,12 @@ compile_failed, or process errors. Source-size errors are compile_failed and
 their exact message remains in the log. Exit status is 1 if any input failed.
 Failures do not stop later files. No allocation adjustment or music truncation
 is performed. `--timeout` sets the per-stage timeout in seconds (default 300).
+Timeouts are reported separately as `convert_timeout` or `compile_timeout`,
+not as conversion exceptions or ordinary process errors. The stage log retains
+partial stdout/stderr and the configured number of seconds. Later inputs still
+run. A timed-out compiler's incomplete MGS is removed; intermediate MML remains
+available for inspection. Increase the timeout for a slow but valid conversion
+rather than reducing musical accuracy or limiting the source-loop structure.
 MGS compilation does not prove playback equivalence.
 
 ## Integrated OPLL key-on counts
@@ -60,7 +66,7 @@ Use `--skip-keyon-counts` for the previous conversion/compilation-only workflow.
 `results.csv` and `results.json` also contain `reference_keyon`, `actual_keyon`,
 `missing_keyon`, `extra_keyon`, `keyon_status`, and `keyon_error`.
 Compilation `status` remains independent. `keyon_status` is `compared`,
-`not_compiled`, `unavailable` (dependency failure), `error`, or `disabled`.
+`not_compiled`, `unavailable` (dependency failure), `timeout`, `error`, or `disabled`.
 Unperformed comparisons have blank counts, never fabricated zeros.
 Count differences do not make compilation unsuccessful; exit status is 1 when
 conversion/compilation or an enabled comparison cannot complete.

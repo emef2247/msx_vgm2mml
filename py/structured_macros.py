@@ -82,15 +82,25 @@ def select(text,limit,width,first_rank):
         locs=list(locations(parts,rhythm))
         for loc,(nodes,path,grammar) in enumerate(locs):
             words=list(map(_text,nodes))
+            lengths=list(map(len,words))
+            has_macro=['*' in word for word in words]
             for start in range(len(words)):
-                if words[start]=='&' or '*' in words[start]: continue
+                if words[start]=='&' or has_macro[start]: continue
+                body_length=0
                 for size in range(1,min(width,len(words)-start)+1):
-                    seq=tuple(words[start:start+size]); body=' '.join(seq)
-                    if len(body)>512 or any('*' in w for w in seq): break
-                    if seq[-1]=='&' or (start+size<len(words) and words[start+size]=='&'): continue
+                    stop=start+size
+                    body_length+=lengths[stop-1]+(size>1)
+                    if body_length>512 or has_macro[stop-1]: break
+                    if words[stop-1]=='&' or (stop<len(words) and words[stop]=='&'): continue
+                    seq=tuple(words[start:stop])
                     candidates[(grammar,seq)].append((loc,start))
         ranked=[]; ref=f'*{number}'
         for (grammar,seq),positions in candidates.items():
+            body=' '.join(seq)
+            # Even accepting overlapping occurrences cannot save enough here.
+            # This exact upper bound avoids costly ancestry checks, not candidates.
+            if len(positions)<2 or len(positions)*(len(body)-len(ref))-len(f'{ref} = {{ {body} }}\n')<=0:
+                continue
             selected=[]; ends={}; occupied=defaultdict(list)
             for loc,start in sorted(positions,key=lambda p:(len(locs[p[0]][1]),p)):
                 path=locs[loc][1]
@@ -107,7 +117,6 @@ def select(text,limit,width,first_rank):
                 if covered: continue
                 selected.append((loc,start)); ends[loc]=start+len(seq)
                 occupied[path].append(start)
-            body=' '.join(seq)
             saving=len(selected)*(len(body)-len(ref))-len(f'{ref} = {{ {body} }}\n')
             if len(selected)>1 and saving>0:
                 ranked.append((saving,seq,selected,grammar))

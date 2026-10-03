@@ -17,6 +17,15 @@ from check_opll_key_edges import compare_files
 KEYON_FIELDS = ('reference_keyon', 'actual_keyon', 'missing_keyon', 'extra_keyon')
 
 
+def timeout_log(error, stage):
+    parts = []
+    for value in (error.stdout, error.stderr):
+        if value:
+            parts.append(value.decode('utf-8', errors='replace') if isinstance(value, bytes) else value)
+    parts.append(f'{stage} timed out after {error.timeout} seconds.\n{error}\n')
+    return '\n'.join(parts)
+
+
 def check_keyons(source, mgs, folder, node, module, timeout):
     """Export existing MGS once and compare counts, without regenerating MML."""
     actual = folder / (source.stem + '.roundtrip.vgm')
@@ -118,7 +127,13 @@ def run_batch(source, output, module=None, node='node', timeout=300, mgsc=None, 
                         print(text or 'MGSC produced no MGS output', file=sys.stderr)
                         mgs.unlink(missing_ok=True)
                     break
-            except (OSError, subprocess.TimeoutExpired) as error:
+            except subprocess.TimeoutExpired as error:
+                log.write_text(timeout_log(error, stage), encoding='utf-8')
+                row['status'] = stage+'_timeout'
+                if stage == 'compile':
+                    mgs.unlink(missing_ok=True)
+                break
+            except OSError as error:
                 log.write_text(str(error), encoding='utf-8')
                 row['status'] = stage+'_error'
                 break
@@ -131,7 +146,10 @@ def run_batch(source, output, module=None, node='node', timeout=300, mgsc=None, 
                     try:
                         row.update(check_keyons(path, mgs, folder, node, libkss_module, timeout),
                                    keyon_status='compared')
-                    except (OSError, ValueError, struct.error, subprocess.TimeoutExpired) as error:
+                    except subprocess.TimeoutExpired as error:
+                        row.update(keyon_status='timeout', keyon_error=str(error))
+                        (folder / 'keyon.log').write_text(timeout_log(error, 'keyon'), encoding='utf-8')
+                    except (OSError, ValueError, struct.error) as error:
                         row.update(keyon_status='error', keyon_error=str(error))
                         (folder / 'keyon.log').write_text(str(error), encoding='utf-8')
         rows.append(row)
