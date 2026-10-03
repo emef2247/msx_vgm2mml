@@ -5,6 +5,7 @@ alternatives. A compact source tree is one view of that catalog, not a promise
 to emit brackets for every marker. Width/depth/repeat counts have no target cap.
 """
 import csv
+from array import array
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -69,7 +70,33 @@ class LoopStructure:
         keys = tuple(keys)
         catalog = candidates(keys)
 
-        @lru_cache(None)
+        intern = {}
+        codes = array('I', (intern.setdefault(key, len(intern)) for key in keys))
+        encoded = codes.tobytes()
+        stride = codes.itemsize
+        spans = {}
+
+        def shifted(nodes, offset):
+            if not offset:
+                return nodes
+            return tuple(Node(n.start + offset, n.end + offset,
+                              shifted(n.children, offset), n.repeats) for n in nodes)
+
+        def reuse_content(function):
+            # Equal source spans have the same feasible repeats, costs and
+            # tie order. Reuse that solution, restoring occurrence positions.
+            @lru_cache(None)
+            def cached(lo, hi):
+                signature = encoded[lo * stride:hi * stride]
+                if signature in spans:
+                    origin, nodes, cost = spans[signature]
+                    return shifted(nodes, lo - origin), cost
+                nodes, cost = function(lo, hi)
+                spans[signature] = lo, nodes, cost
+                return nodes, cost
+            return cached
+
+        @reuse_content
         def solve(lo, hi):
             if lo == hi:
                 return (), (0, 0)
@@ -108,6 +135,8 @@ class LoopStructure:
             return tuple(result), costs[lo]
 
         tree, _ = solve(0, len(keys))
+        solve.cache_clear()
+        spans.clear()
         if tuple(keys[i] for i in expanded_indices(tree)) != keys:
             raise AssertionError('Structural loops changed the source sequence')
         return cls(keys, catalog, tree)

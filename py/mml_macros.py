@@ -27,29 +27,35 @@ def compress_macros(text, limit=32):
     for number in range(limit):
         candidates = defaultdict(list)
         for bi, (ch, nodes) in enumerate(blocks):
+            lengths = list(map(len, nodes))
+            has_macro = ['*' in node for node in nodes]
             for start in range(len(nodes)):
-                if nodes[start] == '&' or nodes[start].startswith('*'):
+                if nodes[start] == '&' or has_macro[start]:
                     continue
-                for width in range(4, min(24, len(nodes)-start)+1):
-                    seq = tuple(nodes[start:start+width])
-                    body = ' '.join(seq)
-                    if len(body) > 160:
+                body_length = 0
+                for width in range(1, min(24, len(nodes)-start)+1):
+                    stop = start + width
+                    body_length += lengths[stop-1] + (width > 1)
+                    if body_length > 160 or has_macro[stop-1]:
                         break
-                    if any('*' in n for n in seq) or seq[-1] == '&':
+                    if width < 4 or nodes[stop-1] == '&':
                         continue
-                    if start+width < len(nodes) and nodes[start+width] == '&':
+                    if stop < len(nodes) and nodes[stop] == '&':
                         continue
+                    seq = tuple(nodes[start:stop])
                     # Rhythm and melodic commands have different grammars.
                     candidates[(rhythm and ch == 'f', seq)].append((bi, start))
         best = None
         ref = f'*{number}'
         for (_, seq), positions in candidates.items():
+            body = ' '.join(seq)
+            if len(positions) < 2 or len(positions)*(len(body)-len(ref)) - len(f'{ref} = {{ {body} }}\n') <= 0:
+                continue
             selected, ends = [], {}
             for bi, start in positions:
                 if start >= ends.get(bi, 0):
                     selected.append((bi, start))
                     ends[bi] = start + len(seq)
-            body = ' '.join(seq)
             saving = len(selected)*(len(body)-len(ref)) - len(f'{ref} = {{ {body} }}\n')
             if len(selected) > 1 and saving > 0 and (best is None or saving > best[0]):
                 best = saving, seq, selected

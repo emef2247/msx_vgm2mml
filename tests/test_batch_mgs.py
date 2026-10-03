@@ -11,6 +11,52 @@ from batch_vgm_to_mgs import run_batch, check_keyons
 
 
 class BatchMgs(unittest.TestCase):
+    @patch('batch_vgm_to_mgs.shutil.which', return_value='/usr/local/bin/mgsc')
+    def test_timeouts_are_separate_and_preserve_partial_diagnostics(self, _which):
+        for stage in ('convert', 'compile'):
+            with self.subTest(stage=stage), tempfile.TemporaryDirectory() as tmp:
+                source, out = Path(tmp)/'input', Path(tmp)/'out'
+                source.mkdir()
+                for name in ('a','b'):
+                    (source/(name+'.vgm')).write_bytes(b'fixture')
+                def run(command, **kwargs):
+                    is_compile = command[0] == '/usr/local/bin/mgsc'
+                    if 'a.vgm' in ' '.join(command) and is_compile == (stage == 'compile'):
+                        if is_compile:
+                            Path(command[2]).write_bytes(b'incomplete')
+                        raise subprocess.TimeoutExpired(command,17,output=b'partial stdout',stderr=b'partial stderr')
+                    if is_compile:
+                        Path(command[2]).write_bytes(b'MGS')
+                    return subprocess.CompletedProcess(command,0,b'',b'')
+                with patch('batch_vgm_to_mgs.subprocess.run',side_effect=run):
+                    rows = run_batch(source,out,keyon=False,timeout=17)
+                self.assertEqual([r['status'] for r in rows],[stage+'_timeout','success'])
+                log = (out/'a.vgm'/f'{stage}.log').read_text()
+                self.assertIn('partial stdout',log)
+                self.assertIn('partial stderr',log)
+                self.assertIn('timed out after 17 seconds',log)
+                self.assertFalse((out/'a.vgm/a.mgs').exists())
+                with (out/'results.csv').open() as stream:
+                    self.assertEqual(next(csv.DictReader(stream))['status'],stage+'_timeout')
+
+    @patch('batch_vgm_to_mgs.shutil.which', return_value='/usr/local/bin/mgsc')
+    def test_keyon_timeout_does_not_change_successful_compile(self, _which):
+        with tempfile.TemporaryDirectory() as tmp:
+            source, out = Path(tmp)/'input', Path(tmp)/'out'
+            source.mkdir(); (source/'a.vgm').write_bytes(b'fixture')
+            def run(command, **kwargs):
+                if command[0] == '/usr/local/bin/mgsc':
+                    Path(command[2]).write_bytes(b'MGS')
+                return subprocess.CompletedProcess(command,0,b'',b'')
+            with patch('batch_vgm_to_mgs.subprocess.run',side_effect=run), \
+                 patch('batch_vgm_to_mgs.check_keyons',side_effect=
+                       subprocess.TimeoutExpired(['export'],17,output=b'playback progress')):
+                row = run_batch(source,out)[0]
+            self.assertEqual((row['status'],row['keyon_status']),('success','timeout'))
+            self.assertEqual(row['actual_keyon'],'')
+            self.assertIn('playback progress',(out/'a.vgm/keyon.log').read_text())
+            self.assertTrue((out/'a.vgm/a.mgs').exists())
+
     def test_native_preferred_and_empty_output_is_failure(self):
         with tempfile.TemporaryDirectory() as tmp:
             source, out = Path(tmp)/'input', Path(tmp)/'out'

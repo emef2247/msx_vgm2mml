@@ -1,13 +1,59 @@
 import itertools
+from functools import lru_cache
 from pathlib import Path
 import sys
 import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'py'))
 from loop_structure import LoopStructure, candidates, expanded_indices, unroll
 from source_loop_plan import SourceLoopPlan, expanded_tokens
+from hierarchical_loops import Node
 
 
 class LoopStructureTests(unittest.TestCase):
+    def test_reused_content_matches_original_interval_tree(self):
+        # Independent interval memoization is the previous exact solver.
+        # Its source tree, including deterministic ties and positions, is the oracle.
+        def original(keys):
+            catalog = candidates(keys)
+            @lru_cache(None)
+            def solve(lo, hi):
+                if lo == hi:
+                    return (), (0, 0)
+                for repeat in catalog[lo]:
+                    if repeat.end >= hi and (hi-lo) % repeat.width == 0:
+                        body = keys[lo:lo+repeat.width]
+                        if (hi-lo)//repeat.width > 1 and len(set(body)) == repeat.width:
+                            return (Node(lo, hi, tuple(Node(i,i+1) for i in range(lo,lo+repeat.width)),
+                                         (hi-lo)//repeat.width),), (repeat.width,1)
+                costs, choices = {hi:(0,0)}, {}
+                for start in range(hi-1,lo-1,-1):
+                    costs[start] = costs[start+1][0]+1, costs[start+1][1]
+                    choices[start] = Node(start,start+1), start+1
+                    for repeat in catalog[start]:
+                        maximum = min(repeat.max_repeats,(hi-start)//repeat.width)
+                        if maximum < 2:
+                            continue
+                        body, cost = solve(start,start+repeat.width)
+                        for count in range(2,maximum+1):
+                            stop = start+repeat.width*count
+                            candidate = cost[0]+costs[stop][0], cost[1]+costs[stop][1]+1
+                            if candidate < costs[start]:
+                                costs[start], choices[start] = candidate, (Node(start,stop,body,count),stop)
+                tree, start = [], lo
+                while start < hi:
+                    node, start = choices[start]
+                    tree.append(node)
+                return tuple(tree), costs[lo]
+            return solve(0,len(keys))[0]
+        for size in range(9):
+            for keys in itertools.product('ab', repeat=size):
+                self.assertEqual(LoopStructure.build(keys).tree, original(keys))
+        # Equal bodies occur at different offsets and with different surroundings.
+        phrase = tuple('aaabbbbbbcccddd')
+        for keys in ((('intro',)+phrase*3+('tail',)),
+                     tuple('xyz')+phrase*2+tuple('pq')+phrase*2+tuple('rs')):
+            self.assertEqual(LoopStructure.build(keys).tree, original(keys))
+
     def test_complete_catalog_against_brute_force(self):
         for size in range(8):
             for keys in itertools.product('ab', repeat=size):
