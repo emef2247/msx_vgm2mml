@@ -101,13 +101,14 @@ def weighted_patterns(units, commands):
 def _compress(units, commands, max_depth, weighted):
     """Return text and a hierarchy report; loops never change expanded tokens.
 
-    Limit depth to two, and repeat counts to 255. Relative state changes are
-    safe because the original command stream, not just sounding notes, repeats.
+    Depth is unrestricted unless explicitly requested for an experiment. Limit
+    repeat counts to 255. Relative state changes are safe because the original
+    command stream, not just sounding notes, repeats.
     """
     report, ids = [], {}
 
     def visit(lo, hi, depth, parent):
-        if depth >= max_depth:
+        if max_depth is not None and depth >= max_depth:
             return ' '.join(commands[lo:hi])
         patterns, uses = (weighted_patterns(units[lo:hi], commands[lo:hi]) if weighted
                           else find_patterns(units[lo:hi]))
@@ -163,7 +164,7 @@ def _compress(units, commands, max_depth, weighted):
     return visit(0, len(units), 0, ''), report
 
 
-def compress(units, commands, max_depth=2):
+def compress(units, commands, max_depth=None):
     """Keep the shorter of greedy hierarchy and cost-aware repeat placement."""
     greedy = _compress(units, commands, max_depth, False)
     weighted = _compress(units, commands, max_depth, True)

@@ -173,7 +173,7 @@ def _gate(observed, available, default_gate, plan):
     return nominal, 8, False
 
 
-def render_melody(segments, voice_path, plan):
+def render_melody(segments, voice_path, plan, num_channels=6, source_loops=False):
     from opll_target import target_note, decode_patch
     from performed_patterns import Unit, compress
     updates = []
@@ -200,11 +200,10 @@ def render_melody(segments, voice_path, plan):
             voice = patches[patch]
         return octave, note, voice, 15 - seg.vol, seg.sus, patch.hex() if patch else ''
 
-    # The existing target renderer supports six melodic tracks in rhythm mode.
-    if any(s.keyon and s.vgmticks_end > s.vgmticks for ch in (6, 7, 8)
+    if num_channels == 6 and any(s.keyon and s.vgmticks_end > s.vgmticks for ch in (6, 7, 8)
            for s in segments.get(ch, ())):
         raise ValueError('Nine-channel melodic OPLL is outside the current target renderer')
-    for ch in range(6):
+    for ch in range(num_channels):
         notes = _notes(segments.get(ch, ()))
         usable = [n for n in notes if n.members and (n.end is None or n.end > n.start)]
         if not usable:
@@ -330,8 +329,13 @@ def render_melody(segments, voice_path, plan):
                 quantized_state_runs=json.dumps(dropped), target_state_runs=json.dumps(kept)))
             if note.end is not None and abs(evidence[-1]['gate_delta_samples']) > plan.tolerance_samples:
                 raise ValueError('A gate boundary would exceed the correction tolerance')
-        text, report = compress(units, commands)
-        track = '9abcde'[ch]
+        if source_loops:
+            from source_loop_plan import SourceLoopPlan
+            structure = SourceLoopPlan.build(((u.kind, u.key) for u in units), strategy='structural')
+            text, report = structure.render(commands)
+        else:
+            text, report = compress(units, commands)
+        track = '9abcdefgh'[ch]
         lead = ' '.join(prefix) + ' '
         tracks.append(track + ' ' + lead + text)
         expanded.append(track + ' ' + lead + ' '.join(commands))
@@ -419,7 +423,7 @@ def compact_melody(text):
     # Recover the loop tree, since _leaves would expand it during optimization.
     bodies = {}
     for line in text.splitlines():
-        match = re.match(r'^([9a-e])\s+(.*)$', line)
+        match = re.match(r'^([9a-h])\s+(.*)$', line)
         if match:
             bodies.setdefault(match[1], []).append(match[2])
     result = []
@@ -450,7 +454,8 @@ def melodic_timeline(text):
     return result
 
 
-def normalize_outputs(opll_trace, voice_path, output_dir, stem, dump=False, controls=None):
+def normalize_outputs(opll_trace, voice_path, output_dir, stem, dump=False, controls=None, *,
+                      opll_mode=1, source_loops=False):
     """Prepare all target projections before replacing files; abstain if unsafe."""
     from opll import _build_segments
     from rhythm_mml import render as render_rhythm
@@ -468,7 +473,9 @@ def normalize_outputs(opll_trace, voice_path, output_dir, stem, dump=False, cont
     if plan:
         report['timing'] = asdict(plan)
         try:
-            melody, expanded, evidence, loops = render_melody(segments, voice_path, plan)
+            melody, expanded, evidence, loops = render_melody(segments, voice_path, plan,
+                                                              num_channels=6 if opll_mode else 9,
+                                                              source_loops=source_loops)
             # Rhythm uses the same source clock, with a target-only proxy.
             proxies = {}
             for ch, rows in segments.items():

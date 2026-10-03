@@ -1849,3 +1849,53 @@ tempo. Exact loop expansion and effective state equivalence after setter pruning
 are separate checks. Count equality is not audio equivalence, and reference
 one-loop playback may have a different horizon from the source VGM capture.
 See docs/note_normalization.md and the 2026-10-02 benchmark field note.
+
+## Loop structure and output selection
+
+Preserve reversible source loop markers and overlapping repeat alternatives before macro selection. A short inner loop must remain expandable so later macro extraction can choose another boundary. For the current compression work, rank equivalent final MML by character count and require successful MGSC compilation without buffer errors; minimum compiled byte count is not the objective. See field_notes/2026-10-03_reversible_loop_structure.md.
+
+Do not impose a default nesting-depth limit on either structural or legacy loop
+algorithms. Observed final depth is not evidence of a configured cap. Optional
+explicit limits are for controlled experiments only; compiler/runtime acceptance
+must be checked separately from source-structure detection.
+
+## Known non-rhythm OPLL projection limit
+
+Historical limit before the default-compression/mode fix: opll_target projected six melody channels and merged output always used #opll_mode 1. es59/es56 reference MML use mode0 with nine melodic channels; their Segment CSVs retain active channels6..8 that are omitted by target output. Exact macro baseline equality does not establish original-VGM fidelity in this case. See field_notes/2026-10-03_structured_macro_followup.md. Nine-channel projection is separate pending work.
+
+## Compression defaults and OPLL layout (2026-10-03)
+
+OPLL source-loop structure and structure-aware macro selection are now the CLI defaults. --legacy-loops and --legacy-macros independently restore earlier compression; they do not restore channel omission or older text encoding. Normalization remains opt-in. The batch entry point forwards both legacy options.
+
+Derive the OPLL layout from rhythm activity and the final rhythm-mode state. Ignore a transient initialization-only enable followed by disable. Mode0 projects all nine melodic channels including f/g/h, including their custom voice assignments, normalization, macros and allocations. Mode1 projects six melodies and rhythm. MGSDRV's header selects one static layout for the output; recovering arbitrary musical mid-song layout changes is separate work.
+
+The reported FRAY/THBSMS/YSSMS title failures were retained UTF-8 MGS files from before Shift-JIS output, while current good FHAWK/SORCER files were CP932. Current title-only compilations for all 11 specified sources contain exact CP932 GD3 titles. Regenerate old MML/MGS through the current pipeline; do not rewrite binary headers in place.
+
+## PSG/SCC source structure before software envelopes (2026-10-03)
+
+The default shared PSG/SCC envelope bank now builds structural SourceLoopPlans
+before envelope-ID selection. Notes retain complete source-derived settings and
+volume trajectories; no reference-MML envelope length or minimum phrase duration
+is used. Preserve short/overlapping candidates even if the final target brackets
+are rejected by exact command comparison. The selected source tree is reversible.
+Count stored source representatives for the envelope bank, still prioritizing
+long curves; render all expanded occurrences to preserve initialization/state.
+--legacy-loops restores the earlier envelope-first PSG/SCC implementation.
+See docs/melody_patterns.md for source/Segment mapping and curve-count dumps.
+
+## Continuous OPLL notes can contain compressible subphrases (2026-10-03)
+
+Do not treat an outer continuous-note unit as an opaque leaf for compression.
+Its complete trajectory may differ from other notes while repeated pitch/state
+subphrases within it remain exactly equal. Preserve a separate reversible child
+plan over its original Segment members, then project the unchanged target
+commands through child and parent plans before macro selection. Retain the
+parent-only projection as a spelling alternative. This is compression of
+existing controls, not a new key/retrigger interpretation.
+
+FFMSX01 exposed this distinction: outer-only OPLL structure inflated melodic
+track text and compiled track buffers. Its unchanged PSG tracks then received
+too little of the shared proportional allocation. Macro priority alone was not
+the cause. Source equality, exact expanded timed commands, MML character count
+and ordinary-allocation MGSC compilation are complementary checks; smaller
+macro text alone does not establish that track buffers will fit.

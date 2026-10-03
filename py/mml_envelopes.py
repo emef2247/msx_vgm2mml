@@ -199,12 +199,14 @@ def length_tokens(pitch, ticks, raw_ticks, tie=False):
     return ' '.join(parts)
 
 
-def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None):
+def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, source_plans=None):
     from melody_patterns import analyze
     from melody_loops import project, dump_projection
-    from performed_patterns import project_notes, dump_units
+    from performed_patterns import Unit, project_notes, dump_units
     performed = {}
-    analysis = analyze(segments, chip)
+    # A source plan already catalogs the repeats. The legacy Segment search
+    # is not consumed by that projector and can dominate long PSG inputs.
+    analysis = analyze(segments, chip) if source_plans is None else None
     before_lines, loop_report = [], []
     notes = extract_notes(segments, chip)
     if not bank.prepared:
@@ -290,6 +292,21 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None):
                               detune, rendered_period(seg), int(rendered_period(seg) == seg.tone_period)))
         note_cuts.append(len(body))
         before_lines.append(f'{track} ' + ' '.join(body))
+        if source_plans is not None:
+            plan = source_plans[ch]
+            commands = [' '.join(body[note_cuts[i]:note_cuts[i + 1]]) for i in range(len(rows))]
+            text, hierarchy = plan.render(commands)
+            lines.append(f'{track} ' + text)
+            units = [Unit(i, i + 1, 'rest' if n.rest else 'note', plan.keys[i])
+                     for i, n in enumerate(rows)]
+            fields = ('occurrence_id', 'parent_id', 'depth', 'pattern_id', 'unit_start',
+                      'unit_end', 'unit_width', 'repeats', 'status', 'strategy', 'candidate_status')
+            performed[ch] = (rows, units, [{key: entry[key] for key in fields}
+                                         for entry in hierarchy])
+            if dump_path:
+                plan.dump(str(dump_path).replace('.target_notes.csv', f'.ch{ch}.source_loops.csv'),
+                          [n.segment_indices for n in rows], hierarchy)
+            continue
         performed_text, units, hierarchy = project_notes(rows, chip, body, note_cuts)
         performed[ch] = (rows, units, hierarchy)
         body, report = project(body, boundaries, analysis[ch], ch)

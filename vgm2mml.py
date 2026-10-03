@@ -75,7 +75,7 @@ def _build_merged_mml(stem: str, song_dir: str,
                       has_psg: bool, has_scc: bool, has_opll: bool,
                       raw_ticks: bool = False, sync_min_gap: int = 1000,
                       target: bool = True, name: str | None = None,
-                      title: str | None = None, tempo: int | None = None) -> str:
+                      title: str | None = None, tempo: int | None = None, opll_mode: int = 1) -> str:
     """Build the merged MML text from per-chip compress outputs.
 
     The merged file has a single global header followed by PSG, SCC, and OPLL
@@ -85,7 +85,7 @@ def _build_merged_mml(stem: str, song_dir: str,
     """
     lines = []
     lines.append(f';[name={stem if name is None else name} lpf=1]')
-    lines.append('#opll_mode 1')
+    lines.append(f'#opll_mode {opll_mode}')
     if target and (has_psg or has_scc):
         lines.append(TUNING_HEADER)
     lines.append(f'#tempo {tempo}' if tempo is not None else '#tempo 75' if raw_ticks else '#tempo 225')
@@ -132,6 +132,12 @@ def main():
     parser.add_argument('--outdir', default=None,
                         help='Output directory (default: <vgm_stem>_log/ next to vgm)')
     parser.add_argument('--name', help='Override the player metadata name (default: input stem)')
+    parser.add_argument('--enhance-macros', action='store_true', default=True,
+                        help='Enable enhanced macros (now the default)')
+    parser.add_argument('--legacy-macros', dest='enhance_macros', action='store_false',
+                        help='Use the previous greedy macro compressor')
+    parser.add_argument('--legacy-loops', action='store_true',
+                        help='Use previous loop/envelope projection for PSG, SCC and OPLL')
     parser.add_argument('--title', dest='title',
                         help='Override #title (default: GD3 metadata, then input stem)')
     parser.add_argument('--gd3-language', choices=['ja', 'en'], default='ja',
@@ -212,7 +218,11 @@ def main():
     has_opll = _has_chip_data(opll_trace_csv)
 
     # ── Step 2: SCC MML pipeline ─────────────────────────────────
-    envelope_bank = EnvelopeBank(deferred=True)
+    if args.legacy_loops:
+        envelope_bank = EnvelopeBank(deferred=True)
+    else:
+        from pre_envelope_loops import LoopFirstEnvelopeBank
+        envelope_bank = LoopFirstEnvelopeBank(deferred=True)
     scc_csv = scc_trace_csv if args.scc_input == 'trace' else scc_log_csv
 
     scc_mml_path = process_scc_csv(scc_csv, song_dir, stem=base_name,
@@ -236,12 +246,16 @@ def main():
 
     envelope_bank.flush()
 
+    from opll_mode import mode_from_trace
+    opll_mode = mode_from_trace(opll_trace_csv)
+
     # ── Step 4: OPLL MML pipeline ────────────────────────────────
     opll_mml_path = process_opll_csv(opll_trace_csv, song_dir, stem=base_name,
                                      dump_passes=args.dump_passes,
                                      debug=args.debug,
                                      voice_csv_path=opll_voice_csv,
-                                     raw_ticks=args.raw_ticks)
+                                     raw_ticks=args.raw_ticks, source_loops=not args.legacy_loops,
+                                     opll_mode=opll_mode)
     if args.debug:
         print(f"OPLL MML: {opll_mml_path}")
 
@@ -257,7 +271,8 @@ def main():
         if has_scc:
             controls['scc'] = build_scc(scc_csv, song_dir, dump_passes=False, stem=base_name).segments
         normalized_tempo = normalize_outputs(opll_trace_csv, opll_voice_csv, song_dir,
-                                             base_name, args.dump_passes or args.debug, controls)
+                                             base_name, args.dump_passes or args.debug, controls,
+                                             opll_mode=opll_mode, source_loops=not args.legacy_loops)
         if normalized_tempo is not None:
             print(f'Note normalization: applied (tempo {normalized_tempo})')
         else:
@@ -270,8 +285,12 @@ def main():
                                     has_psg, has_scc, has_opll,
                                     raw_ticks=args.raw_ticks,
                                     sync_min_gap=args.sync_min_gap,
-                                    name=args.name, title=args.title, tempo=normalized_tempo)
+                                    name=args.name, title=args.title, tempo=normalized_tempo, opll_mode=opll_mode)
     merged_text = override_alloc(merged_text, args.alloc)
+    if args.enhance_macros:
+        from structured_macros import enhance_macros
+        merged_text = enhance_macros(merged_text,
+            dump_prefix=os.path.join(song_dir, base_name) if args.dump_passes else None)
     merged_path = os.path.join(song_dir, f'{base_name}.mml')
     with open(merged_path, 'w', encoding='cp932', errors='replace', newline='\n') as fh:
         fh.write(merged_text)

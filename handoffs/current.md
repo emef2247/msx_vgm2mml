@@ -843,3 +843,218 @@ the tool does not compile or export MGS. See docs/opll_keyon_counts.md.
   missing game/date cases. Existing game/date parentheses and explicit title
   override semantics remain unchanged. JS compile/export helpers accept UTF-8
   and CP932 input. README and focused GD3 tests updated.
+
+## Short-first hierarchical loop experiment (2026-10-03)
+- Added pure experimental py/hierarchical_loops.py and isolated
+  scripts/experiment_hierarchical_loops.py; no production converter integration.
+- Compared immediate vs retained candidates on normalized sample/sx01v OPLL
+  note units, original-unit widths<=128, depth<=3; exact trajectory/command
+  expansion asserted. Five tests pass. Private artifacts in Codex outputs/
+  hierarchical-loops; field_notes/2026-10-03_hierarchical_loop_experiment.md
+  documents metrics, source reference statistics, and limits.
+- sample no improvement; sx01v retained saves36 body chars vs existing;
+  immediate worsens244. Not full MML/MGS size metrics. No new audio roundtrip.
+- Harness currently observes target-stage notes after envelope decisions, not
+  yet pre-envelope structural extraction. No individual reference-window recovery
+  certification. Next inspect missed reference intervals and last-pass exits/
+  effective state equality; preserve source data and default output behavior.
+
+## OPLL loop strategy comparison (2026-10-03)
+- User narrowed discussion to loops and deferred envelope ordering. Use exactly
+  sample and sx01v. Prior rejected count-only/gra2_005 report and output tree
+  were deleted. No conclusions from that comparison should be reused.
+- New source_loop_plan creates an executable structure before target command
+  generation; original-unit widths<=128, depth<=3. Both immediate short-first
+  and retained-candidate trees drive emitted MML with exact expansion checks.
+  Default converter unchanged; explicit optional renderer arguments only.
+- scripts/experiment_opll_loop_strategies.py compares current/immediate/retained
+  with all PSG/SCC/envelope/rhythm/macro settings unchanged, normalization off.
+  All six outputs compiled with MGSC1.11; expanded final timed tokens agree.
+- sample text6333/6008/6333 bytes, MGSC used2956/2956/2956. sx01v text
+  17428/17518/17187, MGSC used9128/9428/9168. Thus text savings alone do not
+  justify production adoption. Private outputs/logs are in Codex outputs/
+  opll-loop-strategies; field_notes/2026-10-03_opll_loop_strategies.md records
+  methods and bounds. No audio roundtrip or source-reference loop recall claim.
+- Envelope-order experimental helpers remain available but are deferred; current
+  work and recommended comparisons use the OPLL-only script above. Do not silently
+  substitute fixtures. Next may examine missed reference phrases or binary-cost
+  loop selection if requested. No staging/commit/push performed.
+
+## Reversible OPLL structure update (2026-10-03)
+
+- User corrected the objective: final MML characters plus successful compilation/no buffer_error. The earlier binary-size adoption criterion above is superseded.
+- Added loop_structure.py with exhaustive exact adjacent-repeat candidate catalog, reversible nested tree and alternative intervals. Source width/depth bounds removed; target counts split at 255. Explicit structural experiment only; default converter unchanged.
+- sample current/structural: 6333/6333 characters; sx01v: 17428/17187. All four MGSC compilations succeed, no buffer errors, final expanded timed commands identical. No further size improvement beyond prior retained strategy on these fixtures.
+- Six structural tests, four source-plan tests and five hierarchical tests pass. Candidate/tree CSVs and full artifacts are in Codex outputs/opll-loop-structure. See field_notes/2026-10-03_reversible_loop_structure.md.
+- Macro-aware selective unrolling remains the separate next phase. No staging, commit or push.
+
+- Additional final sx01v syntax inventory: physical loops 73->91, nested loops 4->17, depth 2->3; both outputs already use 32 macros (no bracket loops inside definitions). Recorded per-track counts and structure-aware macro plan in the reversible-loop field note. Next first improve macro search with loops fixed, then compare selective expansion; exact token preservation and MGSC success gate final character ranking.
+
+## Structure-aware macro allocation (2026-10-03)
+- Added structured_macros.py and optional --enhance-macros in converter/batch. Searches loop interiors, expands existing generated calls for reselection, compares four bounded allocations with baseline, asserts exact timed-token equality. Loops stay intact; inner-loop expansion remains next phase.
+- Structural sample 6333->4913 chars; sx01v 17187->14938. Both compile with MGSC1.11 without buffer errors. Public sample CLI path also compiles. No whole-catalog regression or audio roundtrip.
+- Candidate/selection dumps use target-tree paths at each allocation step, not Segment IDs. docs/structured_macros.md and field_notes/2026-10-03_structured_macro_experiment.md document policies/results. No staging/commit/push.
+
+## Five-fixture macro follow-up (2026-10-03)
+- es59/es56/Alest202/FRAY02/SORCER02 source characters reduce 21.4/11.7/18.0/20.0/1.5%; all exact baseline timed streams agree, but all still fail compilation (track buffers or mgsc-js 49152-byte source cap). Unchanged alloc, conventional timing, default loop renderer.
+- Fixed long enhanced macro definition physical lines: wrap at 120; es59 Undefined Macro disappears, reveals Track buffer full. Five focused tests pass. Artifacts/logs in Codex outputs/structured-macro-followup; field_notes/2026-10-03_structured_macro_followup.md records methods and limitations.
+- Restored es59/es56 source MML: 3061/3535 chars, 44/50 physical loops, depth2/3, both compile. Their 9-channel OPLL mode0 source exposes a pre-existing six-melody target limitation: active Segment channels6..8 omitted. Do not claim source fidelity from baseline equality. Not fixed in this compression follow-up.
+
+## Defaults, OPLL mode and title investigation (2026-10-03)
+- Structural OPLL loops/enhanced macros now default; --legacy-loops/--legacy-macros restore earlier compression in converter and batch. Normalization remains opt-in, now handles nine melodic tracks and selected structural policy. Retained scripts updated to force their requested loop/macro strategies.
+- Mode0 projects nine channels, mode1 six plus rhythm. es59/es56 startup-only enable followed by disable is recognized. High-channel voice IDs/diagnostics/macros/normalization included. Synthetic nine-channel VGM compiles; real es59 now has f/g/h, 50150 chars and still exceeds JS input cap.
+- sample default4913/legacy6333 chars both compile with exact timed-token equality. Ancestor overlap selection check optimized; full es59 reconstruction unchanged (~204s search). Large batch tests may require --timeout above300.
+- All seven reported bad stored titles are UTF-8; four good newer binaries are CP932. Current GD3/CP932 title-only probes for all11 sources compile and byte-match. No gd3 algorithm change needed; regenerate old outputs. Report and test scope in field_notes/2026-10-03_default_compression_opll_mode_titles.md. User will run full regression. No staging/commit/push.
+
+## PSG/SCC structural loops before envelopes (2026-10-03)
+- Default shared bank now uses structural SourceLoopPlans before envelope-ID
+  selection; --legacy-loops restores earlier PSG/SCC behavior too. No reference
+  envelope lengths/phrase thresholds, invented attacks or source timing changes.
+  Macro selection remains independent. Source plans drive actual target output.
+- Added/retained source/Segment mappings, complete candidates/tree/projection,
+  expanded/stored envelope counts and performed-unit/path annotations. Removed
+  unused legacy Segment search when rendering an existing source plan. Updated
+  the envelope-order harness to isolate PSG/SCC while keeping OPLL fixed.
+- 0012795->2511 chars,0021793->1822; both compile. GRA2_0318206->18213, still
+  Track buffer full ch3. contrail61402->58953, still exceeds JS source cap.
+  Native tick-state comparisons pass in all paired cases; mixed OPLL timed
+  commands unchanged. p52_arbl diagnostic179772 chars with --legacy-macros
+  matches Segment tick states; full enhanced-macro paired test remains undone.
+- Restored p52/contrail authored scores compile. contrail initially was saved
+  GitHub HTML; extracted embedded MML into private outputs without changing the
+  user file. Both references exceed the current score-length audit grammar;
+  syntax statistics/limitations are recorded, not claimed loop-window recovery.
+- Seven structural-bank tests, ten envelope tests, twelve sync tests, public
+  conversion regression and four source-plan tests pass. Field note:
+  field_notes/2026-10-03_psg_scc_pre_envelope_structure.md. Private outputs in
+  Codex outputs/psg-scc-structure. No full local regression or Git staging,
+  commit/push. Do not rerun expensive whole-catalog tests without user request.
+
+## Authored gra2 PSG/SCC follow-up (2026-10-03)
+- Compared gra2_002/gra2_005 and six available gra2_001 split VGMs exported
+  through msxplay.com. Enhanced macros are ON in both; only the PSG/SCC
+  envelope-first versus source-loop-first bank differs. Normalization is OFF.
+- Final source totals62001->61332 chars (-1.08%); gra2_0058749->8313 (-4.98%,
+  including fewer sync comments; code-only7578->7424). Five inputs shrink,
+  two unchanged, one grows41 chars. All16 compile via MGSC1.11/mgsc-js;
+  native Segment fields and effective per-tick target states agree in all pairs.
+- Source trees reach depth3 in some split inputs; final bracket depth remains
+  at most2. Counts include macro continuation lines. More source markers do not
+  guarantee fewer final characters after stateful projection/macro selection.
+- Corrected split inventory after user clarification/regeneration: the earlier
+  98 MMLs were v2 fine-grained outputs, whereas six gra2_001 VGMs correspond
+  to original loop-boundary splits. Current six MML/VGM pairs have boundaries
+  0,886,2166,3126,5046,6966,8526; no missing/extra numbered files. Previous size
+  benchmark consumed unchanged VGMs, so its measurements remain valid.
+- All ten multi-block songs have35 complete MML/VGM pairs; all MML block
+  comments match recomputed shared loop boundaries. Eight have shell wrappers;
+  007/011 lack local wrapper/splitter copies but their existing intervals also
+  agree with the001 splitter. VGM headers/durations pass coarse checks. Private
+  sync-pairs.csv/json inventory is in the same Codex output directory. This is
+  a read-only inventory, not a35-block conversion/roundtrip benchmark. Use the
+  loop-boundary files rather than v2 splits for authored-loop recovery checks.
+- Results/bounds: field_notes/2026-10-03_gra2_msxplay_structure_comparison.md;
+  private artifacts: Codex outputs/gra2-source-structure/comparison.csv/json.
+  No source/fixture changes, staging/commit/push. Full17-song regression,
+  unsplit001 and p52 enhanced-macro pair remain untested. Keep msxplay-derived
+  authored references separate from vgmrips/NEMESIS2 captures in comparisons.
+
+## All35 authored-loop block comparisons (2026-10-03)
+- User clarified that file correspondence alone was insufficient. Completed35
+  earlier/current conversion pairs with enhanced macros held ON, normalization
+  OFF, changing only PSG/SCC envelope-first versus source-loop-first projection.
+  Six001 pairs reused;29 pairs added. Production conversion code unchanged.
+- All70 conversions succeed; native Segment fields and effective tick states
+  agree across every pair and with each rendered output. MGSC1.11/mgsc-js
+  compiles34/35 in each variant;016 block03 retains track1 buffer full in both.
+- Total characters246524->245186 (-0.54%); code-only218404->217724 (-0.31%).
+  23 blocks shrink,2 unchanged,10 grow. Best004 block01 -8.35%; worst007 block02
+  +6.26%. Final physical loops758->789; selected source trees reach depth4,
+  final target brackets remain depth2. Source structure does not guarantee
+  minimum final characters or recover all reference parent loops.
+- Reference347 channel definitions produce477 invocation windows. Explicit
+  first-audible-note mapping uses offsets3/4 and +/-1 tick window tolerance.
+  Approximate catalog full/partial225/343, selected179/271; final old32/183,
+  new33/202. Do not claim these geometric counts as exact semantic recall.
+  One-note/multi-note/nested-parent categories are separately recorded.
+- Inspected004 block01 track5: reference nested parent is selected in source
+  tree but projected as expanded_different_commands; initialization changes
+  inner repeat count3 on first pass versus4 later. This identifies a target
+  projection improvement area without changing current sound/state behavior.
+- Full report: field_notes/2026-10-03_gra2_loop_block_benchmark.md. Private
+  all-blocks-comparison and loop-recovery CSV/JSON are under Codex outputs/
+  gra2-source-structure. No35-block audio roundtrip, staging, commit or push.
+  Next output direction named by user: mml2vgm MML, then other FM chips; finish
+  discussing this benchmark before assuming new implementation scope.
+
+## Six-level loop request (2026-10-03)
+- Raised the legacy performed-unit compressor default max_depth from2 to6;
+  explicit depth overrides still work. The default structural source builder
+  and target projector were already uncapped. The35-block final depth2 was
+  an observation, not their configuration. Do not infer a cap from that metric.
+- Added six-level detection/projection and legacy-depth regression checks;
+  expanded commands are exact. Synthetic structural/performed6 MML both
+  compile through MGSC1.11/mgsc-js (63 used bytes). Local source hierarchy and
+  projection CSVs/MML/MGS are in Codex outputs/six-level-loops.
+- Confirmed default PSG/SCC order: source structure, software-envelope
+  selection, target projection, macros. No envelope-order behavior changed.
+- This small depth change does not fix differing-initialization parent-loop
+  rejection or rerun the35 private blocks. Staging/commit/push remain user work.
+
+## Unrestricted legacy loop depth (2026-10-03)
+- User clarified that default depth caps would distort algorithm evaluation.
+  Supersedes the preceding2->6 setting: performed_patterns now defaults to
+  max_depth=None. Experimental immediate/retained strategies, SourceLoopPlan's
+  experimental branches and comparison wrappers also default to no depth cap.
+  Explicit limits remain available for deliberately bounded experiments only.
+- Seven-level legacy/experimental regressions check exact expanded commands;
+  existing structural depth and envelope-order checks remain applicable.
+  Source tree recursion terminates on strictly shorter repeated bodies, without
+  an arbitrary depth cutoff. No timing/envelope/macro behavior was rewritten.
+- All42 focused tests pass (performed/hierarchical/source plans, structural
+  loops, pre-envelope order and OPLL target). Inspected seven-level legacy
+  hierarchy CSV and generated MML in Codex outputs/unrestricted-loop-depth;
+  all382 expanded commands are unchanged. diff --check also passes.
+- Earlier35-block results retain their original conditions. No rerun or new
+  compiler/playback claim beyond the preceding six-level compilation check.
+
+## gra2_005 depth-removal Segment check (2026-10-03)
+- At user request, compared legacy depth2/depth6/unrestricted and current
+  default structural output, with enhanced macros and source-sample dumps ON,
+  normalization OFF. No conversion code or fixture inputs changed for this check.
+- PSG5029/SCC10369 native Segment rows agree in all four variants; all14
+  trace/pass CSVs are byte-identical. Every final per-tick effective state agrees
+  with its own Segments and with the other outputs. PSG/SCC before/after loop
+  projection also preserves every expanded timed command.
+- Legacy outputs are byte-identical at8749 characters and applied depth2;
+  changed compressor was exercised six times per run. Default8313-character
+  MML matches the previous benchmark byte-for-byte and bypasses that compressor.
+  All four compile with MGSC1.11/mgsc-js, no buffer errors.
+- Recorded in field_notes/2026-10-03_gra2_005_unrestricted_depth_validation.md.
+  Local artifacts are Codex outputs/gra2-unrestricted-depth. No audio roundtrip
+  claim; this short fixture does not exercise deeper-than-two legacy repeats.
+
+## OPLL continuous-note child-loop recovery (2026-10-03)
+- Implemented only in the separate test checkout at
+  I:/wsl/repositories/emef2247/test/msx_vgm2mml. The original checkout and its
+  active regression were left unchanged; do not copy back or stage automatically.
+- Added opll_inner_loops.py: retain outer note/phrase plans and source-linked
+  child Segment plans, then project unchanged target controls through both.
+  Keep parent-only spelling as an alternative and assert exact expansion.
+  Native key edges, notes, timing, patches, PSG/SCC and envelope order unchanged.
+- --dump-passes adds child pattern/occurrence paths directly to OPLL Segment
+  rows, plus per-channel child marker/candidate CSVs. Source IDs and ranges
+  remain available separately from whether the child is emitted.
+- FFMSX01 default MML shrinks49922->7944 characters, compiles through MGSC1.11
+  JS with ordinary15000 track allocations, and uses5999 total bytes. All8735
+  OPLL/4647 PSG native rows,14 trace/pass dumps and expanded timed final commands
+  are preserved. Legacy loops/enhanced macros remain7659 characters/5426 bytes;
+  the repair recovers capacity, not global minimum size.
+- sample4913, grider24721 and gra2_0058313 characters are unchanged; sx01v
+  grows15024->15048 (one child loop,4 additional compiled bytes). All eight
+  paired conversions compile; Segments, passes and expanded commands match.
+- Results and limits: field_notes/2026-10-03_opll_inner_loop_validation.md.
+  All55 focused tests pass, including public conversion, sync and macros;
+  git diff --check passes.
+  Wider catalog regression/listening is next; no native WSL or audio roundtrip
+  claim. Final macro-aware global alternative selection remains future work.

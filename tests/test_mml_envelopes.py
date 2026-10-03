@@ -223,7 +223,7 @@ class EnvelopeTests(unittest.TestCase):
                     if raw: command.append('--raw-ticks')
                     run = subprocess.run(command, capture_output=True, timeout=120)
                     self.assertEqual(run.returncode, 0, run.stderr)
-                    text = (Path(folder) / f'{source.stem}.mml').read_text()
+                    text = (Path(folder) / f'{source.stem}.mml').read_text(encoding='cp932')
                     self.assertEqual(sounding_timeline(text, raw), segment_timeline(folder, source.stem))
                     self.assertRegex(text, r'@e0[1-9] =')
 

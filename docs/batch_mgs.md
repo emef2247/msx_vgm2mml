@@ -85,3 +85,9 @@ conversion. It does not change the default or run conversion twice. Per-input
 `convert.log` and `<stem>.normalization.json` report applied/unchanged status;
 compiled MGS and KEYON comparison use that same output. See
 [normalization behavior and limits](note_normalization.md).
+
+## Compression comparison
+
+The converter now enables structural PSG/SCC/OPLL loops and enhanced macros by default. PSG/SCC structure is built before selecting software envelopes. Pass `--legacy-loops --legacy-macros` to this batch script for the earlier compression. Use separate output directories when comparing. These switches do not reintroduce old channel-layout or encoding defects. Large inputs may need `--timeout 900` because enhanced candidate selection takes longer than the old compressor.
+
+Old UTF-8 MGS titles are not repaired in place. Re-running conversion and compilation generates CP932 titles with the current pipeline.

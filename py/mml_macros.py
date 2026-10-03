@@ -11,7 +11,7 @@ def compress_macros(text, limit=32):
     parts = []
     rhythm = bool(re.search(r'^#opll_mode\s+1\b', text, re.M))
     for line in text.splitlines():
-        match = re.fullmatch(r'([1-9a-f])\s+(.*)', line, re.I)
+        match = re.fullmatch(r'([1-9a-h])\s+(.*)', line, re.I)
         if match:
             ch, body = match[1].lower(), match[2]
             if parts and isinstance(parts[-1], list) and parts[-1][0] == ch:

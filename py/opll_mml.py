@@ -350,8 +350,8 @@ def _assign_voice_ids(segments: dict,
 
     warned_no_voice_csv = False
     warned_no_patch_events = False
-    for ch in range(NUM_CH):
-        for seg in segments[ch]:
+    for ch in range(9):
+        for seg in segments.get(ch, ()):
             if seg.inst != 0:
                 key = ('preset', seg.inst)
                 seg.at_token = f'@{seg.inst}'
@@ -410,16 +410,16 @@ def _voice_table_comments(voice_table: dict) -> list[str]:
 def _generate_mml_impl(segments: dict, stem: str, raw_ticks: bool = False,
                        voice_table: dict | None = None,
                        user_patches: dict | None = None,
-                       warnings: list[str] | None = None) -> str:
+                       warnings: list[str] | None = None, num_channels: int = NUM_CH) -> str:
     """Generate MGSDRV MML text from per-channel segment data.
 
     When *raw_ticks* is True, emit ``{scale}%{N}`` tick notation and use
     ``#tempo 75`` (pass3.simple.mml style).  When False (default), emit
     standard divisor notation with ``#tempo 225``.
     """
-    mml_buffer: dict[int, list] = {ch: [] for ch in range(NUM_CH)}
+    mml_buffer: dict[int, list] = {ch: [] for ch in range(num_channels)}
 
-    for ch in range(NUM_CH):
+    for ch in range(num_channels):
         ch_num   = ch + CH_OFFSET
         track_id = track_id_to_mgsdrv(ch_num)
         mml_buffer[ch].append(f'\n\n;ch{track_id} start')
@@ -505,10 +505,10 @@ def _generate_mml_impl(segments: dict, stem: str, raw_ticks: bool = False,
     tempo = 75 if raw_ticks else 225
     lines = []
     lines.append(';[name=opll]')
-    lines.append('#opll_mode 1')
+    lines.append(f'#opll_mode {int(num_channels == 6)}')
     lines.append(f'#tempo {tempo}')
     lines.append(f'#title {{ "{stem}"}}')
-    for ch in range(NUM_CH):
+    for ch in range(num_channels):
         ch_num   = ch + CH_OFFSET
         track_id = track_id_to_mgsdrv(ch_num)
         used  = estimate_mml_used(mml_buffer[ch])
@@ -527,7 +527,7 @@ def _generate_mml_impl(segments: dict, stem: str, raw_ticks: bool = False,
     header_text = '\n'.join(lines)
 
     body_parts = [header_text]
-    for ch in range(NUM_CH):
+    for ch in range(num_channels):
         for item in mml_buffer[ch]:
             body_parts.append(item)
 
@@ -540,17 +540,17 @@ def _generate_mml_impl(segments: dict, stem: str, raw_ticks: bool = False,
 def _generate_mml(segments: dict, stem: str,
                   voice_table: dict | None = None,
                   user_patches: dict | None = None,
-                  warnings: list[str] | None = None) -> str:
+                  warnings: list[str] | None = None, num_channels: int = NUM_CH) -> str:
     """Generate MGSDRV MML text from per-channel segment data."""
     return _generate_mml_impl(segments, stem, raw_ticks=False,
                               voice_table=voice_table, user_patches=user_patches,
-                              warnings=warnings)
+                              warnings=warnings, num_channels=num_channels)
 
 
 def _generate_mml_mgs_pct(segments: dict, stem: str,
                            voice_table: dict | None = None,
                            user_patches: dict | None = None,
-                           warnings: list[str] | None = None) -> str:
+                           warnings: list[str] | None = None, num_channels: int = NUM_CH) -> str:
     """Generate OPLL MML with MGS delta-token octave/volume and raw tick (%) lengths.
 
     Applies the same ``<``/``>``/``(``/``)`` delta-token logic as
@@ -561,9 +561,9 @@ def _generate_mml_mgs_pct(segments: dict, stem: str,
 
     This is the OPLL equivalent of the PSG/SCC ``MGS_pct`` variants.
     """
-    mml_buffer: dict[int, list] = {ch: [] for ch in range(NUM_CH)}
+    mml_buffer: dict[int, list] = {ch: [] for ch in range(num_channels)}
 
-    for ch in range(NUM_CH):
+    for ch in range(num_channels):
         ch_num   = ch + CH_OFFSET
         track_id = track_id_to_mgsdrv(ch_num)
         mml_buffer[ch].append(f'\n\n;ch{track_id} start')
@@ -638,10 +638,10 @@ def _generate_mml_mgs_pct(segments: dict, stem: str,
     # Build header
     lines = []
     lines.append(';[name=opll]')
-    lines.append('#opll_mode 1')
+    lines.append(f'#opll_mode {int(num_channels == 6)}')
     lines.append('#tempo 75')
     lines.append(f'#title {{ "{stem}"}}')
-    for ch in range(NUM_CH):
+    for ch in range(num_channels):
         ch_num   = ch + CH_OFFSET
         track_id = track_id_to_mgsdrv(ch_num)
         used  = estimate_mml_used(mml_buffer[ch])
@@ -660,7 +660,7 @@ def _generate_mml_mgs_pct(segments: dict, stem: str,
     header_text = '\n'.join(lines)
 
     body_parts = [header_text]
-    for ch in range(NUM_CH):
+    for ch in range(num_channels):
         for item in mml_buffer[ch]:
             body_parts.append(item)
 
@@ -677,7 +677,8 @@ def _generate_mml_mgs_pct(segments: dict, stem: str,
 def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
                      dump_passes: bool = False, debug: bool = True,
                      voice_csv_path: str | None = None,
-                     raw_ticks: bool = False) -> str:
+                     raw_ticks: bool = False, *, source_loops: bool = True,
+                     source_strategy: str = 'structural', opll_mode: int | None = None) -> str:
     """Run the OPLL MML generation pipeline.
 
     Args:
@@ -714,6 +715,11 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
 
     os.makedirs(output_dir, exist_ok=True)
 
+    if opll_mode is None:
+        from opll_mode import mode_from_trace
+        opll_mode = mode_from_trace(trace_path)
+    num_channels = 6 if opll_mode else 9
+
     # Build segments (tick-based final-state evaluation)
     segments,bpm = _build_segments(trace_path)
 
@@ -733,7 +739,7 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
         seg_path = os.path.join(output_dir, f'{stem}.opll.pass0.csv')
         with open(seg_path, 'w', newline='\n') as fh:
             fh.write('#ch,tick_start,tick_end,keyon,fnum,block,inst,vol,voice_id,at_token\n')
-            for ch in range(NUM_CH):
+            for ch in range(num_channels):
                 for seg in segments[ch]:
                     fh.write(f'{ch},{seg.tick_start},{seg.tick_end},'
                              f'{seg.keyon},{seg.fnum},{seg.block},'
@@ -743,14 +749,14 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     simple_mgs_pct_text = _generate_mml_mgs_pct(segments, stem,
                                                   voice_table=voice_table,
                                                   user_patches=user_patches,
-                                                  warnings=warnings)
+                                                  warnings=warnings, num_channels=num_channels)
     compress_mgs_pct_path = os.path.join(output_dir, f'{stem}.opll.pass3.compress.MGS_pct.mml')
     with open(compress_mgs_pct_path, 'w', newline='\n') as fh:
         fh.write(compress_mml_text(simple_mgs_pct_text))
 
     # ---- pass3.compress.MGS.mml – always produced for default divisor mode ----
     mml_text = _generate_mml(segments, stem, voice_table=voice_table,
-                              user_patches=user_patches, warnings=warnings)
+                              user_patches=user_patches, warnings=warnings, num_channels=num_channels)
     compress_path = os.path.join(output_dir, f'{stem}.opll.pass3.compress.MGS.mml')
     with open(compress_path, 'w', newline='\n') as fh:
         fh.write(compress_mml_text(mml_text))
@@ -758,7 +764,9 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     from rhythm_mml import render as render_rhythm
     from opll_target import render as render_melody
     target_dump = os.path.join(output_dir, f'{stem}.opll.target_notes.csv') if dump_passes else None
-    target_text = render_melody(segments, voice_csv_path, raw_ticks, target_dump)
+    target_text = render_melody(segments, voice_csv_path, raw_ticks, target_dump,
+                                source_loops=source_loops, source_strategy=source_strategy,
+                                num_channels=num_channels)
     # Rhythm Segments retain attacks only: the final key-off can be later.
     import csv
     with open(trace_path, newline='') as stream:
@@ -771,7 +779,7 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     rhythm_after = optimize_rhythm(rhythm_before, raw_ticks=raw_ticks)
     target_text += rhythm_after
     if dump_passes:
-        header = '#opll_mode 1\n' + ('#tempo 75\n' if raw_ticks else '#tempo 225\n')
+        header = f'#opll_mode {opll_mode}\n' + ('#tempo 75\n' if raw_ticks else '#tempo 225\n')
         for label, text in (('before', rhythm_before), ('after', rhythm_after)):
             with open(os.path.join(output_dir, f'{stem}.opll.rhythm.{label}.target.mml'), 'w', newline='\n') as fh:
                 fh.write(header + text)
@@ -795,7 +803,7 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     simple_raw_text = _generate_mml_impl(segments, stem, raw_ticks=True,
                                           voice_table=voice_table,
                                           user_patches=user_patches,
-                                          warnings=warnings)
+                                          warnings=warnings, num_channels=num_channels)
     simple_raw_path = os.path.join(output_dir, f'{stem}.opll.pass3.simple.mml')
     with open(simple_raw_path, 'w', newline='\n') as fh:
         fh.write(simple_raw_text)
