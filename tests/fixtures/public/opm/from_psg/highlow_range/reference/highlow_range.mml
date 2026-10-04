@@ -1,0 +1,26 @@
+;[name=highlow_range lpf=1]
+#opll_mode 1
+#tempo 75
+#title { "High-Low Range" }
+#alloc 1=400
+#alloc 2=200
+#alloc 3=400
+#psg_tune { 3392, 3200, 3008, 2848, 2688, 2528, 2368, 2240, 2112, 2016, 1888, 1792 }
+
+@e01 = { 1, 0, F, 0=15 }
+@e09 = { 1, 0, F, E, B=6 }
+@e10 = { 1, 0, F, E, 9=10 }
+
+
+; 目的: 各オクターブ (o1〜o7) の代表音 (C / G / B) で Block/F-Num が正しいか
+; 低域と高域の境界部で不正な丸めやオクターブミスが無いか
+
+1 @0 v13 l16
+1 o1 c g b
+1 o2 c g b
+1 o3 c g b
+1 o4 c g b
+1 o5 c g b
+1 o6 c g b
+1 o7 c g b
+1 @10 v13 l8 r r

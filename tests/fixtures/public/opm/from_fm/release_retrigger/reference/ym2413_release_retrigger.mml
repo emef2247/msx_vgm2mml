@@ -1,0 +1,8 @@
+;[name=ym2413_release_retrigger lpf=1]
+#opll_mode 0
+#tempo 120
+#title { "Release Retrigger" }
+
+; Release 中に再 KeyOn した時の EG / 位相再初期化挙動をチェック。
+9 @4 o4 l8 v15 c v10 r v15 c v8 r v15 c v6 r v15 c
+9 @8 o5 l4 v14 g r g r

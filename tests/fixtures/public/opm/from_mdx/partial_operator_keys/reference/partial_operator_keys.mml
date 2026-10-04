@@ -1,0 +1,23 @@
+#title "OPM synthetic: Partial operator key masks on channel 3"
+; SPDX-License-Identifier: MIT
+; Original synthetic test tones and note sequences; no game/music data.
+; Operator rows: AR,D1R,D2R,RR,D1L,TL,KS,MUL,DT1,DT2,AME
+@0 = {
+  20,8,4,8,4,48,0,1,0,0,0,
+  18,7,3,7,5,52,1,2,1,0,0,
+  22,9,5,9,3,56,2,3,0,1,0,
+  24,6,2,6,6,44,0,1,2,0,0,
+  7,0,15
+}
+@1 = {
+  25,10,5,9,3,38,1,1,1,0,1,
+  21,8,4,8,4,46,0,2,0,1,1,
+  19,6,3,7,5,54,2,4,2,0,1,
+  23,7,2,6,6,42,1,1,0,2,1,
+  4,2,15
+}
+
+; Start with an ordinary note to load the patch, then direct Key writes.
+; Key register bits: M1=8, C1=16, M2=32, C2=64, channel=3.
+; Masks rise 1,3,7,15 and fall 14,12,8,0. Each plateau has positive duration.
+D t120 @0 v10 o4 c16 r16 y8,11 r16 y8,27 r16 y8,59 r16 y8,123 r16 y8,115 r16 y8,99 r16 y8,67 r16 y8,3 r16

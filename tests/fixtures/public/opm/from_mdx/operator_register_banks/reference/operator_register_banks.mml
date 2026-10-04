@@ -1,0 +1,22 @@
+#title "OPM synthetic: Four operator banks with distinct held-note controls"
+; SPDX-License-Identifier: MIT
+; Original synthetic test tones and note sequences; no game/music data.
+; Operator rows: AR,D1R,D2R,RR,D1L,TL,KS,MUL,DT1,DT2,AME
+@0 = {
+  20,8,4,8,4,48,0,1,0,0,0,
+  18,7,3,7,5,52,1,2,1,0,0,
+  22,9,5,9,3,56,2,3,0,1,0,
+  24,6,2,6,6,44,0,1,2,0,0,
+  7,0,15
+}
+@1 = {
+  25,10,5,9,3,38,1,1,1,0,1,
+  21,8,4,8,4,46,0,2,0,1,1,
+  19,6,3,7,5,54,2,4,2,0,1,
+  23,7,2,6,6,42,1,1,0,2,1,
+  4,2,15
+}
+
+; Set four DT1/MUL registers, TL registers, AR and AM/D1R on a held note.
+; Decimal addresses 64,72,80,88 correspond to M1,M2,C1,C2 channel 0.
+A t120 @0 v10 o4 c8& y64,17 y72,34 y80,51 y88,68 c8& y96,11 y104,22 y112,33 y120,44 c8& y128,95 y160,140 y192,69 y224,103 c8 r8

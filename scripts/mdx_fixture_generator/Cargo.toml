@@ -1,0 +1,9 @@
+[package]
+name = "mdx-fixture-generator"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+mmlx = "=0.2.0"
+soundlog = { version = "=0.15.0", features = ["mdx"] }

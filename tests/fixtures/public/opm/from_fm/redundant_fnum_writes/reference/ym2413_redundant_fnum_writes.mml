@@ -1,0 +1,8 @@
+;[name=ym2413_redundant_fnum_writes lpf=1]
+#opll_mode 0
+#tempo 90
+#title { "Redundant FNUM Writes" }
+
+; 同一ピッチの短区切り繰り返しで冗長 F-Num 書き込み最適化の副作用検出。
+9 @3 v14 o4 l16 c c c c c c c c
+9 @3 v14 o4 l16 c c c c r r c c

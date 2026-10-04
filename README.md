@@ -1,16 +1,31 @@
 # vgm2mml
-MSX-Music（PSG, OPLL）および SCC の VGM ファイルから、MGSDRV 用 MML を生成するスクリプトです。  
-生成した MML は https://msxplay.com/editor.html にコピー＆ペーストすることで、そのまま再生できます。
+PSG／OPLL／SCCのVGMからMGSDRV用MMLを、OPM（YM2151）のVGMからMDX用MMLを生成します。
+MGSDRV用MMLは https://msxplay.com/editor.html にコピー＆ペーストして再生できます。
 
 ## 機能概要
 - VGM（MSX-Music / SCC）を解析し、MGSDRV 形式の MML を自動生成  
-- レジスタアクセスに忠実な MML を出力  
+- レジスタアクセスに忠実な MML を出力
+- OPM（YM2151）のVGMを解析し、MDX形式のMMLを生成
 
 ## コマンド一覧
 
 | コマンド | 対応音源 | 概要 |
 |----------|----------|------|
-| `vgm2mml.py` | PSG, OPLL, SCC | レジスタアクセスに忠実な MML を出力 |
+| `vgm2mml.py` | PSG, OPLL, SCC | MGSDRV用MMLを出力 |
+| `scripts/opm_to_mdx_mml.py` | OPM（YM2151） | MDX用MMLを出力。`--dump-passes`で中間CSVを保存 |
+| `py/vgm_reader.py` | PSG, OPLL, SCC, OPM | 入力のlog/traceを出力。OPMは状態・Segment CSVも出力 |
+
+OPM入力の解析は[OPM Segment](docs/opm_segments.md)を参照してください。
+OPM SegmentからのMDX MML出力・往復検証は[OPM MDX target](docs/opm_mdx.md)を参照してください。
+初期出力はレジスタ指定による制御の再現です。OPMからのMGSDRV MML生成は未実装です。
+
+```bash
+python scripts/opm_to_mdx_mml.py input.vgm --outdir outputs/opm/mdx
+```
+
+既定では `outputs/opm/mdx/input.mdx.mml` だけを生成します。
+中間のレジスタ／状態／Segment CSVとMDX向け制御・時刻変換の記録を保存するには、
+同じコマンドに `--dump-passes` を追加してください。
 
 ---
 
