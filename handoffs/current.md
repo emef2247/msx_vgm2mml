@@ -1,5 +1,13 @@
 # Current handoff
 
+## README publication scope (2026-10-04)
+- User requested that OPM support remain unannounced in README.md for now.
+- Removed OPM/MDX introduction, feature bullet, command example and documentation
+  links from README; existing implementation and technical records are retained.
+- Keep the public README focused on PSG/OPLL/SCC to MGSDRV MML until the user
+  explicitly approves announcing OPM support. Documentation-only change;
+  verified the README diff and absence of OPM/MDX references.
+
 ## MSXGRA2S Segment replay listening outputs (2026-10-04)
 - All 18 private OPM inputs have verified Segment -> MML -> MDX -> VGM outputs:
   outputs/opm/mdx_roundtrip/msxgra2s_20261004/listen/ (54 files).
