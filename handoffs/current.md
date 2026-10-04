@@ -1,5 +1,28 @@
 # Current handoff
 
+## Structured local OPM/MDX regression review (2026-10-05)
+- Reviewed the user's completed outputs/opm/regression/structured_local_only run:
+  186 inputs = 35 success, 17 conversion_failed, 134 unsupported_target (3,579,580 Hz).
+- Successful cohort: channel attacks 15,749/15,749, operator KeyOns 57,468/57,468,
+  operator KeyOffs 57,200/57,200; missing/extra Keys and known-state mismatches=0.
+  Projected timing/end match; maximum source projection error is 6 samples.
+  Four source end times differ from returned/projected ends by 1–5 samples.
+- Flat/structured text totals for successes: 1,580,660 -> 1,453,826 chars (-8.02%);
+  660 emitted loops, 26 cases with loops, largest depth 3. No prior-run baseline.
+- All 17 failures generated MML but external MDX compilation failed on cumulative
+  track offsets >0xfffe; no returned MDX or fidelity verdict. Track 8 is the
+  compiler's PCM dummy track, not a ninth OPM channel. This is not a timeout.
+- Physical-command byte estimates checked against all eight FM track spans in
+  all 35 successful MDX files. Failure breakdown points to H/noise/held controls,
+  repeated setters and duration splitting; no source information was discarded.
+- Record: field_notes/2026-10-05_opm_structured_local_regression.md.
+  Derived summary/capacity CSV/JSON: outputs/opm/regression/structured_local_only_analysis/.
+- No conversion code/tests/fixtures changed and no new full regression or audio
+  comparison run. Original regression artifacts retained. Next: evaluate target-only
+  setter reuse, duration factoring and conservative held/noise note lowering with
+  inspectable native/target evidence. Do not reshape Segments to pass capacity,
+  weaken Key/state comparisons, fake a 4-MHz source clock, or announce OPM in README.
+
 ## OPM source-derived channel loops (2026-10-05)
 - User confirmed the native chords_mix.opm.segments.csv and clarified scope:
   preserve VGM->Segment and integrated all-channel CSV; work on source phrase
