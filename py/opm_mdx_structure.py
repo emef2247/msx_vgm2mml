@@ -13,6 +13,7 @@ from pathlib import Path
 from opm import NOTE_NAMES, key_counts
 from opm_mdx import mdx_tick, projected_samples
 from opm_loops import build_source_loops, OpmLoopProjection
+from mdx_compaction import compact
 
 KC_CODES = (0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14)
 VOICE_FIELDS = ('ar', 'd1r', 'd2r', 'rr', 'd1l', 'tl', 'ks',
@@ -94,6 +95,8 @@ class MdxStructure:
     reports: dict
     text: str
     plain_text: str
+    uncompacted_text: str
+    compaction: tuple
 
     def summary(self):
         depth = maximum = 0
@@ -116,12 +119,23 @@ class MdxStructure:
                     source_loop_tracks=sum(bool(any(a['opm_source_loop_path'] for a in plan.source.annotations().values()))
                                            for plan in self.plans.values()),
                     loop_projection_status={track: plan.status for track, plan in self.plans.items()},
+                    source_loop_commands=sum(line.count('[') for line in self.uncompacted_text.splitlines()
+                                             if len(line) > 1 and line[0] in 'ABCDEFGH' and line[1] == ' '),
+                    omitted_setters=sum(r['action'] == 'omit_setter' for r in self.compaction),
+                    duration_compactions=sum(r['action'] != 'omit_setter' for r in self.compaction),
+                    compaction_bytes_saved_estimate=sum(r['bytes_saved'] for r in self.compaction),
+                    uncompacted_mml_chars=len(self.uncompacted_text),
                     plain_mml_chars=len(self.plain_text), structured_mml_chars=len(self.text))
 
     def dump(self, prefix, *, segments_csv=None):
         prefix = Path(prefix)
         prefix.parent.mkdir(parents=True, exist_ok=True)
         Path(str(prefix)+'.plain.mml').write_text(self.plain_text, encoding='utf-8')
+        Path(str(prefix)+'.uncompacted.mml').write_text(self.uncompacted_text, encoding='utf-8')
+        with Path(str(prefix)+'.compaction.csv').open('w', newline='', encoding='utf-8') as stream:
+            writer = csv.DictWriter(stream, fieldnames=('track', 'token_index', 'action', 'before',
+                                                       'after', 'reason', 'bytes_saved'))
+            writer.writeheader(); writer.writerows(self.compaction)
         rows, annotations, source_annotations = [], {}, {}
         for track, units in self.units.items():
             plan = self.plans[track]
@@ -276,6 +290,7 @@ def build_structure(projection, source_segments, *, title='OPM Segment replay', 
                    f'  {alg},{fb},{mask}', '}']
     header.append('A @t255')
     plans, reports, plain, structured = {}, {}, header[:], header[:]
+    uncompacted, compaction = header[:], []
     for track, units in units_by_track.items():
         commands = [u.command for u in units]
         plan = OpmLoopProjection.build(source_plans[0, ord(track)-65], units, mdx_tick)
@@ -293,9 +308,13 @@ def build_structure(projection, source_segments, *, title='OPM Segment replay', 
                 lines.append(line)
             return lines
         plain += wrapped(' '.join(commands))
-        structured += wrapped(text)
+        uncompacted += wrapped(text)
+        compacted, decisions = compact(text, track, durations=loops)
+        compaction.extend(decisions)
+        structured += wrapped(compacted)
     return MdxStructure(units_by_track, tuple(voices), plans, reports,
-                        '\n'.join(structured)+'\n', '\n'.join(plain)+'\n')
+                        '\n'.join(structured)+'\n', '\n'.join(plain)+'\n',
+                        '\n'.join(uncompacted)+'\n', tuple(compaction))
 
 
 def compare_hybrid(projection, source, actual, *, initialization):
