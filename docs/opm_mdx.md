@@ -1,9 +1,10 @@
 # OPM Segment to MDX MML and roundtrip validation
 
-This initial target consumes native `OpmSegment` objects and writes MDX-dialect
-MML. It preserves register controls with decimal `y<register>,<data>` commands
-on one conductor track A. It is a control replay target: ordinary note/voice
-notation, musical loops, compression and PCM/PDX output are not implemented.
+This target consumes native `OpmSegment` objects and writes MDX-dialect MML
+on tracks A..H (ch0..7). The default structured notation combines ordinary
+notes, reconstructed tone definitions and reversible finite loops with explicit
+`y<register>,<data>` controls wherever ordinary notation cannot safely describe
+the source. PCM/PDX output and cross-chip voice translation are not implemented.
 MGSDRV conversion remains a separate PSG/SCC/OPLL path.
 
 ## Generate MDX MML
@@ -32,14 +33,15 @@ This keeps the native raw/state/Segment CSVs plus:
 
 | File | Contents |
 |---|---|
-| `<stem>.mdx.mml` | UTF-8 MDX MML register controls |
-| `<stem>.mdx.controls.csv` | Source event/Segment IDs, source samples, target tick, projected samples, timing error and register/data |
-| `<stem>.mdx.timing.json` | Timing projection, collapsed intervals and nonchanging source-write counts |
+| `<stem>.mdx.mml` | UTF-8 hybrid MDX MML notes, tones, loops and required register controls |
+| `<stem>.mdx.controls.csv` | Source event/Segment IDs, source samples, target tick, projected samples, timing error, register/data, ch and MDX track |
+| `<stem>.mdx.timing.json` | Timing projection, track layout, collapsed intervals and nonchanging source-write counts |
 
 The renderer consumes Segments, not a raw VGM command copy. Shared-register
 writes affecting eight channels are deduplicated by their source event ID;
-all associated Segment IDs remain in the controls CSV. Source order, partial
-operator keys, same-time off/on and held-note parameter changes are preserved.
+all associated Segment IDs remain in the controls CSV. Source order stays intact
+in the source evidence and projection CSV. Within each track, partial operator
+keys, same-time off/on and held-note parameter changes keep their order.
 Unchanged writes omitted by Segment construction cannot be recovered by this
 target; they remain available in the raw/state CSVs. Retained test/timer writes
 are not removed merely because their register value repeats.
@@ -48,17 +50,42 @@ The first target accepts one **4 MHz YM2151**. Different clocks, YM2164 and dual
 instances are explicitly rejected rather than silently changing pitch or
 merging channels. This does not restrict the native reader's wider analysis.
 
+## Channel ownership and scheduling
+
+The default `--track-layout channels` assigns channel controls, all four
+operator register banks, KC/KF and Key masks to the corresponding A..H track.
+Every used track begins at the common VGM origin and retains its final tail.
+Noise register 0x0f belongs to ch7 and is emitted on H. LFO/test/timer and other
+chip-wide controls are emitted once on A; this is a target scheduling lane,
+not a claim that those controls belong to physical ch0.
+
+MDX processes tracks A..H in order at a tick. Independent cross-channel
+writes sharing a projected tick can therefore change their relative order.
+The verifier explicitly predicts this target schedule, reports
+`source_write_order_preserved`, and still checks source-known state at every
+retained control. It does not waive state mismatches caused by shared controls.
+For a source with coupled same-tick controls that cannot pass these checks,
+`--notation registers --track-layout conductor` retains the original one-track
+control order.
+Both conversion and verification commands accept these explicit compatibility
+options; structured notation requires channel tracks.
+
+The raw trace and target controls CSV now expose `ch`; chip-wide controls use
+an empty field. The target CSV additionally exposes `mdx_track`, so physical
+channel ownership and the shared-control scheduling lane remain distinct.
+
 ## Time projection
 
 Source `vgmticks` remain absolute integer 44100 Hz sample positions. MDX output
 uses `@t255`: one playback tick is 256 microseconds, or 7056/625 VGM samples.
 Each absolute source position is rounded to the nearest target tick; individual
-gap errors do not accumulate. `r%N` advances conductor time and does not imply
-that all physical channels are acoustically silent.
+gap errors do not accumulate. `r%N` advances each track independently and does not imply
+that all physical channels are acoustically silent. Notes retain absolute
+projected gate durations; no musical-length normalization is applied.
 
 The current external playback represents each resulting sample position by
 integer truncation. The source-to-target difference is at most six samples.
-Positive source intervals may collapse to one target tick; their write order
+Positive source intervals may collapse to one target tick; their within-channel write order
 and Key edges remain intact, and the timing JSON reports the number of such
 intervals. Zero-duration events are never discarded. Final time is projected
 from the real VGM end, preserving a trailing sustained/released interval.
@@ -88,7 +115,7 @@ after each input, and successful artifacts have absolute MML/MDX/VGM paths in
 the results. Failed inputs retain `conversion.log`; compiler stdout/stderr and
 timeout output are retained in `returned.compile.log`. A compiled MDX is saved
 before replay so it survives a later player failure. Compilation can fail when
-an uncompressed conductor track exceeds MDX's 16-bit offset capacity; no events
+uncompressed tracks exceed MDX's 16-bit offset capacity; no events
 are clipped or dropped to make it fit.
 
 This validation tool always
@@ -102,9 +129,10 @@ At this fine clock, a fixed 100000-tick default covers only 25.6 seconds and
 would reject longer cases. The budget permits completion without clipping the
 source or relaxing comparison. Compiler timeout/failure is reported with logs.
 
-Comparison requires:
+With `--notation registers`, comparison requires:
 
-- Exact register/data sequence for every retained Segment control.
+- Exact register/data sequence for every retained Segment control under the
+  predicted A..H target scheduling.
 - No missing/extra channel attack, operator KeyOn or operator KeyOff, counted
   per channel before summing so opposing channel errors cannot cancel.
 - Matching source-known raw and decoded state at each retained control, including
@@ -135,7 +163,7 @@ keys, wrong pitch, timing, operator state and compiler initialization.
 python -m unittest discover -s tests -p 'test_opm*.py' -v
 ```
 
-For current measurements and limits, see
+For the initial register-replay measurements and limits, see
 [the roundtrip record](../field_notes/2026-10-04_opm_mdx_roundtrip.md).
 
 ## Local listening validation (2026-10-04)
@@ -151,3 +179,121 @@ See [the catalog validation record](../field_notes/2026-10-04_opm_catalog_roundt
 for counts and remaining limits. Clock-incompatible sources have diagnostics,
 not misleading playable conversions. VGM song loops still cover one traversal;
 MDX replay preserves the OPM controls, not other chips or external PCM samples.
+
+## Channel-separated validation (2026-10-04)
+
+The current default A..H target passed independent replay for all 38 public
+inputs plus two short local MSXGRA2S cases, with no missing/extra Key edges or
+source-known state differences. Generated MML/MDX/VGM and CSV evidence remain
+under `outputs/opm/channel_tracks_20261004/`. See
+[the channel-separation record](../field_notes/2026-10-04_opm_mdx_channel_tracks.md)
+for scope, counts, scheduling details and remaining limits.
+
+## Structured notes, tones and loops (2026-10-04)
+
+Structured notation is now the default for `opm_to_mdx_mml.py` and the verifier.
+Use `--notation registers` to retain the previous register replay output.
+`--no-loops` disables finite loop emission while retaining the hybrid note/voice
+projection; this allows a comparison with identical notation and line wrapping.
+
+```bash
+python scripts/opm_to_mdx_mml.py \
+  tests/fixtures/public/opm/from_mdx/nested_phrase_loops/nested_phrase_loops.vgm \
+  --outdir outputs/opm/structured/nested_phrase_loops --dump-passes
+```
+
+An isolated attack from cleared gates to a fixed operator mask, followed by
+an explicit complete KeyOff with no intervening channel controls, can become
+an ordinary note. Its four-operator tone must be fully known and losslessly
+encodable. Staggered partial Keys, zero-duration pulses, held parameter changes,
+missing tone fields, enabled noise, unencodable/reserved bits and unreleased
+tails retain register commands. This is a local representability decision,
+not a whole-song score or silent fallback to a different timing model.
+
+`@N` definitions deduplicate effective tone/operator-mask snapshots; IDs are
+new target IDs, not recovered original MDX voice numbers. The source's current
+TL values are stored in the tone, and `@v127` applies zero added attenuation.
+Pan comes directly from the original control byte. Native operator bank order
+M1/M2/C1/C2 is reordered to MDX text's M1/C1/M2/C2 when writing a tone.
+
+Note names invert the MDX KC table. `D` compensates its five-unit fine-pitch bias
+and preserves the original KF byte; it does not invent hardware detuning or
+change the source clock. Noncanonical KC or unused KF bits remain raw controls.
+Long gates are emitted as explicitly tied notes of at most 256 ticks each;
+a long plain `%N` note could otherwise compile into unwanted retriggers.
+
+## Segment-derived source loops (2026-10-05)
+
+Source structure is built before MDX note spelling, voice assignment or target
+loop emission. `py/opm_loops.py` groups immutable native Segments per chip/ch.
+A rising operator Key edge, held/released gate transition or source timing gap
+delimits a musical unit. Released means gate-off, not proven silence. Every
+original Segment stays a member; no source time/state is rewritten.
+
+The source equality key includes exact sample duration, relative time, complete
+operator/channel/shared state, explicit rising/falling Key masks and retained
+reset/timer effects. Native IDs, absolute origin and target spelling do not
+participate. Source `SourceLoopPlan`/`LoopStructure` finds outer phrases and
+inner Segment trajectories without a default nesting cap.
+
+Zero-duration released setup does not add a musical rest leaf. Its original
+rows remain attached to the preceding unit (or initialization), with full
+state keys in the inner plan. Outer held-note equality compares sounding
+states and explicit end Key edges, rather than inactive same-sample pitch
+setup. Zero-duration Key attacks remain distinct units. Test/reset/timer
+controls are not absorbed by this setup grouping. Positive released intervals
+retain complete state, including possible release tails.
+
+Only afterward does projection map MDX units to source members. An ordinary
+note may absorb same-time KC/KF setup and its terminal KeyOff. Mapping cannot
+cross another source phrase/Key boundary; ambiguous mappings keep flat target
+commands and report the reason. The target comparator can also decline a
+source repeat when generated commands differ. Expanding every emitted bracket
+must exactly reproduce the unlooped target tokens. Reference MML validates
+structure but supplies no production phrase, tempo or tone choices.
+
+No length normalization, macro extraction or source-tail inference is used.
+For the authored `[[c d e g]2 r8]3` fixture, export merges the last phrase delay
+with the song tail. The native outer intervals therefore differ at the end.
+Source-derived output retains the inner repeat and two-level hierarchy but
+emits a separate remaining region, rather than inventing a third identical
+outer interval. This is inspectable in the integrated Segment loop paths.
+
+With `--dump-passes`, additional artifacts are:
+
+| Artifact | Meaning |
+|---|---|
+| `<stem>.mdx.structure.units.csv` | Track/unit ID, target times, kind, tone ID, note spelling, commands, source event/Segment IDs and loop path |
+| `<stem>.mdx.structure.voices.csv` | Reconstructed tones in native bank order with operator mask |
+| Native `<stem>.opm.segments.csv` | All channels together, with phrase IDs and complete source loop paths plus target mappings |
+| `<stem>.mdx.structure.plain.mml` | Identical hybrid notation before bracket emission |
+
+The native Segment CSV additionally appends `mdx_unit_ids`, `mdx_voice_ids` and
+`mdx_loop_path`; existing source fields and sample boundaries remain unchanged.
+Time-only target slices also point to the native intervals they cover. One
+native Segment can consequently belong to multiple target units.
+
+Ordinary notes and tone selection expand into additional register writes, so
+structured validation uses a separate `hybrid_effective_state` comparison:
+
+- Exact ordered rising/falling operator masks and projected times per channel;
+  channel/operator Key counts and missing/extra counts remain separately reported.
+- All source-known raw and decoded values at the union of projected source and
+  returned target-time boundaries, including held intervals and released tails.
+  Multiple controls within one target tick are compared by their final state.
+- The same independently measured compiler initializer and exact projected end.
+
+This deliberately permits duplicated tone/pitch writes and different coincident
+control ordering. It is not an exact raw-write sequence test or waveform proof.
+The stricter register-replay comparison remains available and unchanged for
+`--notation registers`. State mismatches, missing/extra edges and retimed edges
+are failures in the structured comparison; no weighted score hides them.
+
+The 2026-10-05 source-driven version passed all 38 public inputs and two short
+local inputs. This verifies projection after independently defined source
+rules; passing final output alone is not the rationale for those rules.
+Measurements and limitations: [source-loop record](../field_notes/2026-10-05_opm_source_loops.md).
+
+Common MDX controls still merge once into A; channel-local controls stay on
+A..H. Neither native traces nor the integrated Segment CSV are split into
+control/channel streams. Target structural plans are internal objects.

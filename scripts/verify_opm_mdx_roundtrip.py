@@ -13,6 +13,7 @@ from opm_roundtrip import controls, compare
 from vgm_io import read_vgm_bytes
 from vgm_reader import _OpmTrace, parse_vgm
 from opm_to_mdx_mml import convert
+from opm_mdx import scheduled_projection
 
 
 def source_files(path):
@@ -72,6 +73,9 @@ def main():
     parser.add_argument('input', type=Path, help='OPM VGM or directory to scan recursively')
     parser.add_argument('--outdir', type=Path, default=ROOT / 'outputs/opm/mdx_roundtrip')
     suffix = '.exe' if sys.platform == 'win32' else ''
+    parser.add_argument('--notation', choices=('structured', 'registers'), default='structured')
+    parser.add_argument('--no-loops', action='store_true')
+    parser.add_argument('--track-layout', choices=('channels', 'conductor'), default='channels')
     parser.add_argument('--generator', type=Path, default=ROOT / 'scripts/mdx_fixture_generator/target/release' / ('mdx-fixture-generator' + suffix))
     args = parser.parse_args()
     generator = args.generator.resolve()
@@ -99,11 +103,22 @@ def main():
             if row['clock_hz'] != 4000000 or row['chip_type'] != 'YM2151' or row['dual_chip']:
                 row['status'] = 'unsupported_target'
                 raise ValueError('MDX control replay requires one 4 MHz YM2151; source clock/state is not retuned')
-            mml, source_analysis, projection = convert(source, folder, dump_passes=True)
+            mml, source_analysis, projection = convert(source, folder, dump_passes=True, track_layout=args.track_layout,
+                                                        notation=args.notation, loops=not args.no_loops)
             returned = generate(generator, mml, folder, 'returned', max_ticks=max(2, projection.end_mdx_tick + 1))
-            result = compare(projection, source_analysis.segments, returned, initialization=initialization)
+            scheduled = scheduled_projection(projection, track_layout=args.track_layout)
+            if args.notation == 'structured':
+                from opm_mdx_structure import compare_hybrid
+                result = compare_hybrid(projection, source_analysis, returned, initialization=initialization)
+            else:
+                result = compare(scheduled, source_analysis.segments, returned, initialization=initialization)
+            result['track_layout'] = args.track_layout
+            result['source_write_order_preserved'] = [w.source_event_id for w in scheduled.writes] == [w.source_event_id for w in projection.writes]
             row.update(result)
             row.update(projection.timing_report())
+            row['notation'] = args.notation
+            if args.notation == 'structured':
+                row.update(json.loads((folder / (source.stem + '.mdx.timing.json')).read_text(encoding='utf-8')))
             row['status'] = 'success' if result['passed'] else 'comparison_failed'
         except subprocess.TimeoutExpired:
             row['status'] = 'compile_timeout'

@@ -109,6 +109,40 @@ class OpmAnalysis:
     source_end_vgmticks: int
     csm_observed: bool
 
+def register_role(register):
+    """Organizational roles, without inferring a note or acoustic effect."""
+    if register == 8:
+        return 'key'
+    if register == 15:
+        return 'noise'
+    if 0x20 <= register <= 0x27:
+        return 'pan_voice'  # One byte contains pan, feedback and algorithm.
+    if 0x28 <= register <= 0x37:
+        return 'pitch'  # KC/KF writes do not imply a new attack.
+    if 0x38 <= register <= 0x3f:
+        return 'modulation_sensitivity'
+    if 0x60 <= register <= 0x7f:
+        return 'operator_level'  # TL is evidence, not an acoustic volume estimate.
+    if register >= 0x40:
+        return 'operator_voice'
+    if register in (0x18, 0x19, 0x1b):
+        return 'common_lfo'
+    if register in (0x10, 0x11, 0x12, 0x14):
+        return 'common_timer'
+    return 'common_control'
+
+
+def register_channel(register, data):
+    """Logical channel for a control; None means chip-wide shared control.
+
+    Noise belongs to ch7. Operator banks and channel controls use reg&7.
+    """
+    if register == 8:
+        return data & 7
+    if register == 15:
+        return 7
+    return register & 7 if register >= 32 else None
+
 
 def _bits(value, shift, mask):
     return None if value is None else (value >> shift) & mask
@@ -141,7 +175,8 @@ class _ChipState:
         octave = None if semitone is None else ((kc >> 4) & 7) + semitone // 12
         note = None if semitone is None else NOTE_NAMES[semitone % 12]
         control, sensitivity = reg(0x20), reg(0x38)
-        test, noise, timer, lfo = [self.regs.get(i) for i in (1, 0x0f, 0x14, 0x1b)]
+        test, timer, lfo = [self.regs.get(i) for i in (1, 0x14, 0x1b)]
+        noise = self.regs.get(0x0f) if ch == 7 else None
         return OpmState(
             self.keys[ch], self.key_raw[ch], kc, kf, octave, note, _bits(kf, 2, 63),
             _bits(control, 0, 7), _bits(control, 3, 7), _bits(control, 6, 1),
@@ -151,7 +186,8 @@ class _ChipState:
             self.regs.get(0x12), timer, _bits(timer, 7, 1), self.regs.get(0x18),
             self.amd, self.pmd, lfo, _bits(lfo, 0, 3), _bits(lfo, 6, 3),
             tuple(sorted((r, v) for r, v in self.regs.items() if r >= 0x20 and r & 7 == ch)),
-            tuple(sorted((r, v) for r, v in self.regs.items() if r < 0x20)))
+            tuple(sorted((r, v) for r, v in self.regs.items()
+                         if r < 0x20 and (r != 0x0f or ch == 7))))
 
     def write(self, register, data):
         rising = falling = 0
@@ -171,6 +207,8 @@ class _ChipState:
                 self.pmd = data & 127
             else:
                 self.amd = data & 127
+        if register == 0x0f:
+            return (7,), 'noise', 0, 0
         if register < 0x20:
             # Even unmodeled global writes retain their evidence and raw state.
             kind = ('shared_control' if register in (1, 0x0f, 0x10, 0x11, 0x12,
@@ -209,6 +247,10 @@ def build_segments(trace_csv, *, end_vgmticks):
         if (instance not in (0, 1) or command != (0x54 if instance == 0 else 0xa4)
                 or not 0 <= register <= 255 or not 0 <= data <= 255 or clock <= 0):
             raise ValueError('Invalid OPM register evidence')
+        if 'ch' in row:
+            expected_ch = register_channel(register, data)
+            if row['ch'] != ('' if expected_ch is None else str(expected_ch)):
+                raise ValueError('OPM trace channel disagrees with register control')
         if event_id <= previous_id or address <= previous_address or not previous_time <= tick <= end_vgmticks:
             raise ValueError('OPM evidence must be in source order and within source end')
         previous_id, previous_address, previous_time = event_id, address, tick
@@ -260,11 +302,17 @@ def _flatten(event):
         row[f'{name}_key_off_edge'] = int(bool(event.falling_mask & bit))
     if isinstance(event, OpmSegment):
         row['duration_samples'] = event.duration_samples
+    row['stream_scope'] = 'initial' if event.register is None else (
+        'common' if register_channel(event.register, event.data) is None else 'channel')
+    row['target_ch'] = None if event.register is None else register_channel(event.register, event.data)
+    row['event_role'] = 'initial' if event.register is None else register_role(event.register)
+    row['logical_track'] = None if event.register is None else (
+        0 if row['target_ch'] is None else row['target_ch'] + 1)
     return row
 
 
 def dump_analysis(analysis, *, state_csv, segments_csv):
-    """Self-contained CSVs, including four named operators and shared state."""
+    """Self-contained CSVs; all channel/common snapshots remain together."""
     initial = OpmStateEvent(None, None, None, None, None, 0, 'YM2151', 0, 0, 0,
                             0, 'initial', False, 0, 0, 0, _ChipState().snapshot(0))
     empty_segment = OpmSegment(**initial.__dict__, segment_id=0, vgmticks_end=0)
