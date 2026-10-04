@@ -740,7 +740,7 @@ class _OpmTrace:
 
     fields = ('event_id', 'address', 'command', 'vgmticks', 'time',
               'chip_instance', 'chip_type', 'clock_hz', 'clock_raw',
-              'register', 'data')
+              'register', 'data', 'ch', 'register_scope')
 
     def __init__(self, raw, version):
         clock_offset = 0x30 if version >= 0x110 else 0x10
@@ -754,9 +754,14 @@ class _OpmTrace:
     def write(self, event_id, event, register, data, instance):
         if not self.clock_hz or (instance and not self.dual_chip):
             return
+        from opm import register_channel
+        ch = register_channel(register, data)
+        scope = ('shared' if ch is None else 'key' if register == 8
+                 else 'noise' if register == 15 else 'channel'
+                 if register < 64 else 'operator')
         self.rows.append((event_id, event.address, event.command, event.vgmticks,
                           event.vgmticks / 44100.0, instance, self.chip_type,
-                          self.clock_hz, self.clock_raw, register, data))
+                          self.clock_hz, self.clock_raw, register, data, ch, scope))
 
     def output_csv(self, path):
         import csv

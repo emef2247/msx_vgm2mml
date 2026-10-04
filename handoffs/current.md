@@ -1,5 +1,45 @@
 # Current handoff
 
+## OPM source-derived channel loops (2026-10-05)
+- User confirmed the native chords_mix.opm.segments.csv and clarified scope:
+  preserve VGM->Segment and integrated all-channel CSV; work on source phrase
+  structure and its MDX MML projection. Do not split CSVs or source streams.
+- Removed the unnecessary analysis.streams partition and streams.csv output.
+  Ownership labels remain on existing rows; complete native state is retained.
+- py/opm_loops.py builds ch-local source phrase and inner Segment plans before
+  target spelling/tone assignment. Equality uses exact source samples, complete
+  state/Key edges and reset/timer effects. Zero-time inactive setup remains
+  members/inner evidence; zero-time attacks and positive released tails remain.
+- MDX projection maps source members to target commands, explicitly rejects
+  boundary ambiguity and checks exact expanded tokens. No normalization, source
+  time edits, macro extraction or native tail splitting. Source loop paths and
+  phrase IDs append to the single native Segment CSV; no per-ch source CSVs.
+- 58 OPM tests passed. Public38/38 and short local2/2 roundtrips passed with
+  zero missing/extra Keys or known-state mismatches. Rules have native evidence
+  tests; final roundtrip agreement is a separate validation step.
+- Evidence/listening: outputs/opm/source_loops_20261005/.
+  Record: field_notes/2026-10-05_opm_source_loops.md. README/source fixtures
+  unchanged. No staging/commit. MDX target still uses the separate
+  scripts/opm_to_mdx_mml.py; regular main converter remains MGSDRV output.
+
+## OPM MDX channel separation (2026-10-04)
+- User required channel separation before loop work. Native Segments already
+  have ch0..7; raw OPM CSV now adds ch/register_scope and checks ownership.
+- MDX default is channels A..H, independent time cursors from common origin.
+  Shared controls occur once on A; noise is ch7/H. Native noise state/intervals
+  no longer fan out to unrelated channels. All other shared snapshots remain.
+- --notation registers --track-layout conductor keeps the prior source-ordered replay.
+  Controls CSV distinguishes physical ch from mdx_track; no silent fallback.
+- 42 OPM unit tests pass; independent channel-separated roundtrips pass all
+  38 public inputs and two short local M_G2_17S/M_G2_18S inputs. Missing/extra
+  channel/operator Key edges=0, known-state mismatches=0, projected-time delta=0;
+  source timing delta<=6 samples. Equal-tick cross-channel order can change and
+  is explicitly predicted/reported; comparisons have not been weakened.
+- Evidence and listening MML/MDX/VGM: outputs/opm/channel_tracks_20261004/.
+  Record: field_notes/2026-10-04_opm_mdx_channel_tracks.md.
+- This was the earlier register-only stage; ordinary note/@voice and loops
+  are now implemented above. Macros remain future work. Fixtures and README unchanged.
+
 ## README publication scope (2026-10-04)
 - User requested that OPM support remain unannounced in README.md for now.
 - Removed OPM/MDX introduction, feature bullet, command example and documentation

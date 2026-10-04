@@ -60,6 +60,8 @@ class OpmReaderTests(unittest.TestCase):
             self.assertEqual(float(read_rows(paths[2])[0]['time']), 735 / 44100)
             self.assertEqual(metadata['source_end_vgmticks'], 754 + 882)
             self.assertEqual(metadata['write_count'], 7)
+            self.assertEqual([r['ch'] for r in rows], ['0'] * 4 + ['', '', '0'])
+            self.assertEqual([r['register_scope'] for r in rows], ['key'] * 4 + ['shared', 'shared', 'channel'])
 
     def test_dual_instance_and_variant_flags(self):
         commands = b'\x54\x08\x78\xa4\x08\x08\x70\xa4\x28\x4e'

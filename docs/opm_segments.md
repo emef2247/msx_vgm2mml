@@ -25,7 +25,7 @@ The reader writes its existing chip CSVs plus these OPM artifacts:
 
 | File | Meaning |
 |---|---|
-| `<stem>_trace.opm_regs.csv` | Every accepted OPM write, in source order |
+| `<stem>_trace.opm_regs.csv` | Every accepted OPM write, in source order, with ch and register_scope |
 | `<stem>_trace.opm.csv` | Effective state after every write, including nonchanges |
 | `<stem>.opm.segments.csv` | State intervals with exact start/end samples |
 
@@ -61,6 +61,25 @@ only by a register's final value. Same-time transitions produce zero-duration
 Segments and are retained; they are not invented musical notes or proof of
 audible pulses.
 
+## Register channel ownership
+
+Raw trace rows now include `ch` and `register_scope`. Key register 0x08 derives
+its channel from data bits 0..2. Channel and operator registers derive it from
+register bits 0..2. Noise register 0x0f belongs to ch7. Other low-register
+controls are chip-wide: `ch` is blank, with `register_scope=shared`.
+The other scopes are `key`, `noise`, `channel` and `operator`.
+
+A shared source write remains one raw row and updates the effective shared
+state in each channel snapshot. Native Key state, pitch, pan, modulation
+sensitivity and four-operator state remain independent per chip/channel.
+Noise changes split only ch7's intervals; they no longer create unrelated
+noise transitions on ch0..6. Its register still appears in ch7's raw snapshot.
+No separate patch lookup is required to understand a Segment's current state.
+
+When a raw CSV contains the new `ch` column, the native builder validates it
+against the register/data address. Older traces lacking this column remain
+readable, deriving ownership from register/data rather than guessing a channel.
+
 ## Native fields
 
 Each Segment contains the complete effective channel and shared state;
@@ -71,8 +90,8 @@ reviewing a patch does not require joining a separate table:
 - Algorithm, feedback, left/right enables, PMS and AMS.
 - Four named operators `m1`, `m2`, `c1`, `c2`, each with DT1, MUL, TL, KS, AR,
   AM enable, D1R, DT2, D2R, D1L and RR. CSV columns use names such as `m1_tl`.
-- Shared LFO/test/noise/timer controls, separately latched AMD and PMD, and
-  CT/LFO waveform selection.
+- Shared LFO/test/timer controls, separately latched AMD and PMD, and
+  CT/LFO waveform selection. Noise state is present only on ch7.
 - Raw channel and shared register snapshots as quoted JSON arrays, preserving
   unused bits and writes whose semantics have not been modeled.
 
@@ -134,4 +153,23 @@ The generator is a development-only external Rust utility; neither Rust,
 mmlx nor soundlog is needed to run the Python reader or committed-fixture
 tests. The separate [MDX target](opm_mdx.md) now reuses these source patterns
 for Segment -> MDX MML register controls -> MDX -> VGM -> Segment validation.
-Ordinary note/voice notation and acoustic equivalence remain future work.
+Ordinary note/voice notation is now available in the separate MDX target;
+acoustic equivalence remains outside these native-state tests.
+
+## Integrated CSV inspection
+
+All channels remain together in the existing state/Segment CSVs. Every row
+retains the complete effective channel/operator and shared state, so sorting
+by ch or absolute `vgmticks` is sufficient for inspection. No separate stream
+CSV or channel CSV is produced. Appended `stream_scope`, `target_ch`,
+`logical_track` and `event_role` are ownership labels only; they do not split
+or rebuild the confirmed native Segment engine. Logical track labels are not
+MDX playback tracks. Shared state remains visible on the channel snapshots.
+
+The separate Segment-to-MDX structural stage appends `opm_phrase_unit_id` and
+`opm_source_loop_path` to the same Segment CSV when its dumps are requested.
+Source-loop paths include phrase/Segment level, pattern/occurrence/parent IDs,
+depth and repeat position. Existing cells/intervals are unchanged. Target
+unit/voice IDs and boundary-mapping status are also appended for projection
+inspection. Source candidate detection and emitted MDX brackets are distinct.
+See [MDX output](opm_mdx.md) for that later stage.
