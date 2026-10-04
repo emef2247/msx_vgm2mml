@@ -7,6 +7,41 @@ notes, reconstructed tone definitions and reversible finite loops with explicit
 the source. PCM/PDX output and cross-chip voice translation are not implemented.
 MGSDRV conversion remains a separate PSG/SCC/OPLL path.
 
+## Compaction before macros
+
+MDX output does not yet extract macros. After source-loop projection, the
+renderer removes redundant voice, volume, pan, gate, detune and octave setters.
+Every track has its own target state. A raw operator/algorithm write invalidates
+voice/volume/pan reuse: the same voice number may be needed to restore the tone.
+The first setters inside a loop are retained, since the incoming first-pass
+state need not equal the state at the loop's back edge.
+
+Long rests can be encoded as finite repetitions of the compiler's 128-tick
+rest chunks. Long sustained notes can similarly repeat identical 256-tick
+note-and-tie pairs. The tie stays **inside** the body, e.g. `[c%256 &]4 c%17`,
+so the compiler's lookahead disables KeyOff on each held chunk. Untied notes,
+different pitches and intervening raw controls are not merged into a sustain.
+This reduces compiled bytes without changing the ordered duration chunks.
+`--no-loops` disables these new duration loops as well as source-loop emission;
+redundant setter removal remains active. New duration brackets are skipped at
+the external compiler's 64-level nesting limit; source-loop discovery is not capped.
+
+The native source-loop plan and integrated Segment CSV remain unchanged.
+OPM, like OPLL, distinguishes new Key edges from held-note updates before target
+rendering; OPM also retains individual operator masks. PSG/SCC software-envelope
+selection is a separate path, whose default builds source structure before
+selecting envelopes. This MDX compaction does not add software envelopes or
+infer new note boundaries.
+
+With `--dump-passes`, `.mdx.structure.uncompacted.mml` retains the source-loop
+projection before compaction and `.mdx.structure.compaction.csv` explains every
+omission/rewrite. Its token indices address the original track body, excluding
+the `A @t255` header initialization. `.units.csv` still contains the original
+commands and source membership. The timing summary separates source-loop count,
+total emitted loops, omitted setters, duration compactions and estimated binary
+bytes saved. `.plain.mml` remains the original flat baseline. A longer rest-loop
+spelling may save binary bytes even when its individual text token grows.
+
 ## Generate MDX MML
 
 ```bash

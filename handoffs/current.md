@@ -1,5 +1,31 @@
 # Current handoff
 
+## MDX pre-macro target compaction (2026-10-05)
+- Added py/mdx_compaction.py after native source-loop projection: conservative
+  setter reuse plus exact rest/tied-note duration factoring. MDX macros remain
+  unimplemented. OPLL continuation/inner loops and PSG/SCC loop-before-envelope
+  behavior were reviewed; source interpretation and integrated CSVs stay intact.
+- Raw tone writes invalidate cached voice/volume/pan; each source-loop entry
+  retains its first setters. Untied notes remain distinct attacks. Tied chunks
+  keep & inside their loop body; rests keep identical 128-tick chunk sequencing.
+- Dump adds .uncompacted.mml and .compaction.csv; timing separates source loops
+  from total duration loops and records setter omissions/estimated byte savings.
+- 12 compaction tests and 58 OPM tests pass; public fresh roundtrips 38/38 pass.
+  Local 52 saved targets: 35 old successes retained, M_G2_08S newly succeeds,
+  16 capacity failures remain. All 36 successful comparisons have zero Key
+  missing/extra and known-state mismatches (17,506 channel attacks both sides).
+- Same old successful 35: MML 1,453,826 -> 1,165,412 chars; MDX 639,547 ->
+  443,491 bytes. M_G2_18S text grows 14 chars but binary shrinks 102 bytes.
+- Fresh M_G2_08S: 166,872 -> 145,270 chars, 56,208-byte MDX; original Segment,
+  trace and target-unit CSVs unchanged and uncompacted MML matches previous.
+  Fresh WARNOP still exceeds MDX capacity. No clock retuning or noise/held-control
+  lowering added; source keys, timing and comparison rules remain unchanged.
+- Record: field_notes/2026-10-05_mdx_pre_macro_compaction.md.
+  Evidence/listening MML/MDX/VGM: outputs/opm/pre_macro_compaction/.
+- Next: evaluate compact held/noise target expression from native evidence;
+  do not insert retriggers, reshape Segments or weaken comparison for capacity.
+  README remains unchanged; no staging/commit was performed.
+
 ## Structured local OPM/MDX regression review (2026-10-05)
 - Reviewed the user's completed outputs/opm/regression/structured_local_only run:
   186 inputs = 35 success, 17 conversion_failed, 134 unsupported_target (3,579,580 Hz).
