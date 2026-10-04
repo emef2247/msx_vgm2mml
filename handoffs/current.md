@@ -1,5 +1,28 @@
 # Current handoff
 
+## 2026-10-04: completed PR55 catalog regression audit
+
+- Current result files are in this test checkout under outputs/mgs/hierarchical_loop;
+  the original checkout is independently used for OPM work. User corrected the
+  regression label from PR56 to PR55.
+- Saved field_notes/2026-10-04_hierarchical_loop_regression.md and the detailed
+  report/CSV audit at outputs/mgs/hierarchical_loop/comparison_20261004/.
+- Current 689 inputs: 417 success, 208 buffer_error, 63 conversion timeouts
+  (all retained logs report 300 seconds), one macro-related compiler failure.
+- Previous OPLL partial comparison: 5 recovered successes including FFMSX01,
+  one lost success; common-success MML characters decreased 4.98% and MGS
+  file bytes decreased 5.20%. Previous OPLL recorded only 126 input paths.
+- Old baseline has six compile successes now reporting buffer_error. Current
+  PRIMK15 has a macro-definition compiler diagnostic. These remain unresolved;
+  source text size and compiled per-track capacity must be evaluated separately.
+- Old/current matched OPLL KeyOn comparisons (301): missing 1,975 -> 1,089,
+  extra 32 unchanged. Previous/current 91 matched comparisons are unchanged.
+- Audited retained results/logs only; no converter changes, fixture edits,
+  conversions, compiles, audio comparisons, staging or commits were performed.
+- Next work requires user direction: investigate lost compile successes/macro
+  diagnostic or rerun timeout cases with a longer limit. Do not report timeout
+  inputs as capacity recoveries or alter the independent OPM checkout.
+
 Date: 2026-09-28
 Status: ready to resume
 
