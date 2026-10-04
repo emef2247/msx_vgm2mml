@@ -1,6 +1,6 @@
 """
 vgm_reader.py - Port of vgm_read.tcl + psg.tcl + scc.tcl
-Parse a VGM binary file and produce PSG and SCC log/trace CSVs.
+Parse a VGM binary file and produce chip log/trace CSVs, including raw OPM writes.
 Usage: python vgm_reader.py <vgm_file> [output_dir]
 
 Log CSV  (*_log.scc.csv)  : events grouped by channel (Tcl scc.tcl output)
@@ -735,11 +735,44 @@ class _OpllState:
 # VGM parser
 # ─────────────────────────────────────────────────────────────────
 
+class _OpmTrace:
+    """Source writes only; operator state and musical interpretation come later."""
+
+    fields = ('event_id', 'address', 'command', 'vgmticks', 'time',
+              'chip_instance', 'chip_type', 'clock_hz', 'clock_raw',
+              'register', 'data')
+
+    def __init__(self, raw, version):
+        clock_offset = 0x30 if version >= 0x110 else 0x10
+        self.clock_raw = struct.unpack_from('<I', raw, clock_offset)[0]
+        self.clock_hz = self.clock_raw & 0x3fffffff
+        self.dual_chip = version >= 0x151 and bool(self.clock_raw & 0x40000000)
+        self.chip_type = ('YM2164' if version >= 0x151
+                          and self.clock_raw & 0x80000000 else 'YM2151')
+        self.rows = []
+
+    def write(self, event_id, event, register, data, instance):
+        if not self.clock_hz or (instance and not self.dual_chip):
+            return
+        self.rows.append((event_id, event.address, event.command, event.vgmticks,
+                          event.vgmticks / 44100.0, instance, self.chip_type,
+                          self.clock_hz, self.clock_raw, register, data))
+
+    def output_csv(self, path):
+        import csv
+        with open(path, 'w', encoding='utf-8', newline='') as stream:
+            writer = csv.writer(stream)
+            writer.writerow(self.fields)
+            writer.writerows(self.rows)
+
+
 def parse_vgm(vgm_path: str, output_dir: str | None = None, *,
               loop_metadata: dict | None = None, dump_loop: bool = False,
-              include_vgmticks: bool = False) -> tuple[str, str, str, str, str, str, str, str]:
+              include_vgmticks: bool = False,
+              opm_metadata: dict | None = None,
+              dump_opm_segments: bool = False) -> tuple[str, str, str, str, str, str, str, str]:
     """
-    Parse a VGM file and write PSG, SCC, and OPLL log/trace CSVs.
+    Parse a VGM file and write PSG/SCC/OPLL traces plus declared OPM raw writes.
 
     Returns:
         (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
@@ -749,6 +782,12 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None, *,
     Optional loop_metadata receives independently inspected source-loop facts;
     dump_loop writes them to <stem>.vgm.loop.csv. include_vgmticks appends
     integer sample boundaries without changing rendering or quantizing time.
+    Declared OPM chips also produce <stem>_trace.opm_regs.csv with ordered raw
+    writes and unconditional sample timestamps. Optional opm_metadata receives
+    its path, clock/variant facts, write count and source end. The eight legacy
+    return paths remain unchanged; OPM Segment/MML interpretation is separate.
+    dump_opm_segments reconstructs native state intervals and dumps their CSVs;
+    it does not project OPM into a target chip or MML dialect.
     """
     from vgm_io import read_vgm_bytes
     raw = read_vgm_bytes(vgm_path)
@@ -784,11 +823,12 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None, *,
     psg  = _PsgState()
     scc  = _SccState()
     opll = _OpllState()
+    opm = _OpmTrace(raw, vgm_version)
     from vgm_timing import command_times
     source_times = {}
     for state in (psg, scc, opll):
         state._include_vgmticks = include_vgmticks
-    for event in command_times(raw):
+    for event_id, event in enumerate(command_times(raw)):
         if include_vgmticks:
             source_times[event.address] = event
         for state in (psg, scc, opll):
@@ -801,6 +841,8 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None, *,
             psg.write(global_time, raw[pos], raw[pos + 1])
         elif cmd == 0x51:
             opll.write(global_time, raw[pos], raw[pos + 1])
+        elif cmd in (0x54, 0xA4):
+            opm.write(event_id, event, raw[pos], raw[pos + 1], int(cmd == 0xA4))
         elif cmd == 0xD2 and has_k051649:
             pp, aa, dd = raw[pos:pos + 3]
             base = {0: 0x9800, 1: 0x9880, 2: 0x988A, 3: 0x988F}.get(pp, 0x9800)
@@ -839,6 +881,27 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None, *,
     opll_regs_csv = os.path.join(output_dir, f"{base_name}_trace.opll_regs.csv")
     opll.output_regs_csv(opll_regs_csv)
 
+    opm_regs_csv = None
+    if opm.clock_hz:
+        opm_regs_csv = os.path.join(output_dir, f'{base_name}_trace.opm_regs.csv')
+        opm.output_csv(opm_regs_csv)
+    opm_state_csv = opm_segments_csv = None
+    opm_counts = None
+    if opm_regs_csv and dump_opm_segments:
+        from opm import build_segments, dump_analysis, key_counts
+        analysis = build_segments(opm_regs_csv, end_vgmticks=event.vgmticks)
+        opm_state_csv = os.path.join(output_dir, f'{base_name}_trace.opm.csv')
+        opm_segments_csv = os.path.join(output_dir, f'{base_name}.opm.segments.csv')
+        dump_analysis(analysis, state_csv=opm_state_csv, segments_csv=opm_segments_csv)
+        opm_counts = key_counts(analysis)
+    if opm_metadata is not None:
+        opm_metadata.update(csv_path=opm_regs_csv, clock_raw=opm.clock_raw,
+                            clock_hz=opm.clock_hz, dual_chip=opm.dual_chip,
+                            chip_type=opm.chip_type, write_count=len(opm.rows),
+                            source_end_vgmticks=event.vgmticks,
+                            state_csv_path=opm_state_csv, segments_csv_path=opm_segments_csv,
+                            key_counts=opm_counts)
+
     return (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
             opll_log_csv, opll_trace_csv, opll_voice_csv, opll_regs_csv)
 
@@ -847,8 +910,10 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print(f"Usage: python {sys.argv[0]} <vgm_file> [output_dir]")
         sys.exit(1)
+    opm_metadata = {}
     p_log, s_log, p_trace, s_trace, o_log, o_trace, o_voice, o_regs = parse_vgm(
-        sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
+        sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None,
+        opm_metadata=opm_metadata, dump_opm_segments=True)
     print(f"PSG log CSV:       {p_log}")
     print(f"SCC log CSV:       {s_log}")
     print(f"SCC trace CSV:     {s_trace}")
@@ -856,3 +921,7 @@ if __name__ == '__main__':
     print(f"OPLL trace CSV:    {o_trace}")
     print(f"OPLL voice CSV:    {o_voice}")
     print(f"OPLL regs CSV:     {o_regs}")
+    if opm_metadata['csv_path']:
+        print(f"OPM regs CSV:      {opm_metadata['csv_path']}")
+        print(f"OPM state CSV:     {opm_metadata['state_csv_path']}")
+        print(f"OPM Segments CSV:  {opm_metadata['segments_csv_path']}")

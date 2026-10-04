@@ -1,0 +1,9 @@
+;[name=ym2413_patch_change_midnote lpf=1]
+#opll_mode 0
+#tempo 110
+#title { "Patch Change Mid-Note" }
+
+; タイ (&) で KeyOn を維持しつつパッチ番号 @X を変更する挙動の検証。
+
+9 @1 v14 o4 l1 c & @4 v14 c & @8 v14 c & @2 v14 c
+9 @8 v14 o5 l2 g & @1 v14 g

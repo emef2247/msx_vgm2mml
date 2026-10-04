@@ -1,0 +1,22 @@
+#title "OPM synthetic: Hardware LFO depths, sensitivity and key sync"
+; SPDX-License-Identifier: MIT
+; Original synthetic test tones and note sequences; no game/music data.
+; Operator rows: AR,D1R,D2R,RR,D1L,TL,KS,MUL,DT1,DT2,AME
+@0 = {
+  20,8,4,8,4,48,0,1,0,0,0,
+  18,7,3,7,5,52,1,2,1,0,0,
+  22,9,5,9,3,56,2,3,0,1,0,
+  24,6,2,6,6,44,0,1,2,0,0,
+  7,0,15
+}
+@1 = {
+  25,10,5,9,3,38,1,1,1,0,1,
+  21,8,4,8,4,46,0,2,0,1,1,
+  19,6,3,7,5,54,2,4,2,0,1,
+  23,7,2,6,6,42,1,1,0,2,1,
+  4,2,15
+}
+
+; MH fields: waveform,LFRQ,PMD,AMD,PMS,AMS,key-sync.
+; Later direct depth writes update one latch while preserving the other.
+A t120 @1 v10 o4 MH2,180,35,17,4,2,1 c8& MHOF c8& MHON c8& y25,9 c8& y25,183 c8 r8

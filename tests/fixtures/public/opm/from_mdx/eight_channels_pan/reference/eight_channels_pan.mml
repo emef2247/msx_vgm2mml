@@ -1,0 +1,28 @@
+#title "OPM synthetic: Eight channels, independent pitch and pan"
+; SPDX-License-Identifier: MIT
+; Original synthetic test tones and note sequences; no game/music data.
+; Operator rows: AR,D1R,D2R,RR,D1L,TL,KS,MUL,DT1,DT2,AME
+@0 = {
+  20,8,4,8,4,48,0,1,0,0,0,
+  18,7,3,7,5,52,1,2,1,0,0,
+  22,9,5,9,3,56,2,3,0,1,0,
+  24,6,2,6,6,44,0,1,2,0,0,
+  7,0,15
+}
+@1 = {
+  25,10,5,9,3,38,1,1,1,0,1,
+  21,8,4,8,4,46,0,2,0,1,1,
+  19,6,3,7,5,54,2,4,2,0,1,
+  23,7,2,6,6,42,1,1,0,2,1,
+  4,2,15
+}
+
+; Two notes on each of eight FM tracks; pan cycles left/right/both.
+A t120 @0 v10 o3 p1 l8 c e r8
+B @0 v10 o3 p2 l8 d f r8
+C @0 v10 o3 p3 l8 e g r8
+D @0 v10 o3 p1 l8 f a r8
+E @0 v10 o4 p2 l8 g b r8
+F @0 v10 o4 p3 l8 a >c r8
+G @0 v10 o4 p1 l8 b >d r8
+H @0 v10 o5 p2 l8 c e r8

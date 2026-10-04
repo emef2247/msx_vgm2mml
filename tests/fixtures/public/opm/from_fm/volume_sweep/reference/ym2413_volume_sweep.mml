@@ -1,0 +1,11 @@
+;[name=ym2413_volume_sweep lpf=1]
+#opll_mode 0
+#tempo 110
+#title { "YM2413 Volume Sweep" }
+
+; 目的: 音量 (v) 変更タイミングとエンベロープパラメータ適用の差異を検出
+; 同一音高 (o4 g) を様々な音量で発音。途中で上昇も行う。
+
+9 @2 o4 l8
+9 v15 g v13 g v11 g v9 g v7 g v5 g v3 g v1 g
+9 v3 g v5 g v7 g v9 g v11 g v13 g v15 g r

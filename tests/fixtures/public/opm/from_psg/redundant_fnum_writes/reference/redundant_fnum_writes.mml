@@ -1,0 +1,17 @@
+;[name=redundant_fnum_writes lpf=1]
+#opll_mode 1
+#tempo 75
+#title { "Redundant FNUM Writes" }
+#alloc 1=400
+#alloc 2=200
+#alloc 3=400
+#psg_tune { 3392, 3200, 3008, 2848, 2688, 2528, 2368, 2240, 2112, 2016, 1888, 1792 }
+
+@e01 = { 1, 0, F, 0=15 }
+@e09 = { 1, 0, F, E, B=6 }
+@e10 = { 1, 0, F, E, 9=10 }
+
+
+; 同一ピッチの短区切り繰り返しで冗長 F-Num 書き込み最適化の副作用検出。
+1 /1 s10 m9440 v14 o4 l16 c c c c c c c c
+1 /1 s10 m9440 v14 o4 l16 c c c c r r c c

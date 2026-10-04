@@ -1,0 +1,137 @@
+{
+  "license": "MIT (repository LICENSE)",
+  "provenance": "Original synthetic MML, patches and note sequences authored for this repository; no private/commercial musical data.",
+  "generation": {
+    "mmlx": "0.2.0",
+    "soundlog": "0.15.0",
+    "ym2151_clock_hz": 4000000,
+    "loop_count": 1,
+    "pcm": false
+  },
+  "cases": {
+    "eight_channels_pan": {
+      "channel_attack_events": 16,
+      "operator_keyons": 64,
+      "operator_keyoffs": 64,
+      "active_channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "sha256": {
+        "eight_channels_pan/reference/eight_channels_pan.mml": "e608313aaab6928976e3f5858c5961ddba938718851ff3d8c4a6619640c072b7",
+        "eight_channels_pan/reference/eight_channels_pan.mdx": "b92e5ab9cf793bf994bbb7207e2375271c26787433b45157c9eae87e0bffd72f",
+        "eight_channels_pan/eight_channels_pan.vgm": "f0223b615ed49367c2f6287457a5d697a53ed795c6d4960efaf8ec1bdbd9d6ee"
+      }
+    },
+    "hardware_lfo_depths": {
+      "channel_attack_events": 1,
+      "operator_keyons": 4,
+      "operator_keyoffs": 4,
+      "active_channels": [
+        0
+      ],
+      "sha256": {
+        "hardware_lfo_depths/reference/hardware_lfo_depths.mml": "2457277504d4ca59850f0f3fa29202f783fc8a4a3346b7870d00a2eb05098934",
+        "hardware_lfo_depths/reference/hardware_lfo_depths.mdx": "2233ce8886819c11147c96d38d5faec126288ad17a07fe6e5f24f4191382c1b7",
+        "hardware_lfo_depths/hardware_lfo_depths.vgm": "34d3042484a1cdb957fcddc88e8935ac9f87e22d263f746e043c36aa8593554b"
+      }
+    },
+    "held_controls": {
+      "channel_attack_events": 1,
+      "operator_keyons": 4,
+      "operator_keyoffs": 4,
+      "active_channels": [
+        0
+      ],
+      "sha256": {
+        "held_controls/reference/held_controls.mml": "00c62e264386fcf43783bb969733e45d68e7502e99ac01c6a0142a91fb36b226",
+        "held_controls/reference/held_controls.mdx": "e70b2f72edf265effba3e5a97a0481471935493185ed4d6aabb03c000c88abaf",
+        "held_controls/held_controls.vgm": "c80499a9df1374bf6beeb9fde62b8a02d87fcc069fe2aa3e8c9c44630116faaa"
+      }
+    },
+    "nested_phrase_loops": {
+      "channel_attack_events": 24,
+      "operator_keyons": 96,
+      "operator_keyoffs": 96,
+      "active_channels": [
+        0
+      ],
+      "sha256": {
+        "nested_phrase_loops/reference/nested_phrase_loops.mml": "7e924015374d79b1bbba203bf28b74f2ef15b439154bea8e0e5e2ab78100c0f4",
+        "nested_phrase_loops/reference/nested_phrase_loops.mdx": "92d87c18de0739d57b235c5b402a33cdf47a9460a7f687ac2f09d53192aa18a0",
+        "nested_phrase_loops/nested_phrase_loops.vgm": "521a8c1edb9fdad67164293fb0d033441257d80c085cb11d7e0bffbd9692d4cb"
+      }
+    },
+    "noise_channel7": {
+      "channel_attack_events": 1,
+      "operator_keyons": 4,
+      "operator_keyoffs": 4,
+      "active_channels": [
+        7
+      ],
+      "sha256": {
+        "noise_channel7/reference/noise_channel7.mml": "13f89f25be4e7e3331f514f268fdfd24a862dca170be7e2c47f911ff55c1298e",
+        "noise_channel7/reference/noise_channel7.mdx": "f2ad5e90e4cb0f4249572d038bbaab00f081ae63087d3290cf1b02c835191cd2",
+        "noise_channel7/noise_channel7.vgm": "ad7761b113f37d1429b8944359d5c81047e506bf963035f209d863ff2b4fa6c1"
+      }
+    },
+    "operator_register_banks": {
+      "channel_attack_events": 1,
+      "operator_keyons": 4,
+      "operator_keyoffs": 4,
+      "active_channels": [
+        0
+      ],
+      "sha256": {
+        "operator_register_banks/reference/operator_register_banks.mml": "d6b760ae67644ebb1c40d5ac39322d7bfdfce8eea1d4bde9a405e604f1ee9676",
+        "operator_register_banks/reference/operator_register_banks.mdx": "5dfdd46bea3242beacc844f2456252547c5f3f6e2b91000923637e78009e95b1",
+        "operator_register_banks/operator_register_banks.vgm": "78f5db9dcc3b83f7cec96b570288cc69ece811bd7f4c1dc70fab02371ca96a09"
+      }
+    },
+    "partial_operator_keys": {
+      "channel_attack_events": 5,
+      "operator_keyons": 8,
+      "operator_keyoffs": 8,
+      "active_channels": [
+        3
+      ],
+      "sha256": {
+        "partial_operator_keys/reference/partial_operator_keys.mml": "9d8a1ca6b0016524e5459ceb77cee04e7908d860e84cb365573e4d98696c452c",
+        "partial_operator_keys/reference/partial_operator_keys.mdx": "98a6ad7a6f064fdbf764b1bab877f4ba57875d97164ff23c20d7139c72d737df",
+        "partial_operator_keys/partial_operator_keys.vgm": "7b19d19217dc159283b8808f81fae1e11148ee122c5dbb4d8e3971dfc0577842"
+      }
+    },
+    "release_retrigger": {
+      "channel_attack_events": 4,
+      "operator_keyons": 16,
+      "operator_keyoffs": 16,
+      "active_channels": [
+        0
+      ],
+      "sha256": {
+        "release_retrigger/reference/release_retrigger.mml": "e76cdcd71bf3789eb42dac04580d341d2feae37aea55a613b097ed5609b0af1a",
+        "release_retrigger/reference/release_retrigger.mdx": "e72c3627a287d3ed58f052167138330555161e12e0b6ad4c5642ef83e897e4c4",
+        "release_retrigger/release_retrigger.vgm": "99d78d9cf97df4e9ef74523388dba72fdd69ae89665713d4c246580d48bae20b"
+      }
+    },
+    "same_sample_retrigger": {
+      "channel_attack_events": 3,
+      "operator_keyons": 12,
+      "operator_keyoffs": 12,
+      "active_channels": [
+        0
+      ],
+      "sha256": {
+        "same_sample_retrigger/reference/same_sample_retrigger.mml": "64d73550cb85df7ea2ba913c03fa119db86c097cd9538e3ecc0417fa03abd9ca",
+        "same_sample_retrigger/reference/same_sample_retrigger.mdx": "8fad93d7bf960c67c29ffcf9233f2c459883f10531253b06d7e6795ce1b3e1ec",
+        "same_sample_retrigger/same_sample_retrigger.vgm": "6517a6b5c0b49d44e4073528c2dd4abc6d2512455d09900eada07b0a68daa744"
+      }
+    }
+  }
+}

@@ -33,6 +33,7 @@ The currently relevant source chip families include:
 -   YM2413 / OPLL
 -   SCC
 -   OPLL rhythm mode
+-   OPM / YM2151 (native input-state analysis; target output is separate)
 
 The project may grow to support additional Yamaha or MSX-related
 sound-chip families. Such extensions must preserve the architectural
@@ -1899,3 +1900,43 @@ too little of the shared proportional allocation. Macro priority alone was not
 the cause. Source equality, exact expanded timed commands, MML character count
 and ordinary-allocation MGSC compilation are complementary checks; smaller
 macro text alone does not establish that track buffers will fit.
+
+## Native OPM input (2026-10-04)
+
+The independent Segment engine now has a native OPM state-analysis path.
+OPM commands enter through the existing vgm_reader stream loop and share its
+integer sample clock; py/opm.py consumes ordered raw trace afterward. Preserve
+four named operators, KC/KF, partial Key edges, channel/shared controls and
+raw state snapshots. Do not invent FNUM/BLOCK, channel volume or preset voices
+for OPM. Unwritten parameters remain unknown; Key gates initially cleared is
+an explicit reset assumption. A released gate is not proven silence.
+
+State/Segments retain same-time transitions; nonchanging writes stay in raw
+and state traces. Parameter changes must not create extra KeyOns. AMD/PMD are
+independent latches and Key bit order differs from operator-register order.
+Native Hz/envelope/LFO/timer simulation and CSM attacks are not implemented;
+CSM coverage is explicitly flagged. See docs/opm_segments.md and
+field_notes/2026-10-04_opm_native_segments.md. OPM target MML is separate future
+work, with no mml2vgm dependency or copied compiler code.
+
+
+## OPM MDX control target (2026-10-04)
+
+Native OpmSegments can now feed a separate MDX MML register-control target.
+It deduplicates shared-write fanout by source event, preserves partial keys
+and same-time ordering, and records source/target timing separately. Absolute
+projection uses @t255 (256 us), not a 60 Hz source reinterpretation.
+This initial target requires one 4 MHz YM2151; musical note/voice rendering,
+compression, other clocks/instances and PCM remain separate future work.
+
+The external mmlx/soundlog helper is only a validation-data compiler/player.
+Comparison checks retained control order, known state, per-channel Key counts
+and target timing. Independently reproduced compiler initialization must match
+the returned prefix before exclusion. Unknown source state is not replaced by
+assumed patch values. No acoustic/CSM equivalence is implied by these checks.
+Usage/limits: docs/opm_mdx.md. Results: field_notes/2026-10-04_opm_mdx_roundtrip.md.
+
+The regular OPM conversion command defaults to final MDX MML only.
+--dump-passes retains the native/target CSVs and timing JSON without changing
+the MML; the roundtrip verifier always retains this evidence. This packaging
+choice does not bypass Segment construction or quantize the source data.

@@ -1,0 +1,24 @@
+;[name=chords_mix lpf=1]
+#opll_mode 1
+#tempo 75
+#title { "Chords Mix" }
+#alloc 1=400
+#alloc 2=200
+#alloc 3=400
+#psg_tune { 3392, 3200, 3008, 2848, 2688, 2528, 2368, 2240, 2112, 2016, 1888, 1792 }
+
+@e01 = { 1, 0, F, 0=15 }
+@e09 = { 1, 0, F, E, B=6 }
+@e10 = { 1, 0, F, E, 9=10 }
+
+
+; 目的: 複数チャネル同時発音時の音色/音量/KeyOn 同期
+; ChA/B/C: それぞれ異パッチ/音量で和音 C, F, G を進行
+; 短い進行: | C | F | G | C |
+
+1 /1 s9 m109850 @0 v13 o4 l8 c e g c e g c e
+2 /1 s9 m109850 @1 v12 o3 l8 c f a c f a c f
+3 /1 s9 m109850 @2 v11 o3 l8 g b d g b d g b
+1 /0 s9 m109850 @3 v13 o4 l4 c r
+2 /0 s9 m109850 @4 v12 o3 l4 c r
+3 /0 s9 m109850 @5 v11 o3 l4 g r

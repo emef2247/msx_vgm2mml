@@ -1,0 +1,25 @@
+
+;[name=block_boundary lpf=1]
+#opll_mode 1
+#tempo 75
+#title { "Block Boundary Sweep" }
+#alloc 1=400
+#alloc 2=200
+#alloc 3=400
+#psg_tune { 3392, 3200, 3008, 2848, 2688, 2528, 2368, 2240, 2112, 2016, 1888, 1792 }
+
+@e01 = { 1, 0, F, 0=15 }
+@e09 = { 1, 0, F, E, B=6 }
+
+; o1〜o7 に跨る代表音 (C / B) と境界直前直後 (B -> C) の周波数/Block ビットを確認。
+; 各オクターブで C E G B >C を並べる。
+
+
+1 @e1 v13 l16
+1 @e1 o1 c e g b > c
+1 @e1 o2 c e g b > c
+1 @e1 o3 c e g b > c
+1 @e1 o4 c e g b > c
+1 @e1 o5 c e g b > c
+1 @e1 o6 c e g b > c
+1 @e1 o7 c e g b > c

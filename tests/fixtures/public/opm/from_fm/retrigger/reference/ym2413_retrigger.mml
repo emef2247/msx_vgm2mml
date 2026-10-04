@@ -1,0 +1,13 @@
+;[name=ym2413_retrigger lpf=1]
+#opll_mode 0
+#tempo 180
+#title { "YM2413 Rapid Retrigger" }
+
+; 目的: 同一音高の高速な KeyOn/Off 繰り返しで KeyOn エッジ検出と残響処理を確認
+; パターン1: 休符を挟まず連続
+; パターン2: 小休符入り
+; パターン3: 音量を変えながら高速
+
+9 @4 v15 o4 l32 c c c c c c c c
+9 @4 v15 o4 l32 c r c r c r c r
+9 @4 o4 l32 v14 c v12 c v10 c v8 c v6 c v4 c v2 c

@@ -197,10 +197,12 @@ def main():
     os.makedirs(song_dir, exist_ok=True)
 
     # ── Step 1: Parse VGM → SCC + PSG + OPLL log/trace CSVs ──────
+    opm_metadata = {}
     (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
      opll_log_csv, opll_trace_csv, opll_voice_csv, opll_regs_csv) = parse_vgm(
          vgm_path, song_dir, dump_loop=args.debug or args.dump_passes,
-         include_vgmticks=args.vgmticks or args.normalize_lengths)
+         include_vgmticks=args.vgmticks or args.normalize_lengths,
+         opm_metadata=opm_metadata, dump_opm_segments=args.debug or args.dump_passes)
 
     if args.debug:
         print(f"PSG log:       {psg_log_csv}")
@@ -211,6 +213,10 @@ def main():
         print(f"OPLL trace:    {opll_trace_csv}")
         print(f"OPLL voice:    {opll_voice_csv}")
         print(f"OPLL regs:     {opll_regs_csv}")
+        if opm_metadata['csv_path']:
+            print(f"OPM regs:      {opm_metadata['csv_path']}")
+            print(f"OPM state:     {opm_metadata['state_csv_path']}")
+            print(f"OPM Segments:  {opm_metadata['segments_csv_path']}")
 
     # Detect chip presence from trace CSVs
     has_psg  = _has_chip_data(psg_trace_csv)
@@ -306,7 +312,10 @@ def main():
             for csv_path in (psg_log_csv, psg_trace_csv,
                              scc_log_csv, scc_trace_csv,
                              opll_log_csv, opll_trace_csv,
-                             opll_voice_csv, opll_regs_csv):
+                             opll_voice_csv, opll_regs_csv,
+                             opm_metadata['csv_path']):
+                if csv_path is None:
+                    continue
                 try:
                     os.remove(csv_path)
                 except OSError:

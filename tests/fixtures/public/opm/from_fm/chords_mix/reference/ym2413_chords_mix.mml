@@ -1,0 +1,15 @@
+;[name=ym2413_chords_mix lpf=1]
+#opll_mode 0
+#tempo 120
+#title { "YM2413 Chords Mix" }
+
+; 目的: 複数チャネル同時発音時の音色/音量/KeyOn 同期
+; ChA/B/C: それぞれ異パッチ/音量で和音 C, F, G を進行
+; 短い進行: | C | F | G | C |
+
+9 @1 v13 o4 l8 c e g c e g c e
+8 @3 v12 o3 l8 c f a c f a c f
+7 @5 v11 o3 l8 g b d g b d g b
+9 @1 v13 o4 l4 c r
+8 @3 v12 o3 l4 c r
+7 @5 v11 o3 l4 g r

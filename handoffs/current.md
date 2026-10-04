@@ -1,5 +1,187 @@
 # Current handoff
 
+## MSXGRA2S Segment replay listening outputs (2026-10-04)
+- All 18 private OPM inputs have verified Segment -> MML -> MDX -> VGM outputs:
+  outputs/opm/mdx_roundtrip/msxgra2s_20261004/listen/ (54 files).
+  listening_results.csv/json and listening_summary.json retain final evidence.
+- 20,141 source/returned channel attacks; missing/extra channel/operator keys=0;
+  known state/order mismatches=0; source/projected timing delta=0 for these inputs.
+  This is control preservation, not an audio/hardware equivalence assertion.
+- Four oversized conductor-A tracks use listening-only conductor-W spelling and
+  extended MDX layout. No clipping, dropped controls or added PCM. Exact command
+  relabeling and returned Segment comparisons pass. Core defaults unchanged.
+  Details: handoffs/local_only/msxgra2s_segment_replay_listening.md.
+- User supplied an X screenshot proposing additive AL7 1/3/5/7 carriers and DFT
+  level fitting. Recorded candidate and limits in
+  field_notes/2026-10-04_opm_additive_harmonic_mapping.md.
+  SCC waveform -> OPM target mapping is still unimplemented; do not imply this
+  OPM roundtrip performs cross-chip translation. No files staged or committed.
+
+## MSXGRA2S direct MDX fixtures and timbre investigation (2026-10-04)
+- All18 original private MDX files played directly into same-directory VGM;
+  native OPM traces/Segments retained under outputs/opm/msxgra2s_import_20261004/.
+  Original MDX hashes unchanged; no PCM/PDX and no new pitch retuning.
+- Read private DOC. Human port uses approximate MSX part roles, not a strict
+  channel/song-number oracle. Match song titles; MDX13 corresponds to gra2_005.
+- Investigated SCC reference wave -> OPM patch candidates. Recurring algorithm/
+  harmonic-ratio families exist, but multiple waves can share a patch and one
+  wave can use different FM envelopes. Do not introduce a dataset-specific or
+  wave-only conversion invariant. Complete private evidence and limitations:
+  handoffs/local_only/msxgra2s_scc_opm_timbres.md.
+- Helper adds --from-mdx (preserves compiled input) and --inspect-mdx (typed
+  tone-bank CSV). README updated.35 OPM tests pass;9 public MDX direct replays
+  byte-identical; inspector smoke verified. No staging/commit performed.
+- Possible next work: generic clock-aware Target pitch conversion, or a separately
+  inspectable waveform/envelope -> FM profile experiment, only as requested.
+
+## Public/local OPM roundtrip and listening run (2026-10-04)
+- User requested local_only as well as public validation, retaining MML/MDX/VGM.
+  All206 inputs classified: public38/38 success; local23 success,11 external
+  MDX16-bit offset failures,134 unsupported3,579,580Hz clocks. No retuning,
+  dropped controls or clipped end times; those limits remain unresolved.
+- Results: outputs/opm/mdx_roundtrip/listening_20261004/{public,local_only}/.
+  listen/ contains61 successful stem-named MML/MDX/VGM sets; copied183 files
+  are byte-identical. listening_index.csv lists all206; summary.json totals.
+- Successful cases have0 missing/extra channel/operator Key edges and0 known
+  state differences; exact retained control order/projected time. Original
+  source timing delta<=6 VGM samples. These are not waveform/hardware tests.
+- New field note: field_notes/2026-10-04_opm_catalog_roundtrip.md. Private
+  failed/listening case paths: handoffs/local_only/opm_catalog_roundtrip_20261004.md.
+- Batch excludes reference/expected replay VGMs; accepts VGM/VGZ/gzip inputs;
+  classifies unsupported headers early, saves progress CSV+JSON and failure
+  logs. Helper saves compiled MDX before playback. All35 OPM tests pass.
+- No source/Segment interpretation changed, no PSG/SCC direct mapping added.
+  Next: user listens; clock-aware target and MDX capacity handling are separate
+  work. Do not claim unsupported/compilation-failed cases passed. Do not stage
+  generated/private assets or alter the separate test repository.
+
+
+## Refreshed PSG-derived OPM fixtures: review (2026-10-04)
+- Reviewed the user-supplied private square/pulse references and the moved
+  I:/wsl/repositories/test/vgm-conv generator. Detailed local-only notes:
+  handoffs/local_only/psg_scc_to_opm_review.md. Do not publish source assets.
+- All13 refreshed from_psg VGMs match generator outputs and declare4MHz OPM.
+  Their reference MML is original PSG intent, not a native OPM/MDX oracle.
+- Fresh MDX MML/MDX/VGM/Segment replay passed13/13:2331 retained controls,
+ 52 channel attacks,169 operator KeyOns,0 KeyOffs; missing/extra edges and
+  known-state mismatches0. Source timing difference<=6 samples, target timing
+  exact. Results: outputs/opm/mdx_roundtrip/from_psg_20261004/results.csv/json.
+- Keys occur only at initialization; subsequent audibility/pitch uses TL/KC/KF.
+  A musical renderer must preserve these sustained gates, not add attacks at
+  volume changes or inferred notes. Two cases activate noise; none selects a
+  source PSG hardware envelope. No hardware-envelope or SCC waveform claim.
+- Investigation only: no source-to-OPM mapping or renderer behavior changed.
+  Next: agree square/pulse target policies and independent SCC level/waveform
+  treatment. Keep direct PSG/SCC projection separate from native OPM decoding.
+  OPLL profiles and reverse OPM->MSX composite voices remain deferred.
+
+
+## OPM output packaging (2026-10-04)
+- Regular scripts/opm_to_mdx_mml.py output is <stem>.mdx.mml only by default.
+  --dump-passes keeps native/target CSVs and timing JSON. Native Segments are
+  still constructed; internal traces are temporary unless dumps are requested.
+- The roundtrip verifier always retains intermediate evidence. Existing dumps
+  are not purged. README presents OPM input -> MDX MML output as the feature.
+- All31 OPM tests pass, including CLI output inventory, byte-identical MML
+  across default/dump modes and retained Key evidence. Earlier roundtrip
+  measurements remain valid; rendering and source interpretation are unchanged.
+
+
+## OPM MDX control target and public roundtrip (2026-10-04)
+- Added py/opm_mdx.py, py/opm_roundtrip.py and two separate CLI tools:
+  scripts/opm_to_mdx_mml.py / scripts/verify_opm_mdx_roundtrip.py.
+  Target consumes native Segment objects, not a raw VGM passthrough.
+- First target emits ordered y register controls on conductor A; ordinary
+  MDX note/voice notation, musical compression and PCM are not implemented.
+  One 4 MHz YM2151 only; other native inputs remain analyzable but rejected
+  by this target. Absolute timing projection @t255 preserves the source data.
+- All38 current public OPM inputs passed external MML/MDX/VGM/Segment replay:
+  no missing/extra KeyOn/KeyOff or known-state/control-sequence mismatches.
+  Maximum source timing difference6 samples;363 positive intervals collapse
+  while preserving write order/edges. No acoustic equivalence claim.
+- Existing PSG/SCC/OPLL public conversion baseline also passed (one aggregate test).
+- 30 OPM tests pass, including nine committed original synthetic replay VGMs
+  and negative checks. mmlx0.2.0/soundlog0.15.0 remain external test tools.
+  Verifier derives playback max-ticks from source end, retaining long cases.
+- Removed three unconverted from_fm/rhythm_only_test0* cases as requested.
+  All13 from_psg cases retained. Current inputs:16 from_fm +9 from_mdx +13 from_psg.
+- Results: outputs/opm/mdx_roundtrip/public_all/results.csv and results.json.
+  Usage: docs/opm_mdx.md; record: field_notes/2026-10-04_opm_mdx_roundtrip.md.
+- Earlier sections describe historical stages. Their no-target claims are
+  superseded by this section. Private game VGM regression has not been run.
+- Next: review register output/CSV, then design readable MDX notes/voices
+  without losing partial keys, held controls, shared state or source evidence.
+  Do not assume OPLL note/fnum semantics, discard zero-time controls, add an
+  external compiler dependency to the engine or change existing MGS rendering.
+
+
+## Original public OPM MDX fixtures (2026-10-04)
+- Authored nine synthetic MDX MML cases under tests/fixtures/public/opm/from_mdx.
+  Source patches/phrases were newly written; no private/game music or PCM used.
+  MML, generated MDX and VGM follow the repository MIT license.
+- Covers all8 channels/pan, partial keys, held pitch/patch/TL changes, hardware
+  LFO/depth latches, channel7 noise, same-time pulses/redundant keys, release
+  retriggers, distinct operator banks and finite nested phrases.
+- External generator: scripts/mdx_fixture_generator (mmlx0.2.0/soundlog0.15.0);
+  Python regeneration wrapper: scripts/generate_opm_public_fixtures.py.
+  These are generation-only dependencies, not conversion-engine dependencies.
+- Manifest keeps provenance, hashes and authored intent counts. Nine new fixture
+  checks plus prior OPM checks pass (22 tests); inspectable CSVs/results are
+  retained in outputs/opm/from_mdx. Regeneration reproduced all hashes.
+- No Segment-to-MDX renderer or OPM audio roundtrip added. All earlier migrated
+  inputs remain; native MDX fixture coverage supplements their limitations.
+
+
+## MDX/MML OPM fixtures (2026-10-04)
+- Matched and copied 32 private MML+MDX pairs; five MMLs have no paired MDX.
+  Inputs are in tests/fixtures/local_only/opm, preserving title directories.
+- mmlx 0.2.0 + soundlog 0.15.0 generated 20 VGMs. Twelve MML dialects are
+  unsupported; source references and detailed failure logs are retained.
+  No musical commands were dropped and no MDX fallback input was substituted.
+- All 20 native analyses preserve raw KeyOn/KeyOff counts and source end.
+  Reference MDX conversion agrees on KeyOn counts/end for all20, exact OPM
+  write sequences for17; three have one final KC write difference at end.
+- Results/logs/CSVs: outputs/opm/mdx_preparation. Provenance manifest:
+  tests/fixtures/local_only/opm/preparation_results.json. Record:
+  field_notes/2026-10-04_mdx_opm_fixture_preparation.md.
+- Rust/toolchain and fixture generator remain external to the engine and
+  system PATH. No user Rust installation was needed. Existing13 OPM tests pass.
+- User's eventual MDX-only validation path needs Segment -> MDX MML output;
+  that output stage has not been implemented. Private material stays ignored.
+
+
+## OPM native state and Segments (2026-10-04)
+- User supplied 19 public migrated OPM VGMs. Added py/opm.py after the existing
+  vgm_reader command loop: raw writes -> effective state -> OpmSegment.
+  Reader CLI and vgm2mml dump/debug write *_trace.opm_regs.csv,
+  *_trace.opm.csv and *.opm.segments.csv. Eight legacy return paths remain
+  compatible; no OPM target MML renderer has been added.
+- All 19 source traces/state/intervals checked:5940 writes,6491 Segments,
+  249 source/Segment channel attack events and996 operator KeyOns.
+  No missing/added operator KeyOns. Source end and interval continuity checked.
+  Local generated results are in outputs/opm/from_fm; record is
+  field_notes/2026-10-04_opm_native_segments.md. Usage: docs/opm_segments.md.
+- 13 OPM tests passed, including all19 fixtures. Known existing input GD3
+  space expectation failure remains unrelated and was already reproduced with
+  HEAD. No OPM playback or Segment-to-VGM roundtrip is claimed.
+- Existing public conversion baseline regression passed, along with the
+  VGM timing/loop checks. Existing PSG/SCC/OPLL conversion is preserved.
+- Reuse existing integer VGM timing. Preserve KC/KF, four named operators,
+  partial key edges, shared LFO/noise and source-event order. Key-bit and
+  operator-register orders differ; AMD/PMD must remain independent states.
+- Unwritten parameters are unknown; initial cleared Key gates are explicitly
+  assumed. Gate release does not imply silence. Frequency Hz, acoustic
+  envelope/LFO/timer simulation and CSM attacks are not yet modeled.
+- Supplied Key writes use channel0/masks0/15 only; three rhythm-only inputs
+  have no OPM Key writes. Synthetic tests cover additional channels, partial
+  keys, dual instances and shared controls. Reference MML is pre-OPM context.
+- Next: review native fields/CSV with user before adding frequency derivation,
+  higher note interpretation or source replay. Do not map OPM into OPLL's
+  fnum/volume model, discard zero-time evidence or imply full CSM coverage.
+- The independent Segment engine remains the goal. mml2vgm is a possible
+  external validation-data tool only; do not incorporate its code or add a
+  compiler dependency to the converter.
+
 Date: 2026-09-28
 Status: ready to resume
 
