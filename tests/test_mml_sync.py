@@ -118,6 +118,20 @@ class SyncTests(unittest.TestCase):
         result = self.assert_preserved('1 c%6 & c%6\n4 r%6 r%6\n')
         self.assertNotIn('step 6 ', result)
 
+    def test_definition_track_is_inside_budget_and_allocated_first(self):
+        source = ('#opll_mode 0\n#psg_tune {3421,3228,3047,2876,2715,2562,2419,2283,2155,2034,1920,1812}\n'
+                  '@e0={0,0,F:3,8,0}\n1 c4\n2 r4\n')
+        result = annotate_sync_points(source, drop_silent=True, allocation_total=1000)
+        allocation = re.search(r'#alloc \{([^}]+)\}', result)[1]
+        values = dict((ch.strip(), int(value)) for ch, value in
+                      (item.split('=') for item in allocation.split(',')))
+        self.assertEqual(values, {'0': 33, '1': 967})
+        self.assertLess(result.index('#alloc'), result.index('#psg_tune'))
+        self.assertGreater(result.index('#alloc'), result.index('#opll_mode'))
+        self.assertNotIn('2 r4', result)
+        with self.assertRaisesRegex(ValueError, 'exhaust'):
+            annotate_sync_points(source, allocation_total=32)
+
     def test_headers_macros_and_track_h_are_preserved(self):
         source = ('#opll_mode 1\n#alloc { 0=180, 1=100, h=100 }\n'
                   '@s00 = { 00 00 }\n*1 = { c%3 d%3 }\n'

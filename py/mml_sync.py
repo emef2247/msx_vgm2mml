@@ -193,7 +193,10 @@ def sync_points(tracks, boundaries, min_gap=0):
     return marks
 
 
-def proportional_allocations(usage, total=16000):
+DEFAULT_ALLOCATION_TOTAL = 16000
+
+
+def proportional_allocations(usage, total=DEFAULT_ALLOCATION_TOTAL):
     """Distribute the pool by estimated MML size, resolving rounding exactly."""
     active = {ch: used for ch, used in usage.items() if used > 0}
     weight = sum(active.values())
@@ -206,6 +209,30 @@ def proportional_allocations(usage, total=16000):
         result[ch] += 1
     return result
 
+
+
+def definition_allocation(header):
+    """MGSC bytes for generated definition syntax; conservatively size other forms.
+
+    Track 0 is allocated before definitions so it cannot consume an unbudgeted
+    compiler default. This is not a compiled music-size estimator.
+    """
+    text = re.sub(r';[^\n]*', '', '\n'.join(header))
+    size = 25 * len(re.findall(r'^\s*#psg_tune\b', text, re.M))
+    for m in re.finditer(r'@([esv]?)(\d+)\s*=\s*\{([^}]*)\}', text, re.S):
+        kind, _, body = m.groups()
+        if kind == 's':
+            size += 34
+        elif kind in ('', 'v'):
+            size += 10
+        elif kind == 'e':
+            items = [v.strip() for v in body.split(',')]
+            if len(items) >= 3 and all(re.fullmatch(r'[0-9a-fA-F](?::\d+)?', v) for v in items[2:]):
+                size += 4 + sum(2 if ':' in v else 1 for v in items[2:])
+            else:
+                # Existing non-generated envelope syntax: keep a conservative bound.
+                size += 4 + 2 * len(re.sub(r'\s', '', body))
+    return size
 
 def _has_sound(nodes, rhythm=False):
     if rhythm:
@@ -237,7 +264,7 @@ def _has_sound(nodes, rhythm=False):
     return False
 
 
-def annotate_sync_points(text, line_width=120, min_gap=0, drop_silent=False):
+def annotate_sync_points(text, line_width=120, min_gap=0, drop_silent=False, allocation_total=DEFAULT_ALLOCATION_TOTAL):
     """Replace local tick counts with shared step comments without retiming notes."""
     tracks, boundaries, header = analyze_mml(text)
     rhythm_mode = bool(re.search(r'^#opll_mode\s+1\b', text, re.M))
@@ -318,10 +345,19 @@ def annotate_sync_points(text, line_width=120, min_gap=0, drop_silent=False):
                 in_alloc = False
             continue
         clean_header.append(line)
-    shares = proportional_allocations(allocations)
+    definition_bytes = definition_allocation(clean_header)
+    if definition_bytes >= allocation_total:
+        raise ValueError('Definitions exhaust the total MGSC allocation budget')
+    shares = proportional_allocations(allocations, allocation_total - definition_bytes)
+    if definition_bytes:
+        shares = {'0': definition_bytes, **shares}
     header = clean_header
     if shares:
-        header.append('#alloc { ' + ', '.join(f'{ch}={value}' for ch, value in shares.items()) + ' }')
+        directive = '#alloc { ' + ', '.join(f'{ch}={value}' for ch, value in shares.items()) + ' }'
+        # MGSC requires #opll_mode first; allocate before tuning/voices/envelopes.
+        position = next((i + 1 for i, line in enumerate(header)
+                         if re.match(r'^\s*#opll_mode\b', line)), 0)
+        header.insert(position, directive)
     note = '; sync marks: all active channels at loop-safe token boundaries; clock: %48 = quarter'
     # Extracting track lines leaves their separators in the header. Keep only
     # one blank line between the remaining definitions and comments.
