@@ -193,7 +193,7 @@ def sync_points(tracks, boundaries, min_gap=0):
     return marks
 
 
-def proportional_allocations(usage, total=15000):
+def proportional_allocations(usage, total=16000):
     """Distribute the pool by estimated MML size, resolving rounding exactly."""
     active = {ch: used for ch, used in usage.items() if used > 0}
     weight = sum(active.values())

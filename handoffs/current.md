@@ -1,5 +1,24 @@
 # Current handoff
 
+## Rtype03 MGSC allocation diagnosis (2026-10-05)
+- Current RTYPESMS/Rtype03 fails `Can't allocate` at #alloc totaling 16000;
+  saved hierarchical_loop result already failed `Track buffer full` on ch9.
+  Saved current GF2SMS02 compilation succeeds after the user's pool increase.
+- MGSC 1.11 diagnostic isolated full-channel used bytes: 9=1861, a=1412,
+  b=12991, c=398, d=6210, e=85; music total=22957. Unchanged full music cannot
+  fit a 16000 pool by redistribution alone. This is not a successful combined
+  MGS or an audio comparison.
+- One-note setup probes reproduce allocation failure with the custom voice;
+  without that setup, 16000 allocates successfully. Successful setup probes
+  show an additional 903-byte track0 definition allocation (10 bytes used).
+  Pool increases are not universally safe; no universal limit was inferred.
+- Existing mgsc-js/MGSC1.11 used for diagnostics; native log confirms original
+  failure. Source, Segments, production code and user's total=16000 edit intact.
+- Record: field_notes/2026-10-05_rtype03_mgs_allocation.md. Private diagnostic
+  copies/logs: C:/Users/ef110/Documents/Codex/2026-09-25/co/tmp/rtype_alloc/.
+  Next: target-only compression/size estimation investigation for b/d if requested;
+  do not drop attacks/channels or reshape Segments to satisfy capacity.
+
 ## MDX pre-macro target compaction (2026-10-05)
 - Added py/mdx_compaction.py after native source-loop projection: conservative
   setter reuse plus exact rest/tied-note duration factoring. MDX macros remain
