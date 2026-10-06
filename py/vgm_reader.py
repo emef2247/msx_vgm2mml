@@ -15,6 +15,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(__file__))
 from mml_utils import get_ticks
+from vgm_io import read_vgm_header
 
 
 def _source_row(state, cols, width):
@@ -805,24 +806,11 @@ def parse_vgm(vgm_path: str, output_dir: str | None = None, *,
         loop_metadata.update(metadata)
 
     # ── Header ──────────────────────────────────────────────────
-    # VGM_data_offset field is at absolute byte 0x34 (4-byte LE).
-    # Data starts at absolute offset:  0x34 + VGM_data_offset.
-    vgm_version = struct.unpack_from('<I', raw, 0x08)[0]
-    vgm_data_offset = struct.unpack_from('<I', raw, 0x34)[0] if vgm_version >= 0x150 else 0
-    data_start = 0x34 + vgm_data_offset if vgm_data_offset else 0x40
-    if not 0x40 <= data_start < len(raw):
-        raise ValueError('VGM data offset is outside the file')
-
-    # VGM spec: if a chip's clock is 0, the chip is not installed and its
-    # data commands must be ignored.
-    #
-    # K051649 (SCC/SCC+) clock is at header offset 0x9C, added in VGM 1.61.
-    # 0xCC is ES5503, not SCC. Do not read command bytes as an extended header.
-    # Only process 0xD2 (K051649) commands when the clock is non-zero.
-    has_k051649 = False
-    if vgm_version >= 0x161 and min(len(raw), data_start) >= 0xA0:
-        k051649_clock = struct.unpack_from('<I', raw, 0x9C)[0]
-        has_k051649 = (k051649_clock & 0x3FFFFFFF) != 0
+    header = read_vgm_header(raw)
+    vgm_version = header['version']
+    data_start = header['data_start']
+    # Clock zero means absent; extended fields never read command bytes.
+    has_k051649 = bool(header['scc_clock_raw'] & 0x3fffffff)
 
     # ── Process data stream ──────────────────────────────────────
     psg  = _PsgState()

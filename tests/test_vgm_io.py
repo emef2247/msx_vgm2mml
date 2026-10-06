@@ -8,9 +8,25 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'py'))
 from gd3 import title_from_gd3
 from vgm_reader import parse_vgm
+from vgm_io import read_vgm_header
 
 
 class VgmInputTests(unittest.TestCase):
+    def test_short_extended_header_does_not_read_scc_clock_from_commands(self):
+        raw = bytearray(0x100)
+        raw[:4] = b'Vgm '
+        struct.pack_into('<I', raw, 8, 0x151)
+        struct.pack_into('<I', raw, 0x34, 0x80-0x34)
+        struct.pack_into('<I', raw, 0x74, 1789772)
+        raw[0x79] = 1
+        raw[0x9c:0xa0] = b'ABCD'
+        facts = read_vgm_header(raw)
+        self.assertEqual(facts['ay_clock_raw'], 1789772)
+        self.assertEqual(facts['ay_flags'], 1)
+        self.assertEqual(facts['scc_clock_raw'], 0)
+        struct.pack_into('<I', raw, 8, 0x171)
+        self.assertEqual(read_vgm_header(raw)['scc_clock_raw'], 0)
+
     def fixture(self, version=0x150):
         data = bytearray(0x40)
         data[:4] = b'Vgm '
