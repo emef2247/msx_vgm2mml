@@ -12,6 +12,11 @@ class AllocOverride(unittest.TestCase):
                          '#alloc { 9=100, a=3780, f=300 }\n9 c4\n')
         self.assertEqual(override_alloc(source,None),source)
 
+    def test_definition_track_is_preserved(self):
+        source='#opll_mode 0\n#alloc { 0=25, 1=100, 2=200 }\n'
+        result=override_alloc(source,parse_alloc('1=300'))
+        self.assertIn('#alloc { 0=25, 1=300, 2=200 }',result)
+
     def test_full(self):
         value='9=1800, a=3780, b=1480, c=2850, d=4750, f=600'
         self.assertIn('#alloc { '+value+' }',override_alloc('#alloc { 9=10 }\n',parse_alloc(value)))
