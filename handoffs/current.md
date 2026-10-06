@@ -1,4 +1,106 @@
+## 2026-10-06: selectable FM PSG tone is the OPM default
+
+- Main: --target opm defaults to --psg-model fm; additive remains selectable.
+  --target opm-additive explicitly preserves the old model. MGSDRV stays default.
+- FM AL4/FB7 profile independently implemented in py/psg_opm_fm.py; external
+  converter code was not copied or added as a runtime dependency. SCC remains
+  waveform-additive. Noise/hardware EG still fail explicitly.
+- --opm-pitch-policy clamp|error; FM default clamp is an exposed approximation,
+  additive default retains prior error/zero-target-duration omission policy.
+  Requested/actual frequencies, cents and reasons stay in the target CSV.
+- Reused the user's committed common read_vgm_header helper in py/vgm_io.py;
+  this supersedes the earlier missing-header blocker for this converter.
+- 19 focused checks pass. Public PSG: 11/13 external roundtrips per model;
+  two noise cases unsupported. Local FM GRA1_03/GRA1_05/DSLY4_04/GRA2_17 all
+  verify. Source Segment CSVs identical across 34 comparisons.
+- WAVs/MDX/VGM/listening artifacts: outputs/opm/fm_default_2026-10-06/.
+  New FM spectra/levels are close to external vgm-conv for two measured songs.
+- test_vgm_io has an existing stale title-space expectation (one failure);
+  no GD3 change was made. See field_notes/2026-10-06_psg_fm_default.md.
+- MDX note-renderer redesign remains paused; it supports AL7 only. Do not apply
+  its preview script to the new FM plans or invent KeyOns for graphical meters.
+- Usage: docs/psg_scc_opm.md. No README edits, staging or commits performed.
+
+## 2026-10-06: MDX display audit; sound-conversion priority
+
+- User paused further MDX MML rendering changes. No renderer, native Segment,
+  test or fixture changes in this audit. User note-MDX run: PSG 42/45 verified;
+  PSG/SCC 15/23 verified; 11 external MDX offset failures in total.
+- MMDSP MADRV level/spectrum graphics depend on new KeyOn notifications.
+  Continuous ties explain initial meter/then peak-only behavior; not every
+  static-display case was reproduced or diagnosed. Volume data is present.
+- Recorded field_notes/2026-10-06_mdx_display_regression.md and
+  field_notes/2026-10-06_psg_opm_conversion_audit.md. Existing source/result CSVs
+  audited; local WAVs/plots/metrics under outputs/opm/diagnostics_2026-10-06.
+- First failures: PSG noise/EG20, pitch17, MDX offset2; PSG/SCC noise/EG141,
+  pitch26, offset7, dual/variant guard65. Counts include split inputs.
+- GRA1_03 period-zero intermediate states last 2 samples; one falls across an
+  MDX tick boundary and throws, another rounds to zero and is omitted. Address
+  this in an inspectable target projection, never by deleting native evidence.
+- GRA1_05/DSLY4_04 same-renderer WAV comparisons confirm less high-frequency
+  energy and lower current gain in additive output than vgm-conv. No quality
+  score or blanket sound-equivalence claim. vgm-conv does not reconstruct full EG.
+- Next: bounded PSG transient/noise experiments, then mixed mixer and shared EG
+  with explicit source-to-target plans. Eight-part PSG+SCC allocation needs a
+  noise/operator-sharing decision. MDX display changes stay paused.
+- Fresh additive regression needs the user's codex/mdx_vgm_header_parsing branch
+  integrated: read_vgm_header is currently absent in this checkout. No branch
+  switches, merges or code restorations were performed.
+
+## 2026-10-05: local PSG/SCC additive listening entry
+
+The experimental opm-additive path is present in this checkout. Shared header
+reading accepts AY VGM 1.51. DSLY4_04 was compiled to MDX/VGM and verified against
+7,568 projected controls; nine focused PSG/SCC projection tests passed.
+See docs/psg_scc_opm.md for local directory conversion. Noise/hardware EG remain
+unsupported. No switch to vgm-conv timbres has been made. The user's
+legato_patch_mix listening report has an unconfirmed file identity and must not
+be transferred to redundant_fnum_writes as an established observation.
+
 # Current handoff
+
+## General tonal PSG/SCC -> OPM output (2026-10-05)
+- vgm2mml.py --target opm-additive emits only MDX MML by default; --dump-passes
+  retains integrated native source CSVs and explicit target projections. Default
+  MGSDRV output unchanged. No source fixtures or source Segment semantics changed.
+- scripts/psg_scc_to_mdx.py supports directory runs, external compilation and
+  results.csv/json; --comparison-dir retains matching existing OPM VGM copies.
+- Public PSG: 11/13 verified; SCC: 12/13 verified. All 23 target write streams
+  match external playback. Eight tests pass. Audio equivalence not claimed.
+- Unsupported: PSG legato_patch_mix/patch_change_midnote (noise), SCC short_pulses
+  (active OPLL). PSG block_boundary actually plays SCC. Initialization-only OPLL
+  and zero-volume zero-clock SCC writes are accepted and counted explicitly.
+- Listen: outputs/opm/psg_scc_public/LISTEN.md; compact files under listen/.
+  Next: user listening, then noise/EG support if requested. Future OPN/OPNA/OPS
+  targets should reuse spectral analysis rather than native OPM register state.
+- Usage and limits: docs/psg_scc_opm.md. README remains unchanged.
+
+## GRA2_17 PSG/SCC additive OPM prototype (2026-10-05)
+- Separate scripts/psg_scc_to_mdx.py and py/psg_scc_opm.py; native Segments and
+  default converter unchanged. Seven active source parts mapped independently.
+- Listening files: outputs/opm/psg_scc_prototype/GRA2_17/GRA2_17.mdx and .vgm;
+  MML: GRA2_17.mdx.mml. All 2438 target writes match external MDX playback.
+- Five focused tests pass. Approximate harmonic timbres/gain, no acoustic equality
+  claim; unsupported noise/EG rejected. Three zero-target-duration shutdown
+  pitch states explicitly marked omitted, source rows retained.
+- See docs/psg_scc_opm.md and field_notes/2026-10-05_gra2_17_opm_prototype.md.
+
+## PSG/SCC -> OPM target investigation (2026-10-05)
+- Audited all 17 NEMESIS2 GRA2_*.vgm through existing PSG/SCC Segment builders;
+  inspected 18 MSXGRA2S MDX tone banks and MS.X chapter7. No converter changes.
+- Source clocks both 1789772 Hz; state-active positive-duration SCC rows expose
+  22 distinct waveforms. Noise in15 songs, mixed tone/noise in14, hardware EG in12.
+  Four selected harmonic bins capture 86.90% duration-weighted discrete AC energy;
+  this is not a target synthesis quality score. Even harmonics must be considered.
+- Propose explicit cross-chip target plan, additive baseline with source amplitude
+  trajectories and held keys, H allocation for the observed noise channel.
+  Do not fake native OpmSegments, split source CSVs or copy manual reference patches.
+- Start GRA2_17; then GRA2_05 (noise), GRA2_03 (hardware EG). Manual MDX numbering
+  differs; match titles/phrases. Returned OPM compares to target plan, while
+  cross-chip likeness additionally needs spectrum/envelope/listening evidence.
+- Record: field_notes/2026-10-05_psg_scc_to_opm_plan.md. Private analysis artifacts:
+  C:/Users/ef110/Documents/Codex/2026-09-25/co/tmp/psg_opm_study/.
+  This investigation preceded the GRA2_17 prototype above.
 
 ## Rtype03 MGSC allocation diagnosis (2026-10-05)
 - Current RTYPESMS/Rtype03 fails `Can't allocate` at #alloc totaling 16000;
@@ -2439,3 +2541,15 @@ the tool does not compile or export MGS. See docs/opll_keyon_counts.md.
   git diff --check passes.
   Wider catalog regression/listening is next; no native WSL or audio roundtrip
   claim. Final macro-aware global alternative selection remains future work.
+
+External comparison helper: scripts/batch_vgm_conv.py adds AY-to-OPM outputs
+beside the existing listening tree, with separate logs/report. It does not
+convert SCC. Existing --generator runs already retain MDX. Comparison uses
+external vgm-conv 0.14.1; no external implementation is copied into this project.
+
+2026-10-06 MDX display preview: scripts/render_additive_mdx_notes.py is executable
+against existing additive diagnostic CSVs; instructions in docs/psg_scc_opm.md.
+It emits separate .notes.mdx/MML/VGM and semantic verification. YUMADV18 passed
+state/key-edge comparison; MMDSP display is unverified. Four focused tests pass.
+The generator binary is unchanged. Do not replace the default renderer before
+player/display validation. PSG unsupported-mode work is deferred for MDX work.

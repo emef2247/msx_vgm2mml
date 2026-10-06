@@ -129,6 +129,14 @@ def main():
     parser = argparse.ArgumentParser(
         description='Convert a VGM file to MGSDRV MML (SCC + PSG + OPLL)')
     parser.add_argument('vgm', help='Input VGM file')
+    parser.add_argument('--target', choices=['mgs', 'opm', 'opm-additive'], default='mgs',
+                        help='opm emits PSG/SCC MDX MML (FM PSG by default); opm-additive retains the old model')
+    parser.add_argument('--psg-gain', type=float, default=None, help='OPM PSG gain: default fm=1, additive=0.125')
+    parser.add_argument('--psg-model', choices=['fm', 'additive'], default=None,
+                        help='PSG tone model for --target opm (default: fm)')
+    parser.add_argument('--opm-pitch-policy', choices=['clamp', 'error'], default=None,
+                        help='OPM range policy: default fm=clamp, additive=error')
+    parser.add_argument('--scc-gain', type=float, default=.125, help='OPM additive SCC gain')
     parser.add_argument('--outdir', default=None,
                         help='Output directory (default: <vgm_stem>_log/ next to vgm)')
     parser.add_argument('--name', help='Override the player metadata name (default: input stem)')
@@ -195,6 +203,25 @@ def main():
         )
     
     os.makedirs(song_dir, exist_ok=True)
+
+    if args.target == 'opm-additive' and args.psg_model not in (None, 'additive'):
+        parser.error('--target opm-additive requires the additive PSG model')
+    if args.target == 'mgs' and (args.psg_model or args.opm_pitch_policy):
+        parser.error('OPM model/pitch switches require an OPM target')
+    if args.target in ('opm', 'opm-additive'):
+        if args.alloc or args.normalize_lengths or args.raw_ticks or not args.enhance_macros or args.legacy_loops:
+            parser.error('MGSDRV allocation/normalization/compression options do not apply to OPM targets')
+        from scripts.psg_scc_to_mdx import convert
+        try:
+            mml, plan = convert(vgm_path, song_dir, psg_gain=args.psg_gain,
+                                scc_gain=args.scc_gain, title=args.title,
+                                psg_model=args.psg_model or ('additive' if args.target == 'opm-additive' else 'fm'),
+                                pitch_policy=args.opm_pitch_policy,
+                                dump_passes=args.dump_passes or args.debug)
+        except ValueError as error:
+            parser.error(str(error))
+        print(f'MDX MML: {mml}')
+        return
 
     # ── Step 1: Parse VGM → SCC + PSG + OPLL log/trace CSVs ──────
     opm_metadata = {}
