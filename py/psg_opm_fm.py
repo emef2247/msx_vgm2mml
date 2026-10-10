@@ -1,8 +1,13 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 emef2247
 """Declarative PSG square-tone projection using OPM FM and feedback.
 
-The two-operator AL4/FB7 profile is compatible with the published vgm-conv
-mapping parameters. This module contains independently written target rules;
-no external converter code is incorporated or required at runtime.
+Voice parameters and volume-to-TL mapping reference digital-sound-antiques/
+vgm-conv (ISC): Copyright (c) 2023 Mitsutaka Okazaki and Contributors.
+Reference revision: 780a20ed505e23eb21aa9c6ce3f349029718b5a0,
+src/converter/ay8910-to-opm-coverter.ts. Retained ISC text and attribution scope
+are in ../THIRD_PARTY_NOTICES.md. Segment processing and target generation are
+implemented here; the external converter is not a runtime dependency.
 """
 from dataclasses import dataclass
 import math

@@ -6,7 +6,7 @@ controls keep explicit register spelling. Source times remain absolute.
 """
 import csv
 from collections import Counter
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, dataclass, replace, fields
 import json
 from pathlib import Path
 
@@ -324,21 +324,43 @@ def compare_hybrid(projection, source, actual, *, initialization):
     semantic comparison does not replace the strict register replay comparator.
     It checks all source-known raw/decoded values, including released tails.
     """
-    from opm_roundtrip import controls, _known_differences
+    from opm_roundtrip import controls
+    def known_state_differences(reference, observed):
+        # Compare immutable native values directly. Deep-copying every OPM
+        # state into dictionaries at every boundary dominates large audits.
+        for field in fields(reference):
+            name = field.name
+            left, right = getattr(reference, name), getattr(observed, name)
+            if left is None or left == right:
+                continue
+            if name in ('channel_registers', 'shared_registers'):
+                values = dict(right)
+                for register, value in left:
+                    if values.get(register) != value:
+                        yield f'register {register}'
+            elif name == 'operators':
+                for index, (a, b) in enumerate(zip(left, right)):
+                    for parameter in fields(a):
+                        value = getattr(a, parameter.name)
+                        if value is not None and value != getattr(b, parameter.name):
+                            yield f'operators.{index}.{parameter.name}'
+            else:
+                yield name
     raw = controls(actual)
     prefix_ok = raw[:len(initialization)] == list(initialization)
     def edges(analysis, projected):
-        return {ch: [(mdx_tick(e.vgmticks) if projected else e.vgmticks,
+        return {ch: [(projection.mdx_tick(e.vgmticks) if projected else e.vgmticks,
                       e.rising_mask, e.falling_mask) for e in analysis.events
                      if e.ch == ch and (e.rising_mask or e.falling_mask)] for ch in range(8)}
     expected_edges = edges(source, True)
     returned_edges = edges(actual, False)
-    expected_edges = {ch: [(projected_samples(t), a, b) for t, a, b in rows]
+    expected_edges = {ch: [(projection.projected_samples(t), a, b) for t, a, b in rows]
                       for ch, rows in expected_edges.items()}
     edge_matches = expected_edges == returned_edges
     mismatches = []
+    mismatch_count = 0
     for ch in range(8):
-        expected = [(projected_samples(mdx_tick(e.vgmticks)), e.state)
+        expected = [(projection.projected_samples(projection.mdx_tick(e.vgmticks)), e.state)
                     for e in source.events if e.ch == ch]
         returned = [(e.vgmticks, e.state) for e in actual.events if e.ch == ch]
         boundaries = sorted({t for t, _ in expected} | {t for t, _ in returned})
@@ -351,20 +373,16 @@ def compare_hybrid(projection, source, actual, *, initialization):
             if ref is None:
                 continue
             if act is None:
-                mismatches.append(f'ch{ch}, sample {tick}, absent state'); continue
-            a, b = asdict(ref), asdict(act)
-            # Shared register 0x19 has two latches; its most recent selector is
-            # still retained and compared along with decoded AMD and PMD.
-            for field in ('channel_registers', 'shared_registers'):
-                known, observed = dict(a.pop(field)), dict(b.pop(field))
-                for reg, value in known.items():
-                    if observed.get(reg) != value:
-                        mismatches.append(f'ch{ch}, sample {tick}, register {reg}')
-            mismatches.extend(f'ch{ch}, sample {tick}, {path}' for path in _known_differences(a, b))
+                mismatch_count += 1
+                if len(mismatches) < 10: mismatches.append(f'ch{ch}, sample {tick}, absent state')
+                continue
+            for path in known_state_differences(ref, act):
+                mismatch_count += 1
+                if len(mismatches) < 10: mismatches.append(f'ch{ch}, sample {tick}, {path}')
     counts_a, counts_b = key_counts(source), key_counts(actual)
     report = dict(comparison='hybrid_effective_state', initialization_prefix_matches=prefix_ok,
                   source_controls=len(projection.writes), returned_controls=max(0, len(raw)-len(initialization)),
-                  key_edge_sequence_matches=edge_matches, known_state_mismatches=len(mismatches),
+                  key_edge_sequence_matches=edge_matches, known_state_mismatches=mismatch_count,
                   first_state_mismatches=mismatches[:10],
                   source_end_vgmticks=projection.source_end_vgmticks,
                   returned_end_vgmticks=actual.source_end_vgmticks,
@@ -380,7 +398,7 @@ def compare_hybrid(projection, source, actual, *, initialization):
         left, right = per_ch(source), per_ch(actual)
         report[f'missing_{label}'] = sum(max(0, a-b) for a, b in zip(left, right))
         report[f'extra_{label}'] = sum(max(0, b-a) for a, b in zip(left, right))
-    report['passed'] = (prefix_ok and edge_matches and not mismatches
+    report['passed'] = (prefix_ok and edge_matches and not mismatch_count
                         and report['max_abs_projected_timing_error_samples'] == 0
                         and report['max_abs_source_timing_error_samples'] <= 6)
     return report

@@ -120,7 +120,7 @@ class OpmMdxStructureTests(unittest.TestCase):
     def test_dump_preserves_segment_cells_and_adds_unit_and_loop_paths(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            _, source, projection = convert(self.fixture, root/'out', dump_passes=True)
+            _, source, projection = convert(self.fixture, root/'out', dump_passes=True, notation='legacy')
             segment_path = root/'out/nested_phrase_loops.opm.segments.csv'
             with segment_path.open(encoding='utf-8') as stream:
                 rows = list(csv.DictReader(stream))

@@ -47,3 +47,11 @@ mask, and operator parameters in `m1, m2, c1, c2` order. IDs are local to each
 MDX bank: compare complete parameters when comparing different files.
 The inspector uses soundlog's typed MDX parser; it does not infer SCC-to-FM
 conversion rules or simulate the resulting sound.
+
+## Licenses
+
+The helper source is MIT-licensed, Copyright (c) 2026 emef2247.
+See [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md) for the exact MIT
+texts for mmlx 0.2.0 (Copyright 2026 h1romas4) and soundlog 0.15.0
+(Copyright 2025 h1romas4). The crates are linked into the helper binary;
+binary redistribution also needs applicable transitive dependency notices.

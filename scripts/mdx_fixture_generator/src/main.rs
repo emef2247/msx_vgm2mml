@@ -1,4 +1,7 @@
 // SPDX-License-Identifier: MIT
+// Copyright (c) 2026 emef2247
+// Linked mmlx/soundlog MIT notices: ../../../THIRD_PARTY_NOTICES.md.
+// Binary distributions also need applicable transitive dependency notices.
 // External fixture-generation utility. The converter does not depend on it.
 use std::{env, fs, path::Path, fmt::Write};
 use soundlog::mdx::{convert::{to_vgm_document, MdxToVgmOptions}, package::MdxPackage};

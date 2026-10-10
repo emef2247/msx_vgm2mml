@@ -41,6 +41,13 @@ class MdxProjection:
     end_mdx_tick: int
     end_projected_vgmticks: int
     clock_hz: int
+    sample_multiplier: int = 1
+
+    def mdx_tick(self, samples):
+        return mdx_tick(samples, self.sample_multiplier)
+
+    def projected_samples(self, tick):
+        return projected_samples(tick, self.sample_multiplier)
 
     def timing_report(self):
         errors = [w.projected_vgmticks - w.source_vgmticks for w in self.writes]
@@ -49,33 +56,36 @@ class MdxProjection:
                        | {(self.source_end_vgmticks, self.end_mdx_tick)})
         return dict(source_end_vgmticks=self.source_end_vgmticks,
                     projected_end_vgmticks=self.end_projected_vgmticks,
-                    end_mdx_tick=self.end_mdx_tick, tempo_byte=255,
-                    tick_microseconds=256,
+                    end_mdx_tick=self.end_mdx_tick, tempo_byte=256-self.sample_multiplier,
+                    tick_microseconds=256*self.sample_multiplier,
                     max_abs_timing_error_samples=max(map(abs, errors), default=0),
                     collapsed_positive_intervals=sum(a[0] < b[0] and a[1] == b[1]
                                                      for a, b in zip(times, times[1:])),
                     controls=len(self.writes), clock_hz=self.clock_hz)
 
 
-def mdx_tick(samples):
+def mdx_tick(samples, sample_multiplier=1):
     """Nearest absolute MDX tick; no per-gap rounding accumulation."""
     if not isinstance(samples, int) or samples < 0:
         raise ValueError('Source sample positions must be nonnegative integers')
-    return (samples * MDX_SAMPLE_DENOMINATOR + MDX_SAMPLE_NUMERATOR // 2) // MDX_SAMPLE_NUMERATOR
+    numerator = MDX_SAMPLE_NUMERATOR * sample_multiplier
+    return (samples * MDX_SAMPLE_DENOMINATOR + numerator // 2) // numerator
 
 
-def projected_samples(tick):
-    return tick * MDX_SAMPLE_NUMERATOR // MDX_SAMPLE_DENOMINATOR
+def projected_samples(tick, sample_multiplier=1):
+    return tick * MDX_SAMPLE_NUMERATOR * sample_multiplier // MDX_SAMPLE_DENOMINATOR
 
 
-def project_segments(segments, *, end_vgmticks):
+def project_segments(segments, *, end_vgmticks, sample_multiplier=1):
     """Consume actual OpmSegments, deduplicating shared-write fanout.
 
     Source nonchanging writes omitted by Segment construction cannot be
     recovered here. Changed states, Key edges and retained test/timer writes
     are represented in source-event order, including zero-duration Segments.
     """
-    end_tick = mdx_tick(end_vgmticks)
+    if not isinstance(sample_multiplier, int) or not 1 <= sample_multiplier <= 255:
+        raise ValueError('MDX sample multiplier must be in 1..255')
+    end_tick = mdx_tick(end_vgmticks, sample_multiplier)
     facts = set()
     grouped = {}
     for segment in segments:
@@ -103,11 +113,11 @@ def project_segments(segments, *, end_vgmticks):
         if samples < last_sample:
             raise ValueError('Segment source-event order is not chronological')
         last_sample = samples
-        tick = mdx_tick(samples)
+        tick = mdx_tick(samples, sample_multiplier)
         writes.append(MdxWrite(event_id, tuple(sorted(ids)), samples, tick,
-                               projected_samples(tick), register, data))
+                               projected_samples(tick, sample_multiplier), register, data))
     return MdxProjection(tuple(writes), end_vgmticks, end_tick,
-                         projected_samples(end_tick), 4000000)
+                         projected_samples(end_tick, sample_multiplier), 4000000, sample_multiplier)
 
 
 def scheduled_projection(projection, *, track_layout='channels'):
@@ -132,9 +142,9 @@ def render(projection, *, title='OPM Segment replay', track_layout='channels'):
                       if track_layout == 'channels' else
                       '; OPM Segment target: original source controls on conductor A.')
     lines = [f'#title "{title}"', layout_comment,
-             '; MDX @t255 = 256 us; r is a time advance, not inferred acoustic silence.',
+             f'; MDX @t{256-projection.sample_multiplier} = {256*projection.sample_multiplier} us; r is a time advance, not inferred acoustic silence.',
              '; Source samples and target timing are retained in the controls CSV.',
-             'A @t255']
+             f'A @t{256-projection.sample_multiplier}']
     tracks = {'A': []}
     for write in projection.writes:
         track = write.mdx_track if track_layout == 'channels' else 'A'

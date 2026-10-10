@@ -97,3 +97,13 @@ compiled MGS and KEYON comparison use that same output. See
 The converter now enables structural PSG/SCC/OPLL loops and enhanced macros by default. PSG/SCC structure is built before selecting software envelopes. Pass `--legacy-loops --legacy-macros` to this batch script for the earlier compression. Use separate output directories when comparing. These switches do not reintroduce old channel-layout or encoding defects. Large inputs may need `--timeout 900` because enhanced candidate selection takes longer than the old compressor.
 
 Old UTF-8 MGS titles are not repaired in place. Re-running conversion and compilation generates CP932 titles with the current pipeline.
+
+## Tool licenses
+
+The Python converter is MIT-licensed. MGSC/mgsc-js and libkss-js/libkss have
+ISC wrapper/library terms; their embedded MSX compiler/driver materials retain
+separate terms. MGSDRV's official distribution instructions require preserving
+the original archive contents. These dependencies are obtained separately;
+this repository does not vendor their binaries. See
+[third-party notices](../THIRD_PARTY_NOTICES.md) for checked versions, exact
+notices, source links and redistribution scope.

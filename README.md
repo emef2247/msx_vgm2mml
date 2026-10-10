@@ -107,7 +107,27 @@ MGSDRV の MML は **コンパイル後、全チャンネルのバッファサ�
 - マクロ化してデータ量を削減  
 
 ## ライセンス
-MIT License
+
+Copyright (c) 2026 emef2247. Licensed under the [MIT License](LICENSE).
+
+## 謝辞
+
+本プロジェクトのコンパイル・再生検証と開発では、以下のプロジェクトを利用・参照しています。開発者・メンテナー・貢献者の皆様に感謝します。
+
+| プロジェクト | 用途 | 確認した利用条件 |
+|---|---|---|
+| [MGSC／mgsc-js](https://github.com/digital-sound-antiques/mgsc)（Digital Sound Antiques／Mitsutaka Okazaki） | MML→MGSコンパイル | ラッパーはISC。内包MGSC.COMは別条件 |
+| [MGSDRV](https://www.gigamix.jp/mgsdrv/)（Ain／GIGAMIX） | 出力MMLの対象ドライバ・再生検証 | 配布自由・アーカイブ内容の変更不可（公式文書） |
+| [libkss-js／libkss](https://github.com/digital-sound-antiques/libkss-js)（Mitsutaka Okazaki・貢献者） | MGS→VGMの再生検証 | ISC。内包ドライバは対象外 |
+| [vgm-conv](https://github.com/digital-sound-antiques/vgm-conv)（Mitsutaka Okazaki and Contributors） | 開発用PSG FM投影のAY→OPM音色・音量→TL対応を参考にし、外部変換との比較にも利用 | ISC |
+| [mmlx](https://github.com/h1romas4/chipstream/tree/main/crates/mmlx) 0.2.0（h1romas4） | 開発用MDX fixtureのコンパイル | MIT |
+| [soundlog](https://github.com/h1romas4/chipstream/tree/main/crates/soundlog) 0.15.0（h1romas4） | 開発用MDXのVGM再生・検査 | MIT |
+| [mdxtools](https://github.com/vampirefrog/mdxtools)（任意導入） | 開発用MDXメタデータの独立検査 | GPL v3（上流LICENSE） |
+
+使用版・確認元・著作権表示・ライセンス全文・内包ドライバの例外は[第三者の表示](THIRD_PARTY_NOTICES.md)に記録しています。本プロジェクトのMITライセンスと併せて、この表示も配布物に含めてください。外部ツールやJS/WASMパッケージ、Rust helperのバイナリを同梱して配布する場合は、内包ドライバや推移的依存の条件も確認する必要があります。
+
+通常のPythonによるVGM→MML変換に外部コンパイラ・再生ライブラリは不要です。PSG FM投影のSegment処理とターゲット生成は本プロジェクトで実装し、vgm-convを実行時のライブラリ依存にはしていません。
+
 
 ---
 
@@ -164,7 +184,10 @@ If the generated MML is too large, you may need to:
 - Use macros to reduce data size
 
 ## License
-MIT License
+
+Copyright (c) 2026 emef2247. Licensed under the [MIT License](LICENSE).
+
+Third-party notices and distribution conditions: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ### Declared VGM loop inspection
 

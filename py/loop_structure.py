@@ -106,7 +106,9 @@ class LoopStructure:
             for repeat in catalog[lo]:
                 if repeat.end >= hi and (hi - lo) % repeat.width == 0:
                     count = (hi - lo) // repeat.width
-                    body = keys[lo:lo + repeat.width]
+                    # Keys can contain full state trajectories. Their interned
+                    # symbols preserve equality without rehashing those states.
+                    body = codes[lo:lo + repeat.width]
                     if count > 1 and len(set(body)) == repeat.width:
                         children = tuple(Node(i, i + 1) for i in range(lo, lo + repeat.width))
                         return (Node(lo, hi, children, count),), (repeat.width, 1)

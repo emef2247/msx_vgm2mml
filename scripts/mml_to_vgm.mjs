@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 emef2247
+// MGSC/libkss wrappers and embedded drivers retain their respective terms.
+// See ../THIRD_PARTY_NOTICES.md for upstream notices and distribution scope.
 // Explicit module paths keep the optional emulator dependencies outside Python.
 import fs from 'node:fs';
 import {pathToFileURL} from 'node:url';

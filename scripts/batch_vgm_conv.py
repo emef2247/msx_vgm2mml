@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 emef2247
+# External vgm-conv (ISC); upstream notice is in ../THIRD_PARTY_NOTICES.md.
 """Generate external vgm-conv comparisons beside the additive listening outputs."""
 import argparse
 import csv

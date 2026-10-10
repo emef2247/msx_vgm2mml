@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 emef2247
+// libkss-js follows libkss ISC; embedded MSX drivers retain separate terms.
+// See ../THIRD_PARTY_NOTICES.md for upstream notices and distribution scope.
 // Export an already compiled MGS; no MGSC dependency or recompilation.
 import fs from 'node:fs';
 import {pathToFileURL} from 'node:url';

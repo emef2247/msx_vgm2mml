@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 emef2247
+// MGSC-js declares ISC; embedded MGSC.COM has separate Ain/GIGAMIX terms.
+// See ../THIRD_PARTY_NOTICES.md for upstream notices and distribution scope.
 import fs from 'node:fs';
 import {pathToFileURL} from 'node:url';
 const [input, output, modulePath] = process.argv.slice(2);

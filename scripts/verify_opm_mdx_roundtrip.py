@@ -8,9 +8,9 @@ import subprocess
 import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'py'))
-from opm import build_segments
+from opm import build_segments, dump_analysis
 from opm_roundtrip import controls, compare
-from vgm_io import read_vgm_bytes
+from vgm_io import read_vgm_bytes, read_vgm_header
 from vgm_reader import _OpmTrace, parse_vgm
 from opm_to_mdx_mml import convert
 from opm_mdx import scheduled_projection
@@ -25,13 +25,19 @@ def source_files(path):
                   and not {'reference', 'mdx_roundtrip'}.intersection(p.relative_to(path).parts))
 
 
-def source_facts(path):
+def source_facts(path, *, include_pcm=False):
     raw = read_vgm_bytes(path)
     if len(raw) < 0x40 or raw[:4] != b'Vgm ':
         raise ValueError('Not a complete VGM header')
     # Reuse the native reader's version-aware clock/variant interpretation.
     trace = _OpmTrace(raw, struct.unpack_from('<I', raw, 8)[0])
-    return dict(clock_hz=trace.clock_hz, chip_type=trace.chip_type, dual_chip=trace.dual_chip)
+    header=read_vgm_header(raw)
+    pcm_clock=(int.from_bytes(raw[0x98:0x9c],'little') if header['version']>=0x161
+               and header['data_start']>=0x9c else 0)
+    result=dict(clock_hz=trace.clock_hz, chip_type=trace.chip_type, dual_chip=trace.dual_chip)
+    if include_pcm:
+        result.update(source_pcm_present=bool(pcm_clock), comparison_scope='OPM only; PCM/PDX is not projected')
+    return result
 
 
 def generate(generator, mml, folder, stem, *, max_ticks=None):
@@ -53,10 +59,14 @@ def generate(generator, mml, folder, stem, *, max_ticks=None):
     if run.returncode:
         raise RuntimeError(run.stdout + run.stderr)
     metadata = {}
-    parse_vgm(str(vgm), str(folder / (stem + '_segments')), opm_metadata=metadata, dump_opm_segments=True)
+    analysis_dir=folder/(stem+'_segments')
+    parse_vgm(str(vgm), str(analysis_dir), opm_metadata=metadata)
     if metadata['clock_hz'] != 4000000:
         raise ValueError('Returned VGM does not declare the required 4 MHz OPM clock')
-    return build_segments(metadata['csv_path'], end_vgmticks=metadata['source_end_vgmticks'])
+    analysis=build_segments(metadata['csv_path'], end_vgmticks=metadata['source_end_vgmticks'])
+    dump_analysis(analysis,state_csv=analysis_dir/(stem+'_trace.opm.csv'),
+                  segments_csv=analysis_dir/(stem+'.opm.segments.csv'))
+    return analysis
 
 
 def save_results(folder, rows):
@@ -73,8 +83,11 @@ def main():
     parser.add_argument('input', type=Path, help='OPM VGM or directory to scan recursively')
     parser.add_argument('--outdir', type=Path, default=ROOT / 'outputs/opm/mdx_roundtrip')
     suffix = '.exe' if sys.platform == 'win32' else ''
-    parser.add_argument('--notation', choices=('structured', 'registers'), default='structured')
+    parser.add_argument('--notation', choices=('structured', 'legacy', 'registers'), default='structured')
     parser.add_argument('--no-loops', action='store_true')
+    parser.add_argument('--title')
+    parser.add_argument('--reference-mml-only', action='store_true', help='Select VGMs with a same-stem reference MML')
+    parser.add_argument('--mdxdump',type=Path,help='External mdxtools executable for reference/generated MDX metadata audit')
     parser.add_argument('--track-layout', choices=('channels', 'conductor'), default='channels')
     parser.add_argument('--generator', type=Path, default=ROOT / 'scripts/mdx_fixture_generator/target/release' / ('mdx-fixture-generator' + suffix))
     args = parser.parse_args()
@@ -90,6 +103,12 @@ def main():
     if any(sample != 0 or reg == 8 for sample, reg, data in initialization):
         raise ValueError('Compiler baseline contains timed controls or Key writes')
     sources = source_files(args.input)
+    def reference(source,suffix):
+        folder=source.parent/'reference'
+        return next((p for p in folder.iterdir() if p.is_file() and p.stem.lower()==source.stem.lower()
+                     and p.suffix.lower()==suffix),None) if folder.is_dir() else None
+    if args.reference_mml_only:
+        sources=[p for p in sources if reference(p,'.mml') is not None]
     if not sources:
         parser.error('No input VGM found')
     rows = []
@@ -98,16 +117,19 @@ def main():
         folder = args.outdir / relative.with_suffix('')
         folder.mkdir(parents=True, exist_ok=True)
         row = {'input': str(relative), 'status': 'conversion_failed'}
+        phase='conversion'
         try:
-            row.update(source_facts(source))
+            row.update(source_facts(source, include_pcm=True))
             if row['clock_hz'] != 4000000 or row['chip_type'] != 'YM2151' or row['dual_chip']:
                 row['status'] = 'unsupported_target'
                 raise ValueError('MDX control replay requires one 4 MHz YM2151; source clock/state is not retuned')
             mml, source_analysis, projection = convert(source, folder, dump_passes=True, track_layout=args.track_layout,
-                                                        notation=args.notation, loops=not args.no_loops)
+                                                        notation=args.notation, loops=not args.no_loops,title=args.title)
+            phase='compile_replay'
             returned = generate(generator, mml, folder, 'returned', max_ticks=max(2, projection.end_mdx_tick + 1))
+            phase='comparison'
             scheduled = scheduled_projection(projection, track_layout=args.track_layout)
-            if args.notation == 'structured':
+            if args.notation in ('structured', 'legacy'):
                 from opm_mdx_structure import compare_hybrid
                 result = compare_hybrid(projection, source_analysis, returned, initialization=initialization)
             else:
@@ -117,14 +139,31 @@ def main():
             row.update(result)
             row.update(projection.timing_report())
             row['notation'] = args.notation
-            if args.notation == 'structured':
+            if args.notation in ('structured', 'legacy'):
                 row.update(json.loads((folder / (source.stem + '.mdx.timing.json')).read_text(encoding='utf-8')))
             row['status'] = 'success' if result['passed'] else 'comparison_failed'
+            if args.mdxdump:
+                original=reference(source,'.mdx')
+                if original is None:
+                    row['metadata_audit']='reference_missing'
+                else:
+                    from audit_mdx_metadata import audit
+                    try:
+                        extra=audit(args.mdxdump,original,folder/'returned.mdx',mml,folder/'metadata')
+                        row.update(metadata_audit='completed',
+                            reference_title_matches=extra['title_matches_reference'],
+                            reference_tempo_bytes_match=extra['tempo_bytes_match_reference'],
+                            generated_metadata_visible_in_mml=extra['compiled_title_matches_mml'] and extra['generated_tempo_visible_in_mml'])
+                    except (ValueError,RuntimeError,OSError) as error:
+                        row.update(metadata_audit='failed',metadata_error=str(error))
         except subprocess.TimeoutExpired:
             row['status'] = 'compile_timeout'
             row['error'] = 'External compiler exceeded 180 seconds'
         except (ValueError, RuntimeError, OSError) as error:
             row['error'] = str(error)
+            row['failure_phase']=phase
+            if phase=='compile_replay':
+                row['status']='compile_or_replay_failed'
         for label, path in [('mml', folder / (source.stem + '.mdx.mml')),
                             ('mdx', folder / 'returned.mdx'), ('vgm', folder / 'returned.vgm'),
                             ('compile_log', folder / 'returned.compile.log')]:
@@ -136,7 +175,7 @@ def main():
         rows.append(row)
         print(str(relative) + ': ' + row['status'], flush=True)
         save_results(args.outdir, rows)
-    return int(any(row['status'] != 'success' for row in rows))
+    return int(any(row['status'] != 'success' or row.get('metadata_audit')=='failed' for row in rows))
 
 
 if __name__ == '__main__':

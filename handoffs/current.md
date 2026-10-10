@@ -1,3 +1,43 @@
+## 2026-10-11: third-party license and copyright notices
+
+- File edits only; do not stage, commit, push or switch branches without user request.
+- README now credits external compilation/playback/development tools and displays
+  Copyright (c) 2026 emef2247 with the project MIT link in both language sections.
+- THIRD_PARTY_NOTICES.md retains vgm-conv ISC mapping attribution, MGSC/libkss
+  notices and embedded-driver exceptions, and exact mmlx/soundlog MIT texts.
+  Code headers link these notices; conversion algorithms are unchanged.
+- Checked mgsc-js2.0.0 registry/source and installed libkss-js3.1.0. Native mgsc
+  installed revision is unknown. MGSC.COM and MGSDRV have separate historical
+  distribution terms; ISC wrapper metadata does not license every driver.
+- A complete npm/WASM or Rust binary redistribution bundle still requires all
+  bundled/transitive component notices. No dependency reinstall or private-data run.
+- Pre-existing OPM/MDX work is preserved. Next allowed action: user review of
+  this license-only diff; no conversion behavior or clock work is part of this task.
+
+## 2026-10-07: native musical MDX renderer rebuild
+
+- Work location: emef2247/test/msx_vgm2mml. Native OPM traces/Segments and
+  integrated CSV are unchanged. Reference 32 MML/MDX pairs match originals on H:.
+  Twelve missing VGMs generated from original MDX/PDX and saved beside reference/.
+- New structured default groups Key-to-KeyOff notes with complete internal
+  trajectories; infers a safe score clock; reuses MGSDRV source loop planning
+  before target compaction. Partial/unknown/zero-time/unsafe same-tick cases keep
+  explicit controls with reasons. Old behavior is --notation legacy/registers.
+- Native converter and verifier installed. --reference-mml-only selects original
+  score cases. --mdxdump optionally adds external reference/generated metadata
+  audit; reference contents are never used as production conversion choices.
+- 83 OPM/MDX checks plus 8 common-loop checks pass; public 38/38 external
+  roundtrips. Local reference 30/32 pass projected Keys/known states/time;
+  FF4WM1 and KMSM009 still exceed MDX offset capacity. MML/evidence retained.
+- Record: field_notes/2026-10-07_mdx_musical_output.md; usage docs/opm_mdx.md.
+  Listening/results: C:/Users/ef110/Documents/Codex/2026-09-25/co/tmp/mdx-rebuild/
+  outputs/reference-benchmark-musical and outputs/public-musical.
+- Next: user listening/MMDSP checks; two capacity cases; software LFO/tempo
+  recovery and then integration with PSG/SCC target. No macros added yet.
+  Do not fabricate Keys for meters, borrow reference score parameters, alter
+  source CSV/schema, or add OPM to README. User .gitignore change preserved.
+- No staging, commits or pushes performed.
+
 ## 2026-10-06: selectable FM PSG tone is the OPM default
 
 - Main: --target opm defaults to --psg-model fm; additive remains selectable.
