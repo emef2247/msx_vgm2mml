@@ -220,3 +220,4 @@ tests/fixtures/public/psg_scc/001/reference/*.mgs
 tests/fixtures/public/psg_scc/002/reference/*.mgs
 node_modules
 /field_notes/
+field_notes/
