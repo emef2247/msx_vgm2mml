@@ -15,6 +15,13 @@ no minimum note or phrase duration derived from a reference envelope. Silent
 settings do not participate in rest signatures because rendering defers them.
 This does not introduce a new policy to divide a sustained note into attacks.
 
+PSG/SCC units now come from one immutable PerformanceIR shared with envelope
+selection and rendering. Source-audibility gates and typed internal control rows
+remain available separately from inferred renderer partitions. Their structural
+keys preserve the existing duration/settings/volume-run semantics and exclude
+absolute sample positions, source indices and diagnostic gate IDs. See
+[the performance representation](psg_scc_performance.md).
+
 Every exact adjacent repeat candidate, including short and overlapping choices,
 is retained. Envelope selection counts the stored representatives of the
 chosen source tree, not every expanded repetition. Longer observed curves

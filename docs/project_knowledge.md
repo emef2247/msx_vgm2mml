@@ -352,6 +352,13 @@ the required target command semantics.
 Do not introduce new note boundaries, attacks, state resets, or
 quantization merely to improve compression.
 
+Sounding spans, inferred score-note partitions, and their internal pitch,
+volume and timbre controls are distinct interpretations. A source-audibility
+span does not by itself prove an observed Key-On or a score attack. Keep the
+boundary evidence and uncertainty explicit, and keep target envelope bindings
+outside immutable note identity. Preserve ordered zero-duration controls and
+unknown original sample timing rather than substituting target ticks.
+
 For software-envelope extraction, do not invent unobserved tails. Source
 volume trajectories and attack/restart semantics remain authoritative.
 

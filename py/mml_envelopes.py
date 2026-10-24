@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from mml_utils import compact_state_token
 from psg_scc_target import TUNING_HEADER, period_detune, envelope_period_tokens, rendered_period
+from psg_scc_performance import analyze as build_performance, audible, settings
 
 
 @dataclass
@@ -51,6 +52,11 @@ class EnvelopeBank:
                     self.aliases[curve] = match
 
     def submit(self, segments, chip, output_path, **kwargs):
+        if kwargs.get('performance') is None:
+            kwargs['performance'] = build_performance(segments, chip)
+        if kwargs.get('dump_path'):
+            from psg_scc_performance import dump
+            dump(kwargs['performance'], str(kwargs['dump_path']).replace('.target_notes.csv', ''))
         if self.deferred:
             self.pending.append((segments, chip, output_path, kwargs))
         else:
@@ -58,8 +64,8 @@ class EnvelopeBank:
 
     def flush(self):
         counts = Counter()
-        for segments, chip, _, _ in self.pending:
-            counts.update(candidate_curves(extract_notes(segments, chip)))
+        for segments, chip, _, kwargs in self.pending:
+            counts.update(candidate_curves(dict(kwargs['performance'].channels)))
         self.select(counts)
         self.prepared = True
         for segments, chip, path, kwargs in self.pending:
@@ -69,7 +75,7 @@ class EnvelopeBank:
                 with open(report, 'w', newline='', encoding='utf-8') as stream:
                     writer = csv.writer(stream)
                     writer.writerow(('envelope_id', 'selection', 'ticks', 'occurrences', 'volume_runs'))
-                    local = candidate_curves(extract_notes(segments, chip))
+                    local = candidate_curves(dict(kwargs['performance'].channels))
                     for curve, count in sorted(local.items()):
                         number = self.curves.get(curve, self.aliases.get(curve))
                         status = ('definition' if curve in self.curves else
@@ -131,57 +137,9 @@ def envelope_data(curve):
     return ', '.join(parts)
 
 
-def audible(segment, chip):
-    if segment.scale == 'r':
-        return False
-    if chip == 'psg':
-        return bool(segment.mode and (segment.volume or segment.envelope_enabled))
-    return bool(segment.enabled and segment.volume)
-
-
-def settings(segment, chip):
-    pitch = (segment.tone_period, segment.octave, segment.scale)
-    if chip == 'scc':
-        return pitch + (segment.waveform_id, segment.enabled)
-    return pitch + (segment.mode, segment.noise_period if segment.mode & 2 else 0,
-                    segment.envelope_enabled,
-                    segment.envelope_period if segment.envelope_enabled else 0,
-                    segment.envelope_shape if segment.envelope_enabled else 0)
-
-
 def extract_notes(segments, chip):
-    result = {}
-    pitch_events = {'fCA', 'fCB'} if chip == 'psg' else {'f1Ctrl', 'f2Ctrl'}
-    for ch, rows in segments.items():
-        notes = []
-        boundary = False
-        for segment_index, seg in enumerate(rows):
-            if seg.ev_type in pitch_events or (chip == 'psg' and seg.ev_type == 'evS'):
-                boundary = True
-            if seg.l <= 0:
-                continue
-            rest = not audible(seg, chip)
-            previous = notes[-1] if notes else None
-            contiguous = previous is not None and previous.start + previous.length == seg.ticks
-            same = contiguous and previous.rest == rest
-            if same and not rest:
-                same = (not boundary and settings(previous.segment, chip) == settings(seg, chip)
-                        and seg.volume <= previous.runs[-1][0])
-            if not same:
-                notes.append(Note(seg, seg.ticks, 0, rest))
-            note = notes[-1]
-            note.segment_indices.append(segment_index)
-            note.length += seg.l
-            if not rest:
-                if note.runs and note.runs[-1][0] == seg.volume:
-                    volume, length = note.runs[-1]
-                    note.runs[-1] = (volume, length + seg.l)
-                else:
-                    note.runs.append((seg.volume, seg.l))
-            boundary = False
-        if any(not n.rest for n in notes):
-            result[ch] = notes
-    return result
+    """Compatibility adapter; immutable source-linked units own interpretation."""
+    return build_performance(segments, chip).to_notes(Note)
 
 
 def length_tokens(pitch, ticks, raw_ticks, tie=False):
@@ -199,7 +157,8 @@ def length_tokens(pitch, ticks, raw_ticks, tie=False):
     return ' '.join(parts)
 
 
-def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, source_plans=None):
+def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, source_plans=None,
+           performance=None):
     from melody_patterns import analyze
     from melody_loops import project, dump_projection
     from performed_patterns import Unit, project_notes, dump_units
@@ -208,7 +167,12 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
     # is not consumed by that projector and can dominate long PSG inputs.
     analysis = analyze(segments, chip) if source_plans is None else None
     before_lines, loop_report = [], []
-    notes = extract_notes(segments, chip)
+    if performance is None:
+        performance = build_performance(segments, chip)
+        if dump_path:
+            from psg_scc_performance import dump
+            dump(performance, str(dump_path).replace('.target_notes.csv', ''))
+    notes = performance.to_notes(Note)
     if not bank.prepared:
         bank.select(candidate_curves(notes))
     used = set()

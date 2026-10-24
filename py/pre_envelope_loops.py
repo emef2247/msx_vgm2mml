@@ -3,14 +3,15 @@ import csv
 from collections import Counter
 from pathlib import Path
 from source_loop_plan import SourceLoopPlan
-from mml_envelopes import EnvelopeBank, extract_notes, candidate_curves, settings, render
+from mml_envelopes import EnvelopeBank, candidate_curves, settings, render, build_performance
 
 
 def prepare(notes, chip, strategy='structural'):
     plans, representatives = {}, {}
     for ch, rows in notes.items():
-        keys = [(n.length, n.rest, () if n.rest else settings(n.segment, chip),
-                 tuple(n.runs)) for n in rows]
+        keys = [n.structural_key if hasattr(n, 'structural_key') else
+                (n.length, n.rest, () if n.rest else settings(n.segment, chip), tuple(n.runs))
+                for n in rows]
         plan = SourceLoopPlan.build(keys, strategy=strategy)
         plans[ch] = plan
         representatives[ch] = [rows[i] for i in plan.representatives()]
@@ -25,11 +26,15 @@ class LoopFirstEnvelopeBank(EnvelopeBank):
         counts = Counter()
         prepared = []
         if not self.loop_first:
-            for segments, chip, _, _ in self.pending:
-                counts.update(candidate_curves(extract_notes(segments, chip)))
+            for segments, chip, _, kwargs in self.pending:
+                counts.update(candidate_curves(dict(kwargs['performance'].channels)))
             self.select(counts)
         for segments, chip, path, kwargs in self.pending:
-            notes = extract_notes(segments, chip)
+            performance = kwargs.get('performance')
+            if performance is None:
+                performance = build_performance(segments, chip)
+                kwargs = dict(kwargs, performance=performance)
+            notes = dict(performance.channels)
             plans, representatives = prepare(notes, chip, self.source_strategy)
             counts.update(candidate_curves(representatives))
             prepared.append((segments, chip, path, kwargs, plans, notes, representatives))

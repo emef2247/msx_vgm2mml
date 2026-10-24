@@ -232,7 +232,10 @@ def definition_allocation(header):
             else:
                 # Existing non-generated envelope syntax: keep a conservative bound.
                 size += 4 + 2 * len(re.sub(r'\s', '', body))
-    return size
+    # MGSC appends 0xff to the definition stream. An exactly full body
+    # allocation can compile successfully while omitting that terminator,
+    # leaving the player in setup parsing instead of starting the tracks.
+    return size + 1 if size else 0
 
 def _has_sound(nodes, rhythm=False):
     if rhythm:

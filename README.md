@@ -42,6 +42,8 @@ PSG／SCCは休符だけのチャンネルと休符中の不要な設定を省�
 
 MMLの生成に成功したことは、元VGMと音が一致することを意味しません。コンパイルやKEYON数の比較に加え、再生して音程・音色・発音・タイミングを確認してください。
 
+Actual compiled playback checks, definition-buffer termination and the distinction between compilation and roundtrip results are documented in [MGS definition storage](docs/mgs_definition_storage.md). A Key-On count mismatch is reported separately and makes `export_mgs.py` exit unsuccessfully. Previously generated MML affected by a missing definition terminator must be regenerated.
+
 ### 音長の補正
 
 **`--normalize-lengths`は既定で無効です。** 有効にすると、OPLLの発音間隔から共通の音長基準を推定し、MML生成時に音長・ゲートを補正します。
@@ -118,7 +120,7 @@ python scripts/batch_vgm_to_mgs.py tests/fixtures/local_only/opll \
 | `convert.log` | VGM→MML変換の結果と、音長補正の適用・未適用を確認 |
 | `compile.log` | MML→MGSコンパイルの結果と、エラーの内容を確認 |
 | `<stem>.normalization.json` | 音長補正の`applied`／`unchanged`と、その理由を確認 |
-| `results.csv`／`results.json` | 全曲のコンパイル結果（`success`、`buffer_error`など）を確認 |
+| `results.csv`／`results.json` | 全曲のコンパイル結果（`success`、`conversion_failed`、`compilation_failed`と`error_code`）を確認 |
 | OPLLメロディKEYON合計・不足数・超過数 | コンパイル成功曲の発音数を比較。未実施は空欄で、0とは扱わない |
 
 KEYON数が一致していても、音程・音色・ゲート・タイミングの一致を保証するものではありません。コンパイルの成功、発音数の比較、聴感による確認は、それぞれ別の結果として扱ってください。
@@ -174,3 +176,67 @@ Copyright (c) 2026 emef2247. Licensed under the [MIT License](LICENSE).
 
 通常のPythonによるVGM→MML変換に外部コンパイラ・再生ライブラリは不要です。PSG FM投影のSegment処理とターゲット生成は本プロジェクトで実装し、vgm-convを実行時のライブラリ依存にはしていません。
 
+
+## Shared frontend settings and diagnostics
+
+The MGSDRV converter and batch runner now accept `--force`, `--fm-state-ms`,
+`--normalization-ms` and `--dump-passes` through the same settings adapter.
+With no normalization switches, the existing conversion remains unchanged.
+Explicit threshold options enable optional normalization: an OPLL anchor clock
+must be accepted, or the ordinary output is retained with a recorded reason.
+MSX defaults are1ms for OPLL internal state selection and8ms for maximum target
+timing correction. No whole-gate deletion is introduced; PSG/SCC software
+envelope curves remain unchanged. This catch-up does not yet provide an
+independent PSG/SCC clock estimator or conventional-renderer FM filter.
+
+```sh
+python scripts/batch_vgm_to_mgs.py tests/fixtures/public/psg_opll \
+  --outdir outputs/mgs/state24 --fm-state-ms 24 --normalization-ms 8 --dump-passes
+```
+
+The batch timeout defaults to1200seconds per stage. Primary statuses are
+`success`, `conversion_failed` and `compilation_failed`; `stage`, `error_code`
+and `detail` retain buffer, timeout, setup and process distinctions. Each input
+has raw stage logs plus `report.txt`/`report.json`; results CSV/JSON are updated
+after each input. `normalization_status`/`normalization_reason` show actual
+application or fallback, independently of the requested thresholds. Optional
+key-on comparison retains its separate status and counts.
+
+`--force` omits only the explicitly inventoried unsupported source writes;
+it cannot bypass malformed VGM, unsupported decoder variants, PCM stream
+handling, compiler capacities or timeouts. See [force scope](docs/mgs_force.md),
+[normalization](docs/note_normalization.md) and [batch diagnostics](docs/batch_mgs.md).
+
+### MGS export defaults
+
+Use `scripts/export_mgs.py` for the shared export workflow with FM-state24ms
+and normalization8ms defaults:
+
+```sh
+python scripts/export_mgs.py INPUT_DIR --outdir OUTPUT_DIR --force
+```
+
+Override either value with `--fm-state-ms` / `--normalization-ms`. The existing
+batch entry is unchanged. Conversion, compiler diagnostics and optional key-on
+checks use the same implementation. Normalization can still abstain safely;
+inspect `normalization_status` and `normalization_reason` in the results.
+
+### PSG/SCC performance interpretation
+
+PSG/SCC now separate immutable source-audibility spans, inferred note/rest
+partitions and ordered pitch/volume/timbre/control trajectories before loop and
+software-envelope selection. The existing partition policy and exact curve
+rendering are retained; this establishes inspectable identities and evidence
+for later score/curve interpretation improvements.
+
+Use `--dump-passes` to retain `<stem>.<chip>.performance.*` CSV/JSON alongside
+the native passes. These records include zero-renderer-duration controls,
+hardware-envelope resets, waveform changes, source lineage, boundary reasons
+and explicit unknown sample times. See [PSG/SCC performance](docs/psg_scc_performance.md).
+
+## Optional inferred OPLL drums
+
+Use `--enhance-drums` to retain PSG/SCC and add an inferred OPLL rhythm part.
+This experimental option is off by default. Candidates and target decisions
+are saved as `.drums.*` CSV/JSON reports. Existing OPLL melody/rhythm has priority.
+See [drum enhancement](docs/drum_enhancement.md) for classification and timing limits.
