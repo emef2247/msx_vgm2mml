@@ -121,7 +121,7 @@ channel-wide scalar volume or OPLL-like FNUM/BLOCK.
 Run:
 
 ```bash
-python -m unittest discover -s tests -p 'test_opm*.py' -v
+python -m unittest discover -s tests/script -p 'test_opm*.py' -v
 ```
 
 Synthetic tests cover multiple channels/instances, partial keys, operator

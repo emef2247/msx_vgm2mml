@@ -14,10 +14,17 @@ example `--fm-state-ms 4 --normalization-ms 16`. These defaults request optional
 normalization; the converter still reports `unchanged` if a safe OPLL-anchored
 projection cannot be found. They do not imply PSG/SCC envelope filtering.
 
-The existing `batch_vgm_to_mgs.py` retains its own defaults and behavior. The
-export entry delegates conversion, compilation, omission rules and report
-creation to that runner. Other options, including `--skip-keyon-counts`, retain
+The existing `batch_vgm_to_mgs.py` retains its conversion defaults. Both entries
+use the same output layout: final MML/MGS directly in each package `tracks/`, and reports/work files
+under package `_diagnostics/<stem>/`. The export entry delegates
+conversion, compilation, omission rules and report creation to that runner. See
+[output layout](output_layout.md) for exact paths, PSG mode directories and reruns. Other options, including `--skip-keyon-counts`, retain
 the same meaning; optional key-on verification is enabled unless skipped.
+
+Both entry points preserve `INDIR`-relative parent directories under `OUTDIR`.
+For example, `INDIR/vgmrips.net/SALAMD/SONG01.vgm` produces
+`OUTDIR/vgmrips.net/SALAMD/tracks/SONG01.mml` and `.mgs`. Omit `--outdir`
+to use `INDIR/vgmrips.net/SALAMD/` as the package root instead.
 
 Native `mgsc` on PATH is preferred; mgsc-js is not needed in that
 case. The native CLI is invoked as `mgsc INPUT.mml OUTPUT.mgs`. Specify an
@@ -42,19 +49,28 @@ python scripts/batch_vgm_to_mgs.py tests/fixtures/local_only/opll --outdir outpu
 ```
 
 Alternatively pass `--mgsc-module /absolute/path/to/mgsc-js/dist/index.js`.
-Compilation alone needs no libkss dependency (`--skip-keyon-counts`). Input/output trees must be separate. The tool
+Compilation alone needs no libkss dependency (`--skip-keyon-counts`). An explicit
+output tree must be separate from input. If `--outdir` is omitted, final MML/MGS
+go into `tracks/` beside each source VGM. Diagnostics are under each package
+`_diagnostics/<stem>/`; the source parent is the package root for a single file. Adjacent reruns exclude generated diagnostic
+and PSG-mode directories from input discovery. The tool
 checks that Node can load and initialize MGSC before any conversion. Missing
 mgsc-js is an environment/setup error, not an MML compilation error. In WSL,
 run the npm installation from this repository in WSL (a globally installed
 package is not sufficient for the helper's module resolution).
 
-The tool
-recursively finds .vgm/.vgz files, retains their relative directories, and creates
-a per-input directory containing generated MML, MGS on success, and convert.log
-and compile.log. Existing MML/MGS for the same input in that output directory
-are replaced on reruns. Source files are never modified.
+The tool recursively finds .vgm/.vgz files and preserves relative parent
+directories. Final products are `<out>/<relative-parent>/tracks/<stem>.mml` and `.mgs`;
+there is no extra per-song listening directory. Workspace, logs and sidecars go
+to `<out>/<relative-parent>/_diagnostics/<stem>/`. Each package includes staged
+originals in `_source_inputs/`, a listening manifest, and package-relative results.
+PSG-only modes add `psg_melody/` or `psg_rhythm/` before the relative parent. Source files are
+never modified. Reruns replace unchanged products recorded by the publication
+manifest; edited or unowned files cause an explicit collision error. Failed reruns
+retain earlier owned listening files and report the latest failure separately.
 
-`results.csv` and `results.json` are updated after every input, retaining completed
+`_diagnostics/results.csv` and `results.json` are updated after every input (under
+the mode branch for PSG solo runs), retaining completed
 progress if a later input is interrupted. Primary statuses are `success`,
 `conversion_failed`, and `compilation_failed`. `stage` and `error_code` distinguish
 conversion errors, compiler buffer errors, missing output, process errors and
@@ -66,7 +82,7 @@ music truncation is performed. `--timeout` sets the per-stage timeout in seconds
 incomplete MGS is removed; intermediate MML remains available for inspection.
 MGS compilation does not prove playback equivalence.
 
-Each input folder also contains `report.json` and `report.txt`, recording effective
+Each diagnostic input folder contains `report.json` and `report.txt`, recording effective
 options, stage commands, output paths, error details and raw log paths.
 Normalization and FM state sidecars are embedded under `summaries`; CSV/JSON rows
 also expose `normalization_status`, `normalization_reason`, `normalization_ms` and
@@ -109,11 +125,13 @@ Use `--skip-keyon-counts` for the previous conversion/compilation-only workflow.
 
 `results.csv` and `results.json` also contain `reference_keyon`, `actual_keyon`,
 `missing_keyon`, `extra_keyon`, `keyon_status`, and `keyon_error`.
-Compilation `status` remains independent. `keyon_status` is `compared`,
+Compilation `status` remains independent. `keyon_status` is `compared`, `mismatch`,
+`selection_only` (PSG solo export; native OPLL equality is not applicable),
 `not_compiled`, `unavailable` (dependency failure), `timeout`, `error`, or `disabled`.
 Unperformed comparisons have blank counts, never fabricated zeros.
 Count differences do not make compilation unsuccessful; exit status is 1 when
-conversion/compilation or an enabled comparison cannot complete.
+conversion/compilation fails, an enabled comparison cannot complete, or ordinary
+melodic counts mismatch. Successful solo export uses `selection_only`.
 
 `keyon_setup.log` records playback setup. Each successful export retains the
 VGM, `keyon.log`, and a `keyon/` folder with both sides' traces, key edges and
@@ -128,7 +146,7 @@ still run. See [key-on count semantics](opll_keyon_counts.md).
 
 Optional conversion regressions cover WBIII01..14, ThBSMS01..05, YsSMS01..20,
 and Alest201..217. Missing local files skip individually; private data is not
-included. Run `python -m unittest discover -s tests -p test_local_opll_catalog.py`.
+included. Run `python -m unittest discover -s tests/script -p test_local_opll_catalog.py`.
 
 `--normalize-lengths` forwards optional musical duration correction to each
 conversion. It does not change the default or run conversion twice. Per-input

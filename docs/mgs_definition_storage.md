@@ -27,7 +27,7 @@ MGSC release or arbitrary hand-written definition syntax.
 
 ## Regression checks
 
-`tests/test_mgs_playback.py` compiles and actually plays generated MGS through
+`tests/script/test_mgs_playback.py` compiles and actually plays generated MGS through
 MGSC/libkss. It checks nonempty definition classes individually and together,
 expected note counts/intervals, and the ordinary public OPLL export path. It also
 reproduces the old successful-compile/zero-Key-On case and verifies its repair.
@@ -35,7 +35,7 @@ reproduces the old successful-compile/zero-Key-On case and verifies its repair.
 an already compiled MGS; a positive compile result is not its soundness oracle.
 
 ```sh
-python -m unittest discover -s tests -p test_mgs_playback.py -v
+python -m unittest discover -s tests/script -p test_mgs_playback.py -v
 node scripts/probe_mgs_audio.mjs song.mgs audio.json 5000
 ```
 

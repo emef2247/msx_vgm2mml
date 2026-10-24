@@ -1,3 +1,108 @@
+# Proposed PSG/SCC curve projection audit (2026-10-24)
+
+User requested history/book review before implementation. Reviewed prior MSX
+loop/envelope notes, current PerformanceIR and relevant Konami driver scan
+pages. Saved docs/psg_scc_curve_projection_plan.md and an external private audit.
+No converter/option changes or local_only conversions in this turn.
+Recommended next: derived complete sounding-unit/volume-curve candidates with
+explicit boundary evidence and exact reuse; optional bounded volume-only
+approximation follows. Do not flatten all short states, treat every volume
+rise as attack, or import book/reference score parameters into conversion.
+Await user direction on the proposed implementation scope.
+
+# Completed checkpoint: shared export packages (2026-10-24)
+
+Both MGS entry points now publish package/tracks/<stem>.mml/.mgs, with no
+per-song listening directory. Packages preserve original INDIR-relative parents;
+PSG mode namespace comes before that relative parent. Each package contains
+_diagnostics/<stem>/, byte-identical _source_inputs, listening_manifest.json
+(schema 1 filename-keyed entries), and results.csv/json with package-relative
+paths. Root _diagnostics/results.* retains aggregate current-run progress.
+
+Source staging and final publication use hash ownership checks. Case-insensitive
+same-package target collisions fail before mutation; identical stems in separate
+packages work. Edited/unowned final or staged files are preserved. Failed reruns
+retain prior listening products, with latest_attempt_status and latest result rows
+recording the failure. Partial reruns preserve other songs' package result rows.
+Adjacent reruns prune generated inputs/tracks/diagnostics/mode directories.
+
+Conversion/normalization/rhythm classification semantics are unchanged. Existing
+uncommitted tests/script relocation and optional-outdir work remain intact.
+Validation:31 batch +8 export +5 actual playback +10 rhythm tests pass (54 total),
+including ownership,
+partial reruns, staging/hash provenance, source-root conflicts and fault-injected
+bundle replacement rollback. Actual retained public outputs live under
+outputs/package_layout_public/{opll,psg}; both compile and roundtrip successfully.
+OPLL retrigger has19/19 melodic Key-Ons; PSG scale has0/0 native OPLL Key-Ons.
+Source/staged hashes match and tracks contain only MML/MGS. git diff --check passes.
+No local_only regression, staging, commits or pushes; user handles private checks.
+
+Next allowed work: review this common layout against X68000/MUCOM exporters and
+run user regression. Do not resume PSG classification refinement in this task.
+
+---
+
+# Completed checkpoint: optional MGS output root (2026-10-24)
+
+Both batch_vgm_to_mgs.py and export_mgs.py now accept omitted --outdir.
+Explicit output keeps INDIR-relative parents: vgmrips.net/SALAMD/SONG01.vgm
+maps to OUTDIR/vgmrips.net/SALAMD/SONG01.mml/.mgs, likewise NEMESIS2.
+Omission selects adjacent output: final products beside source VGM/VGZ;
+diagnostics/results under the input root _diagnostics (source parent for a file).
+PSG mode branches remain relative to that output root. Native VGM bytes remain
+unchanged, and explicit overlapping output roots remain rejected.
+
+Adjacent directory discovery prunes _diagnostics/psg_melody/psg_rhythm before
+walking them, preventing generated roundtrip VGM from feeding subsequent runs.
+Existing ownership/hash checks, names, collision checks, and source/target
+transformations are unchanged. Reports record output_root and adjacent_output.
+
+Checks: batch25 + export8 =33pass. New tests cover the user's two-game relative
+layout, adjacent file/directory reruns, generated VGM pruning, source-byte
+preservation, and protected foreign output. Both actual CLI entrypoints compile
+copied public OPLL input beside the source and retain matching melodic Key-Ons.
+No private regression, staging/commit/push. Earlier tests/script relocation and
+output audit remain saved. PSG classification refinement remains paused.
+
+---
+
+# Completed checkpoint: test scripts and output layout audit (2026-10-24)
+
+User changed theme: PSG melody/rhythm split works mechanically but differs from
+musical expectations. Classification refinement is paused pending a clearer user
+definition. Do not resume it as part of file/output organization.
+
+Moved68 top-level tests/*.py, including vgm_test_support.py, to tests/script/ as
+explicitly requested. Repository-root lookups and sibling imports use new paths;
+fixtures and tests/conversion_baseline.json stay in place. New package bootstrap
+also preserves old root unittest discovery.514 tests collected before/after;
+0 import errors, identical canonical IDs.125 selected public/synthetic checks:
+124pass,1 known pre-existing GD3 prefix-space expectation failure. Original HEAD
+version of test_vgm_io reproduces the same failure (4 tests,1 failure); no behavior
+or expectation was altered. No local_only regression.
+
+Both MGS entry points already share flat final publication: out/<relative-parent>/
+<stem>.mml/.mgs; diagnostics under out/_diagnostics/tracks/<relative-input-name>/.
+Solo products use psg_melody/ or psg_rhythm/; diagnostic/result branches match.
+No extra per-song listening tracks/ directory. Actual public export of both
+entries returns0 with19/19 melodic attacks. Conversion defaults remain different:
+batch normalization opt-in (FM1ms when enabled), export FM24/timing8ms requested.
+
+Documented exact layout, collisions, migration, and current cross-project mismatch
+in docs/output_layout.md; corrected stale docs/batch_mgs.md and README descriptions.
+Updated AGENTS/docs/test commands to unittest discover -s tests/script. Current
+x68k export_mdx still uses final tracks/<relative-source-filename>/; MUCOM uses
+tracks/<stem>/. Those exporters were only inspected, not modified.
+
+Saved verification: outputs/diagnostics/test_layout_20261024/verification.md/json,
+test_relocation.json and logs, plus concrete batch/export MML/MGS/roundtrip trees.
+All changes saved in MSX working tree; no staging/commit/push. Next allowed work:
+user review of output contract or an explicit follow-up to align the other
+exporters. Preserve names/8.3-compatible stems, collision safeguards and separate
+source/intermediate evidence. Do not claim all514 tests were executed.
+
+---
+
 # Completed checkpoint: silent compiled MGS repair (2026-10-24)
 
 User-reported ordinary export silence is reproduced and repaired in the working

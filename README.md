@@ -12,17 +12,37 @@ VGMファイルを置いたディレクトリを指定して、一括変換し�
 python scripts/batch_vgm_to_mgs.py INDIR --outdir OUTDIR
 ```
 
-既定の設定で、MML・MGS・変換レポートを生成します。出力先の `results.csv` と各曲のログで、成功・失敗の内容を確認できます。
+既定の設定で、MML・MGS・変換レポートを生成します。出力先の `_diagnostics/results.csv` と各曲の診断ログで、成功・失敗の内容を確認できます。
 
 生成したMMLは、[MSXplayのエディタ](https://msxplay.com/editor.html)にコピー＆ペーストして再生することもできます。
 
 MGSへのコンパイルにはMGSCが必要です。環境構築や検証ツールの準備については、[バッチ実行](docs/batch_mgs.md)を参照してください。
 
+### 出力先と推奨エクスポート入口
+
+`batch_vgm_to_mgs.py` と `export_mgs.py` の出力構成は共通です。
+各入力フォルダを出力パッケージとし、最終MML／MGSはその `tracks/` 直下へ出します。
+ログ・中間ファイル・往復VGMは `_diagnostics/<stem>/`、入力のコピーは `_source_inputs/` に保存します。
+`listening_manifest.json` と `results.csv` も各パッケージに置きます。
+再帰入力では `INDIR` からの相対的な親フォルダを `OUTDIR` にも維持します。
+たとえば `INDIR/vgmrips.net/SALAMD/曲.vgm` は `OUTDIR/vgmrips.net/SALAMD/tracks/曲.mml`／`.mgs` になります。
+`tracks/<曲名>/` は作りません。両スクリプトとも `--outdir` は省略でき、その場合は各VGMの親がパッケージになります。
+全入力の進捗は出力ルートの `_diagnostics/results.csv` に保存します。
+
+```sh
+python scripts/export_mgs.py INPUT_DIR --outdir OUTPUT_DIR
+```
+
+`export_mgs.py` は `--fm-state-ms 24 --normalization-ms 8` が既定です。
+従来のバッチは正規化を明示指定した場合に適用します。
+PSGの個別試聴は `psg_melody/` または `psg_rhythm/` に出力します。
+詳しい配置と再実行時の扱いは [出力構成](docs/output_layout.md) を参照してください。
+
 ### 主なオプション
 
 | オプション | 説明 |
 |---|---|
-| `--outdir OUTDIR` | 変換結果の出力先ディレクトリ（必須） |
+| `--outdir OUTDIR` | 入力の相対階層を維持する出力先。省略時は各VGMの隣 |
 | `--force` | 対応可能な範囲で未対応のレジスタ操作を診断付きで省略して続行 |
 | `--timeout SECONDS` | 各処理段階のタイムアウト（既定1200秒） |
 
@@ -57,7 +77,9 @@ MGSにはMGSDRVのバッファ制約があり、データ量によってはコ�
 ## 構成
 
 - `vgm2mml.py`：単体VGMの解析・MML生成
-- `scripts/batch_vgm_to_mgs.py`：MML・MGSの一括生成と検証
+- `scripts/export_mgs.py`：共通の既定閾値でMML・MGSを一括生成
+- `scripts/batch_vgm_to_mgs.py`：従来の変換既定値による一括生成と検証
+- `tests/script/`：自動テスト、`tests/fixtures/`：入力・参照データ
 - `py/`：音源解析、中間表現、ターゲット生成
 - `scripts/`：検証・比較・補助ツール
 

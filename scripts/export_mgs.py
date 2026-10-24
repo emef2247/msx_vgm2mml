@@ -13,7 +13,8 @@ from batch_vgm_to_mgs import run_batch
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('input', type=Path, help='VGM/VGZ file or directory (recursive)')
-    parser.add_argument('--outdir', type=Path, required=True)
+    parser.add_argument('--outdir', type=Path,
+                        help='Output root preserving input-relative parents (default: beside each source VGM)')
     parser.add_argument('--mgsc', help='Native MGSC executable (default: PATH)')
     parser.add_argument('--mgsc-module', type=Path)
     parser.add_argument('--node', default='node')

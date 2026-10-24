@@ -8,7 +8,9 @@ import shutil
 import sys
 import struct
 import math
+import os
 import hashlib
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'py'))
@@ -65,64 +67,179 @@ def file_digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def save_json(path, value):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + '.tmp')
+    temporary.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
+    temporary.replace(path)
+
+
+def publish_bundle(publications, manifest, state, workspace):
+    """Prepare every product and manifest before replacing the owned bundle."""
+    with tempfile.TemporaryDirectory(prefix='publish_', dir=workspace) as temporary:
+        temporary = Path(temporary)
+        prepared = []
+        for index, (source, target) in enumerate(publications):
+            target.parent.mkdir(parents=True, exist_ok=True)
+            prepared_path = temporary / ('new_' + str(index))
+            shutil.copyfile(source, prepared_path)
+            prepared.append((prepared_path, target))
+        manifest_data = temporary / 'manifest'
+        manifest_data.write_text(json.dumps(state, indent=2) + '\n', encoding='utf-8')
+        prepared.append((manifest_data, manifest))
+        backups = {}
+        for index, (_, target) in enumerate(prepared):
+            if target.exists():
+                backup = temporary / ('old_' + str(index))
+                shutil.copyfile(target, backup)
+                backups[target] = backup
+        replaced = []
+        try:
+            for source, target in prepared:
+                os.replace(source, target)
+                replaced.append(target)
+        except OSError:
+            for target in reversed(replaced):
+                if target in backups:
+                    os.replace(backups[target], target)
+                else:
+                    target.unlink(missing_ok=True)
+            raise
+
+
+def package_manifest(package):
+    path = package / 'listening_manifest.json'
+    if not path.exists():
+        return dict(schema_version=1, entries={})
+    try:
+        value = json.loads(path.read_text(encoding='utf-8'))
+        if value.get('schema_version') != 1 or not isinstance(value['entries'], dict):
+            raise ValueError('Unsupported manifest schema')
+        return value
+    except (ValueError, KeyError, TypeError, AttributeError) as error:
+        raise ValueError(f'Invalid listening manifest: {path}') from error
+
+
 def publication_targets(files, source_root, output, psg_part):
     """Preflight all routes and owned publications before changing any artifact."""
     mode = Path() if psg_part == 'all' else Path('psg_' + psg_part)
     diagnostics = output / '_diagnostics' / mode
     routes, seen = [], set()
-    for artifact in (diagnostics / 'results.csv', diagnostics / 'results.json',
-                     diagnostics / 'keyon_setup.log'):
-        if not artifact.resolve().is_relative_to(output):
-            raise ValueError(f'Diagnostic artifact escapes output tree: {artifact}')
     for path in files:
         relative = path.relative_to(source_root)
-        if relative.parts[0].casefold() in ('_diagnostics', 'psg_melody', 'psg_rhythm'):
+        if any(part.casefold() in ('_diagnostics', '_source_inputs', 'tracks', 'psg_melody', 'psg_rhythm')
+               for part in relative.parts[:-1]):
             raise ValueError(f'Reserved output route in input: {relative}')
-        final = output / mode / relative.parent / (path.stem + '.mml')
+        package = output / mode / relative.parent
+        final = package / 'tracks' / (path.stem + '.mml')
         key = str(final.relative_to(output)).casefold()
         if key in seen:
             raise ValueError(f'Colliding final targets for input: {relative}')
         seen.add(key)
-        folder = diagnostics / 'tracks' / relative
+        folder = package / '_diagnostics' / path.stem
+        staged = package / '_source_inputs' / path.name
         targets = (final, final.with_suffix('.mgs'))
-        for candidate in (*targets, folder):
+        manifest = package / 'listening_manifest.json'
+        for candidate in (*targets, folder, staged, manifest, package / 'results.csv', package / 'results.json',
+                          diagnostics / 'results.csv', diagnostics / 'results.json', diagnostics / 'keyon_setup.log'):
             if not candidate.resolve().is_relative_to(output):
                 raise ValueError(f'Output route escapes output tree: {candidate}')
+            for parent in candidate.parents:
+                if parent == output:
+                    break
+                if parent.exists() and not parent.is_dir():
+                    raise ValueError(f'Colliding output directory: {parent}')
         if folder.exists():
             for artifact in folder.rglob('*'):
                 if artifact.is_symlink() and not artifact.resolve().is_relative_to(output):
                     raise ValueError(f'Diagnostic artifact escapes output tree: {artifact}')
-        manifest = folder / 'publication.json'
-        owned = {}
-        if not manifest.resolve().is_relative_to(output):
-            raise ValueError(f'Publication manifest escapes output tree: {manifest}')
-        if manifest.exists():
-            try:
-                owned = json.loads(manifest.read_text(encoding='utf-8'))['products']
-            except (ValueError, KeyError, TypeError) as error:
-                raise ValueError(f'Invalid publication manifest: {manifest}') from error
-            if not isinstance(owned, dict):
-                raise ValueError(f'Invalid publication manifest: {manifest}')
+        previous = package_manifest(package)['entries'].get(path.name, {})
+        if previous.get('source_path') and Path(previous['source_path']).resolve() != path.resolve():
+            raise ValueError(f'Output belongs to a different source: {path}')
+        owned = previous.get('published', {})
+        if not isinstance(owned, dict):
+            raise ValueError(f'Invalid listening manifest: {manifest}')
+        for name in owned:
+            if name not in {target.relative_to(package).as_posix() for target in targets}:
+                raise ValueError(f'Unexpected published path in manifest: {name}')
         for target in targets:
             if target.exists():
-                recorded = owned.get(str(target.relative_to(output)))
+                recorded = owned.get(target.relative_to(package).as_posix())
                 if not target.is_file() or recorded != file_digest(target):
                     raise ValueError(f'Final target is unowned or modified: {target}')
+        if staged.exists():
+            recorded = previous.get('staged_sha256')
+            if not staged.is_file() or recorded != file_digest(staged):
+                raise ValueError(f'Staged source is unowned or modified: {staged}')
         routes.append((path, relative, folder, targets, manifest))
-    # A source directory can otherwise become another input's final filename.
-    all_targets = {str(target.relative_to(output)).casefold()
-                   for _, _, _, targets, _ in routes for target in targets}
-    for _, _, folder, targets, _ in routes:
-        for candidate in (folder, *targets):
-            for parent in candidate.parents:
+    artifacts = {}
+    directories = set()
+    for path, _, folder, targets, manifest in routes:
+        package = manifest.parent
+        for item in (*targets, package / '_source_inputs' / path.name, manifest,
+                     package / 'results.csv', package / 'results.json',
+                     diagnostics / 'results.csv', diagnostics / 'results.json', diagnostics / 'keyon_setup.log'):
+            key = item.relative_to(output).as_posix().casefold()
+            if key in artifacts and artifacts[key] != item:
+                raise ValueError(f'Colliding output paths: {item}')
+            for component in (item, *item.parents):
+                if component == output:
+                    break
+                if component.parent.is_dir():
+                    for sibling in component.parent.iterdir():
+                        if sibling.name.casefold() == component.name.casefold() and sibling.name != component.name:
+                            raise ValueError(f'Colliding output paths: {component} and {sibling}')
+            artifacts[key] = item
+            for parent in item.parents:
                 if parent == output:
                     break
-                if str(parent.relative_to(output)).casefold() in all_targets or (parent.exists() and not parent.is_dir()):
-                    raise ValueError(f'Colliding output directory: {parent}')
+                directories.add(parent.relative_to(output).as_posix().casefold())
+        directories.add(folder.relative_to(output).as_posix().casefold())
+    if set(artifacts) & directories:
+        raise ValueError('Colliding output files and directories')
     return diagnostics, routes
 
 
-def run_batch(source, output, module=None, node='node', timeout=1200, mgsc=None, alloc=None,
+def save_package_results(package, output, rows):
+    previous = package / 'results.json'
+    selected = json.loads(previous.read_text(encoding='utf-8')) if previous.is_file() else []
+    if not isinstance(selected, list) or any(not isinstance(item, dict) for item in selected):
+        raise ValueError(f'Invalid package results: {previous}')
+    path_fields = ('mml', 'mgs', 'log', 'report', 'diagnostics')
+    for row in rows:
+        if (output / row['report']).parent.parent.parent != package:
+            continue
+        item = dict(row)
+        item['input'] = Path(row['input']).name
+        for field in path_fields:
+            if item.get(field):
+                item[field] = (output / item[field]).relative_to(package).as_posix()
+        selected = [prior for prior in selected if prior.get('input') != item['input']]
+        selected.append(item)
+    if selected:
+        with (package / 'results.csv').open('w', encoding='utf-8', newline='') as stream:
+            writer = csv.DictWriter(stream, fieldnames=list(selected[0]))
+            writer.writeheader()
+            writer.writerows(selected)
+        save_json(package / 'results.json', selected)
+
+
+def discover_inputs(source, adjacent=False):
+    if source.is_file():
+        return [source] if source.suffix.lower() in ('.vgm', '.vgz') else []
+    if not adjacent:
+        return sorted(p for p in source.rglob('*') if p.is_file() and p.suffix.lower() in ('.vgm', '.vgz'))
+    # Adjacent reruns must not convert their own roundtrip VGM or audition trees.
+    reserved = {'_diagnostics', '_source_inputs', 'tracks', 'psg_melody', 'psg_rhythm'}
+    files = []
+    for parent, directories, names in os.walk(source):
+        directories[:] = [name for name in directories if name.casefold() not in reserved]
+        files.extend(Path(parent) / name for name in names
+                     if Path(name).suffix.lower() in ('.vgm', '.vgz'))
+    return sorted(files)
+
+
+def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=None, alloc=None,
               keyon=True, libkss_module=None, normalize_lengths=False, enhance_macros=True, legacy_loops=False,
               force=False, fm_state_ms=None, normalization_ms=None, dump_passes=False, enhance_drums=False, psg_part='all'):
     options = MgsOptions(normalize_lengths=normalize_lengths, normalization_ms=normalization_ms,
@@ -131,12 +248,13 @@ def run_batch(source, output, module=None, node='node', timeout=1200, mgsc=None,
     effective_options = options.as_dict()
     if not math.isfinite(timeout) or timeout <= 0:
         raise ValueError('Timeout must be finite and positive')
-    source, output = source.resolve(), output.resolve()
-    if source == output or output in source.parents or source in output.parents:
-        raise ValueError('Input and output trees must be separate')
-    files = ([source] if source.is_file() and source.suffix.lower() in ('.vgm', '.vgz') else
-             sorted(p for p in source.rglob('*') if p.is_file() and p.suffix.lower() in ('.vgm', '.vgz')))
+    source = source.resolve()
     source_root = source.parent if source.is_file() else source
+    adjacent = output is None
+    output = source_root if adjacent else output.resolve()
+    if not adjacent and (source == output or output in source.parents or source in output.parents):
+        raise ValueError('Explicit input and output trees must be separate; omit --outdir for adjacent output')
+    files = discover_inputs(source, adjacent=adjacent)
     if not files:
         raise ValueError('No VGM files found')
     diagnostics, routes = publication_targets(files, source_root, output, psg_part)
@@ -174,9 +292,24 @@ def run_batch(source, output, module=None, node='node', timeout=1200, mgsc=None,
     for path, relative, folder, (final_mml, final_mgs), manifest in routes:
         folder.mkdir(parents=True, exist_ok=True)
         mml, mgs = folder / (path.stem+'.mml'), folder / (path.stem+'.mgs')
-        # Preflight verified these publications against the prior manifest.
-        for target in (final_mml, final_mgs):
-            target.unlink(missing_ok=True)
+        package = final_mml.parent.parent
+        state = package_manifest(package)
+        previous = state['entries'].get(path.name, {})
+        staged = package / '_source_inputs' / path.name
+        staged.parent.mkdir(parents=True, exist_ok=True)
+        if staged.exists() and file_digest(staged) != previous.get('staged_sha256'):
+            raise ValueError(f'Staged source changed before conversion: {staged}')
+        shutil.copyfile(path, staged)
+        current_source_hash = file_digest(path)
+        entry = dict(previous, input=path.name, source_path=str(path),
+                     staged_input=staged.relative_to(package).as_posix(),
+                     staged_sha256=file_digest(staged), diagnostics=folder.relative_to(package).as_posix())
+        if not previous.get('published'):
+            entry['source_sha256'] = current_source_hash
+        if entry['staged_sha256'] != current_source_hash:
+            raise ValueError(f'Source changed during staging: {path}')
+        state['entries'][path.name] = entry
+        save_json(manifest, state)
         converted = False
         # Never let an earlier successful artifact look like this run's success.
         for artifact in (mml, mgs, folder / (path.stem + '.roundtrip.vgm'),
@@ -207,7 +340,7 @@ def run_batch(source, output, module=None, node='node', timeout=1200, mgsc=None,
         force_data = None
         row.update(dict.fromkeys(KEYON_FIELDS, ''))
         row.update(keyon_status='not_compiled' if keyon else 'disabled', keyon_error='')
-        stages = [('convert', [sys.executable, str(ROOT/'vgm2mml.py'), str(path), '--outdir', str(folder)]),
+        stages = [('convert', [sys.executable, str(ROOT/'vgm2mml.py'), str(staged), '--outdir', str(folder)]),
                   ('compile', [native, str(mml), str(mgs)] if native else [node, str(ROOT/'scripts/compile_mgs.mjs'), str(mml), str(mgs)] +
                    ([str(module.resolve())] if module else []))]
         if alloc is not None:
@@ -280,17 +413,29 @@ def run_batch(source, output, module=None, node='node', timeout=1200, mgsc=None,
                     except (OSError, ValueError, struct.error) as error:
                         row.update(keyon_status='error', keyon_error=str(error))
                         (folder / 'keyon.log').write_text(str(error), encoding='utf-8')
-        products = {}
-        if converted:
-            final_mml.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(mml, final_mml)
+        products = dict(previous.get('published', {}))
+        # Keep a previously complete listening pair when a later attempt fails.
+        publish = row['status'] == 'success' or (converted and not products)
+        publications = []
+        if publish:
+            for target in (final_mml, final_mgs):
+                if target.exists() and file_digest(target) != products.get(target.relative_to(package).as_posix()):
+                    raise ValueError(f'Final target changed during conversion: {target}')
             row['mml'] = str(final_mml.relative_to(output))
-            products[row['mml']] = file_digest(final_mml)
-        if row['status'] == 'success':
-            shutil.copyfile(mgs, final_mgs)
-            row['mgs'] = str(final_mgs.relative_to(output))
-            products[row['mgs']] = file_digest(final_mgs)
-        manifest.write_text(json.dumps(dict(products=products), indent=2) + '\n', encoding='utf-8')
+            products[final_mml.relative_to(package).as_posix()] = file_digest(mml)
+            publications.append((mml, final_mml))
+            if row['status'] == 'success':
+                row['mgs'] = str(final_mgs.relative_to(output))
+                products[final_mgs.relative_to(package).as_posix()] = file_digest(mgs)
+                publications.append((mgs, final_mgs))
+            entry.update(published=products, publication_status=row['status'], source_sha256=current_source_hash)
+        entry.update(stem=path.stem, status=entry.get('publication_status', row['status']),
+                     latest_attempt_status=row['status'], latest_attempt=dict(row, source_sha256=current_source_hash))
+        state['entries'][path.name] = entry
+        if publications:
+            publish_bundle(publications, manifest, state, folder)
+        else:
+            save_json(manifest, state)
         summaries = {}
         for name, suffix in (('normalization', 'normalization.json'),
                              ('fm_states', 'fm.short_states.json'), ('conversion', 'conversion.json'),
@@ -312,7 +457,8 @@ def run_batch(source, output, module=None, node='node', timeout=1200, mgsc=None,
                     row['force_summary'] = f"{force_data['omission_count']} omitted target operations"
             except (ValueError, KeyError, TypeError) as error:
                 row['force_summary'] = f'Invalid force report: {error}'
-        report = dict(result=dict(row), input_path=str(path), options=effective_options,
+        report = dict(result=dict(row), input_path=str(path), output_root=str(output), adjacent_output=adjacent,
+                      options=effective_options,
                       commands=commands, logs={name: str(folder / (name + '.log'))
                                               for name in ('convert', 'compile', 'keyon')
                                               if (folder / (name + '.log')).is_file()},
@@ -326,6 +472,7 @@ def run_batch(source, output, module=None, node='node', timeout=1200, mgsc=None,
         lines.extend(name + ' log: ' + value for name, value in report['logs'].items())
         (folder / 'report.txt').write_text('\n'.join(lines) + '\n', encoding='utf-8')
         rows.append(row)
+        save_package_results(package, output, rows)
         with (diagnostics/'results.csv').open('w', encoding='utf-8', newline='') as stream:
             writer = csv.DictWriter(stream, fieldnames=list(row))
             writer.writeheader(); writer.writerows(rows)
@@ -352,7 +499,8 @@ def run_batch(source, output, module=None, node='node', timeout=1200, mgsc=None,
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('input_dir', type=Path)
-    parser.add_argument('--outdir', type=Path, required=True)
+    parser.add_argument('--outdir', type=Path,
+                        help='Output root preserving input-relative parents (default: beside each source VGM)')
     parser.add_argument('--mgsc', help='Native MGSC executable (default: PATH)')
     parser.add_argument('--mgsc-module', type=Path)
     parser.add_argument('--node', default='node')

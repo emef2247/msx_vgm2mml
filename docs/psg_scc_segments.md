@@ -107,7 +107,7 @@ remain checked (normalizing the extra empty fifth-channel CSV separator).
 Envelope extraction/application and removing rest-only tracks remain future work.
 
 ```sh
-python -m unittest discover -s tests -v
+python -m unittest discover -s tests/script -v
 ```
 
 The regression manifest records output hashes from base commit

@@ -21,7 +21,7 @@ These are internal channels, not target MML track identifiers.
 - Unset native attributes are blank. Target voice identifiers have not yet
   been assigned in this dump.
 
-`tests/test_opll_rhythm.py` compares freshly generated trace/register CSVs
+`tests/script/test_opll_rhythm.py` compares freshly generated trace/register CSVs
 and PASS1-4 against optional `reference/vgm2tx802` files. It also compares
 the exported rhythm Segment timing, keyon, pitch registers, volume and flags
 with reference PASS4 trigger rows. Missing reference fixtures are skipped.
