@@ -25,6 +25,14 @@ PSG hardware-envelope notes retain hardware operation rather than receiving a
 software curve. Rest-only channels are not emitted; rest-time settings are
 deferred until the next sounding note. Neither decision deletes source Segments.
 
+The immutable [PSG/SCC performance stage](psg_scc_performance.md) now owns
+this interpretation. It retains broader source-audibility spans and ordered
+pitch/volume/timbre/control state separately from these conservative renderer
+partitions. Existing boundaries are labelled inferred; they are not claimed as
+PSG/SCC hardware Key-On events. The same interpretation drives loop preparation,
+curve selection and rendering through a deterministic legacy-Note adapter.
+Target envelope IDs remain separate mutable bindings.
+
 ## Shared bank and priority
 
 PSG and SCC submit candidates to one bank before rendering. SCC must not consume

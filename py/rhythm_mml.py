@@ -69,13 +69,19 @@ def _timed(token, steps, raw, minimum_steps=1):
 
 
 def render(segments, raw_ticks=False, end_tick=None, collision_path=None, minimum_steps=1):
-    groups = _target_groups(group_segments(segments), collision_path)
-    if not groups:
-        return ''
-    factor = 1 if raw_ticks else 3
     end = max((s.tick_end for rows in segments.values() for s in rows), default=0)
     if end_tick is not None:
         end = max(end, end_tick)
+    return render_groups(group_segments(segments), raw_ticks, end, collision_path, minimum_steps)
+
+
+def render_groups(groups, raw_ticks=False, end_tick=0, collision_path=None, minimum_steps=1):
+    """Render explicitly projected groups without fabricating native Segments."""
+    groups = _target_groups(groups, collision_path)
+    if not groups:
+        return ''
+    factor = 1 if raw_ticks else 3
+    end = end_tick
     patterns, occurrences = find_patterns(groups)
     tokens = _timed('r', groups[0].tick * factor, raw_ticks, minimum_steps)
     for occurrence in occurrences:

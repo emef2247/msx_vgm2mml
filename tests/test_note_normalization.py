@@ -135,7 +135,9 @@ class NoteNormalizationTests(unittest.TestCase):
                 command = [sys.executable, str(ROOT / 'vgm2mml.py'), str(fixture),
                            '--outdir', str(root / variant), '--vgmticks', '--dump-passes']
                 if variant == 'normalized':
-                    command.append('--normalize-lengths')
+                    # Retain the historical one-frame budget in this existing
+                    # musical-projection oracle; the new8ms cap may abstain.
+                    command.extend(['--normalize-lengths', '--normalization-ms', '16.666666666666668'])
                 result = subprocess.run(command, capture_output=True, timeout=60)
                 self.assertEqual(result.returncode, 0, result.stderr)
             baseline, corrected = root / 'baseline', root / 'normalized'

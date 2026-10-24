@@ -125,7 +125,7 @@ class SyncTests(unittest.TestCase):
         allocation = re.search(r'#alloc \{([^}]+)\}', result)[1]
         values = dict((ch.strip(), int(value)) for ch, value in
                       (item.split('=') for item in allocation.split(',')))
-        self.assertEqual(values, {'0': 33, '1': 967})
+        self.assertEqual(values, {'0': 34, '1': 966})
         self.assertLess(result.index('#alloc'), result.index('#psg_tune'))
         self.assertGreater(result.index('#alloc'), result.index('#opll_mode'))
         self.assertNotIn('2 r4', result)

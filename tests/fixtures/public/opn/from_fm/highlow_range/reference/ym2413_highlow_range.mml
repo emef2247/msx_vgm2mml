@@ -1,0 +1,17 @@
+;[name=ym2413_highlow_range lpf=1]
+#opll_mode 0
+#tempo 120
+#title { "YM2413 High-Low Range" }
+
+; 目的: 各オクターブ (o1〜o7) の代表音 (C / G / B) で Block/F-Num が正しいか
+; 低域と高域の境界部で不正な丸めやオクターブミスが無いか
+
+9 @3 v13 l16
+9 o1 c g b
+9 o2 c g b
+9 o3 c g b
+9 o4 c g b
+9 o5 c g b
+9 o6 c g b
+9 o7 c g b
+9 @3 v13 l8 r r

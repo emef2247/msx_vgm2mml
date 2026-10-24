@@ -39,3 +39,12 @@ still run. Each successful pair retains register traces, native Segment dumps,
 successful compilation by default, adding the same four count fields to its
 CSV/JSON results. It reuses the compiled MGS without converting the source to
 MML a second time. See [batch setup and failure states](batch_mgs.md).
+
+## Playback validation and setup termination
+
+The generated definition allocation includes the stream's terminating byte.
+A successful MGSC compile alone cannot detect the historical missing-terminator
+silence. See [definition storage and playback checks](mgs_definition_storage.md).
+When OPLL counts differ, batch keeps the compilation result but records
+`keyon_status=mismatch`, prints the differences and causes export to exit nonzero.
+Matching counts remain narrower evidence than audio or full musical equivalence.

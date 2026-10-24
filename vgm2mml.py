@@ -36,6 +36,7 @@ from gd3 import title_from_gd3
 from mml_alloc import parse_alloc, override_alloc
 from mml_envelopes import EnvelopeBank
 from psg_scc_target import TUNING_HEADER
+from mgs_conversion_config import MgsOptions
 
 
 def _has_chip_data(csv_path: str) -> bool:
@@ -142,6 +143,15 @@ def main():
     parser.add_argument('--name', help='Override the player metadata name (default: input stem)')
     parser.add_argument('--enhance-macros', action='store_true', default=True,
                         help='Enable enhanced macros (now the default)')
+    parser.add_argument('--enhance-rhythm', '--enhance-drums', dest='enhance_drums', action='store_true',
+                        help='Add inferred PSG/SCC percussion on OPLL rhythm; preserve source parts')
+    psg_parts = parser.add_mutually_exclusive_group()
+    psg_parts.add_argument('--psg-melody-only', '--psg-melody_only', dest='psg_part',
+                           action='store_const', const='melody', default='all',
+                           help='Solo native PSG intervals not classified as rhythm')
+    psg_parts.add_argument('--psg-rhythm-only', '--psg-rhythm_only', dest='psg_part',
+                           action='store_const', const='rhythm',
+                           help='Solo conservatively classified native PSG rhythm intervals')
     parser.add_argument('--legacy-macros', dest='enhance_macros', action='store_false',
                         help='Use the previous greedy macro compressor')
     parser.add_argument('--legacy-loops', action='store_true',
@@ -156,6 +166,12 @@ def main():
                         help='Append absolute VGM sample positions to trace/Segment evidence; does not retime MML')
     parser.add_argument('--normalize-lengths', action='store_true',
                         help='Infer a shared musical clock and normalize target note lengths; retain source samples')
+    parser.add_argument('--fm-state-ms', type=float, default=None,
+                        help='OPLL internal pitch/volume state threshold in ms (effective default 1); enables optional normalization')
+    parser.add_argument('--normalization-ms', type=float, default=None,
+                        help='Maximum target timing correction in ms (effective default 8); enables optional normalization, not gate deletion')
+    parser.add_argument('--force', action='store_true',
+                        help='Omit explicitly listed unsupported chip writes for MGS; malformed streams and compiler limits still fail')
     parser.add_argument('--debug', action='store_true',
                         help='Write all chip-specific MML variants and raw CSV files '
                              'in addition to the merged <stem>.mml output')
@@ -175,6 +191,18 @@ def main():
     parser.add_argument('--alloc', type=parse_alloc,
                         help='Override selected track allocations, e.g. "9=1800, a=3780"')
     args = parser.parse_args()
+    try:
+        options = MgsOptions(args.normalize_lengths, args.normalization_ms, args.fm_state_ms,
+                             args.force, args.dump_passes, args.enhance_drums, psg_part=args.psg_part)
+    except ValueError as error:
+        parser.error(str(error))
+    args.normalize_lengths = options.enabled
+    if args.target != 'mgs' and args.enhance_drums:
+        parser.error('--enhance-rhythm requires --target mgs')
+    if args.target != 'mgs' and args.psg_part != 'all':
+        parser.error('PSG part selection requires --target mgs')
+    if args.target != 'mgs' and args.force:
+        parser.error('--force currently applies only to the MGS target')
     if args.sync_min_gap < 0:
         parser.error('--sync-min-gap must be nonnegative')
     if args.normalize_lengths and args.raw_ticks:
@@ -223,12 +251,66 @@ def main():
         print(f'MDX MML: {mml}')
         return
 
+    from pathlib import Path
+    from mgs_force import inspect_projection
+    root = Path(song_dir)
+    report_path = root / f'{base_name}.conversion.json'
+    # Remove only artifacts owned by this conversion, including old optional
+    # decisions which could otherwise look like current successful output.
+    for suffix in ('mml', 'normalization.json', 'fm.short_states.json', 'fm.short_states.csv',
+                   'opll.normalized.notes.csv', 'opll.normalized.loops.csv',
+                   'opll.normalized.expanded.mml', 'drums.json', 'drums.candidates.csv',
+                   'drums.projection.csv', 'drums.before.target.mml', 'drums.after.target.mml'):
+        (root / f'{base_name}.{suffix}').unlink(missing_ok=True)
+    for chip in ('psg', 'scc', 'opll'):
+        (root / f'{base_name}.{chip}.before.normalize.mml').unlink(missing_ok=True)
+    for chip in ('psg', 'scc'):
+        for suffix in ('json', 'notes.csv', 'gates.csv', 'controls.csv', 'boundaries.csv', 'segments.csv'):
+            (root / f'{base_name}.{chip}.performance.{suffix}').unlink(missing_ok=True)
+    report = dict(status='converting', target='mgs', input=str(Path(vgm_path).resolve()),
+                  options=options.as_dict(), source_segments_unchanged=True)
+    def save_report():
+        report_path.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
+    save_report()
+    try:
+        force_summary = inspect_projection(vgm_path, song_dir, base_name, force=args.force)
+        report['force'] = dict(enabled=bool(args.force), omission_count=force_summary['omission_count'],
+                               csv_path=force_summary['csv_path'])
+        if args.force:
+            print(f"Forced MGS projection: {force_summary['omission_count']} omitted source writes")
+            if force_summary['omission_count']:
+                print(f"Omission details: {force_summary['csv_path']}")
+        if not args.normalize_lengths:
+            disabled = dict(enabled=False, applied=False, status='disabled',
+                reason='optional normalization not requested', source_segments_unchanged=True,
+                normalization_ms=float(options.effective_normalization_ms),
+                fm_state_ms=float(options.effective_fm_state_ms), whole_gate_omission=False,
+                fm_state_scope='OPLL melody within accepted normalization only',
+                psg_scc_curves_filtered=False, omitted_states=0)
+            (root / f'{base_name}.normalization.json').write_text(json.dumps(disabled, indent=2), encoding='utf-8')
+            (root / f'{base_name}.fm.short_states.json').write_text(json.dumps(disabled, indent=2), encoding='utf-8')
+        _convert_mgs(args, options, vgm_path, song_dir, base_name)
+        report['normalization'] = json.loads((root / f'{base_name}.normalization.json').read_text(encoding='utf-8'))
+        if args.enhance_drums:
+            report['drums'] = json.loads((root / f'{base_name}.drums.json').read_text(encoding='utf-8'))
+        if args.psg_part != 'all':
+            report['psg_selection'] = json.loads((root / f'{base_name}.psg.selection.json').read_text(encoding='utf-8'))
+        report.update(status='success', mml=str(root / f'{base_name}.mml'))
+    except Exception as error:
+        report.update(status='conversion_failed', error_type=type(error).__name__, detail=str(error))
+        save_report()
+        raise
+    else:
+        save_report()
+
+
+def _convert_mgs(args, options, vgm_path, song_dir, base_name):
     # ── Step 1: Parse VGM → SCC + PSG + OPLL log/trace CSVs ──────
     opm_metadata = {}
     (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
      opll_log_csv, opll_trace_csv, opll_voice_csv, opll_regs_csv) = parse_vgm(
          vgm_path, song_dir, dump_loop=args.debug or args.dump_passes,
-         include_vgmticks=args.vgmticks or args.normalize_lengths,
+         include_vgmticks=args.vgmticks or args.normalize_lengths or args.enhance_drums or args.psg_part != 'all',
          opm_metadata=opm_metadata, dump_opm_segments=args.debug or args.dump_passes)
 
     if args.debug:
@@ -249,6 +331,9 @@ def main():
     has_psg  = _has_chip_data(psg_trace_csv)
     has_scc  = _has_chip_data(scc_trace_csv)
     has_opll = _has_chip_data(opll_trace_csv)
+
+    if args.psg_part != 'all' and not has_psg:
+        raise ValueError('PSG part selection requires source PSG register data')
 
     # ── Step 2: SCC MML pipeline ─────────────────────────────────
     if args.legacy_loops:
@@ -277,6 +362,37 @@ def main():
     if args.debug:
         print(f"PSG MML: {psg_mml_path}")
 
+    performances = [kwargs['performance'] for _, _, _, kwargs in envelope_bank.pending]
+    selection_candidates = ()
+    selected_psg = None
+    if args.psg_part != 'all':
+        from pathlib import Path
+        from psg_part_selection import select, dump as dump_selection
+        from psg_scc_performance import analyze, dump as dump_performance
+        from chip_segments import PsgSegment, dump_segments
+        native_psg = next(p for p in performances if p.chip == 'psg')
+        selected_psg, selection_candidates, summary, catalog, membership = select(native_psg, args.psg_part)
+        dump_selection(song_dir, base_name, summary, catalog, membership)
+        projected_performance = analyze(selected_psg, 'psg')
+        pending = []
+        for segments, chip, path, kwargs in envelope_bank.pending:
+            if chip != 'psg':
+                continue
+            kwargs = dict(kwargs, performance=projected_performance)
+            if args.dump_passes:
+                prefix = str(Path(song_dir) / (base_name + '.psg.selection'))
+                kwargs['dump_path'] = prefix + '.target_notes.csv'
+                dump_performance(projected_performance, prefix)
+                dump_segments(prefix+'.segments.csv', selected_psg, PsgSegment)
+            pending.append((selected_psg, chip, path, kwargs))
+        envelope_bank.pending = pending
+        Path(song_dir, base_name+'.scc.target.mml').write_text('', encoding='utf-8')
+        print(f"PSG selection: {args.psg_part}; {summary['eligible_rhythm_candidates']} rhythm candidates; "
+              f"{summary['hardware_phase_abstentions']} hardware-envelope abstentions")
+    else:
+        from pathlib import Path
+        for suffix in ('json', 'candidates.csv', 'mask.csv'):
+            Path(song_dir, base_name+'.psg.selection.'+suffix).unlink(missing_ok=True)
     envelope_bank.flush()
 
     from opll_mode import mode_from_trace
@@ -293,19 +409,29 @@ def main():
         print(f"OPLL MML: {opll_mml_path}")
 
     # Optional target-only normalization; legacy passes and Segment dumps stay native.
+    drum_control_sources = None
+    if args.enhance_drums:
+        from pathlib import Path
+        drum_control_sources = {chip: Path(song_dir, f'{base_name}.{chip}.target.mml').read_text(encoding='utf-8')
+                                for chip in ('psg', 'scc')}
     normalized_tempo = None
     if args.normalize_lengths:
+        print(f'Normalization settings: {options.effective_normalization_ms:g} ms timing bound; '
+              f'{options.effective_fm_state_ms:g} ms OPLL internal-state threshold')
         from note_normalization import normalize_outputs
         from psg import build_segments as build_psg
         from scc import build_segments as build_scc
         controls = {}
         if has_psg:
-            controls['psg'] = build_psg(psg_csv, song_dir, base_name, dump_passes=False)
-        if has_scc:
+            controls['psg'] = (selected_psg if selected_psg is not None else
+                               build_psg(psg_csv, song_dir, base_name, dump_passes=False))
+        if has_scc and args.psg_part == 'all':
             controls['scc'] = build_scc(scc_csv, song_dir, dump_passes=False, stem=base_name).segments
         normalized_tempo = normalize_outputs(opll_trace_csv, opll_voice_csv, song_dir,
                                              base_name, args.dump_passes or args.debug, controls,
-                                             opll_mode=opll_mode, source_loops=not args.legacy_loops)
+                                             opll_mode=opll_mode, source_loops=not args.legacy_loops,
+                                             normalization_ms=options.effective_normalization_ms,
+                                             fm_state_ms=options.effective_fm_state_ms)
         if normalized_tempo is not None:
             print(f'Note normalization: applied (tempo {normalized_tempo})')
         else:
@@ -313,9 +439,35 @@ def main():
                 reason = json.load(stream)['reason']
             print(f'Note normalization: unchanged ({reason})')
 
+    if args.enhance_drums:
+        from drum_inference import infer
+        from drum_enhancement import apply
+        from opll import _build_segments
+        native_opll, _ = _build_segments(opll_trace_csv)
+        if args.psg_part != 'all':
+            # Solo excludes native SCC/OPLL, but preserves their source evidence
+            # and the native OPLL timing anchor used above.
+            native_opll = {}
+            Path(song_dir, base_name+'.opll.target.mml').write_text('', encoding='utf-8')
+            overlay_candidates = selection_candidates if args.psg_part == 'rhythm' else ()
+            overlay_performances = [projected_performance]
+        else:
+            overlay_candidates = infer(performances)
+            overlay_performances = performances
+        with open(os.path.join(song_dir, f'{base_name}.normalization.json'), encoding='utf-8') as stream:
+            normalization = json.load(stream)
+        opll_mode, drum_report = apply(overlay_candidates, native_opll, overlay_performances,
+            song_dir, base_name, native_mode=opll_mode, normalization=normalization,
+            raw_ticks=args.raw_ticks, dump_passes=args.dump_passes or args.debug,
+            control_sources=drum_control_sources)
+        has_opll = has_opll or bool(drum_report['added_hits'])
+        print(f"Rhythm enhancement: {drum_report['added_hits']} added hits; {drum_report['reason']}")
+
     # ── Step 5: Build merged MML ──────────────────────────────────
+    target_scc = has_scc and args.psg_part == 'all'
+    target_opll = has_opll if args.psg_part == 'all' else bool(args.enhance_drums and drum_report['added_hits'])
     merged_text = _build_merged_mml(base_name, song_dir,
-                                    has_psg, has_scc, has_opll,
+                                    has_psg, target_scc, target_opll,
                                     raw_ticks=args.raw_ticks,
                                     sync_min_gap=args.sync_min_gap,
                                     name=args.name, title=args.title, tempo=normalized_tempo, opll_mode=opll_mode)
@@ -324,6 +476,8 @@ def main():
         from structured_macros import enhance_macros
         merged_text = enhance_macros(merged_text,
             dump_prefix=os.path.join(song_dir, base_name) if args.dump_passes else None)
+    from mml_format import format_mml
+    merged_text = format_mml(merged_text)
     merged_path = os.path.join(song_dir, f'{base_name}.mml')
     with open(merged_path, 'w', encoding='cp932', errors='replace', newline='\n') as fh:
         fh.write(merged_text)

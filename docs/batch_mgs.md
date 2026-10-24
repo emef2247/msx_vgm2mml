@@ -1,5 +1,24 @@
 # Batch VGM to MGS
 
+## Export entry with explicit default thresholds
+
+`export_mgs.py` uses the same batch implementation and diagnostics, with
+`--fm-state-ms 24` and `--normalization-ms 8` as its defaults:
+
+```sh
+python scripts/export_mgs.py INPUT_DIR --outdir OUTPUT_DIR --force
+```
+
+A single VGM/VGZ file is also accepted. Either threshold can be overridden, for
+example `--fm-state-ms 4 --normalization-ms 16`. These defaults request optional
+normalization; the converter still reports `unchanged` if a safe OPLL-anchored
+projection cannot be found. They do not imply PSG/SCC envelope filtering.
+
+The existing `batch_vgm_to_mgs.py` retains its own defaults and behavior. The
+export entry delegates conversion, compilation, omission rules and report
+creation to that runner. Other options, including `--skip-keyon-counts`, retain
+the same meaning; optional key-on verification is enabled unless skipped.
+
 Native `mgsc` on PATH is preferred; mgsc-js is not needed in that
 case. The native CLI is invoked as `mgsc INPUT.mml OUTPUT.mgs`. Specify an
 executable explicitly with `--mgsc /usr/local/bin/mgsc`.
@@ -8,7 +27,8 @@ executable explicitly with `--mgsc /usr/local/bin/mgsc`.
 python scripts/batch_vgm_to_mgs.py tests/fixtures/local_only/opll --outdir outputs/mgs
 ```
 
-Success requires exit code zero AND a nonempty output MGS, because some native
+Conversion requires exit code zero and a nonempty current-run MML.
+Compilation requires exit code zero AND a nonempty output MGS, because some native
 builds return zero on MML errors. Failure stdout/stderr are printed and logged.
 Generated MML remains available for inspection.
 
@@ -34,18 +54,42 @@ a per-input directory containing generated MML, MGS on success, and convert.log
 and compile.log. Existing MML/MGS for the same input in that output directory
 are replaced on reruns. Source files are never modified.
 
-results.csv and results.json list success, conversion_failed, buffer_error,
-compile_failed, or process errors. Source-size errors are compile_failed and
-their exact message remains in the log. Exit status is 1 if any input failed.
-Failures do not stop later files. No allocation adjustment or music truncation
-is performed. `--timeout` sets the per-stage timeout in seconds (default 300).
-Timeouts are reported separately as `convert_timeout` or `compile_timeout`,
-not as conversion exceptions or ordinary process errors. The stage log retains
-partial stdout/stderr and the configured number of seconds. Later inputs still
-run. A timed-out compiler's incomplete MGS is removed; intermediate MML remains
-available for inspection. Increase the timeout for a slow but valid conversion
-rather than reducing musical accuracy or limiting the source-loop structure.
+`results.csv` and `results.json` are updated after every input, retaining completed
+progress if a later input is interrupted. Primary statuses are `success`,
+`conversion_failed`, and `compilation_failed`. `stage` and `error_code` distinguish
+conversion errors, compiler buffer errors, missing output, process errors and
+timeouts. `legacy_status` retains the earlier classification where applicable.
+The console prints `input: status: detail`, followed by a final exported count.
+Failures do not stop later inputs. No allocation adjustment, automatic retry or
+music truncation is performed. `--timeout` sets the per-stage timeout in seconds
+(default 1200). A timeout retains partial stdout/stderr. A failed compiler's
+incomplete MGS is removed; intermediate MML remains available for inspection.
 MGS compilation does not prove playback equivalence.
+
+Each input folder also contains `report.json` and `report.txt`, recording effective
+options, stage commands, output paths, error details and raw log paths.
+Normalization and FM state sidecars are embedded under `summaries`; CSV/JSON rows
+also expose `normalization_status`, `normalization_reason`, `normalization_ms` and
+`fm_state_ms`, so requested settings can be distinguished from actual application. Reruns
+replace only known generated MML/MGS, reports, stage logs, normalization and force
+sidecars for that input; unrelated files and directories are preserved. A single
+`.vgm` or `.vgz` file can be supplied instead of a directory.
+
+## Shared conversion options
+
+`--fm-state-ms` forwards the internal OPLL state threshold (default 1 ms).
+`--normalization-ms` forwards the duration normalization threshold (default 8 ms)
+and enables normalization; an explicit `--fm-state-ms` also enables it.
+`--normalize-lengths` enables it at its default thresholds.
+Normalization remains opt-in for the MSX converter. These values control different
+passes and are recorded separately. `--dump-passes` retains inspectable conversion
+passes. Invalid thresholds and timeouts are rejected before setup or output changes.
+
+`--force` enables only the converter's documented target omission rules. When a
+`<stem>.mgs.force.json` is produced, the console and input report show its omission
+count and details path. It does not bypass malformed input, compiler buffer limits,
+missing dependencies, or timeouts. See the converter's force documentation for the
+allowed rules; successful compilation alone is not proof of equivalent playback.
 
 ## Integrated OPLL key-on counts
 
@@ -107,3 +151,19 @@ the original archive contents. These dependencies are obtained separately;
 this repository does not vendor their binaries. See
 [third-party notices](../THIRD_PARTY_NOTICES.md) for checked versions, exact
 notices, source links and redistribution scope.
+
+## Optional inferred OPLL drums
+
+Use `--enhance-drums` to retain PSG/SCC and add an inferred OPLL rhythm part.
+This experimental option is off by default. Candidates and target decisions
+are saved as `.drums.*` CSV/JSON reports. Existing OPLL melody/rhythm has priority.
+See [drum enhancement](drum_enhancement.md) for classification and timing limits.
+
+## Playback validation and setup termination
+
+The generated definition allocation includes the stream's terminating byte.
+A successful MGSC compile alone cannot detect the historical missing-terminator
+silence. See [definition storage and playback checks](mgs_definition_storage.md).
+When OPLL counts differ, batch keeps the compilation result but records
+`keyon_status=mismatch`, prints the differences and causes export to exit nonzero.
+Matching counts remain narrower evidence than audio or full musical equivalence.

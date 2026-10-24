@@ -1,3 +1,234 @@
+# Completed checkpoint: silent compiled MGS repair (2026-10-24)
+
+User-reported ordinary export silence is reproduced and repaired in the working
+source; no staging/commit/push. Nonempty #alloc0 definition bodies omitted their
+0xff terminator. py/mml_sync.py now reserves one byte once, within unchanged16000
+shared pool. Controlled84->85 allocation changes only MGS byte152 (2c->ff), restores
+0->6 actual Key-Ons; isolated tune/envelope/user-voice probes reproduce it. The old
+body-only estimator is b5027feb (2026-10-06), independently of drum enhancement.
+Existing generated MML must be regenerated. Prior compile-only descriptions of
+playable drum examples did not establish playback; those older artifacts are not
+certified by the present public-only checks.
+
+Public defaults, no enhancement/bypasses:60 inputs,56 compiled,56 nonzero5s PCM,
+55 exports complete with matching melodic OPLL channel counts;4 compile capacity
+failures (cpebach/enchanted/turpinh/bridge). OPLL19/19 complete, paired nearest-note
+labels and rhythm-instrument rising-edge counts also match. Compilation success,
+melodic count match and actual sound are separate facts. PSG/SCC-only0/0 OPLL
+counts are not an oracle; native Segment tone/activity comparisons were saved.
+All26 standalone PSG/SCC have no tone-pitch/coverage differences with explicit
+startup offset2ticks/tolerance1; some activity/boundary differences remain.
+
+Remaining: bluemtns actual export hits104.67s and extended240s guards although
+269/269 melodic attacks match and text ends82.06s. Zero-volume SCC control writes
+continue; termination unresolved. Do not bypass guard or call this complete.
+custom_voice raw onset drift reaches283.605ms; mixed giselle and other mixed
+PSG/SCC differences remain. Full musical/audio equivalence is not established.
+No browser GUI or human listening check was performed.
+
+35 focused checks pass: test_mgs_playback5, test_mml_sync13, test_batch_mgs13,
+test_export_mgs4. Real replay tests reproduce old successful-compile/zero-Key-On
+case, test every definition class/combination and ordinary public export. New
+scripts/probe_mgs_audio.mjs measures compiled PCM. Batch now marks unequal melodic
+counts mismatch and export exits1 while compilation status stays separate.
+
+Report and regenerated public MML/MGS/replay/selected Segment artifacts:
+outputs/diagnostics/mgs_silence_20261024/verification.md/json and summary.csv.
+Complete dumps/probes: Windows TEMP/msx_silence_20261024. New focused documentation:
+docs/mgs_definition_storage.md. External note:2026-10-24_mgs_definition_terminator_silence.md.
+
+Next allowed action: user regenerate/listen using the fixed ordinary exporter.
+Investigate residual termination/timing/capacity from saved intermediate evidence
+as separate work. Do not raise pool, suppress errors, change source Segments or
+claim full fidelity merely because compilation, count equality or PCM succeeds.
+Earlier staged frontend/performance changes and unrelated files are retained.
+
+---
+
+# Completed checkpoint: optional OPLL percussion overlay (2026-10-24)
+
+Saved in the MSX working tree; no staging/commit/push. Earlier frontend/export/
+performance-IR work is retained. Current feature: --enhance-drums on canonical
+MGS converter, export_mgs and batch entry points; default remains disabled.
+
+Drum inference consumes existing immutable PSG/SCC PerformanceIR. Audibility
+spans and strong volume/noise/EG transitions nominate gestures; short noise,
+decay plus downward pitch sweeps, or SCC broadband+decay nominate preset rhythm
+instruments. Full accepted/rejected catalog and source lineage remain. Thresholds
+are experimental, never source Key-On facts. Fixed-volume register decline does
+not establish amplitude decay for hardware-envelope PSG.
+
+The native source tracks/Segments remain intact. New target groups reuse ordinary
+rhythm repeat rendering on f. Native rhythm wins same-instrument/time collisions;
+duplicate inferred hits keep stronger level deterministically. Any native high-
+OPLL channel6..8 Key-On with frequency blocks the entire overlay. Native mode and
+target MML are unchanged when no hit is added; --force does not bypass the guard.
+
+Projection runs after native rendering/normalization. Applied-clock onsets follow
+actual projected PSG/SCC boundaries with source-error/minimum-step checks. Needed
+pre-normalization text is retained in memory, independent of --dump-passes. This
+was fixed after review found the first implementation depended on diagnostic
+before.normalize files. The same-output dump-on -> dump-off applied-clock test
+now preserves MML and all6 added test hits without those files.
+
+Verification: related78 checks pass; post-review10 integration checks pass. Public
+28 inputs compile and preserve original effective part timelines.25 public inputs
+with no additions retain byte-identical MML. Two representatives from the user-
+authorized local set compile and preserve source hashes/PSG-SCC timelines:
+DSLY4_01 addsBD5; gra2_001_with_sync_mark01 addsSD7/HH3. No full local regression or
+audio/listening accuracy claim. Existing rhythm suite has3 allocation assertions
+expecting15000 versus committed16000; four ordinary/raw render cases match HEAD.
+
+Reports and small playable examples:
+outputs/diagnostics/drum_enhancement_20261024/verification.md/json and examples/.
+Large public dumps/test logs remain under Windows TEMP/msx_drum_enhancement_20261024.
+See docs/drum_enhancement.md for syntax, exact hypotheses and abstention rules.
+
+Next allowed action: user listening/regression with --enhance-drums and separate
+outdir. Refine classification from retained evidence; do not label inference as
+hardware attacks, remove source parts, silently steal OPLL melody, or apply FM
+state pruning to PSG/SCC curves. No further regression/commit/push is queued.
+
+---
+
+# Completed checkpoint: PSG/SCC performance IR (2026-10-24)
+
+Implementation is saved in the working tree; no staging, commit or push.
+The 2026-10-23 frontend/export catch-up changes remain saved as well.
+Unrelated README copies, fixture directories and external notes are untouched.
+
+## Completed scope
+
+- PSG/SCC source-audibility spans, ordered pitch/volume/timbre/mode/hardware-
+  envelope controls, and conservative inferred note partitions are separate in
+  immutable PerformanceIR. Source Segment lineage and sample timing/unknowns,
+  zero-time states and boundary reasons remain inspectable.
+- One IR feeds existing loop preparation, shared envelope selection and rendering.
+  Relative structural keys preserve prior equality; mutable target envelope IDs
+  remain outside note identity. Existing partition policy and MML stay compatible.
+- --dump-passes emits performance notes/gates/controls/boundaries/segments CSVs
+  and JSON summaries. Known stale performance artifacts are removed on rerun.
+- New vibrato/portamento/score-attack recognition is NOT implemented. A source-
+  audibility gate is not an observed Key-On. Controls are per-Segment state
+  snapshots, not independently observed raw register writes. Validation covers
+  retained Segment state/order/lineage, not musical or raw-VGM replay fidelity.
+- OPLL was explicitly excluded from this stage. Existing export_mgs.py defaults
+  remain FM-state24ms / normalization8ms; its underlying batch file is unchanged
+  from the preceding catch-up checkpoint.
+
+## Verification
+
+The user explicitly authorized all 59 selected PSG/PSG+SCC local inputs; the one
+folder without sync-mark VGM uses its parent VGM as approved. Original SHA-256
+values match for all 59 inputs. New MML generation succeeds for all 59; all MML
+and 5,048 existing CSV/MML artifacts match the pre-IR renderer byte for byte.
+All new performance summaries validate retained Segment state/order/lineage.
+These native comparisons use --vgmticks --dump-passes without normalization to
+isolate the IR refactor; export defaults are covered independently by tests.
+
+Native MGSC:55/59 compile. DSLY4_02/11/14 and gra2_016_with_sync_mark03 reproduce
+Track buffer full with the identical baseline MML. Public PSG/SCC/PSG+SCC:28/28
+MML-identical and compiled. Focused suite:65/66 pass; its only failure is the
+pre-existing allocation15000/16000 expectation mismatch. Additional CLI/stale-
+artifact checks:3/3 pass. No audio-equivalence claim.
+
+SCC has3,755 conservative note partitions spanning multiple sub-tick audibility
+spans. This inherited ambiguity is now visible; it has not been resolved by
+inventing new attacks or flattening curves. PSG has no such flagged partitions
+in this set. Source sample coordinates are known for all retained local rows.
+
+Evidence: outputs/diagnostics/psg_scc_curves_20261023/verification.md/json,
+results.csv and performance/public output trees. I: became full during checking;
+this task's artifacts were temporarily relocated and incomplete work rerun.
+New output trees and aggregate reports are restored under outputs. Baseline
+artifacts remain at C:/Users/ef110/AppData/Local/Temp/
+msx_psg_scc_curves_20261023/baseline. See relocated_to.txt for actual locations.
+
+Next allowed work: review/listen to the preserved output, then separately design
+score-attack/continuous-pitch inference using authored expectations and the new
+boundary/control evidence. Do not claim that gate_ambiguity is solved, apply FM
+state pruning to PSG/SCC envelopes, or change existing source evidence implicitly.
+No further local regression, staging, commit or push is queued.
+
+---
+
+## Export entry follow-up (2026-10-23)
+
+scripts/export_mgs.py delegates to the existing batch runner, with explicit
+FM-state24ms / normalization8ms defaults and CLI overrides. No batch source or
+shared MgsOptions defaults were changed in this follow-up. Numeric defaults
+request optional normalization; unchanged/reason remains visible when rejected.
+Other batch behavior, including optional key-on checking, is inherited.
+Four focused export checks pass, including a public PSG conversion. Evidence:
+outputs/diagnostics/export_mgs_20261023/. Stage3 remains awaiting user patterns.
+
+# Active checkpoint: MGSDRV frontend catch-up (2026-10-23)
+
+Implementation is saved in the working tree. No staging, commit or push.
+Existing unrelated README copies/public fixture directories are untouched.
+The earlier shared helper/note-normalization edits are retained and extended.
+
+## Current behavior
+
+- Shared immutable MgsOptions feeds the converter and batch. With no normalization
+  switches, conventional MSX output remains unchanged. Explicit --fm-state-ms or
+  --normalization-ms enables optional normalization; rejected clock/projection
+  keeps the ordinary output and records unchanged/reason.
+- MSX effective defaults: FM1ms/44samples, correction8ms/352samples. X68000's24ms
+  default is not assumed to be OPLL fidelity evidence. FM filtering is confined
+  to OPLL melody inside accepted normalization. No independent PSG/SCC clock
+  estimator, no whole-gate deletion and no PSG/SCC envelope filtering added.
+- Release-final states and both sides of voice/custom-patch/sustain changes are
+  protected. Rhythm boundaries obey the correction budget; newly merged distinct
+  attacks reject normalization atomically. Original traces/Segments stay native.
+- Force uses a validated finite command inventory: known OPM/OPNA/DCSG/MSM6258/
+  SegaPCM/second-OPLL writes may be omitted, with exact source offsets/times/data.
+  Unsupported-only input, malformed VGM, unsafe decoder variants and PCM stream/
+  transfer commands still fail. Mere header clocks and existing undeclared muted
+  SCC initialization are separate from forced omissions.
+- Batch default timeout1200s. Primary success/conversion_failed/compilation_failed
+  with stage/error_code/detail and legacy_status; incremental CSV/JSON plus raw
+  logs and per-input report JSON/TXT. Nonempty current-run MML and MGS required.
+  Key-on comparison remains independent, with its previous enabled default.
+- New conversion, source inventory, force and normalization/FM decision reports
+  survive failure. Known stale generated files are removed on rerun; unrelated
+  user files/directories are not removed.
+
+## Verification and limits
+
+Public60 inputs:56 compile,4 existing MGSC track-buffer failures (cpebach,
+enchanted,turpinh,bridge). Their MML is byte-identical to HEAD frontend output
+using unchanged renderers with normalization disabled; HEAD compile also fails.
+Authored STATE_PROBE:1ms retains all state runs,24ms omits24 internal pitch states;
+both normalize and compile, retain24 attacks and identical native Segment hashes.
+Public sample retains the historical applied oracle at explicit16.6667ms budget;
+new8ms default may safely abstain. Segment evidence stays identical.
+
+Related suite:117 checks,116 passed and1 pre-existing failure. Results are in
+outputs/diagnostics/msx_catchup_20261023/focused_tests.json/log. The allocation assertion expecting15000 versus committed
+16000 is pre-existing and is not edited; HEAD/current behavior is identical.
+
+Existing libkss roundtrip check is NOT validated as passing:18/19 public OPLL
+exports hit its duration guard, one compares19 source Key-Ons versus0 output.
+That one has byte-identical HEAD/current MML and MGS and the same HEAD mismatch.
+No blanket playback-equivalence claim. The export/runtime cause is not resolved
+by this frontend catch-up. --skip-keyon-counts is available for compile-only runs.
+
+All evidence: outputs/diagnostics/msx_catchup_20261023/.
+Docs: docs/note_normalization.md, docs/mgs_force.md, docs/batch_mgs.md.
+External private note: field_notes/2026-10-23_msx_frontend_catchup.md.
+
+## Next allowed action
+
+User runs local_only threshold sweeps/listening and may commit this checkpoint.
+Stage3 (separate one sounding note from typed pitch/volume/timbre curves) has NOT
+started. The user will provide its test patterns; wait for those before starting.
+Do not blanket-prune PSG/SCC SW-envelope curves, relax compiler limits silently,
+claim that a requested threshold was applied without inspecting its status, or
+change unrelated allocation expectations to make this suite green.
+
+---
+
 ## 2026-10-11: third-party license and copyright notices
 
 - File edits only; do not stage, commit, push or switch branches without user request.
@@ -2593,3 +2824,23 @@ It emits separate .notes.mdx/MML/VGM and semantic verification. YUMADV18 passed
 state/key-edge comparison; MMDSP display is unverified. Four focused tests pass.
 The generator binary is unchanged. Do not replace the default renderer before
 player/display validation. PSG unsupported-mode work is deferred for MDX work.
+
+
+## 2026-10-23 shared FM short-state threshold
+
+User authorized aligning the inherited approximately 1 ms selector across MSX,
+x68k and MUCOM, widening the default to 8 ms. note_normalization now calls the
+identical fm_state_runs helper shared with those repos: 352 original samples,
+retain at least one state per attack, report dropped indices. Existing MSX
+normalization remains opt-in; no source evidence or standalone reference-audit
+tolerance changed. There is no new MSX --normalization-ms CLI option. Existing
+13 note-normalization tests passed. Docs/note_normalization.md updated.
+Saved, not staged/committed/pushed; unrelated working-tree files preserved.
+
+
+## 2026-10-23 final shared threshold direction
+
+User chose the original1ms/44sample default. Shared fm_state_runs default is44
+again; docs updated. x68k/MUCOM expose independent --fm-state-ms while their
+whole-gate/clock --normalization-ms stays8ms. No new MSXCLI option. No public
+pattern sweep or local_only conversion performed in this follow-up.

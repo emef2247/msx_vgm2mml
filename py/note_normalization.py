@@ -54,7 +54,7 @@ def _cluster(samples, distance=44):
     return [statistics.median(group) for group in groups]
 
 
-def infer_timing(segments):
+def infer_timing(segments, *, normalization_ms=None):
     """Accept a single regular clock only with >=95% anchor coverage.
 
     Half/double-tempo ambiguity is resolved by preferring a sixteenth-note
@@ -72,7 +72,10 @@ def infer_timing(segments):
     intervals = [b - a for attacks in channels for a, b in zip(attacks, attacks[1:]) if b - a > MAX_ERROR]
     if len(anchors) < 16 or len(intervals) < 8:
         return None
-    tolerance = min(MAX_ERROR, min(intervals) / 4)
+    # Anchor eligibility remains independent of the target movement budget.
+    from mgs_conversion_config import sample_threshold
+    bound = MAX_ERROR if normalization_ms is None else sample_threshold(normalization_ms, '--normalization-ms')
+    tolerance = min(bound, min(intervals) / 4)
     candidates = []
     for bpm in range(80, 201):
         for grid in (12, 6):
@@ -173,9 +176,12 @@ def _gate(observed, available, default_gate, plan):
     return nominal, 8, False
 
 
-def render_melody(segments, voice_path, plan, num_channels=6, source_loops=False):
+def render_melody(segments, voice_path, plan, num_channels=6, source_loops=False, *,
+                  fm_state_ms=1, state_evidence=None):
     from opll_target import target_note, decode_patch
     from performed_patterns import Unit, compress
+    from mgs_conversion_config import sample_threshold
+    state_samples = sample_threshold(fm_state_ms, '--fm-state-ms')
     updates = []
     with open(voice_path, newline='') as stream:
         for row in csv.DictReader(stream):
@@ -262,12 +268,25 @@ def render_melody(segments, voice_path, plan, num_channels=6, source_loops=False
                 raise ValueError(f'Normalization would merge attacks on channel {ch}')
             # Intermediate writes remain in source CSVs; target states which
             # have no representable duration are recorded, not silently deleted.
-            dropped = [i for i, (a, b, value) in enumerate(runs) if b - a <= 44 and len(runs) > 1]
-            if len(dropped) == len(runs):
-                # A source attack is never a disposable register intermediate.
-                # Retain its final state, including a short unclosed EOF attack.
-                dropped.remove(len(runs) - 1)
-            retained = [run for i, run in enumerate(runs) if i not in dropped]
+            from fm_state_runs import select_state_runs
+            # A short final state determines the release; timbre and sustain
+            # transitions cannot be approximated as pitch/level transients.
+            protected = {len(runs) - 1}
+            for index in range(1, len(runs)):
+                previous, current = runs[index - 1][2], runs[index][2]
+                if (previous[2], previous[4], previous[5]) != (current[2], current[4], current[5]):
+                    protected.update((index - 1, index))
+            retained_indices, dropped_indices = select_state_runs(runs, state_samples, protected)
+            dropped = list(dropped_indices)
+            if state_evidence is not None:
+                for index, (a, b, value) in enumerate(runs):
+                    state_evidence.append(dict(ch=ch, note_index=ordinal, run_index=index,
+                        source_start_samples=a, source_end_samples=b, duration_samples=b-a,
+                        source_segment_indices=';'.join(str(i) for i, seg in note.members
+                            if seg.vgmticks < b and seg.vgmticks_end > a),
+                        state=json.dumps(value), action='omit_internal_state' if index in dropped else 'retain',
+                        protected=index in protected, threshold_samples=state_samples))
+            retained = [runs[i] for i in retained_indices]
             if not retained:
                 raise ValueError('An attack contains only unrepresentable intermediate states')
             positions = [start]
@@ -454,8 +473,39 @@ def melodic_timeline(text):
     return result
 
 
+def retime_rhythm(segments, plan):
+    """Copy rhythm timing only when every boundary fits and no new hit collides."""
+    from rhythm_patterns import group_segments
+    proxies, maximum = {}, 0
+    for ch, rows in segments.items():
+        if ch < 9:
+            continue
+        proxies[ch] = []
+        for original in rows:
+            proxy = SimpleNamespace(**{slot: getattr(original, slot) for slot in original.__slots__})
+            proxy.tick_start = proxy.ticks = plan.onset(original.vgmticks)
+            proxy.tick_end = max(proxy.tick_start, round(plan.position(original.vgmticks_end)))
+            proxy.l = proxy.tick_end - proxy.tick_start
+            for source, target in ((original.vgmticks, proxy.tick_start),
+                                   (original.vgmticks_end, proxy.tick_end)):
+                shift = abs(target - plan.position(source)) * plan.samples_per_step
+                maximum = max(maximum, shift)
+                if shift > plan.tolerance_samples:
+                    raise ValueError('A rhythm boundary would exceed the correction tolerance')
+            proxies[ch].append(proxy)
+    # Native same-time hits already have an explicit target collision policy.
+    # A newly inferred clock must not merge distinct source attack times.
+    for group in group_segments(proxies):
+        times = {}
+        for hit in group.hits:
+            previous = times.setdefault(hit.instrument, hit.source_time)
+            if previous != hit.source_time:
+                raise ValueError('Normalization would merge distinct rhythm attacks')
+    return proxies, maximum
+
+
 def normalize_outputs(opll_trace, voice_path, output_dir, stem, dump=False, controls=None, *,
-                      opll_mode=1, source_loops=False):
+                      opll_mode=1, source_loops=False, normalization_ms=8, fm_state_ms=1):
     """Prepare all target projections before replacing files; abstain if unsafe."""
     from opll import _build_segments
     from rhythm_mml import render as render_rhythm
@@ -463,30 +513,31 @@ def normalize_outputs(opll_trace, voice_path, output_dir, stem, dump=False, cont
     from mml_sync import analyze_mml, _leaves
     from dataclasses import asdict
     segments, _ = _build_segments(opll_trace)
-    plan = infer_timing(segments)
+    plan = infer_timing(segments, normalization_ms=normalization_ms)
     root = Path(output_dir)
     for suffix in ('expanded.mml', 'notes.csv', 'loops.csv'):
         (root / f'{stem}.opll.normalized.{suffix}').unlink(missing_ok=True)
     for chip in ('opll', 'psg', 'scc'):
         (root / f'{stem}.{chip}.before.normalize.mml').unlink(missing_ok=True)
-    report = dict(status='unchanged', reason='no confident shared clock', source_segments_unchanged=True)
+    from mgs_conversion_config import sample_threshold
+    state_rows = []
+    state_path = root / f'{stem}.fm.short_states.csv'
+    state_path.unlink(missing_ok=True)
+    report = dict(status='unchanged', reason='no confident shared clock', source_segments_unchanged=True,
+                  enabled=True, applied=False, normalization_ms=float(normalization_ms),
+                  configured_threshold_samples=sample_threshold(normalization_ms, '--normalization-ms'),
+                  fm_state_ms=float(fm_state_ms), fm_state_samples=sample_threshold(fm_state_ms, '--fm-state-ms'),
+                  whole_gate_omission=False, fm_state_scope='OPLL melody only',
+                  psg_scc_curves_filtered=False)
     if plan:
         report['timing'] = asdict(plan)
         try:
             melody, expanded, evidence, loops = render_melody(segments, voice_path, plan,
                                                               num_channels=6 if opll_mode else 9,
-                                                              source_loops=source_loops)
+                                                              source_loops=source_loops, fm_state_ms=fm_state_ms,
+                                                              state_evidence=state_rows)
             # Rhythm uses the same source clock, with a target-only proxy.
-            proxies = {}
-            for ch, rows in segments.items():
-                if ch < 9:
-                    continue
-                proxies[ch] = [SimpleNamespace(**{slot: getattr(s, slot) for slot in set(s.__slots__)},
-                                  ) for s in rows]
-                for original, proxy in zip(rows, proxies[ch]):
-                    proxy.tick_start = proxy.ticks = plan.onset(original.vgmticks)
-                    proxy.tick_end = max(proxy.tick_start, round(plan.position(original.vgmticks_end)))
-                    proxy.l = proxy.tick_end - proxy.tick_start
+            proxies, maximum_rhythm_shift = retime_rhythm(segments, plan)
             end = max((round(plan.position(s.vgmticks_end)) for rows in segments.values() for s in rows
                        if s.vgmticks_end is not None), default=0)
             minimum = max(1, plan.tempo // 75)
@@ -506,7 +557,8 @@ def normalize_outputs(opll_trace, voice_path, output_dir, stem, dump=False, cont
             if melodic_timeline(compacted) != melodic_timeline(melody):
                 raise ValueError('Normalized notation optimization changed effective note states')
             replacements['opll'] = compacted + rhythm
-            report.update(status='applied', reason='', target_note_count=len(evidence),
+            report.update(status='applied', applied=True, reason='', target_note_count=len(evidence),
+                          maximum_rhythm_shift_samples=maximum_rhythm_shift,
                           applied_loops=sum(r['status'] == 'applied' for r in loops),
                           compression_preserves_expanded_timeline=True,
                           notation_preserves_effective_states=True,
@@ -531,5 +583,21 @@ def normalize_outputs(opll_trace, voice_path, output_dir, stem, dump=False, cont
                             writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
                             writer.writeheader()
                             writer.writerows(rows)
+    # Candidate decisions remain inspectable even when the atomic replacement
+    # is rejected; never present those omissions as applied output losses.
+    report['candidate_omitted_states'] = sum(r['action'] == 'omit_internal_state' for r in state_rows)
+    report['omitted_states'] = report['candidate_omitted_states'] if report['applied'] else 0
+    report['state_decisions_applied'] = report['applied']
+    if state_rows:
+        with state_path.open('w', newline='', encoding='utf-8') as stream:
+            writer = csv.DictWriter(stream, fieldnames=tuple(state_rows[0]) + ('applied',))
+            writer.writeheader()
+            writer.writerows(dict(r, applied=report['applied']) for r in state_rows)
+    (root / f'{stem}.fm.short_states.json').write_text(json.dumps(dict(
+        enabled=True, applied=report['applied'], reason=report['reason'],
+        threshold_ms=float(fm_state_ms), threshold_samples=report['fm_state_samples'],
+        scope=report['fm_state_scope'], source_unchanged=True,
+        omitted_states=report['omitted_states'], candidate_omitted_states=report['candidate_omitted_states'],
+        state_decisions_csv=str(state_path) if state_rows else None), indent=2), encoding='utf-8')
     (root / f'{stem}.normalization.json').write_text(json.dumps(report, indent=2), encoding='utf-8', newline='\n')
     return plan.tempo if report['status'] == 'applied' else None
