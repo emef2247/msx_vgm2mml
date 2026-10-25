@@ -65,6 +65,23 @@ def legacy_partition(rows, chip):
 
 
 class PerformanceTests(unittest.TestCase):
+    def test_sample_clock_is_explicit_and_preserved_in_dumps(self):
+        from psg_scc_volume_curves import project
+        rows = {0: [psg(0, 441, vgmticks=0, vgmticks_end=441),
+                    psg(441, 441, ev_type='evS', vgmticks=441, vgmticks_end=882)]}
+        performance = analyze(rows, 'psg', tick_clock_hz=44100)
+        projection = project(performance)
+        self.assertEqual(projection.performance.tick_clock_hz, 44100)
+        self.assertEqual(projection.summary()['tick_clock_hz'], 44100)
+        self.assertEqual(dict(projection.performance.channels)[0][0].length, 882)
+        with tempfile.TemporaryDirectory() as folder:
+            prefix = Path(folder)/'source'
+            dump(projection.performance, prefix)
+            metadata = json.loads(Path(str(prefix)+'.performance.json').read_text())
+            self.assertEqual(metadata['tick_clock_hz'], 44100)
+        with self.assertRaises(ValueError):
+            analyze(rows, 'psg', tick_clock_hz=0)
+
     def test_exact_legacy_partitions_both_chips(self):
         for chip, factory, pitch in [('psg', psg, 'fCA'), ('scc', scc, 'f1Ctrl')]:
             with self.subTest(chip=chip):

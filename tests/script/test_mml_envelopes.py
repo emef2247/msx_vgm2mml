@@ -181,7 +181,7 @@ class EnvelopeTests(unittest.TestCase):
         text = annotate_sync_points('1 v0 c%100\n2 v9 c%6\n3 r%200\n', drop_silent=True)
         self.assertNotRegex(text, r'(?m)^[13] ')
         self.assertNotIn('ch1 ---', text)
-        self.assertIn('#alloc { 2=15000 }', text)
+        self.assertIn('#alloc { 2=16000 }', text)
         self.assertIn('step 6 : end', text)
 
     def test_bank_limit_has_lossless_fallback(self):

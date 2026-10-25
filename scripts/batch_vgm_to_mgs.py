@@ -241,9 +241,11 @@ def discover_inputs(source, adjacent=False):
 
 def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=None, alloc=None,
               keyon=True, libkss_module=None, normalize_lengths=False, enhance_macros=True, legacy_loops=False,
-              force=False, fm_state_ms=None, normalization_ms=None, dump_passes=False, enhance_drums=False, psg_part='all'):
+              force=False, fm_state_ms=None, normalization_ms=None, dump_passes=False, enhance_drums=False, psg_part='all',
+              software_volume_curves=False):
     options = MgsOptions(normalize_lengths=normalize_lengths, normalization_ms=normalization_ms,
-                         fm_state_ms=fm_state_ms, force=force, dump_passes=dump_passes, enhance_drums=enhance_drums, psg_part=psg_part)
+                         fm_state_ms=fm_state_ms, force=force, dump_passes=dump_passes, enhance_drums=enhance_drums, psg_part=psg_part,
+                         software_volume_curves=software_volume_curves)
     option_args = options.cli_args()
     effective_options = options.as_dict()
     if not math.isfinite(timeout) or timeout <= 0:
@@ -321,12 +323,16 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
                          folder / (path.stem + '.mgs.force.json'),
                          folder / (path.stem + '.mgs.force.csv'),
                          *(folder / (path.stem + '.' + suffix) for suffix in
-                           ('conversion.json', 'mgs.source.json', 'opll.normalized.notes.csv',
+                           ('conversion.json', 'mgs.source.json', 'volume_curves.target.json', 'opll.normalized.notes.csv',
                             'opll.normalized.loops.csv', 'opll.normalized.expanded.mml',
                             'opll.before.normalize.mml', 'psg.before.normalize.mml', 'scc.before.normalize.mml',
+                            'psg.before.envelope_ties.mml', 'scc.before.envelope_ties.mml',
                             'psg.selection.json', 'psg.selection.candidates.csv', 'psg.selection.mask.csv',
                             'drums.json', 'drums.candidates.csv', 'drums.projection.csv',
-                            'drums.before.target.mml', 'drums.after.target.mml'))):
+                            'drums.before.target.mml', 'drums.after.target.mml')),
+                         *(folder / (path.stem + '.' + chip + '.volume_curves.' + suffix)
+                           for chip in ('psg', 'scc')
+                           for suffix in ('json', 'candidates.csv', 'notes.csv', 'decisions.csv'))):
             if not artifact.resolve().is_relative_to(output):
                 raise ValueError(f'Diagnostic artifact escapes output tree: {artifact}')
             artifact.unlink(missing_ok=True)
@@ -439,7 +445,10 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
         summaries = {}
         for name, suffix in (('normalization', 'normalization.json'),
                              ('fm_states', 'fm.short_states.json'), ('conversion', 'conversion.json'),
-                             ('drums', 'drums.json'), ('psg_selection', 'psg.selection.json')):
+                             ('drums', 'drums.json'), ('psg_selection', 'psg.selection.json'),
+                             ('psg_volume_curves', 'psg.volume_curves.json'),
+                             ('scc_volume_curves', 'scc.volume_curves.json'),
+                             ('volume_curve_target', 'volume_curves.target.json')):
             summary_path = folder / (path.stem + '.' + suffix)
             if summary_path.is_file():
                 try:
@@ -511,6 +520,11 @@ def build_parser():
     parser.add_argument('--normalization-ms', type=float, help='Duration correction threshold in milliseconds; enables normalization')
     parser.add_argument('--fm-state-ms', type=float, help='Internal FM state threshold in milliseconds (default: 1)')
     parser.add_argument('--enhance-rhythm', '--enhance-drums', dest='enhance_drums', action='store_true', help='Add inferred PSG/SCC percussion on OPLL rhythm')
+    volume_curves = parser.add_mutually_exclusive_group()
+    volume_curves.add_argument('--software-volume-curves', action='store_true', default=False,
+                        help='Project exact fixed-pitch PSG/SCC volume curves to software envelopes (opt-in)')
+    volume_curves.add_argument('--no-software-volume-curves', dest='software_volume_curves',
+                               action='store_false', help='Disable PSG/SCC software volume curve projection')
     parts = parser.add_mutually_exclusive_group()
     parts.add_argument('--psg-melody-only', '--psg-melody_only', dest='psg_part',
                        action='store_const', const='melody', default='all')
@@ -537,7 +551,8 @@ if __name__ == '__main__':
                             keyon=not args.skip_keyon_counts, libkss_module=args.libkss_module,
                             normalize_lengths=args.normalize_lengths, enhance_macros=args.enhance_macros, legacy_loops=args.legacy_loops,
                             force=args.force, fm_state_ms=args.fm_state_ms, normalization_ms=args.normalization_ms,
-                            dump_passes=args.dump_passes, enhance_drums=args.enhance_drums, psg_part=args.psg_part)
+                            dump_passes=args.dump_passes, enhance_drums=args.enhance_drums, psg_part=args.psg_part,
+                            software_volume_curves=args.software_volume_curves)
     except (RuntimeError, ValueError) as error:
         parser.exit(2, str(error)+'\n')
     sys.exit(0 if all(r['status'] == 'success' and r['keyon_status'] in ('compared', 'disabled', 'selection_only') for r in results) else 1)

@@ -21,6 +21,7 @@ class ExportMgsTests(unittest.TestCase):
         self.assertEqual(run.call_args.kwargs['normalization_ms'], 8)
         self.assertEqual(run.call_args.kwargs['timeout'], 1200)
         self.assertFalse(run.call_args.kwargs['keyon'])
+        self.assertTrue(run.call_args.kwargs['software_volume_curves'])
 
     @patch('export_mgs.run_batch', return_value=[dict(status='success', keyon_status='compared')])
     def test_explicit_thresholds_and_existing_options_are_forwarded(self, run):
@@ -50,6 +51,15 @@ class ExportMgsTests(unittest.TestCase):
     def test_completed_solo_selection_verification_has_success_exit(self, run):
         self.assertEqual(export_mgs.main(['input', '--outdir', 'out', '--psg-melody-only']), 0)
         self.assertEqual(run.call_args.kwargs['psg_part'], 'melody')
+
+    @patch('export_mgs.run_batch', return_value=[dict(status='success', keyon_status='disabled')])
+    def test_software_volume_curves_are_forwarded(self, run):
+        self.assertEqual(export_mgs.main(['input', '--software-volume-curves']), 0)
+        self.assertTrue(run.call_args.kwargs['software_volume_curves'])
+        self.assertEqual(export_mgs.main(['input', '--no-software-volume-curves']), 0)
+        self.assertFalse(run.call_args.kwargs['software_volume_curves'])
+        with self.assertRaises(SystemExit):
+            export_mgs.main(['input', '--software-volume-curves', '--no-software-volume-curves'])
 
     def test_exit_status_keeps_compilation_and_verification_failures(self):
         for row in [dict(status='compilation_failed', keyon_status='not_compiled'),
@@ -88,6 +98,7 @@ class AdjacentExportTests(unittest.TestCase):
         self.assertEqual(run.call_args.args,(Path('input'),None))
         self.assertEqual(run.call_args.kwargs['fm_state_ms'],24)
         self.assertEqual(run.call_args.kwargs['normalization_ms'],8)
+        self.assertTrue(run.call_args.kwargs['software_volume_curves'])
 
     def test_both_entrypoints_publish_adjacent_products_and_preserve_public_source(self):
         fixture=ROOT/'tests/fixtures/public/opll/ym2413_retrigger/ym2413_retrigger.vgm'

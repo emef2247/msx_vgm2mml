@@ -19,20 +19,28 @@ class MgsOptionsTests(unittest.TestCase):
     def test_default_and_explicit_activation(self):
         base = MgsOptions()
         self.assertFalse(base.enabled)
-        self.assertEqual(base.cli_args(), [])
+        self.assertEqual(base.cli_args(), ['--no-software-volume-curves'])
         self.assertEqual(base.as_dict()['fm_state_samples'], 44)
         self.assertEqual(base.as_dict()['normalization_samples'], 352)
         for opts in [MgsOptions(normalize_lengths=True), MgsOptions(fm_state_ms=24),
                      MgsOptions(normalization_ms=16)]:
             self.assertTrue(opts.enabled)
         self.assertEqual(MgsOptions(fm_state_ms=24,force=True).cli_args(),
-                         ['--fm-state-ms', '24', '--force'])
+                         ['--fm-state-ms', '24', '--force', '--no-software-volume-curves'])
+
+    def test_software_volume_curves_are_opt_in_and_independent_of_normalization(self):
+        self.assertFalse(MgsOptions().as_dict()['software_volume_curves'])
+        options = MgsOptions(software_volume_curves=True)
+        self.assertFalse(options.enabled)
+        self.assertEqual(options.cli_args(), ['--software-volume-curves'])
+        self.assertTrue(options.as_dict()['software_volume_curves'])
 
     def test_rhythm_name_and_psg_part_options(self):
         for part in ('all', 'melody', 'rhythm'):
             options = MgsOptions(enhance_drums=True, psg_part=part)
             self.assertEqual(options.cli_args(), ['--enhance-rhythm'] +
-                             ([] if part == 'all' else ['--psg-'+part+'-only']))
+                             ([] if part == 'all' else ['--psg-'+part+'-only']) +
+                             ['--no-software-volume-curves'])
             self.assertEqual(options.as_dict()['psg_part'], part)
             self.assertTrue(options.as_dict()['enhance_drums'])
             self.assertTrue(options.as_dict()['enhance_rhythm'])

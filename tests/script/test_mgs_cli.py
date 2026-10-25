@@ -26,6 +26,19 @@ class MgsCliTests(unittest.TestCase):
         return subprocess.run([sys.executable,str(ROOT/'vgm2mml.py'),str(source),
                                '--outdir',str(out),*flags],capture_output=True,timeout=60)
 
+    def test_explicit_software_curves_disable_matches_default_and_flags_are_exclusive(self):
+        with tempfile.TemporaryDirectory() as folder:
+            base=Path(folder);source=base/'test.vgm';source.write_bytes(vgm())
+            for name,flags in [('default',[]),('disabled',['--no-software-volume-curves'])]:
+                result=self.run_cli(source,base/name,*flags)
+                self.assertEqual(result.returncode,0,result.stderr.decode())
+                self.assertFalse((base/name/'test.psg.volume_curves.json').exists())
+            self.assertEqual((base/'default/test.mml').read_bytes(),
+                             (base/'disabled/test.mml').read_bytes())
+            result=self.run_cli(source,base/'invalid','--software-volume-curves','--no-software-volume-curves')
+            self.assertEqual(result.returncode,2)
+            self.assertFalse((base/'invalid').exists())
+
     def test_explicit_state_threshold_activates_and_explains_no_clock(self):
         with tempfile.TemporaryDirectory() as folder:
             base=Path(folder);source=base/'test.vgm';source.write_bytes(vgm())

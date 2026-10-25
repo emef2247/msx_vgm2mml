@@ -1,3 +1,300 @@
+# Export default and user successes (2026-10-25)
+
+MSX export_mgs.py now enables --software-volume-curves by default; explicit
+--no-software-volume-curves disables it. Canonical and legacy batch defaults
+remain unchanged. README was not edited. User logs record NEMESIS2 9 successes
+and gra2_msx 47 successes; successful input paths are recorded in external
+field_notes/2026-10-25_export_default_and_user_successes.md. This checkpoint
+records supplied success statuses only; no new fixture conversion was run.
+
+# Verified reference-score release continuation (2026-10-25)
+
+Current GRA2_001 split MMLs are valid direct oracles: all6 reference MML->MGS->VGM
+are byte-identical to inputs. Same-period release continuation + inactive shared
+latch handling is saved under --software-volume-curves. Native source/control/
+boundary evidence is preserved; SCC remains excluded from period-write joins.
+All6 final MGS compiles succeed; all6 PSG1/3 compiler-used-byte pairs shrink.
+55 focused checks pass, plus case06 real-oracle PSG1/3 prefix200-frame volume/
+enable equality. Full six-song/all-chip actual equivalence is not claimed.
+
+IMPORTANT tradeoff: case05 SCC1(track4)1261->1790bytes; combinedtracks10100->10446.
+Do not call this a universal buffer fix. Existing long-first shared32bank and
+macro policies remain unchanged. Relative base-volume envelope families and
+source note-off/release parameter recovery are still missing.
+
+Read outputs/diagnostics/reference_gap_20261025/analysis_ja.md and external
+field_notes/2026-10-25_reference_score_release_continuations.md for causes,
+intermediate adverse results and final validation. Next focus is exact relative
+curve sharing then controlled bank selection, not more arbitrary thresholds.
+README is user-maintained and unchanged. Additional7dirs only if needed.
+No stage/commit/push.
+
+---
+
+# Reference-score continuation work in progress (2026-10-25)
+
+Fresh current GRA2_001 split MML files are confirmed paired oracles: all6 compile
+and re-export VGM BYTE-IDENTICAL to inputs. Historical98-fine-cut mismatch is
+superseded. New narrow opt-in unchanged-period continuation is saved in
+psg_scc_volume_curves.py, with source controls/boundaries preserved and explicit
+unchanged_period_joins reports. It addresses reference06 PSG1's16+4release tail.
+
+Important: first candidate regressed05/06 buffer usage due PARTIAL joins blocked
+by irrelevant shared wNC/ePL/evM writes. Those adverse outputs are preserved.
+The saved correction permits those known latches only throughout fixed-tone /
+HW-off spans; transient enable/mixer/unknown/pitch/volume-rise controls protect.
+Final six-case compiles/usage comparison is IN PROGRESS under outputs/diagnostics/
+reference_gap_20261025/production_effective_controls. Verify those results before
+claiming completion; do not hide the first adverse portfolio.
+
+New unit guards and authored unchanged-period real-driver test are saved. Source
+same-period-write phase probe passed8emu2149 cases, not a hardware guarantee.
+English external note:2026-10-25_reference_score_release_continuations.md.
+README unchanged. Existing envelope/macro selection policy retained. Do not
+expand to whole songs or the other7dirs without a missing-structure reason.
+No commit/push.
+
+---
+
+# Current verified restart status (2026-10-25)
+
+Missing external-note/handoff record is now complete. The production inactive
+PSG-reset correction and explicit enable/disable switches are saved. New
+reset-specific real-driver test passes all four authored subcases (tempos75/225,
+constant/decay,200 frames, rest/restart and subsequent active HW reset). This
+turn's38 focused checks pass. All six authorized split cases compile and their
+source/projected holds match. Full private six-case actual replay is not claimed.
+README was user-edited and has not been changed by this task. Keep it unchanged
+unless explicitly asked. Long-curve allocator remains the existing long-first
+policy; x68k history only supports separate target-duration tie splitting.
+Detailed evidence and NEMESIS2 failing song names are in external field_notes/
+2026-10-25_curve_integration_history_and_regression.md. No commit/push.
+
+---
+
+# Production curve integration and restart checkpoint (2026-10-25)
+
+This section supersedes the earlier diagnostic-only implementation status below.
+The user requested saving the unfinished field_notes/handoff first, then a
+focused review of x68k long-SCC-note history and further production improvement.
+README.md is user-maintained usage guidance: preserve its current contents;
+do not add detailed options or technical background without an explicit request.
+Detailed switches belong in CLI Usage and focused developer documents.
+
+Saved production code: --software-volume-curves now coalesces derived fixed-tone
+PSG boundaries caused solely by inactive hardware-envelope reset BEFORE the
+existing single-rise/decay curve stage, reversible structure and shared bank.
+The original PerformanceIR, source Segments, controls and boundary evidence are
+preserved. Whole ordered source intervals, including zero-duration controls,
+are checked for fixed-tone settings, hardware-enable, pitch/mixer operations,
+audibility continuity, source gaps and unknown timestamps. Reports distinguish
+inactive_reset_joins from curve recognition and preserve original note IDs.
+
+All three CLIs provide mutually exclusive --software-volume-curves and
+--no-software-volume-curves. Default remains False; config explicitly forwards
+either polarity so future default-on does not lose a caller's legacy choice.
+Existing long-curve envelope priority and macro-selection policy are unchanged.
+Fallback reports zero actual inactive joins and separate planned joins.
+
+Prior checks completed:52 CLI/config/export/batch checks and17 curve/protection/
+playback checks passed. Architect code review found no blocking issue. Split
+production conversion/compilation progress is recorded under outputs/diagnostics/
+psg_scc_curves_impl_20261025/production_reset_join/summary.json. Full six-case
+actual replay equivalence was NOT completed and is not claimed.
+
+The prior final documentation write was rejected because automatic approval
+review could not run at the usage limit; code had already been saved. Do not
+repeat a diagnostic-only status as current behavior. This checkpoint completes
+that missing record. Native reset evidence must never be removed to save bytes.
+
+Next: inspect x68k long-note history before choosing a new curve-selection policy.
+The user reports better MML with NEMESIS2 but remaining MGS capacity failures;
+record failing song names only, with no new detailed statistics or broad rerun.
+Use the six authorized GRA2_001 split VGM/master-MML materials for reference-based
+checks. No full-song or unrelated regression expansion. No stage/commit/push.
+
+
+## Completed source/projected check and historical scope clarification
+
+Retained production results confirm all six authorized split conversions and
+actual MGSC compiles succeeded. Source/projected volume-hold CSVs were checked
+independently over every renderer frame for both chips in all six cases; they
+match exactly. This checks the derived representation, not actual playback.
+The local evidence is production_reset_join/projection_hold_audit.json.
+
+This turn re-ran17 curve/protection/playback,13 tie-compensation and7 loop-first
+checks:37 tests passed. A new authored inactive-reset actual-driver check is
+being added separately; final status must identify its result before claiming
+reset-specific playback validation.
+
+The x68k historical rule is target-duration splitting with ties, not invented
+source attacks. Existing MGS255-step duration splitting is retained; no arbitrary
+long-note/source-envelope chopping or new allocator is introduced. That avoids
+silently replacing the user's long-observed-curve selection preference. Future
+candidate subdivision needs a separately validated continuation/rebinding policy.
+
+README is unchanged. The user-owned current README's SHA256 was rechecked.
+NEMESIS2 source-only user results were read only: GRA2_01/03/04/08/09/10/13/16
+fail Track buffer full. No NEMESIS conversion or detailed statistics were run.
+
+---
+
+# Candidate-selection history audit (2026-10-25)
+
+Re-read the September29/30 and October03 macro, shared-envelope and loop-first
+records. Existing adopted baseline is complete sounding units -> reversible
+loops -> stored representative counts -> shared long-observed-curve priority ->
+state-safe target rendering/macros. Earlier byte-benefit allocation proposals
+are not an implemented global optimizer. Tested macros reduce source characters
+without necessarily reducing MGSC used bytes. Keep those policies fixed during
+the first inactive-reset correction comparison.
+
+The English equivalent of analysis_ja.md, including six-case buffer/loop tables,
+reference provenance, historical policy audit and exact production flag scope,
+is saved in external private field_notes/
+2026-10-25_split_curve_analysis_and_inactive_hw_resets.md.
+--software-volume-curves currently enables volume-only curve joins and final tie
+compensation, NOT the diagnostic inactive-PSG-HW-reset join. Do not tell the user
+the large diagnostic reductions are available under that flag yet. This audit
+changed documentation only; no new conversions or behavior changes.
+
+---
+
+# Focused split-fixture analysis completed (2026-10-25)
+
+User clarified the split VGM/MML cases are deliberately small reproductions of
+whole-song buffer overflow, to recover loops and envelopes before scaling up.
+Do not broaden this work to unrelated regression logs or whole-song conversions.
+Use only the six VGM files and reference MML materials in the authorized
+with_sync_mark directory. User explicitly approved the master MML as reference
+for matching source intervals.
+
+IMPORTANT PROVENANCE CORRECTION: the current same-name01..06 MML are DIFFERENT
+fine cuts from the existing six VGM/MGS. Prior direct same-name MML footprint/
+envelope comparisons are withdrawn. Corrected provenance is in the20261025
+reference_provenance.json; matching existing MGS reproduce VGM byte-for-byte,
+and their definitions match the compiled master. Master sync windows checked
+against222 annotations. Do not reuse stale20261024 reference-MML comparison
+numbers or present filename equality as source provenance.
+
+Focused results and measured per-channel footprints are saved in:
+outputs/diagnostics/psg_scc_curves_impl_20261025/analysis_ja.md,
+channel_buffers.json, master_window_audit.json/.csv and
+inactive_reset_counterfactual/report.json. No private score/waveform contents
+were copied into project docs. The master-window/pitch check supports interval
+mapping; arbitrary all-register source identity is not claimed.
+
+MAIN FINDING: native PSG evS/global HW-envelope reset is unconditionally treated
+as a renderer partition boundary even in channels not using the HW envelope.
+Derived-note-only diagnostic joins reduce PSG1/3 compiled usage substantially.
+This is a concrete structural improvement target, not a reason to erase native
+reset evidence. Production coalescing is NOT implemented yet. Next allowed
+implementation: target/performance-stage join of irrelevant resets with complete
+source/settings/time/gate checks, then six-case loop/buffer/replay validation.
+Preserve actual active HW resets and future HW-state evidence.
+
+SCC finding: longer complete candidates can displace other definitions from the
+32-slot shared bank and increase inline commands/buffer. Do not equate definition
+count, MML character size, padded MGS filesize or loop count with score recovery.
+A compiled-benefit selection change is a separate policy decision.
+
+Opt-in curve + final uniform75/225 tie compensation code is saved; 104 focused
+tests pass, including shared short-prefix/restart actual-driver probes. Raw75
+max255-note release/onset quirks are unchanged from the ordinary same score and
+explicitly recorded in tests. Corrected six-case MML compile+VGM exports succeed.
+No staging/commit/push. Treat the reset coalescing experiments as diagnostics,
+not published converter behavior. Earlier broader analysis below is historical.
+
+---
+
+# PSG/SCC tie compensation and buffer audit checkpoint (2026-10-25)
+
+Implemented py/mgs_envelope_ties.py: joint final-target definitions/use validation,
+uniform255-step schedule at tempos75/225, hold padding for boundaries in
+[start,end), unchanged note/loop/macro bodies, no additional envelope IDs.
+Integration runs after normalization and before final allocation/macros.
+Unsupported schedules/accepted normalization/definition overflow rebuild the
+ordinary complete pipeline (all clocks and drum mapping revalidated). Candidate
+curve summaries then show applied=false, actual joins0 and separate planned counts.
+Final target evidence: <stem>.volume_curves.target.json, with optional
+<stem>.<chip>.before.envelope_ties.mml. Default behavior remains unchanged.
+
+User supplied NEMESIS2_sw-voume.log:9/17 success,8 Track buffer full failures,
+all force omissions0. No new NEMESIS2 fixture conversion was run. User clarified
+PSG size investigation should prioritize loop reconstruction; keep loop and SW
+envelope contributions separate. Original score also uses @e in PSG1/3, so do
+not assume software envelopes are exclusive to SCC.
+
+Per-channel actual MGSC measurements now saved in prior diagnostics:
+channel_buffers.json/.csv. Full-song generated tracks measured independently
+with unchanged original command bodies; source reference isolated bytes match
+normal full-source -T output, validating that measurement method. Tracks1..8
+reference used:810,4218,875,1109,1297,958,846,832. Baseline generated:
+7260,6954,7506,5726,5727,4729,4660,4939. New projection before tie correction:
+7254,6922,7522,5918,6123,5166,4652,4931. Track0 definitions are separate.
+
+Full-source diagnostic grammar counts (numeric h setup ignored ONLY for counting)
+are in loop_envelope_comparison.json. PSG1 stored NOTE tokens:source184 vsnew1577;
+PSG3:201 vs1651. Finite-loop counts are higher in generated output, so count
+alone is not the compression criterion. Generated attacks are also more split,
+and far fewer use varying shared SW envelopes. Full source has27 definitions;
+new shared bank uses32 IDs, which does not imply comparable coverage.
+
+Current verification snapshots are separate under outputs/diagnostics/
+psg_scc_curves_impl_20261025/. Corrected frontend case01 compiles and replays;
+target-only reconstruction produces exactly the same final MML as the frontend.
+The previous up-to7-frame SCC envelope advance is removed in raw transition
+comparison. Remaining baseline differences can include correction of legacy
+long envelopes, release behavior and intra-frame write scheduling: no blanket
+source-audio equality claim.
+
+Next: finish corrected six-case compilation/replay +focused suite, update audit
+report, then inspect PSG complete-unit/phrase equality and why repetitions are
+expanded. Do not introduce lossy duration/state filtering, change the16k pool,
+or claim full-song buffer failures solved by the envelope stage. No commits,
+staging or pushes requested. Older unfinished tie-warning below is superseded.
+
+---
+
+# Experimental PSG/SCC complete-volume-curve checkpoint (2026-10-24)
+
+Saved opt-in `--software-volume-curves` across canonical/batch/export MGS
+entry points. Fixed-pitch volume-only continuation candidates retain native
+Segments/control evidence, protect ordered operations (including zero-time
+rows), and feed one derived PerformanceIR to loops/shared envelopes/rendering.
+JSON summaries and optional candidate/note/decision CSVs are emitted. Defaults
+are unchanged. See docs/software_volume_curves.md for scope and limits.
+
+Validation: 11 new focused tests pass (including public CLI and authored real
+MGSDRV probes); worker CLI/config/batch checks: 48 pass. User authorized six
+local gra2_001 with_sync_mark VGM inputs and then the parent gra2_001.vgm and
+matching authored MML/MGS for independent comparison. Never inject score data
+into conversion. Do not run unrelated local_only inputs.
+
+IMPORTANT UNFINISHED BACKEND ISSUE: shared envelope phase advances once more
+on a tied note continuation. New long curves can therefore run ahead of the
+legacy output even when simulated renderer timelines are identical. Independent
+PSG/SCC probes at tempos75/225 confirm one extra envelope update per tie; padding
+holds for the actual tie schedule works in probes but is NOT integrated. A
+universal duration extension is unsafe: sharing/prefix keys and final normalized
+note splits must use the actual compensated schedule. Do not claim raw replay
+or complete playback equality; keep this feature opt-in/experimental.
+
+Fixture-specific measurements, per-channel allocation/used-byte and source
+MML-envelope comparisons are being saved under outputs/diagnostics/
+psg_scc_curves_impl_20261024. Preserve baseline and projected snapshots: later
+fixes must not overwrite evidence used in the current comparison. User cares
+primarily about per-channel MGSC allocated/used/free bytes (mgsc -T), not padded
+MGS file size. Full-song bank sharing must be measured independently of summed
+excerpts. Current task changes are in the worktree, not staged/committed/pushed.
+
+Next: finish full-song/per-channel/original-envelope audit; implement and replay
+verify tie-aware envelope encoding/sharing at the final clock boundary before
+calling milestone1 exact on the real backend. Lossy curve smoothing and pitch
+LFO/bend inference are not implemented.
+
+---
+
 # Proposed PSG/SCC curve projection audit (2026-10-24)
 
 User requested history/book review before implementation. Reviewed prior MSX
