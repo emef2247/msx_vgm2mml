@@ -10,7 +10,6 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / 'py'), str(ROOT)]
-from scripts.psg_scc_to_mdx import source_facts
 from chip_segments import PsgSegment, SccAnalysis, SccSegment
 from psg_scc_opm import waveform_voice, square_voice, source_frequency, opm_pitch, project, verify_writes
 from opm_mdx import projected_samples
@@ -86,49 +85,6 @@ class AdditiveTargetTests(unittest.TestCase):
         self.assertEqual([r['source_waveform_id'] for r in plan.rows], [0, 1])
         self.assertEqual(first.waveform_hex, wave)
 
-    def test_v151_psg_legacy_output_is_supported(self):
-        raw=bytearray(0x80)
-        raw[:4]=b'Vgm '
-        struct.pack_into('<I', raw, 8, 0x151)
-        struct.pack_into('<I', raw, 0x34, 0x80-0x34)
-        struct.pack_into('<I', raw, 0x74, 1789772)
-        raw[0x79]=1
-        raw += bytes([0xa0,8,0,0x66])
-        facts=source_facts(raw)
-        self.assertEqual(facts['psg_clock'],1789772)
-        self.assertEqual(facts['scc_clock'],0)
-        self.assertEqual(facts['ay_flags'],1)
-
-    def test_preflight_distinguishes_initialization_from_playing_chips(self):
-        def data(commands):
-            raw = bytearray(0x100)
-            raw[:4] = b'Vgm '
-            struct.pack_into('<I', raw, 8, 0x171)
-            struct.pack_into('<I', raw, 0x34, 0x100-0x34)
-            struct.pack_into('<I', raw, 0x74, 1789772)
-            return raw + bytes(commands) + b'\x66'
-        facts = source_facts(data([0x51, 0x0e, 0x20, 0x51, 0x20, 0,
-                                  0xd2, 3, 0, 31, 0xd2, 2, 0, 0]))
-        self.assertEqual(facts['silent_opll_writes'], 2)
-        self.assertEqual(facts['absent_scc_writes'], 2)
-        for commands in ([0x51, 0x20, 0x10], [0x51, 0x0e, 0x21], [0xd2, 2, 0, 1]):
-            with self.assertRaises(ValueError):
-                source_facts(data(commands))
-
-    def test_main_target_only_leaves_mml_and_default_mgs_is_unchanged(self):
-        fixture = ROOT / 'tests/fixtures/public/scc/redundant_fnum_writes/redundant_fnum_writes.vgm'
-        with tempfile.TemporaryDirectory() as tmp:
-            target = Path(tmp) / 'mdx'
-            run = subprocess.run([sys.executable, str(ROOT / 'vgm2mml.py'), str(fixture),
-                                  '--target', 'opm-additive', '--outdir', str(target)],
-                                 capture_output=True, text=True)
-            self.assertEqual(run.returncode, 0, run.stderr)
-            self.assertEqual([p.name for p in target.iterdir()], ['redundant_fnum_writes.mdx.mml'])
-            default = Path(tmp) / 'mgs'
-            run = subprocess.run([sys.executable, str(ROOT / 'vgm2mml.py'), str(fixture),
-                                  '--outdir', str(default)], capture_output=True, text=True)
-            self.assertEqual(run.returncode, 0, run.stderr)
-            self.assertIn('#opll_mode', (default / 'redundant_fnum_writes.mml').read_text(encoding='cp932'))
 
     def test_unsupported_controls_fail_instead_of_silent_omission(self):
         for row in [psg(mode=3), psg(envelope_enabled=1, volume=0)]:

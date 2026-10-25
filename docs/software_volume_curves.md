@@ -2,8 +2,9 @@
 
 `--software-volume-curves` enables a derived fixed-pitch volume-curve projection
 for the MGS target. It is available in `vgm2mml.py`, `scripts/export_mgs.py` and
-`scripts/batch_vgm_to_mgs.py`. It is disabled by default and does not implicitly
-enable timing normalization. Add `--dump-passes` to inspect its decisions.
+`scripts/batch_vgm_to_mgs.py`. It is enabled by default in `export_mgs.py`; the canonical converter and
+legacy batch retain an opt-in default. It does not implicitly enable timing
+normalization. Add `--dump-passes` to inspect its decisions.
 
 The first implementation joins compatible legacy renderer partitions into a
 single observed rise-and-decay volume curve. It does not smooth, rescale or
@@ -22,7 +23,7 @@ noise, pitch/mixer writes, transient enables and unknown timing stay protected.
 
 `--no-software-volume-curves` explicitly selects the ordinary projection. These
 two switches are mutually exclusive in all three entry points. The current
-default remains disabled. Configuration forwards either polarity explicitly,
+default is enabled only for `export_mgs.py`. Configuration forwards either polarity explicitly,
 so a future default change will not erase a caller's ordinary-path selection.
 Envelope and macro candidate-selection policies are unchanged.
 

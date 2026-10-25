@@ -1,3 +1,9 @@
+## Historical MDX tooling scope
+
+MDX tool commands below are retained as historical/reference context. These
+scripts and their external toolchain are no longer shipped here; use
+x68k_vgm2mml for MDX generation, compilation and inspection.
+
 # Experimental PSG/SCC OPM output
 
 This separate prototype projects existing, unchanged native PSG/SCC Segments to

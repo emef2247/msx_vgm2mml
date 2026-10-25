@@ -110,7 +110,8 @@ allowed rules; successful compilation alone is not proof of equivalent playback.
 `--software-volume-curves` requests exact fixed-pitch PSG/SCC volume-curve
 projection to shared software envelopes, including inactive PSG reset-boundary
 coalescing. `--no-software-volume-curves` explicitly selects the ordinary path;
-the switches are mutually exclusive and the current default is disabled.
+the switches are mutually exclusive. Export enables curves by default; the
+canonical converter and legacy batch keep their opt-in defaults.
 This projection is independent of timing
 normalization; it does not apply lossy time filtering. Per-chip
 `<stem>.<chip>.volume_curves.json` summaries are retained in diagnostics and included

@@ -14,7 +14,6 @@ sys.path[:0] = [str(ROOT / 'py'), str(ROOT)]
 from chip_segments import PsgSegment, SccAnalysis, SccSegment
 from psg_opm_fm import tone_tl
 from psg_scc_opm import project, opm_pitch
-from scripts.psg_scc_to_mdx import convert
 
 
 def row(**kwargs):
@@ -97,25 +96,6 @@ class FmTargetTests(unittest.TestCase):
             self.assertEqual(v['harmonics'], '')
             self.assertEqual(v['algorithm'], '4')
             self.assertEqual(len(voices), 2)
-
-    def test_entry_defaults_to_fm_and_additive_remains_selectable(self):
-        fixture = ROOT/'tests/fixtures/public/psg/volume_sweep/volume_sweep.vgm'
-        with tempfile.TemporaryDirectory() as tmp:
-            for model in ('fm', 'additive'):
-                folder = Path(tmp)/model
-                _, plan = convert(fixture, folder, **({'psg_model':model} if model=='additive' else {}))
-                self.assertEqual(plan.settings['psg_model'], model)
-                self.assertEqual(plan.settings['pitch_policy'], 'clamp' if model=='fm' else 'error')
-                self.assertEqual(plan.settings['psg_gain'], 1 if model=='fm' else .125)
-            # Native Segment evidence is identical for the two projections.
-            self.assertEqual((Path(tmp)/'fm/volume_sweep.psg.segments.csv').read_bytes(),
-                             (Path(tmp)/'additive/volume_sweep.psg.segments.csv').read_bytes())
-            run = subprocess.run([sys.executable,str(ROOT/'vgm2mml.py'),str(fixture),
-                                  '--target','opm','--outdir',str(Path(tmp)/'main')],
-                                 capture_output=True,text=True)
-            self.assertEqual(run.returncode,0,run.stderr)
-            self.assertEqual([p.name for p in (Path(tmp)/'main').iterdir()],['volume_sweep.mdx.mml'])
-            self.assertIn('PSG model=fm', (Path(tmp)/'main/volume_sweep.mdx.mml').read_text())
 
 
 if __name__ == '__main__':

@@ -1,3 +1,16 @@
+# MDX toolchain removal (2026-10-25)
+
+Removed inherited MDX export, compilation/replay, fixture-generator and external
+inspector scripts plus their tool-specific tests. Public CLI no longer accepts
+MDX/OPM output aliases. Native output and MGS compatibility remain; shared pure
+source/structural modules and reference evidence were not purged. Removed the
+corresponding MDX external-tool sections from THIRD_PARTY_NOTICES.md, retaining
+required mapping attribution. README files outside the deleted Rust helper
+are unchanged. Existing local tool installations and generated assets were not
+deleted. Validation results follow in the task's private note. No commit/push.
+
+---
+
 # Export default and user successes (2026-10-25)
 
 MSX export_mgs.py now enables --software-volume-curves by default; explicit

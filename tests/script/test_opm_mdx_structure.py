@@ -12,7 +12,6 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT/'py'), str(ROOT/'scripts')]
 from opm_mdx_structure import build_structure, compare_hybrid, note_spelling
 from opm_mdx import mdx_tick, projected_samples, project_segments
-from opm_to_mdx_mml import convert
 from source_loop_plan import expanded_tokens
 from test_opm_mdx import analyze, wait, write
 from test_opm_reader import vgm
@@ -117,23 +116,6 @@ class OpmMdxStructureTests(unittest.TestCase):
             self.assertIsNone(note_spelling(replace(state, kf_raw=21)))
             self.assertIsNone(note_spelling(replace(state, kc_raw=0x3f)))
 
-    def test_dump_preserves_segment_cells_and_adds_unit_and_loop_paths(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            _, source, projection = convert(self.fixture, root/'out', dump_passes=True, notation='legacy')
-            segment_path = root/'out/nested_phrase_loops.opm.segments.csv'
-            with segment_path.open(encoding='utf-8') as stream:
-                rows = list(csv.DictReader(stream))
-            self.assertTrue(any(json.loads(row['mdx_loop_path']) for row in rows))
-            self.assertEqual({int(r['segment_id']): (int(r['ch']), int(r['vgmticks']), int(r['vgmticks_end'])) for r in rows},
-                             {s.segment_id: (s.ch, s.vgmticks, s.vgmticks_end) for s in source.segments})
-            self.assertTrue((root/'out/nested_phrase_loops.mdx.structure.voices.csv').is_file())
-            self.assertTrue((root/'out/nested_phrase_loops.mdx.structure.uncompacted.mml').is_file())
-            with (root/'out/nested_phrase_loops.mdx.structure.compaction.csv').open(encoding='utf-8') as stream:
-                decisions = list(csv.DictReader(stream))
-            self.assertTrue(any(r['action'] == 'omit_setter' for r in decisions))
-            self.assertTrue(any(json.loads(row['opm_source_loop_path']) for row in rows))
-            self.assertFalse((root/'out/nested_phrase_loops.mdx.structure.A.loops.csv').exists())
 
     def test_hybrid_comparison_rejects_wrong_pitch_keys_and_end_even_with_equal_key_totals(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -153,93 +153,6 @@ of those other drivers. Redistributing the JS/WASM playback package requires
 checking its bundled drivers and other components as well as the ISC notice;
 this direct-dependency check is not a complete package redistribution audit.
 
-## mmlx 0.2.0
-
-Project: [h1romas4/chipstream](https://github.com/h1romas4/chipstream).
-
-Use: a linked Rust dependency of the development-only
-`scripts/mdx_fixture_generator` helper, for MDX compilation/replay/inspection.
-It is not required for normal MGSDRV MML generation. Versions are pinned in
-Cargo.toml/Cargo.lock. The published crate's `.cargo_vcs_info.json` records
-revision `7e0c97733d3636e40ee23233c898e74691d48417`.
-
-License: MIT. Exact published-crate
-[LICENSE](https://github.com/h1romas4/chipstream/blob/7e0c97733d3636e40ee23233c898e74691d48417/crates/mmlx/LICENSE):
-
-```text
-MIT License
-
-Copyright (c) 2026 h1romas4
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-## soundlog 0.15.0
-
-Project: [h1romas4/chipstream](https://github.com/h1romas4/chipstream).
-
-Use: a linked Rust dependency of the development-only
-`scripts/mdx_fixture_generator` helper, for MDX compilation/replay/inspection.
-It is not required for normal MGSDRV MML generation. Versions are pinned in
-Cargo.toml/Cargo.lock. The published crate's `.cargo_vcs_info.json` records
-revision `7e0c97733d3636e40ee23233c898e74691d48417`.
-
-License: MIT. Exact published-crate
-[LICENSE](https://github.com/h1romas4/chipstream/blob/7e0c97733d3636e40ee23233c898e74691d48417/crates/soundlog/LICENSE):
-
-```text
-MIT License
-
-Copyright (c) 2025 h1romas4
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-## mdxtools (optional development inspector)
-
-Project: [vampirefrog/mdxtools](https://github.com/vampirefrog/mdxtools).
-
-Use: independently supplied `mdxdump`, called as an external process by
-`scripts/audit_mdx_metadata.py` for reference/generated metadata inspection.
-The reviewed upstream
-[LICENSE](https://github.com/vampirefrog/mdxtools/blob/9c8539fec2757fcf7c85d1986171b50ebe2ef1e5/LICENSE)
-contains GNU GPL version 3. Review revision:
-`9c8539fec2757fcf7c85d1986171b50ebe2ef1e5`; this does not identify the user's
-installed inspector build. Keep upstream component notices and comply with
-applicable source-distribution requirements if redistributing that tool.
-
 ## Distribution scope
 
 Include this notice and the project LICENSE with source distributions.
@@ -247,9 +160,8 @@ Referenced vgm-conv mapping material retains its ISC notice. Optional compiler,
 player and inspector executables/packages and copyrighted driver dumps are
 not copied into the tracked converter source by this change.
 
-If distributing a Rust helper binary, preserve notices for both its direct
-MIT crates and applicable transitive Cargo dependencies. If bundling npm/WASM
-packages, preserve their own and their embedded components' notices and terms.
+If bundling npm/WASM packages, preserve their own and their embedded
+components' notices and terms.
 The direct-tool notices above are not a complete binary bundle license manifest.
 Source fixture/music rights are separate from software licenses; this file
 provides no permission to redistribute private or third-party song data.

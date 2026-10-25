@@ -26,6 +26,16 @@ class MgsCliTests(unittest.TestCase):
         return subprocess.run([sys.executable,str(ROOT/'vgm2mml.py'),str(source),
                                '--outdir',str(out),*flags],capture_output=True,timeout=60)
 
+    def test_mdx_targets_are_rejected_before_output_creation(self):
+        with tempfile.TemporaryDirectory() as folder:
+            out=Path(folder)/'output'
+            for target in ('mdx','opm','opm-additive'):
+                with self.subTest(target=target):
+                    result=self.run_cli('unused.vgm',out,'--target',target)
+                    self.assertEqual(result.returncode,2)
+                    self.assertIn(b'invalid choice',result.stderr)
+                    self.assertFalse(out.exists())
+
     def test_explicit_software_curves_disable_matches_default_and_flags_are_exclusive(self):
         with tempfile.TemporaryDirectory() as folder:
             base=Path(folder);source=base/'test.vgm';source.write_bytes(vgm())

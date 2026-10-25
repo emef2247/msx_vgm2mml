@@ -11,7 +11,6 @@ sys.path[:0]=[str(ROOT/'py'),str(ROOT/'scripts')]
 from opm_mdx import project_segments
 from opm_mdx_music import build_music,infer_clock,duration_spelling,tone_and_level,source_plan
 from source_loop_plan import SourceLoopPlan
-from opm_to_mdx_mml import convert
 from source_loop_plan import expanded_tokens
 from test_opm_mdx import analyze,wait,write
 from test_opm_reader import vgm
@@ -95,19 +94,6 @@ class MusicalMdxTests(unittest.TestCase):
             self.assertEqual(base,changed)
             self.assertEqual(changed_level,level+1)
 
-    def test_dump_appends_musical_membership_and_retains_all_native_cells(self):
-        fixture=ROOT/'tests/fixtures/public/opm/from_mdx/held_controls/held_controls.vgm'
-        with tempfile.TemporaryDirectory() as tmp:
-            folder=Path(tmp);mml,a,p=convert(fixture,folder,dump_passes=True)
-            with (folder/'held_controls.opm.segments.csv').open(encoding='utf-8') as stream:
-                rows=list(csv.DictReader(stream))
-            self.assertTrue(any(json.loads(r['mdx_music_unit_ids']) for r in rows))
-            native={s.segment_id:s for s in a.segments}
-            for r in rows:
-                s=native[int(r['segment_id'])]
-                self.assertEqual((int(r['ch']),int(r['vgmticks']),int(r['vgmticks_end'])),(s.ch,s.vgmticks,s.vgmticks_end))
-            self.assertTrue((folder/'held_controls.mdx.structure.units.csv').is_file())
-            self.assertIn('Musical OPM notes',mml.read_text(encoding='utf-8'))
 
     def test_note_values_are_target_notation_with_exact_nonstandard_fallback(self):
         self.assertEqual(duration_spelling(12),'16')

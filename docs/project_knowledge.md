@@ -616,3 +616,10 @@ It is:
 A final target file is not sufficient evidence that the conversion is
 correct. The path from source register stream to target must remain
 inspectable.
+
+## Distribution and tool scope
+
+MGSDRV is the supported output target here. MDX export, compilation, replay and inspector tooling
+are maintained in x68k_vgm2mml. Shared analysis/structural modules and reference
+evidence may still mention MDX; their presence does not provide an MDX toolchain
+in this repository. Keep required attribution for retained referenced code.

@@ -31,31 +31,6 @@ def write(register, data):
 
 
 class OpmMdxTests(unittest.TestCase):
-    def test_cli_defaults_to_mml_only_and_dump_retains_identical_music_and_evidence(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            path = root / 'source.vgm'
-            path.write_bytes(vgm(write(0x28, 0x4e) + write(8, 8) + wait(101)
-                                 + write(8, 0) + wait(101)))
-            outputs = []
-            for name, options in [('default', []), ('dump', ['--dump-passes'])]:
-                folder = root / name
-                run = subprocess.run([sys.executable, str(ROOT / 'scripts/opm_to_mdx_mml.py'),
-                                      str(path), '--outdir', str(folder), *options],
-                                     capture_output=True, text=True, timeout=30)
-                self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
-                outputs.append((folder / 'source.mdx.mml').read_bytes())
-                if name == 'default':
-                    self.assertEqual([p.name for p in folder.iterdir()], ['source.mdx.mml'])
-                else:
-                    for filename in ('source_trace.opm_regs.csv', 'source_trace.opm.csv',
-                                     'source.opm.segments.csv', 'source.mdx.controls.csv',
-                                     'source.mdx.timing.json'):
-                        self.assertTrue((folder / filename).is_file(), filename)
-                    replay = build_segments(folder / 'source_trace.opm_regs.csv', end_vgmticks=202)
-                    self.assertEqual(sum(bool(s.rising_mask) for s in replay.segments), 1)
-                    self.assertEqual(sum(bool(s.falling_mask) for s in replay.segments), 1)
-            self.assertEqual(outputs[0], outputs[1])
 
     def test_shared_fanout_redundancy_partial_keys_and_same_sample_order(self):
         commands = (write(0x19, 0x12) + write(0x19, 0x93)
