@@ -170,6 +170,11 @@ def main():
                         help='OPLL internal pitch/volume state threshold in ms (effective default 1); enables optional normalization')
     parser.add_argument('--normalization-ms', type=float, default=None,
                         help='Maximum target timing correction in ms (effective default 8); enables optional normalization, not gate deletion')
+    volume_curves = parser.add_mutually_exclusive_group()
+    volume_curves.add_argument('--software-volume-curves', action='store_true', default=False,
+                        help='Share exact fixed-pitch PSG/SCC attack volume curves (opt-in)')
+    volume_curves.add_argument('--no-software-volume-curves', dest='software_volume_curves',
+                               action='store_false', help='Disable PSG/SCC software volume curve projection')
     parser.add_argument('--force', action='store_true',
                         help='Omit explicitly listed unsupported chip writes for MGS; malformed streams and compiler limits still fail')
     parser.add_argument('--debug', action='store_true',
@@ -193,10 +198,13 @@ def main():
     args = parser.parse_args()
     try:
         options = MgsOptions(args.normalize_lengths, args.normalization_ms, args.fm_state_ms,
-                             args.force, args.dump_passes, args.enhance_drums, psg_part=args.psg_part)
+                             args.force, args.dump_passes, args.enhance_drums, psg_part=args.psg_part,
+                             software_volume_curves=args.software_volume_curves)
     except ValueError as error:
         parser.error(str(error))
     args.normalize_lengths = options.enabled
+    if args.target != 'mgs' and args.software_volume_curves:
+        parser.error('--software-volume-curves requires --target mgs')
     if args.target != 'mgs' and args.enhance_drums:
         parser.error('--enhance-rhythm requires --target mgs')
     if args.target != 'mgs' and args.psg_part != 'all':
@@ -260,13 +268,18 @@ def main():
     for suffix in ('mml', 'normalization.json', 'fm.short_states.json', 'fm.short_states.csv',
                    'opll.normalized.notes.csv', 'opll.normalized.loops.csv',
                    'opll.normalized.expanded.mml', 'drums.json', 'drums.candidates.csv',
-                   'drums.projection.csv', 'drums.before.target.mml', 'drums.after.target.mml'):
+                   'drums.projection.csv', 'drums.before.target.mml', 'drums.after.target.mml',
+                   'volume_curves.target.json'):
         (root / f'{base_name}.{suffix}').unlink(missing_ok=True)
     for chip in ('psg', 'scc', 'opll'):
         (root / f'{base_name}.{chip}.before.normalize.mml').unlink(missing_ok=True)
+        (root / f'{base_name}.{chip}.before.envelope_ties.mml').unlink(missing_ok=True)
     for chip in ('psg', 'scc'):
         for suffix in ('json', 'notes.csv', 'gates.csv', 'controls.csv', 'boundaries.csv', 'segments.csv'):
             (root / f'{base_name}.{chip}.performance.{suffix}').unlink(missing_ok=True)
+    for chip in ('psg', 'scc'):
+        for suffix in ('json', 'candidates.csv', 'notes.csv', 'decisions.csv'):
+            (root / f'{base_name}.{chip}.volume_curves.{suffix}').unlink(missing_ok=True)
     report = dict(status='converting', target='mgs', input=str(Path(vgm_path).resolve()),
                   options=options.as_dict(), source_segments_unchanged=True)
     def save_report():
@@ -291,6 +304,8 @@ def main():
             (root / f'{base_name}.fm.short_states.json').write_text(json.dumps(disabled, indent=2), encoding='utf-8')
         _convert_mgs(args, options, vgm_path, song_dir, base_name)
         report['normalization'] = json.loads((root / f'{base_name}.normalization.json').read_text(encoding='utf-8'))
+        if args.software_volume_curves:
+            report['volume_curve_target'] = json.loads((root / f'{base_name}.volume_curves.target.json').read_text(encoding='utf-8'))
         if args.enhance_drums:
             report['drums'] = json.loads((root / f'{base_name}.drums.json').read_text(encoding='utf-8'))
         if args.psg_part != 'all':
@@ -310,7 +325,7 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name):
     (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
      opll_log_csv, opll_trace_csv, opll_voice_csv, opll_regs_csv) = parse_vgm(
          vgm_path, song_dir, dump_loop=args.debug or args.dump_passes,
-         include_vgmticks=args.vgmticks or args.normalize_lengths or args.enhance_drums or args.psg_part != 'all',
+         include_vgmticks=args.vgmticks or args.normalize_lengths or args.enhance_drums or args.software_volume_curves or args.psg_part != 'all',
          opm_metadata=opm_metadata, dump_opm_segments=args.debug or args.dump_passes)
 
     if args.debug:
@@ -393,6 +408,20 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name):
         from pathlib import Path
         for suffix in ('json', 'candidates.csv', 'mask.csv'):
             Path(song_dir, base_name+'.psg.selection.'+suffix).unlink(missing_ok=True)
+    if args.software_volume_curves:
+        from psg_scc_volume_curves import project as project_curves, dump as dump_curves
+        projected_pending = []
+        for segments, chip, path, kwargs in envelope_bank.pending:
+            projection = project_curves(kwargs['performance'])
+            summary = projection.summary()
+            dump_curves(projection, Path(song_dir) / f'{base_name}.{chip}.volume_curves',
+                        details=args.dump_passes or args.debug)
+            projected_pending.append((segments, chip, path,
+                                      dict(kwargs, performance=projection.performance)))
+            print(f"{chip.upper()} volume curves: {summary['original_units']} -> "
+                  f"{summary['projected_units']} units; "
+                  f"{summary['joined_boundaries']} joined boundaries (exact renderer ticks)")
+        envelope_bank.pending = projected_pending
     envelope_bank.flush()
 
     from opll_mode import mode_from_trace
@@ -438,6 +467,59 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name):
             with open(os.path.join(song_dir, f'{base_name}.normalization.json'), encoding='utf-8') as stream:
                 reason = json.load(stream)['reason']
             print(f'Note normalization: unchanged ({reason})')
+
+    if args.software_volume_curves:
+        from pathlib import Path
+        from mgs_envelope_ties import compensate
+        control_paths = {chip: Path(song_dir, f'{base_name}.{chip}.target.mml')
+                         for chip in ('psg', 'scc') if Path(song_dir, f'{base_name}.{chip}.target.mml').exists()}
+        control_texts = {chip: path.read_text(encoding='utf-8') for chip, path in control_paths.items()}
+        if args.dump_passes or args.debug:
+            for chip, text in control_texts.items():
+                Path(song_dir, f'{base_name}.{chip}.before.envelope_ties.mml').write_text(text, encoding='utf-8')
+        try:
+            if normalized_tempo is not None:
+                raise ValueError('normalized note splitting requires separately validated envelope timing')
+            corrected, tie_report = compensate(control_texts, tempo=75 if args.raw_ticks else 225)
+        except ValueError as error:
+            # Retry the ordinary complete pipeline, including clock acceptance and
+            # drum boundary mapping. A plan accepted for fewer projected boundaries
+            # need not be safe for the original partitions.
+            from copy import copy
+            from dataclasses import replace
+            fallback_args = copy(args)
+            fallback_args.software_volume_curves = False
+            fallback_args.vgmticks = True
+            print(f'Software volume curves: retaining ordinary projection ({error})')
+            _convert_mgs(fallback_args, replace(options, software_volume_curves=False),
+                         vgm_path, song_dir, base_name)
+            tie_report = dict(status='fallback', applied=False, reason=str(error),
+                              source_segments_unchanged=True, fallback='ordinary complete MGS pipeline')
+            for chip in ('psg', 'scc'):
+                summary_path = Path(song_dir, f'{base_name}.{chip}.volume_curves.json')
+                if summary_path.exists():
+                    summary = json.loads(summary_path.read_text())
+                    summary.update(applied=False, reason=str(error),
+                        candidate_projected_units=summary['projected_units'],
+                        candidate_joined_boundaries=summary['joined_boundaries'],
+                        candidate_inactive_reset_joins=summary['inactive_reset_joins'],
+                        candidate_unchanged_period_joins=summary['unchanged_period_joins'],
+                        projected_units=summary['original_units'], joined_boundaries=0,
+                        inactive_reset_joins=0, unchanged_period_joins=0)
+                    summary_path.write_text(json.dumps(summary, indent=2)+'\n', encoding='utf-8')
+            Path(song_dir, f'{base_name}.volume_curves.target.json').write_text(
+                json.dumps(tie_report, indent=2)+'\n', encoding='utf-8')
+            return
+        for chip, text in corrected.items():
+            control_paths[chip].write_text(text, encoding='utf-8', newline='\n')
+            summary_path = Path(song_dir, f'{base_name}.{chip}.volume_curves.json')
+            if summary_path.exists():
+                summary = json.loads(summary_path.read_text())
+                summary.update(applied=True, backend_tie_compensation=True)
+                summary_path.write_text(json.dumps(summary, indent=2)+'\n', encoding='utf-8')
+        tie_report.update(status='applied', applied=True, source_segments_unchanged=True)
+        Path(song_dir, f'{base_name}.volume_curves.target.json').write_text(
+            json.dumps(tie_report, indent=2)+'\n', encoding='utf-8')
 
     if args.enhance_drums:
         from drum_inference import infer

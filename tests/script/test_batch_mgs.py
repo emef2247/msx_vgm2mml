@@ -84,6 +84,8 @@ class BatchMgs(unittest.TestCase):
             self.assertIn('--normalize-lengths', calls[0])
             self.assertIn('--legacy-macros', calls[0])
             self.assertIn('--legacy-loops', calls[0])
+            self.assertIn('--no-software-volume-curves', calls[0])
+            self.assertNotIn('--software-volume-curves', calls[0])
             self.assertEqual(calls[1][1:], [str(out/'_diagnostics/a/a.mml'),str(out/'_diagnostics/a/a.mgs')])
             self.assertEqual(rows[0]['status'],'compilation_failed')
             self.assertIn('diagnostic',(out/'_diagnostics/a/compile.log').read_text())
@@ -241,6 +243,8 @@ class BatchMgs(unittest.TestCase):
                     (folder/'same.normalization.json').write_text(json.dumps(dict(
                         status='unchanged', reason='no confident shared clock')))
                     (folder/'same.fm.short_states.json').write_text(json.dumps(dict(applied=False)))
+                    for chip in ('psg', 'scc'):
+                        (folder/('same.' + chip + '.volume_curves.json')).write_text(json.dumps(dict(enabled=True)))
                     (folder/'same.mgs.force.json').write_text(json.dumps(dict(
                         enabled=True, omission_count=2, omissions=[], csv_path='same.mgs.force.csv')))
                     if 'two' in str(folder):
@@ -249,21 +253,25 @@ class BatchMgs(unittest.TestCase):
             with patch('batch_vgm_to_mgs.subprocess.run', side_effect=run), \
                  patch('sys.stdout', new_callable=io.StringIO) as console:
                 rows = run_batch(source, out, keyon=False, force=True, fm_state_ms=4,
-                                 normalization_ms=16, dump_passes=True)
+                                 normalization_ms=16, dump_passes=True, software_volume_curves=True)
             self.assertEqual([r['status'] for r in rows], ['success', 'success'])
             self.assertIn('2/2 exported', console.getvalue())
             self.assertIn('2 omitted target operations', console.getvalue())
             for command in calls[::2]:
                 self.assertIn('--force', command)
                 self.assertIn('--dump-passes', command)
+                self.assertIn('--software-volume-curves', command)
                 self.assertEqual(float(command[command.index('--fm-state-ms')+1]), 4)
                 self.assertEqual(float(command[command.index('--normalization-ms')+1]), 16)
             for row in rows:
                 report = json.loads((out/row['diagnostics']).read_text())
                 self.assertTrue(report['options']['force'])
+                self.assertTrue(report['options']['software_volume_curves'])
                 self.assertEqual(row['normalization_status'], 'unchanged')
                 self.assertEqual(row['normalization_reason'], 'no confident shared clock')
                 self.assertFalse(report['summaries']['fm_states']['applied'])
+                self.assertTrue(report['summaries']['psg_volume_curves']['enabled'])
+                self.assertTrue(report['summaries']['scc_volume_curves']['enabled'])
                 self.assertEqual(report['result']['status'], 'success')
                 self.assertEqual(len(report['commands']), 2)
                 self.assertTrue((out/row['report']).is_file())
@@ -278,6 +286,9 @@ class BatchMgs(unittest.TestCase):
             names = ['a.mml', 'a.mgs', 'a.roundtrip.vgm', 'report.json', 'report.txt',
                      'a.normalization.json', 'a.mgs.force.json', 'a.mgs.force.csv', 'compile.log',
                      'a.psg.selection.json', 'a.psg.selection.candidates.csv', 'a.psg.selection.mask.csv']
+            names += ['a.' + chip + '.volume_curves.' + suffix
+                      for chip in ('psg', 'scc')
+                      for suffix in ('json', 'candidates.csv', 'notes.csv', 'decisions.csv')]
             for name in names:
                 (folder/name).write_text('stale')
             (folder/'personal.txt').write_text('keep')
@@ -469,6 +480,11 @@ class CleanOutputTests(unittest.TestCase):
     def test_batch_parser_aliases_and_mutual_exclusion(self):
         from batch_vgm_to_mgs import build_parser
         parser = build_parser()
+        self.assertFalse(parser.parse_args(['input']).software_volume_curves)
+        self.assertTrue(parser.parse_args(['input', '--software-volume-curves']).software_volume_curves)
+        self.assertFalse(parser.parse_args(['input', '--no-software-volume-curves']).software_volume_curves)
+        with self.assertRaises(SystemExit):
+            parser.parse_args(['input', '--software-volume-curves', '--no-software-volume-curves'])
         for alias in ('--enhance-rhythm', '--enhance-drums'):
             self.assertTrue(parser.parse_args(['input', '--outdir', 'out', alias]).enhance_drums)
         for alias in ('--psg-melody-only', '--psg-melody_only'):

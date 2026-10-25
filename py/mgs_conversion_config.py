@@ -25,6 +25,7 @@ class MgsOptions:
     dump_passes: bool = False
     enhance_drums: bool = False
     psg_part: str = 'all'
+    software_volume_curves: bool = False
 
     def __post_init__(self):
         if self.psg_part not in ('all', 'melody', 'rhythm'):
@@ -57,6 +58,8 @@ class MgsOptions:
             result.append('--enhance-rhythm')
         if self.psg_part != 'all':
             result.append('--psg-' + self.psg_part + '-only')
+        result.append('--software-volume-curves' if self.software_volume_curves
+                      else '--no-software-volume-curves')
         return result
 
     def as_dict(self):
@@ -72,4 +75,5 @@ class MgsOptions:
                     fm_state_scope='OPLL melody within accepted normalization only; PSG/SCC curves unchanged',
                     force=bool(self.force), dump_passes=bool(self.dump_passes),
                     enhance_drums=bool(self.enhance_drums),
-                    enhance_rhythm=bool(self.enhance_drums), psg_part=self.psg_part)
+                    enhance_rhythm=bool(self.enhance_drums), psg_part=self.psg_part,
+                    software_volume_curves=bool(self.software_volume_curves))

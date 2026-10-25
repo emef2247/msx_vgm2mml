@@ -29,6 +29,11 @@ def build_parser():
                         help='Maximum target timing correction in milliseconds (default: 8)')
     parser.add_argument('--enhance-rhythm', '--enhance-drums', dest='enhance_drums', action='store_true',
                         help='Add inferred PSG/SCC percussion on OPLL rhythm')
+    volume_curves = parser.add_mutually_exclusive_group()
+    volume_curves.add_argument('--software-volume-curves', action='store_true', default=True,
+                        help='Project exact fixed-pitch PSG/SCC volume curves to software envelopes (default: enabled)')
+    volume_curves.add_argument('--no-software-volume-curves', dest='software_volume_curves',
+                               action='store_false', help='Disable PSG/SCC software volume curve projection')
     parts = parser.add_mutually_exclusive_group()
     parts.add_argument('--psg-melody-only', '--psg-melody_only', dest='psg_part',
                        action='store_const', const='melody', default='all')
@@ -63,7 +68,8 @@ def main(argv=None):
                          enhance_macros=args.enhance_macros, legacy_loops=args.legacy_loops,
                          force=args.force, fm_state_ms=args.fm_state_ms,
                          normalization_ms=args.normalization_ms, dump_passes=args.dump_passes,
-                         enhance_drums=args.enhance_drums, psg_part=args.psg_part)
+                         enhance_drums=args.enhance_drums, psg_part=args.psg_part,
+                         software_volume_curves=args.software_volume_curves)
     except (RuntimeError, ValueError) as error:
         parser.exit(2, str(error) + '\n')
     return 0 if all(row['status'] == 'success' and row['keyon_status'] in ('compared', 'disabled', 'selection_only')

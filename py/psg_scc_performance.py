@@ -2,7 +2,7 @@
 
 Audibility gates are not observed Key-Ons. Score partitions deliberately retain
 the established renderer policy; sub-tick source silence can therefore separate
-two gates inside one score partition. Source samples and 60 Hz ticks never
+two gates inside one score partition. Source samples and clock-tagged ticks never
 substitute for each other. This representation does not reconstruct raw VGM.
 """
 import csv
@@ -104,6 +104,7 @@ class PerformanceIR:
     gates: tuple
     controls: tuple
     boundaries: tuple
+    tick_clock_hz: int = 60
 
     def to_notes(self, note_type):
         """Adapt immutable partitions to the existing mutable renderer Note."""
@@ -245,8 +246,10 @@ def _values(seg, chip):
                                    ('reset_event', seg.ev_type == 'evS'))
 
 
-def analyze(segments, chip):
+def analyze(segments, chip, *, tick_clock_hz=60):
     """Separate audibility, renderer partitions and complete ordered control state."""
+    if not isinstance(tick_clock_hz, int) or tick_clock_hz <= 0:
+        raise ValueError('Performance tick clock must be a positive integer')
     if chip not in ('psg', 'scc'):
         raise ValueError('Performance analysis supports PSG and SCC only')
     native = tuple((ch, tuple(rows)) for ch, rows in segments.items())
@@ -268,7 +271,7 @@ def analyze(segments, chip):
                                              seg.vgmticks, relative, seg.ticks,
                                              None if gate is None else seg.ticks - gate.tick_start,
                                              None if gate is None else gate.gate_id))
-    result = PerformanceIR(chip, native, tuple(channels), tuple(gates), tuple(controls), tuple(boundaries))
+    result = PerformanceIR(chip, native, tuple(channels), tuple(gates), tuple(controls), tuple(boundaries), tick_clock_hz)
     result.validate(segments)
     return result
 
@@ -311,7 +314,7 @@ def dump(performance, prefix):
     write('segments', ('channel', 'segment_index') + tuple(source_rows[0].keys())[2:] if source_rows
           else ('channel', 'segment_index'), source_rows)
     Path(prefix + '.performance.json').write_text(json.dumps(dict(
-        chip=performance.chip, source_clock_hz=44100, tick_clock_hz=60,
+        chip=performance.chip, source_clock_hz=44100, tick_clock_hz=performance.tick_clock_hz,
         validation_scope='retained native Segment state/order; not raw VGM replay',
         source_samples_unknown=sum(s.vgmticks is None or s.vgmticks_end is None
                                    for _, rows in performance.source_segments for s in rows),

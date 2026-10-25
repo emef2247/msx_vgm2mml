@@ -107,6 +107,16 @@ count and details path. It does not bypass malformed input, compiler buffer limi
 missing dependencies, or timeouts. See the converter's force documentation for the
 allowed rules; successful compilation alone is not proof of equivalent playback.
 
+`--software-volume-curves` requests exact fixed-pitch PSG/SCC volume-curve
+projection to shared software envelopes, including inactive PSG reset-boundary
+coalescing. `--no-software-volume-curves` explicitly selects the ordinary path;
+the switches are mutually exclusive and the current default is disabled.
+This projection is independent of timing
+normalization; it does not apply lossy time filtering. Per-chip
+`<stem>.<chip>.volume_curves.json` summaries are retained in diagnostics and included
+in `report.json`. With `--dump-passes`, candidate, note and decision CSVs are also
+retained for inspection.
+
 ## Integrated OPLL key-on counts
 
 By default each successfully compiled MGS is exported to
@@ -185,3 +195,6 @@ silence. See [definition storage and playback checks](mgs_definition_storage.md)
 When OPLL counts differ, batch keeps the compilation result but records
 `keyon_status=mismatch`, prints the differences and causes export to exit nonzero.
 Matching counts remain narrower evidence than audio or full musical equivalence.
+
+See [software volume curves](software_volume_curves.md) for final tie compensation,
+shared-bank validation and the explicit fallback for unsupported clock/split schedules.

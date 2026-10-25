@@ -11,7 +11,7 @@ OPLL hardware instrument envelopes do not use this software bank.
 The renderer derives notes/rests from immutable PSG/SCC Segments and records
 their contributing Segment indices. Contiguous sounding intervals may share
 one note only while their settings match, volume does not rise, and no retained
-pitch-write or PSG hardware-envelope-reset boundary intervenes. Volume rises,
+pitch-write or PSG hardware-envelope-reset boundary intervenes in the ordinary path. Volume rises,
 pitch writes and relevant state changes remain boundaries; the algorithm does
 not import attack positions or envelope lengths from reference MML.
 
@@ -32,6 +32,12 @@ partitions. Existing boundaries are labelled inferred; they are not claimed as
 PSG/SCC hardware Key-On events. The same interpretation drives loop preparation,
 curve selection and rendering through a deterministic legacy-Note adapter.
 Target envelope IDs remain separate mutable bindings.
+
+The optional [software-volume-curve projection](software_volume_curves.md)
+coalesces irrelevant reset-only boundaries in fixed-tone PSG channels and then
+recognizes supported complete rise-and-decay curves before structural planning.
+It preserves native source evidence and the existing shared-bank priority below.
+Long note encoding with ties does not itself create new inferred score attacks.
 
 ## Shared bank and priority
 
