@@ -1,3 +1,31 @@
+# Committed musical HAL: local ordinary-MML parity verified (2026-10-26)
+
+Implementation committed as9da7011 on codex/musical_HAL. Related HuC/HAL/
+blueprint private notes committed separately as3264937. No code was edited
+for this comparison. Fixed local mainab58c3e and9da7011 runtime snapshots used
+identical export-like settings: normalize-lengths, software-volume-curves,
+fm-state-ms24, normalization-ms8, force, dump-passes; default loops/macros.
+
+User-authorized local_only folders, all VGM directly within each folder:
+- PSG psg/vgmrips.net/TWINBEE:7/7 normal MML and7/7 MGS byte-identical.
+- PSG+SCC gra2_msx/gra2_001/with_sync_mark:6/6 MML and6/6 MGS byte-identical.
+- OPLL opll/www.smspower.org/MSLND:10/10 MML and10/10 MGS byte-identical.
+
+Both versions convert/compile all23 successfully. Input hashes unchanged.
+MSLND09 has10 time-zero DCSG writes omitted by both versions under force;
+all other22 inputs have0 omissions. This is ordinary <stem>.mml parity, not
+blueprint comparison. MML bytes (including CP932 Japanese titles) and compiled
+MGS bytes match. This demonstrates selected output compatibility, not new
+hardware-listening or independent source-score correctness.
+
+Evidence outputs/diagnostics/main_vs_musical_hal_9da7011/
+{analysis_ja.md,summary.json,results.csv,refs.json,compare.py,runs/} contains
+commands, logs, hashes, ordinary MML/MGS and pass dumps. Inputs/reference MML
+and README untouched. No push. Next allowed: user review/listening or specifically
+requested follow-up; no further broad local_only run within this completed audit.
+
+---
+
 # Editable blueprint addition (2026-10-26)
 
 User clarified: remove timbre and SW-envelope definitions, KEEP volume changes.
