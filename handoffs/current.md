@@ -1,3 +1,23 @@
+# FMPAC rhythm parity supplement completed (2026-10-26)
+
+User added opll/vgmrips.net/FMPAC because the previous MSLND selection does not
+exercise OPLL rhythm. All5 FMPAC inputs compared using the same fixed mainab58c3e
+and implementation9da7011 snapshots and settings as the preceding23-input audit.
+FMPAC01/02/04/05 have native OPLL rhythm key-ons;03 has no rhythm. Both generated
+MML versions have mode1 and active rhythm track f for those4, and mode0 for03.
+All5 ordinary MML pairs and all5 compiled MGS pairs are byte-identical. Both
+versions compile5/5; force omissions0; input hashes unchanged. Total audit now
+28/28 MML and28/28 MGS byte-identical. This adds rhythm coverage; it is not a
+hardware/source-score accuracy claim. No implementation or README changes.
+
+Evidence remains outputs/diagnostics/main_vs_musical_hal_9da7011/; summary.json,
+results.csv and analysis_ja.md include the supplement. fmpac_source_rhythm.json
+records source mode/attack evidence and generated rhythm-mode/track presence.
+Only these5 new pairs converted; previous23 results reused with verified output
+hashes. This completes the specifically requested local supplement.
+
+---
+
 # Committed musical HAL: local ordinary-MML parity verified (2026-10-26)
 
 Implementation committed as9da7011 on codex/musical_HAL. Related HuC/HAL/
