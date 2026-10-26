@@ -126,10 +126,91 @@ def _build_merged_mml(stem: str, song_dir: str,
     return compress_macros(formatted) if target else formatted
 
 
+def _write_direct_vgm(plan, source, song_dir, stem):
+    """Publish an owned direct VGM without overwriting an input or foreign file."""
+    from pathlib import Path
+    import hashlib
+    import tempfile
+    from musical_conversion import source_gd3
+    from musical_vgm import write_vgm
+    root = Path(song_dir).resolve()
+    target = root / 'tracks' / f'{stem}.vgm'
+    manifest = root / f'{stem}.direct_vgm.json'
+    mapping = root / f'{stem}.vgm.writes.csv'
+    if target.resolve() == Path(source).resolve() or not target.resolve().is_relative_to(root):
+        raise ValueError('Direct VGM target would overwrite an input or escape the output directory')
+    previous = json.loads(manifest.read_text()) if manifest.is_file() else {}
+    if target.exists():
+        digest = hashlib.sha256(target.read_bytes()).hexdigest()
+        if previous.get('vgm_sha256') != digest or previous.get('source') != str(Path(source).resolve()):
+            raise ValueError(f'Direct VGM target is unowned or modified: {target}')
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='direct_vgm_', dir=root) as temporary:
+        temporary = Path(temporary)
+        generated, trace = temporary / 'output.vgm', temporary / 'writes.csv'
+        writes = write_vgm(plan, generated, gd3=source_gd3(source), mapping_path=trace)
+        record = dict(source=str(Path(source).resolve()), vgm=str(target),
+                      vgm_sha256=hashlib.sha256(generated.read_bytes()).hexdigest(),
+                      controls=len(plan.controls), writes=len(writes),
+                      end_sample=plan.end_sample, compiler_invoked=False, mml_generated=False)
+        prepared = temporary / 'manifest.json'
+        prepared.write_text(json.dumps(record, indent=2) + '\n', encoding='utf-8')
+        operations = ((generated, target), (trace, mapping), (prepared, manifest))
+        backups = {}
+        for index, (_, destination) in enumerate(operations):
+            if destination.exists():
+                backup = temporary / f'previous{index}'
+                import shutil
+                shutil.copyfile(destination, backup)
+                backups[destination] = backup
+        replaced = []
+        try:
+            for src, destination in operations:
+                os.replace(src, destination)
+                replaced.append(destination)
+        except OSError:
+            for destination in reversed(replaced):
+                if destination in backups:
+                    os.replace(backups[destination], destination)
+                else:
+                    destination.unlink(missing_ok=True)
+            raise
+    print(f'Direct VGM: {target}')
+    return record
+
+
+def _curve_timeline(performance):
+    """Compare audible state/volume holds independently of score packaging."""
+    from psg_scc_performance import settings
+    result = []
+    for channel, notes in performance.channels:
+        holds = []
+        for note in notes:
+            cursor = note.start
+            runs = ((0, note.length),) if note.rest else note.runs
+            state = ('rest',) if note.rest else settings(note.segment, performance.chip)
+            for volume, length in runs:
+                if length <= 0:
+                    continue
+                value = (state, volume)
+                if holds and holds[-1][1] == cursor and holds[-1][2] == value:
+                    holds[-1] = (holds[-1][0], cursor + length, value)
+                else:
+                    holds.append((cursor, cursor + length, value))
+                cursor += length
+        result.append((channel, tuple(holds)))
+    return tuple(result)
+
+
 def main():
     parser = argparse.ArgumentParser(
-        description='Convert a VGM file to MGSDRV MML (SCC + PSG + OPLL)')
+        description='Convert a VGM file to MGSDRV MML (SCC + PSG + OPLL)',
+        epilog='Also attempts an editable blueprint/<stem>.mml with inline volume changes and no timbre/SW-envelope definitions.')
     parser.add_argument('vgm', help='Input VGM file')
+    parser.add_argument('--output-format', choices=['mml', 'vgm', 'both'], default='mml',
+                        help='Emit MML, reconstructed PSG/SCC/OPLL VGM, or both (default: mml)')
+    parser.add_argument('--song-loop', choices=['none', 'source'], default='none',
+                        help='Direct VGM song loop: finite playback or declared source loop (default: none)')
     parser.add_argument('--target', choices=['mgs'], default='mgs',
                         help='Output target (MGSDRV MML)')
     parser.add_argument('--outdir', default=None,
@@ -199,6 +280,8 @@ def main():
     args.normalize_lengths = options.enabled
     if args.sync_min_gap < 0:
         parser.error('--sync-min-gap must be nonnegative')
+    if args.song_loop != 'none' and args.output_format == 'mml':
+        parser.error('--song-loop applies to VGM output; select --output-format vgm or both')
     if args.normalize_lengths and args.raw_ticks:
         parser.error('--normalize-lengths cannot be combined with --raw-ticks')
 
@@ -230,30 +313,67 @@ def main():
     from mgs_force import inspect_projection
     root = Path(song_dir)
     report_path = root / f'{base_name}.conversion.json'
-    # Remove only artifacts owned by this conversion, including old optional
-    # decisions which could otherwise look like current successful output.
-    for suffix in ('mml', 'normalization.json', 'fm.short_states.json', 'fm.short_states.csv',
-                   'opll.normalized.notes.csv', 'opll.normalized.loops.csv',
-                   'opll.normalized.expanded.mml', 'drums.json', 'drums.candidates.csv',
-                   'drums.projection.csv', 'drums.before.target.mml', 'drums.after.target.mml',
-                   'volume_curves.target.json'):
-        (root / f'{base_name}.{suffix}').unlink(missing_ok=True)
-    for chip in ('psg', 'scc', 'opll'):
-        (root / f'{base_name}.{chip}.before.normalize.mml').unlink(missing_ok=True)
-        (root / f'{base_name}.{chip}.before.envelope_ties.mml').unlink(missing_ok=True)
-    for chip in ('psg', 'scc'):
-        for suffix in ('json', 'notes.csv', 'gates.csv', 'controls.csv', 'boundaries.csv', 'segments.csv'):
-            (root / f'{base_name}.{chip}.performance.{suffix}').unlink(missing_ok=True)
-    for chip in ('psg', 'scc'):
-        for suffix in ('json', 'candidates.csv', 'notes.csv', 'decisions.csv'):
-            (root / f'{base_name}.{chip}.volume_curves.{suffix}').unlink(missing_ok=True)
+    if args.output_format != 'vgm':
+        # Remove only artifacts owned by this conversion, including old optional
+        # decisions which could otherwise look like current successful output.
+        for suffix in ('mml', 'normalization.json', 'fm.short_states.json', 'fm.short_states.csv',
+                       'opll.normalized.notes.csv', 'opll.normalized.loops.csv',
+                       'opll.normalized.expanded.mml', 'drums.json', 'drums.candidates.csv',
+                       'drums.projection.csv', 'drums.before.target.mml', 'drums.after.target.mml',
+                       'volume_curves.target.json'):
+            (root / f'{base_name}.{suffix}').unlink(missing_ok=True)
+        for chip in ('psg', 'scc', 'opll'):
+            (root / f'{base_name}.{chip}.before.normalize.mml').unlink(missing_ok=True)
+            (root / f'{base_name}.{chip}.before.envelope_ties.mml').unlink(missing_ok=True)
+        for chip in ('psg', 'scc'):
+            for suffix in ('json', 'notes.csv', 'gates.csv', 'controls.csv', 'boundaries.csv', 'segments.csv'):
+                (root / f'{base_name}.{chip}.performance.{suffix}').unlink(missing_ok=True)
+        for chip in ('psg', 'scc'):
+            for suffix in ('json', 'candidates.csv', 'notes.csv', 'decisions.csv'):
+                (root / f'{base_name}.{chip}.volume_curves.{suffix}').unlink(missing_ok=True)
     report = dict(status='converting', target='mgs', input=str(Path(vgm_path).resolve()),
-                  options=options.as_dict(), source_segments_unchanged=True)
+                  options=options.as_dict(), output_format=args.output_format, source_segments_unchanged=True)
     def save_report():
         report_path.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     save_report()
     try:
-        force_summary = inspect_projection(vgm_path, song_dir, base_name, force=args.force)
+        from musical_conversion import build_plan
+        decisions = {}
+        shared_plan, execution = build_plan(vgm_path, song_dir, base_name,
+            normalization_ms=options.effective_normalization_ms,
+            fm_state_ms=options.effective_fm_state_ms, normalize_lengths=args.normalize_lengths,
+            software_volume_curves=args.software_volume_curves, force=args.force,
+            psg_part=args.psg_part, enhance_drums=args.enhance_drums,
+            song_loop=args.song_loop, dump_passes=args.dump_passes or args.debug,
+            psg_input=args.psg_input, scc_input=args.scc_input,
+            decision_sink=decisions)
+        from musical_blueprint import write_blueprint
+        report['blueprint'] = write_blueprint(shared_plan, root, base_name)
+        save_report()
+        conversion_input = decisions.get('conversion_input', vgm_path)
+        source_projection = decisions.get('source_projection')
+        if source_projection is not None:
+            report['source_projection'] = source_projection
+        report['shared_musical_plan'] = str(root / f'{base_name}.musical_plan.json')
+        report['shared_normalization'] = decisions['mapper'].report
+        if args.output_format != 'vgm':
+            sustained = [c for c in shared_plan.controls if c.chip == 'opll'
+                         and c.kind == 'pitch' and c.value[2]]
+            report['backend_losses'] = ([dict(kind='opll_sustain_not_encoded_by_mgs_lowering',
+                inherited=True, state_controls=len(sustained),
+                retained_in_shared_plan=True, retained_in_direct_vgm=True,
+                unit_ids=sorted({c.unit_id for c in sustained if c.unit_id}))] if sustained else [])
+        force_summary = execution['force']
+        if args.output_format in ('vgm', 'both'):
+            report['direct_vgm'] = _write_direct_vgm(shared_plan, vgm_path, song_dir, base_name)
+            report.setdefault('outputs', {})['vgm'] = dict(status='success', path=report['direct_vgm']['vgm'])
+            save_report()
+        if args.output_format == 'vgm':
+            report.update(status='success', vgm=report['direct_vgm']['vgm'],
+                          normalization=decisions['mapper'].report, compiler_invoked=False,
+                          mml_generated=False)
+            save_report()
+            return
         report['force'] = dict(enabled=bool(args.force), omission_count=force_summary['omission_count'],
                                csv_path=force_summary['csv_path'])
         if args.force:
@@ -269,7 +389,7 @@ def main():
                 psg_scc_curves_filtered=False, omitted_states=0)
             (root / f'{base_name}.normalization.json').write_text(json.dumps(disabled, indent=2), encoding='utf-8')
             (root / f'{base_name}.fm.short_states.json').write_text(json.dumps(disabled, indent=2), encoding='utf-8')
-        _convert_mgs(args, options, vgm_path, song_dir, base_name)
+        _convert_mgs(args, options, str(conversion_input), song_dir, base_name, decision_context=decisions)
         report['normalization'] = json.loads((root / f'{base_name}.normalization.json').read_text(encoding='utf-8'))
         if args.software_volume_curves:
             report['volume_curve_target'] = json.loads((root / f'{base_name}.volume_curves.target.json').read_text(encoding='utf-8'))
@@ -277,16 +397,21 @@ def main():
             report['drums'] = json.loads((root / f'{base_name}.drums.json').read_text(encoding='utf-8'))
         if args.psg_part != 'all':
             report['psg_selection'] = json.loads((root / f'{base_name}.psg.selection.json').read_text(encoding='utf-8'))
-        report.update(status='success', mml=str(root / f'{base_name}.mml'))
+        report.update(status='success', mml=str(root / f'{base_name}.mml'), mml_generated=True)
+        report.setdefault('outputs', {})['mml'] = dict(status='success', path=report['mml'],
+            song_loop='finite score; loop selection applies to direct VGM')
     except Exception as error:
         report.update(status='conversion_failed', error_type=type(error).__name__, detail=str(error))
+        if args.output_format != 'vgm':
+            report.setdefault('outputs', {})['mml'] = dict(status='conversion_failed', detail=str(error))
         save_report()
         raise
     else:
         save_report()
 
 
-def _convert_mgs(args, options, vgm_path, song_dir, base_name):
+def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_context=None):
+    from pathlib import Path
     # ── Step 1: Parse VGM → SCC + PSG + OPLL log/trace CSVs ──────
     opm_metadata = {}
     (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
@@ -347,52 +472,75 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name):
     performances = [kwargs['performance'] for _, _, _, kwargs in envelope_bank.pending]
     selection_candidates = ()
     selected_psg = None
-    if args.psg_part != 'all':
-        from pathlib import Path
-        from psg_part_selection import select, dump as dump_selection
-        from psg_scc_performance import analyze, dump as dump_performance
-        from chip_segments import PsgSegment, dump_segments
-        native_psg = next(p for p in performances if p.chip == 'psg')
-        selected_psg, selection_candidates, summary, catalog, membership = select(native_psg, args.psg_part)
-        dump_selection(song_dir, base_name, summary, catalog, membership)
-        projected_performance = analyze(selected_psg, 'psg')
+    if decision_context is not None:
+        accepted = {performance.chip: performance for performance in decision_context['performances']}
         pending = []
         for segments, chip, path, kwargs in envelope_bank.pending:
-            if chip != 'psg':
+            if chip not in accepted:
+                Path(path).write_text('', encoding='utf-8')
                 continue
-            kwargs = dict(kwargs, performance=projected_performance)
-            if args.dump_passes:
-                prefix = str(Path(song_dir) / (base_name + '.psg.selection'))
-                kwargs['dump_path'] = prefix + '.target_notes.csv'
-                dump_performance(projected_performance, prefix)
-                dump_segments(prefix+'.segments.csv', selected_psg, PsgSegment)
-            pending.append((selected_psg, chip, path, kwargs))
+            performance = accepted[chip]
+            pending.append((performance.reconstruct_segments(), chip, path,
+                            dict(kwargs, performance=performance)))
         envelope_bank.pending = pending
-        Path(song_dir, base_name+'.scc.target.mml').write_text('', encoding='utf-8')
-        print(f"PSG selection: {args.psg_part}; {summary['eligible_rhythm_candidates']} rhythm candidates; "
-              f"{summary['hardware_phase_abstentions']} hardware-envelope abstentions")
+        selection_candidates = decision_context.get('selection_candidates') or ()
+        if args.psg_part != 'all':
+            projected_performance = accepted['psg']
+            selected_psg = projected_performance.reconstruct_segments()
+            summary = decision_context.get('selection_summary') or {}
+            print(f"PSG selection: {args.psg_part}; shared accepted musical decisions")
     else:
-        from pathlib import Path
-        for suffix in ('json', 'candidates.csv', 'mask.csv'):
-            Path(song_dir, base_name+'.psg.selection.'+suffix).unlink(missing_ok=True)
-    if args.software_volume_curves:
-        from psg_scc_volume_curves import project as project_curves, dump as dump_curves
-        projected_pending = []
-        for segments, chip, path, kwargs in envelope_bank.pending:
-            projection = project_curves(kwargs['performance'])
-            summary = projection.summary()
-            dump_curves(projection, Path(song_dir) / f'{base_name}.{chip}.volume_curves',
-                        details=args.dump_passes or args.debug)
-            projected_pending.append((segments, chip, path,
-                                      dict(kwargs, performance=projection.performance)))
-            print(f"{chip.upper()} volume curves: {summary['original_units']} -> "
-                  f"{summary['projected_units']} units; "
-                  f"{summary['joined_boundaries']} joined boundaries (exact renderer ticks)")
-        envelope_bank.pending = projected_pending
+        if args.psg_part != 'all':
+            from pathlib import Path
+            from psg_part_selection import select, dump as dump_selection
+            from psg_scc_performance import analyze, dump as dump_performance
+            from chip_segments import PsgSegment, dump_segments
+            native_psg = next(p for p in performances if p.chip == 'psg')
+            selected_psg, selection_candidates, summary, catalog, membership = select(native_psg, args.psg_part)
+            dump_selection(song_dir, base_name, summary, catalog, membership)
+            projected_performance = analyze(selected_psg, 'psg')
+            pending = []
+            for segments, chip, path, kwargs in envelope_bank.pending:
+                if chip != 'psg':
+                    continue
+                kwargs = dict(kwargs, performance=projected_performance)
+                if args.dump_passes:
+                    prefix = str(Path(song_dir) / (base_name + '.psg.selection'))
+                    kwargs['dump_path'] = prefix + '.target_notes.csv'
+                    dump_performance(projected_performance, prefix)
+                    dump_segments(prefix+'.segments.csv', selected_psg, PsgSegment)
+                pending.append((selected_psg, chip, path, kwargs))
+            envelope_bank.pending = pending
+            Path(song_dir, base_name+'.scc.target.mml').write_text('', encoding='utf-8')
+            print(f"PSG selection: {args.psg_part}; {summary['eligible_rhythm_candidates']} rhythm candidates; "
+                  f"{summary['hardware_phase_abstentions']} hardware-envelope abstentions")
+        else:
+            from pathlib import Path
+            for suffix in ('json', 'candidates.csv', 'mask.csv'):
+                Path(song_dir, base_name+'.psg.selection.'+suffix).unlink(missing_ok=True)
+        if args.software_volume_curves:
+            from psg_scc_volume_curves import project as project_curves, dump as dump_curves
+            projected_pending = []
+            for segments, chip, path, kwargs in envelope_bank.pending:
+                projection = project_curves(kwargs['performance'])
+                summary = projection.summary()
+                dump_curves(projection, Path(song_dir) / f'{base_name}.{chip}.volume_curves',
+                            details=args.dump_passes or args.debug)
+                projected_pending.append((segments, chip, path,
+                                          dict(kwargs, performance=projection.performance)))
+                print(f"{chip.upper()} volume curves: {summary['original_units']} -> "
+                      f"{summary['projected_units']} units; "
+                      f"{summary['joined_boundaries']} joined boundaries (exact renderer ticks)")
+            envelope_bank.pending = projected_pending
     envelope_bank.flush()
 
     from opll_mode import mode_from_trace
     opll_mode = mode_from_trace(opll_trace_csv)
+    if decision_context is not None and opll_mode:
+        shared = decision_context['musical_plan']
+        if any(unit.chip == 'opll' and unit.channel >= 6 and not unit.rest
+               and unit.articulation != 'inferred_percussion' for unit in shared.units):
+            raise ValueError('MGSDRV rhythm layout cannot also represent accepted melodic channels 7-9; direct VGM remains available')
 
     # ── Step 4: OPLL MML pipeline ────────────────────────────────
     opll_mml_path = process_opll_csv(opll_trace_csv, song_dir, stem=base_name,
@@ -427,7 +575,8 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name):
                                              base_name, args.dump_passes or args.debug, controls,
                                              opll_mode=opll_mode, source_loops=not args.legacy_loops,
                                              normalization_ms=options.effective_normalization_ms,
-                                             fm_state_ms=options.effective_fm_state_ms)
+                                             fm_state_ms=options.effective_fm_state_ms,
+                                             decision_mapper=decision_context.get('mapper') if decision_context else None)
         if normalized_tempo is not None:
             print(f'Note normalization: applied (tempo {normalized_tempo})')
         else:
@@ -457,11 +606,38 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name):
             fallback_args = copy(args)
             fallback_args.software_volume_curves = False
             fallback_args.vgmticks = True
+            fallback_context = decision_context
+            packaging = None
+            if decision_context is not None:
+                base = decision_context.get('base_performances')
+                if base is None:
+                    raise ValueError('MML backend needs retained pre-curve partitions for safe fallback') from error
+                accepted = {p.chip: p for p in decision_context['performances']}
+                decomposition = []
+                mapping = []
+                for performance in base:
+                    if performance.chip not in accepted:
+                        continue
+                    source = accepted[performance.chip]
+                    if _curve_timeline(performance) != _curve_timeline(source):
+                        raise ValueError('MML partition fallback would change the accepted volume timeline') from error
+                    decomposition.append(performance)
+                    mapping.extend(dict(chip=performance.chip, channel=ch, backend_note=index,
+                        source_segment_indices=note.segment_indices, start_tick=note.start,
+                        end_tick=note.start + note.length)
+                        for ch, notes in performance.channels for index, note in enumerate(notes))
+                fallback_context = dict(decision_context, performances=tuple(decomposition),
+                                        backend_partition_fallback=True)
+                packaging = dict(backend_partition_fallback=True,
+                    semantic_volume_timeline_unchanged=True,
+                    shared_clock_preserved=True, source_unit_mapping=mapping)
             print(f'Software volume curves: retaining ordinary projection ({error})')
             _convert_mgs(fallback_args, replace(options, software_volume_curves=False),
-                         vgm_path, song_dir, base_name)
+                         vgm_path, song_dir, base_name, decision_context=fallback_context)
             tie_report = dict(status='fallback', applied=False, reason=str(error),
                               source_segments_unchanged=True, fallback='ordinary complete MGS pipeline')
+            if packaging:
+                tie_report.update(packaging)
             for chip in ('psg', 'scc'):
                 summary_path = Path(song_dir, f'{base_name}.{chip}.volume_curves.json')
                 if summary_path.exists():
@@ -501,14 +677,15 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name):
             overlay_candidates = selection_candidates if args.psg_part == 'rhythm' else ()
             overlay_performances = [projected_performance]
         else:
-            overlay_candidates = infer(performances)
+            overlay_candidates = (() if decision_context is not None else infer(performances))
             overlay_performances = performances
         with open(os.path.join(song_dir, f'{base_name}.normalization.json'), encoding='utf-8') as stream:
             normalization = json.load(stream)
         opll_mode, drum_report = apply(overlay_candidates, native_opll, overlay_performances,
             song_dir, base_name, native_mode=opll_mode, normalization=normalization,
             raw_ticks=args.raw_ticks, dump_passes=args.dump_passes or args.debug,
-            control_sources=drum_control_sources)
+            control_sources=drum_control_sources,
+            decision_projection=decision_context.get('drum_projection') if decision_context else None)
         has_opll = has_opll or bool(drum_report['added_hits'])
         print(f"Rhythm enhancement: {drum_report['added_hits']} added hits; {drum_report['reason']}")
 

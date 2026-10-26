@@ -192,7 +192,10 @@ class BatchMgs(unittest.TestCase):
             root = Path(tmp)
             source, mgs = root/'source.vgm', root/'source.mgs'
             header = bytearray(0x40); header[:4] = b'Vgm '
+            struct.pack_into('<I', header, 8, 0x100)
             struct.pack_into('<I', header, 0x18, 44100)
+            header.extend(b'\x61' + struct.pack('<H', 44100) + b'\x66')
+            struct.pack_into('<I', header, 4, len(header) - 4)
             source.write_bytes(header); mgs.write_bytes(b'original binary')
             def run(command, **kwargs):
                 if '--outdir' in command:

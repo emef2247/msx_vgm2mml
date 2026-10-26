@@ -10,6 +10,7 @@ from pathlib import Path
 from mml_utils import compact_state_token
 from psg_scc_target import TUNING_HEADER, period_detune, envelope_period_tokens, rendered_period
 from psg_scc_performance import analyze as build_performance, audible, settings
+from psg_scc_execution import accepted_note_decision
 
 
 @dataclass
@@ -207,7 +208,8 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
                 boundaries[note.segment_indices[-1] + 1] = len(body)
                 dump_rows.append((track, note.start, cursor, 'rest', '', '', '', '', ''))
                 continue
-            hw = chip == 'psg' and seg.envelope_enabled
+            decision = accepted_note_decision(note, chip)
+            hw = decision.hardware_envelope
             env = bank.curves.get(tuple(note.runs), bank.aliases.get(tuple(note.runs))) if len(note.runs) > 1 and not hw else None
             note.envelope = env
             envelope_id = '' if hw else (env if env is not None else 0)
@@ -253,7 +255,7 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
             boundaries[note.segment_indices[-1] + 1] = len(body)
             dump_rows.append((track, note.start, cursor, 'note', '' if env is None else env,
                               ';'.join(f'{v}:{n}' for v, n in note.runs),
-                              detune, rendered_period(seg), int(rendered_period(seg) == seg.tone_period)))
+                              detune, decision.period, int(decision.period_exact)))
         note_cuts.append(len(body))
         before_lines.append(f'{track} ' + ' '.join(body))
         if source_plans is not None:

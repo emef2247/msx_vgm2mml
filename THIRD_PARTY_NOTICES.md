@@ -155,6 +155,27 @@ this direct-dependency check is not a complete package redistribution audit.
 
 ## Distribution scope
 
+### Optional HuC6280 reference core
+
+`scripts/huc6280_reference.py --setup` obtains a pinned
+[libvgm](https://github.com/ValleyBell/libvgm) checkout, commit
+`bad50c571db45b872304bdcd0603dd2214f0663e`, into ignored local tool storage.
+It builds a local validation wrapper around the unchanged
+`emu/cores/c6280_mame.c` core, attributed to Charles MacDonald and marked
+BSD-3-Clause. The wrapper records source, wrapper and library hashes. No
+upstream core or compiled reference binary is redistributed in this repository.
+The converter's native source profile is behaviorally checked against that
+reference; this does not establish hardware accuracy for all core behavior.
+If redistributing the optional checkout or binary, retain upstream copyright,
+license and dependency notices from that pinned distribution.
+
+`scripts/musical_vgm_reference.py` additionally builds optional local wrappers
+around the same pinned checkout's EMU2149/EMU2413 (Mitsutaka Okazaki; upstream
+MIT notices), K051649 (Bryan McPhail; BSD-3-Clause) and panning support. Source,
+wrapper and binary hashes are retained in local metadata. These cores and
+binaries remain outside tracked source. Preserve their exact pinned upstream
+notices if separately redistributing the optional reference installation.
+
 Include this notice and the project LICENSE with source distributions.
 Referenced vgm-conv mapping material retains its ISC notice. Optional compiler,
 player and inspector executables/packages and copyrighted driver dumps are

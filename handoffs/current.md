@@ -1,3 +1,222 @@
+# Editable blueprint addition (2026-10-26)
+
+User clarified: remove timbre and SW-envelope definitions, KEEP volume changes.
+New py/musical_blueprint.py consumes accepted MusicalPlan units/controls. Native
+PSG/SCC/OPLL lanes remain; HuC provenance in adapter allocation metadata routes
+those whole sounding units to free OPLL then PSG lanes. Inline v holds and tied
+pitch/volume continuations, whole-unit finite loops then existing macros; @0
+placeholders, no copied SCC wave/OPLL patch/SW-envelope definitions. Users add
+their own SCC wave. Native source evidence/ordinary rendering are unchanged.
+
+Canonical, export_mgs/batch and export_vgm automatically add blueprint/<stem>.mml
+to each output package. Diagnostic <stem>.blueprint.json / .units.csv record
+source lane, plan lane, output lane, samples/steps, controls, loops and rounding.
+Primary MML/MGS/VGM ownership/failure rollback remains; the template can publish
+even when ordinary MML or compilation fails. Edited/unowned templates are skipped
+with blueprint_status=blocked; primary conversion continues. Stale templates
+must not be relabelled as latest success. Canonical protects edits with a digest
+and preserves ownership across blocked attempts.
+
+Template rhythm is attack-grid/preset-decay notation; native off edges are in
+rhythm_source_controls, not independent MML gates. Positive held percussion
+volume changes block the template; same-sample release/setup transients do not.
+Never invent attacks to represent such a curve. No silent lane-capacity omission.
+
+95 focused tests pass, no errors/failures/skips, including actual MGS PSG volume
+15->9->3 and full gate duration, templates/native lanes/spill/loops, hand edits,
+failed-attempt publication, canonical/batch/VGM and HuC projection checks.
+Fresh public PSG+SCC VGM and OPLL MGS exports succeed with template publication.
+Fresh authorized BIKKR06 VGM succeeds;352 sounding units from6 source voices
+are mapped to6 OPLL lanes in its blueprint. No broad private regression/listening.
+Final public-template generation/compile audit: see
+outputs/diagnostics/blueprint_20261026/public_final/summary.json.
+Of60 saved public accepted plans,58 produce blueprint MML;2 report held native
+percussion-volume limits (rhythm_only_test03 and sample).50 compile with MGSC;
+8 hit track-buffer capacity. These are blueprint results, not primary conversion
+failures. Tempo-specific minimum encoded lengths are explicitly checked; long
+tied notes reserve a legal final piece. Raw%1/%2 are valid at low tempos, while
+divisors96/192 are invalid. Do not confuse a compiler duration limit with missing
+score-unit reconstruction, and do not silently add independent60Hz rounding.
+Long explicit curves can exceed MGSDRV buffers; the template is not automatically
+compiled. Successful MML generation does not imply identical timbre/playback.
+
+Branch remains codex/musical_HAL, all HuC/HAL/blueprint work uncommitted.
+README unchanged. No staging/commit/push. English specification in
+docs/musical_blueprint.md; external private note records implementation/review.
+Next allowed: user listening/regression or focused reported blueprint issues.
+Do not flatten volume curves, copy source timbres back into blueprint, replace
+source units by raw tied Segments, or run a broad local_only regression.
+
+---
+
+# musical_HAL initial foundation ready (2026-10-26; historical checkpoint)
+
+Current public branch: codex/musical_HAL, created from main per user request.
+All uncommitted HuC6280 + common-foundation work is preserved on the working tree.
+No stage, commit or push performed. The older IN PROGRESS checkpoints below are
+historical; the blockers listed there have been fixed and validated.
+
+Shared MusicalPlan/Unit/Control plus native PerformanceIR and timing decisions
+are wired into MML lowering and compiler-free mixed PSG/SCC/OPLL VGM output.
+Preferred batch: python scripts/export_vgm.py <input> --outdir <output>.
+Canonical: --output-format mml|vgm|both (defaultmml); VGM-only skips ordinary text
+lowering; the later blueprint addition is a separate optional-success attempt.
+Export defaults24msFM/8msnormalization/softwarecurveson/timeout1200. Finite output
+by default; --song-loop source explicitly requests validated re-entry.
+Flat tracks/<stem>.vgm + sourcecopies + diagnostic plan/CSV/writes + manifest,
+results; ownership/failure rollback retained. Existing MGS products coexist.
+README untouched. docs/musical_hal.md documents real usage/scope/differences.
+
+Verified:153 focused authored/public/actual-MGS/reference checks pass with no
+failures/errors/skips; existing MML public baseline passes;60 supported public
+native/mixed inputs generate VGM (13PSG,13SCC,19OPLL,2PSG+SCC,1PSG+OPLL,
+12PSG+SCC+OPLL). Final OPLL19 rerun after zero-pulse fix allsuccess. Independent
+pinned C AY/OPLL/SCC actual audio + authored frequency checked; representative
+public prefixes nonzero on intended chips. BIKKR06 direct route succeeds.
+No broad private regression or hardware listening. User HuC regression ongoing.
+Evidence outputs/diagnostics/shared_vgm_20261026/{summary.json,acceptance_tests.log,
+mml_public_regression.log,final_public,independent_audio.json,BIKKR06}.
+
+Important fixes: native rhythm shared bank protected from melodic6-8quantization;
+modeentry native snapshots + modeexit accepted latent melody restoration. Complete
+normalized zero-width transition groups include settling keyoff (no phantom held
+note). Inferred drum volume nibbles restore native values; native hits win;
+new drums use measured MGS initial pitch. No raw-note replay/MML parse prerequisite.
+MML shares accepted PerformanceIR/normalized objects; packaging fallback verifies
+same volume timeline, maps units and preserves accepted clock. MGS layout limits
+fail explicitly; successful direct VGM remains. Inherited OPLL sustain omission
+is recorded as MML backend loss; direct VGM/common plan retain sustain.
+Architect focused review confirmed identified blockers fixed; no private runs.
+
+Not implemented: MIDI/TX802/FB-01 or broader chips, HuC noise/DDA/LFO/dynamicwave.
+Next allowed: user regression/listening on new VGM outputs; use retained native
+parameters/source clocks for later profiles, not reverse MGSencoding. Do not
+change README or run broad local_only without user scope. Avoid unfiltered
+unittest discover: legacy local tests exist; use selected public/authored modules.
+English implementation note saved separately in private external repository:
+msx_vgm2mml/field_notes/2026-10-26_musical_hal_direct_vgm.md (uncommitted).
+
+---
+
+# musical_HAL branch checkpoint (2026-10-26)
+
+User requested a separate architecture branch and explicitly allowed all current
+uncommitted changes, including HuC6280. Created codex/musical_HAL from main;
+all tracked/untracked work preserved. No commit or push was requested/performed.
+Continue the common musical-layer/direct-VGM implementation on this branch.
+
+Implementation is IN PROGRESS, not final acceptance. New typed MusicalPlan,
+PSG/SCC/OPLL execution adapters, common timing decisions, direct mixed-chip VGM
+writer, export_vgm.py package layout/ownership and canonical output-format branch
+are saved. README remains unchanged. Existing MML lowering consumes shared
+accepted decisions; packaging-only fallback integration still needs final review.
+
+Important unfinished correctness item: OPLL channels6-8 melodic controls must not
+overwrite native rhythm shared registers while source rhythm mode is active.
+The OPLL worker identified the fix but hit usage limit before completion. Filter
+melodic controls by ordered source mode; retain native rhythm banks at modeON;
+restore accepted melodic state after modeOFF. Add authored positive-wait tests.
+Do not call all mixed-rhythm output musically verified merely because generation
+of19public OPLL files succeeded. Verify worker file state before continuing.
+
+Pending: finish independent audio validation and public-group export summary,
+shared MML fallback review, direct writer loop/GD3/resource tests, final focused
+architect review, public regression checks and external note. Public tests may
+still be running from root sessions; inspect results before repeating. Do not
+run broad private regression. User HuC regression remains ongoing.
+
+---
+
+# Direct reconstructed VGM foundation requested (2026-10-26)
+
+User BIKKR regression is still unfinished. New priority: output PSG/SCC/OPLL
+mixed VGM directly from the same reconstructed musical information as MML,
+without requiring MML/MGS to fit compiler/driver buffers. Current task is route
+selection/audit only; no new direct writer implemented. See
+ docs/reconstructed_vgm_routes.md for scope, existing seams and validation.
+
+Start native PSG -> PSG, SCC -> SCC, PSG+SCC, then OPLL melody/native rhythm and
+all mixed combinations. Reuse common final musical decisions and then integrate
+existing inferred-rhythm overlay / HuC adapter. Existing HuC target VGM precedes
+musical correction; MGS->VGM still requires successful compilation, so neither
+alone satisfies this requirement. Extract text-coupled normalization, boundaries
+and overlay decisions into a shared plan. Keep MGSDRV packaging/buffer limits in
+MML lowering, source evidence intact, chip-global state and loop intent explicit.
+README unchanged. No conversions/tests needed for this read-only route audit.
+
+---
+
+# HuC6280 BIKKR implementation ready for user regression (2026-10-26)
+
+Single HuC6280 periodic/static-wave source is automatically analyzed from actual
+B9 commands and projected into ordinary SCC + square-wave AY overflow. Stable
+5-SCC allocation requires an equal shared pair; otherwise4 independent SCC RAMs.
+Native immutable State/Segments/RAM/gain assumptions remain separate from the
+retained target VGM and target-derived PSG/SCC Segments. Existing musical-unit,
+loop/macro/SW-envelope renderers consume the adapter. README unchanged.
+
+BIKKR06 and BIKKR01 scoped conversions both success, actual MGS->VGM export and
+nonzero audio confirmed.6voices ->5SCC+1PSG. MGS sizes2432/14592bytes respectively;
+MML5121/24827bytes. Private fixtures unchanged; no full catalog/listening claim.
+Artifacts: outputs/diagnostics/huc6280_impl_20261026/{BIKKR06,BIKKR01,native06,
+gain_probe,analysis_ja.md,verification.log}. Native/target/allocation/control/
+gate/write CSVs retained. All6 authored active target periods checked in actual
+MGS replay. Source C oracle pinned to libvgm bad50c571db45b872304bdcd0603dd2214f0663e.
+
+Selected authored/public modules:77checks pass,0failures/errors/skips; subsequent
+focused HuC checks33pass after adding phase-dependent third-loop guard tests.
+Final small path containment guard is covered by the final focused rerun.
+Earlier unfiltered discovery unexpectedly entered legacy local-only tests and
+was interrupted; avoid unfiltered discovery if private scope must be limited.
+
+Loop-cache review fixed redundant entry pitch/gain restoration and activation
+after muted source pitch changes. Native and target second traversals validated;
+phase-dependent loop RAM writes blocked unless disabled upload has explicit
+in-loop reset. Finite replay equality alone is not a proof of phase independence.
+Architect focused review confirmed all identified blockers addressed.
+
+Batch still exports real MGS playback; HuC uses projected_source verification
+status, never a false OPLL0/0 equality. Generated target VGM excluded from input
+rediscovery; unowned intermediate targets protected; original source/package
+publication ownership retained. Target octave verified through actual audio.
+Gain/stereo/phase are explicit approximations, not hardware equivalence.
+
+Not implemented: OPLL spill, noise, active DDA/LFO, dynamic audible wave changes,
+mixed chips. These remain explicit failures even under force. Next allowed:
+user BIKKR regression/listening, then decide next HuC feature from evidence.
+Do not silently broaden support or change the user-maintained README.
+
+English implementation note saved separately in external private repository:
+msx_vgm2mml/field_notes/2026-10-26_huc6280_bikkr_initial_implementation.md.
+Public and private changes remain unstaged/uncommitted; no push requested.
+
+---
+
+# HuC6280 hybrid target design (2026-10-25)
+
+Investigation only, user authorizedreading local_only/huc6280; no production
+converter/README/test changes or fixture mutation.106VGM inputs across6sets
+inspected (KATOKEN14extensionless); sourceclock3579545, B9+wait/end only.
+Allsets reach6enabled/gainpositivevoices. DDA16inputs(allDSAVER); no activeLFO,
+DACstream, live enabled normalwavewrites observed. Counts are diagnostic,not
+independent audio validation. See docs/huc6280_projection_design.md, ignored
+outputs/diagnostics/huc6280_design_20261025/analysis_ja.md and external note
+2026-10-25_huc6280_projection_design.md.
+
+Baseline ordinarySCC:5voices/4independentwaveRAMs(ch4/5shared). Plan SCC primary,
+PSG square/noise complement, OPLL other periodic spill; globalOPLLuserpatch and
+sharedPSGnoise constraints explicit. Do not assume SCC+independentmode works in
+MGSDRV. DDA is separate timed sampledata,not a periodic note; unsupportedparts
+must remain visible. Preserve native6voice State/Segment and fullsounding-unit
++internalcurves before existingloops/macros/sharedSW-envelope adapters.
+
+Nextallowed: scopedimplementation after user direction. Suggested short inputs:
+BIKKR06,SCC+PSG;DSPILT01,OPLL;KATOKEN/11Miss,noise/extensionless;DSAVER13,laterDDA.
+No source-to-MML conversion or broad regression run. No staging/commit/push.
+Do not revive removed MDX external tools; keep user-maintained README unchanged.
+
+---
+
 # MDX toolchain removal (2026-10-25)
 
 Removed inherited MDX export, compilation/replay, fixture-generator and external

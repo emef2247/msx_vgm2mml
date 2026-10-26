@@ -33,6 +33,54 @@ def target_note(fnum, block):
                                                    'f+', 'g', 'g+', 'a', 'a+', 'b')[midi % 12]
 
 
+
+
+# Authored MGSC/libkss chromatic probe; stable writes after the key/high byte.
+MGSDRV_FNUM = (172, 182, 194, 205, 217, 230, 244, 258, 273, 290, 307, 325)
+NOTE_NAMES = ('c', 'c+', 'd', 'd+', 'e', 'f', 'f+', 'g', 'g+', 'a', 'a+', 'b')
+
+
+def note_pitch(octave, note):
+    """Encode the accepted MML semitone in MGSDRV's measured OPLL profile."""
+    if note == 'r':
+        return 0, 0
+    return MGSDRV_FNUM[NOTE_NAMES.index(note)], max(0, min(7, int(octave) - 1))
+
+def read_patch_updates(voice_csv_path):
+    """Read ordered native global patch snapshots without allocating target voices."""
+    updates = []
+    if voice_csv_path:
+        with open(voice_csv_path, newline='') as stream:
+            updates = [(int(row['ticks']), bytes.fromhex(row['patch_hex']))
+                       for row in csv.DictReader(stream) if row['#type'] == 'patch']
+    return updates
+
+
+def segment_decisions(rows, updates=()):
+    """Shared pure melodic pitch, patch, attack and continuation decisions."""
+    from types import SimpleNamespace
+    times = [tick for tick, _ in updates]
+    previous_key = False
+    result = []
+    for index, seg in enumerate(rows):
+        edge = bool(getattr(seg, 'key_on_edge', seg.keyon and not previous_key))
+        previous_key = bool(seg.keyon)
+        octave, note = target_note(seg.fnum, seg.block)
+        position = bisect_right(times, seg.tick_start) - 1
+        patch = (updates[position][1] if position >= 0 else bytes(8)) if not seg.inst else None
+        end, later_key, continuation = seg.tick_end, bool(seg.keyon), False
+        for later in rows[index + 1:]:
+            later_edge = bool(getattr(later, 'key_on_edge', later.keyon and not later_key))
+            if not later.keyon or later_edge or later.tick_start != end:
+                break
+            later_key = bool(later.keyon)
+            if later.tick_end > later.tick_start:
+                continuation = bool(later.fnum)
+                break
+        result.append(SimpleNamespace(edge=edge, octave=octave, note=note,
+            patch=patch, continuation=continuation, instrument=int(seg.inst), volume=15-int(seg.vol)))
+    return tuple(result)
+
 def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, source_loops=False,
            source_strategy='retained', num_channels=6):
 
@@ -42,12 +90,7 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
     from opll_note_units import group_notes
     performed = {}
     before_lines, loop_report = [], []
-    updates = []
-    if voice_csv_path:
-        with open(voice_csv_path, newline='') as stream:
-            for row in csv.DictReader(stream):
-                if row['#type'] == 'patch':
-                    updates.append((int(row['ticks']), bytes.fromhex(row['patch_hex'])))
+    updates = read_patch_updates(voice_csv_path)
     analysis = analyze(segments, "opll", voice_csv_path)
     source_plans = {}
     if source_loops and source_loops != 'after':
@@ -64,9 +107,12 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
         boundaries = {}
         sounding = False
         active, pending_edge, previous_key = False, False, False
-        for index, seg in enumerate(segments.get(ch, ())):
+        rows = segments.get(ch, ())
+        decisions = segment_decisions(rows, updates)
+        for index, seg in enumerate(rows):
             boundaries[index] = len(body)
-            edge = bool(getattr(seg, 'key_on_edge', seg.keyon and not previous_key))
+            decision = decisions[index]
+            edge = decision.edge
             pending_edge |= edge
             previous_key = bool(seg.keyon)
             if not seg.keyon:
@@ -78,7 +124,7 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
                 body.append(length_tokens('r', seg.tick_start - cursor, raw_ticks))
                 active = False
             cursor = seg.tick_end
-            octave, note = target_note(seg.fnum, seg.block)
+            octave, note = decision.octave, decision.note
             if not seg.keyon or not seg.fnum or note == 'r':
                 body.append(length_tokens('r', length, raw_ticks))
                 active, pending_edge = False, False
@@ -91,8 +137,7 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
             if seg.inst:
                 voice = seg.inst - 1  # MGSDRV ROM instruments are @0..@14.
             else:
-                position = bisect_right(times, seg.tick_start) - 1
-                patch = updates[position][1] if position >= 0 else bytes(8)
+                patch = decision.patch
                 if patch not in patches:
                     voice = 16 + len(patches)
                     if voice > 255:
@@ -107,20 +152,7 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
                     current[key] = value
             # q0 preserves key-on across a pitch/state change; & alone only
             # prevented reattack for equal pitches in the MGSC/libkss probe.
-            following = segments.get(ch, ())[index + 1:]
-            continuation = False
-            end = seg.tick_end
-            later_key = bool(seg.keyon)
-            for later in following:
-                later_edge = bool(getattr(later, 'key_on_edge', later.keyon and not later_key))
-                if (not later.keyon or later_edge
-                        or later.tick_start != end):
-                    break
-                later_key = bool(later.keyon)
-                if later.tick_end > later.tick_start:
-                    continuation = bool(later.fnum)
-                    break
-            gate = 0 if continuation else 8
+            gate = 0 if decision.continuation else 8
             if current.get('gate', 8) != gate:
                 body.append(f'q{gate}')
                 current['gate'] = gate

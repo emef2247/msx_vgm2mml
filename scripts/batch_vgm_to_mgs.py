@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'py'))
 from mgs_conversion_config import MgsOptions
 from vgm_io import read_vgm_bytes
+from vgm_timing import command_times
 from check_opll_key_edges import compare_files
 
 KEYON_FIELDS = ('reference_keyon', 'actual_keyon', 'missing_keyon', 'extra_keyon')
@@ -52,6 +53,10 @@ def check_keyons(source, mgs, folder, node, module, timeout):
     exported_samples = struct.unpack_from('<I', exported, 0x18)[0]
     if exported_samples / 44.1 >= duration - 20:
         raise ValueError('MGS export reached its duration limit; comparison is incomplete')
+    if any(item.command == 0xb9 for item in command_times(raw)):
+        return dict(keyon_status='projected_source', keyon_error=(
+            'MGS playback VGM exported; HuC6280 source is projected to other chips. '
+            'OPLL key-on counts and source register equality are not applicable.'))
     return compare_files(source, actual, folder / 'keyon', segment_dumps=False)
 
 
@@ -65,6 +70,23 @@ def error_detail(text):
 
 def file_digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def blueprint_product(report, folder, stem):
+    """Accept only the current report's owned, complete blueprint artifact."""
+    value = report.get('blueprint', {})
+    expected = folder / 'blueprint' / (stem + '.mml')
+    if not isinstance(value, dict) or value.get('status') != 'success':
+        return None
+    try:
+        path = Path(value['path'])
+        if (path.resolve() != expected.resolve()
+                or not path.resolve().is_relative_to(folder.resolve())
+                or not path.is_file() or file_digest(path) != value.get('sha256')):
+            return None
+    except (KeyError, OSError, TypeError, ValueError):
+        return None
+    return path
 
 
 def save_json(path, value):
@@ -127,7 +149,7 @@ def publication_targets(files, source_root, output, psg_part):
     routes, seen = [], set()
     for path in files:
         relative = path.relative_to(source_root)
-        if any(part.casefold() in ('_diagnostics', '_source_inputs', 'tracks', 'psg_melody', 'psg_rhythm')
+        if any(part.casefold() in ('_diagnostics', '_source_inputs', 'tracks', 'blueprint', 'psg_melody', 'psg_rhythm', '_huc6280_target')
                for part in relative.parts[:-1]):
             raise ValueError(f'Reserved output route in input: {relative}')
         package = output / mode / relative.parent
@@ -139,8 +161,9 @@ def publication_targets(files, source_root, output, psg_part):
         folder = package / '_diagnostics' / path.stem
         staged = package / '_source_inputs' / path.name
         targets = (final, final.with_suffix('.mgs'))
+        blueprint = package / 'blueprint' / (path.stem + '.mml')
         manifest = package / 'listening_manifest.json'
-        for candidate in (*targets, folder, staged, manifest, package / 'results.csv', package / 'results.json',
+        for candidate in (*targets, blueprint, folder, staged, manifest, package / 'results.csv', package / 'results.json',
                           diagnostics / 'results.csv', diagnostics / 'results.json', diagnostics / 'keyon_setup.log'):
             if not candidate.resolve().is_relative_to(output):
                 raise ValueError(f'Output route escapes output tree: {candidate}')
@@ -160,8 +183,12 @@ def publication_targets(files, source_root, output, psg_part):
         if not isinstance(owned, dict):
             raise ValueError(f'Invalid listening manifest: {manifest}')
         for name in owned:
-            if name not in {target.relative_to(package).as_posix() for target in targets}:
+            allowed_products = {target.relative_to(package).as_posix() for target in targets}
+            allowed_products.add((package / 'tracks' / (path.stem + '.vgm')).relative_to(package).as_posix())
+            allowed_products.add(blueprint.relative_to(package).as_posix())
+            if name not in allowed_products:
                 raise ValueError(f'Unexpected published path in manifest: {name}')
+        # A hand-edited template protects that optional product, not the main conversion.
         for target in targets:
             if target.exists():
                 recorded = owned.get(target.relative_to(package).as_posix())
@@ -176,7 +203,7 @@ def publication_targets(files, source_root, output, psg_part):
     directories = set()
     for path, _, folder, targets, manifest in routes:
         package = manifest.parent
-        for item in (*targets, package / '_source_inputs' / path.name, manifest,
+        for item in (*targets, package / 'blueprint' / (path.stem + '.mml'), package / '_source_inputs' / path.name, manifest,
                      package / 'results.csv', package / 'results.json',
                      diagnostics / 'results.csv', diagnostics / 'results.json', diagnostics / 'keyon_setup.log'):
             key = item.relative_to(output).as_posix().casefold()
@@ -205,7 +232,7 @@ def save_package_results(package, output, rows):
     selected = json.loads(previous.read_text(encoding='utf-8')) if previous.is_file() else []
     if not isinstance(selected, list) or any(not isinstance(item, dict) for item in selected):
         raise ValueError(f'Invalid package results: {previous}')
-    path_fields = ('mml', 'mgs', 'log', 'report', 'diagnostics')
+    path_fields = ('mml', 'mgs', 'blueprint', 'log', 'report', 'diagnostics')
     for row in rows:
         if (output / row['report']).parent.parent.parent != package:
             continue
@@ -218,7 +245,7 @@ def save_package_results(package, output, rows):
         selected.append(item)
     if selected:
         with (package / 'results.csv').open('w', encoding='utf-8', newline='') as stream:
-            writer = csv.DictWriter(stream, fieldnames=list(selected[0]))
+            writer = csv.DictWriter(stream, fieldnames=list(dict.fromkeys(key for row in selected for key in row)))
             writer.writeheader()
             writer.writerows(selected)
         save_json(package / 'results.json', selected)
@@ -228,9 +255,10 @@ def discover_inputs(source, adjacent=False):
     if source.is_file():
         return [source] if source.suffix.lower() in ('.vgm', '.vgz') else []
     if not adjacent:
-        return sorted(p for p in source.rglob('*') if p.is_file() and p.suffix.lower() in ('.vgm', '.vgz'))
+        return sorted(p for p in source.rglob('*') if p.is_file() and p.suffix.lower() in ('.vgm', '.vgz')
+                      and '_huc6280_target' not in [part.casefold() for part in p.relative_to(source).parts[:-1]])
     # Adjacent reruns must not convert their own roundtrip VGM or audition trees.
-    reserved = {'_diagnostics', '_source_inputs', 'tracks', 'psg_melody', 'psg_rhythm'}
+    reserved = {'_diagnostics', '_source_inputs', 'tracks', 'blueprint', 'psg_melody', 'psg_rhythm', '_huc6280_target'}
     files = []
     for parent, directories, names in os.walk(source):
         directories[:] = [name for name in directories if name.casefold() not in reserved]
@@ -337,7 +365,7 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
                 raise ValueError(f'Diagnostic artifact escapes output tree: {artifact}')
             artifact.unlink(missing_ok=True)
         row = dict(input=str(relative), status='conversion_failed', mml='',
-                   mgs='', log='', detail='', stage='', error_code='', legacy_status='',
+                   mgs='', blueprint='', blueprint_status='unavailable', blueprint_detail='', log='', detail='', stage='', error_code='', legacy_status='',
                    report=str((folder / 'report.txt').relative_to(output)),
                    diagnostics=str((folder / 'report.json').relative_to(output)), force_summary='',
                    normalization_status='unavailable', normalization_reason='',
@@ -407,9 +435,12 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
                 else:
                     try:
                         counts = check_keyons(path, mgs, folder, node, libkss_module, timeout)
-                        different = counts['missing_keyon'] or counts['extra_keyon']
-                        row.update(counts, keyon_status='mismatch' if different else 'compared')
-                        if psg_part != 'all':
+                        if counts.get('keyon_status') == 'projected_source':
+                            row.update(counts)
+                        else:
+                            different = counts['missing_keyon'] or counts['extra_keyon']
+                            row.update(counts, keyon_status='mismatch' if different else 'compared')
+                        if psg_part != 'all' and row['keyon_status'] != 'projected_source':
                             row.update(keyon_status='selection_only', keyon_error=(
                                 'PSG solo playback export completed; native OPLL intentionally excluded; '
                                 'melodic key-on count equality is not applicable'))
@@ -421,7 +452,8 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
                         (folder / 'keyon.log').write_text(str(error), encoding='utf-8')
         products = dict(previous.get('published', {}))
         # Keep a previously complete listening pair when a later attempt fails.
-        publish = row['status'] == 'success' or (converted and not products)
+        listening_names = {target.relative_to(package).as_posix() for target in (final_mml, final_mgs)}
+        publish = row['status'] == 'success' or (converted and not listening_names.intersection(products))
         publications = []
         if publish:
             for target in (final_mml, final_mgs):
@@ -435,6 +467,25 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
                 products[final_mgs.relative_to(package).as_posix()] = file_digest(mgs)
                 publications.append((mgs, final_mgs))
             entry.update(published=products, publication_status=row['status'], source_sha256=current_source_hash)
+        conversion_report = folder / (path.stem + '.conversion.json')
+        try:
+            current_report = json.loads(conversion_report.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            current_report = {}
+        row['blueprint_status'] = current_report.get('blueprint', {}).get('status', 'unavailable')
+        row['blueprint_detail'] = current_report.get('blueprint', {}).get('detail', '')
+        generated_blueprint = blueprint_product(current_report, folder, path.stem)
+        if generated_blueprint is not None:
+            final_blueprint = package / 'blueprint' / (path.stem + '.mml')
+            name = final_blueprint.relative_to(package).as_posix()
+            if final_blueprint.exists() and (not final_blueprint.is_file() or
+                    file_digest(final_blueprint) != products.get(name)):
+                row.update(blueprint_status='blocked', blueprint_detail='Edited/unowned blueprint preserved')
+            else:
+                products[name] = file_digest(generated_blueprint)
+                publications.append((generated_blueprint, final_blueprint))
+                row['blueprint'] = str(final_blueprint.relative_to(output))
+                entry.update(published=products, blueprint_source_sha256=current_source_hash)
         entry.update(stem=path.stem, status=entry.get('publication_status', row['status']),
                      latest_attempt_status=row['status'], latest_attempt=dict(row, source_sha256=current_source_hash))
         state['entries'][path.name] = entry
@@ -487,6 +538,8 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
             writer.writeheader(); writer.writerows(rows)
         (diagnostics/'results.json').write_text(json.dumps(rows, indent=2)+'\n', encoding='utf-8')
         print(f"{relative}: {row['status']}" + (f": {row['detail']}" if row['detail'] else ''), flush=True)
+        if row['blueprint_status'] == 'blocked':
+            print('Blueprint update skipped: ' + row['blueprint_detail'], flush=True)
         if row['keyon_status'] == 'mismatch':
             print(f"Key-on mismatch: reference {row['reference_keyon']}; actual {row['actual_keyon']}; "
                   f"missing {row['missing_keyon']}; extra {row['extra_keyon']}", flush=True)
@@ -555,4 +608,4 @@ if __name__ == '__main__':
                             software_volume_curves=args.software_volume_curves)
     except (RuntimeError, ValueError) as error:
         parser.exit(2, str(error)+'\n')
-    sys.exit(0 if all(r['status'] == 'success' and r['keyon_status'] in ('compared', 'disabled', 'selection_only') for r in results) else 1)
+    sys.exit(0 if all(r['status'] == 'success' and r['keyon_status'] in ('compared', 'disabled', 'selection_only', 'projected_source') for r in results) else 1)

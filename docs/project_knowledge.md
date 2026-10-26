@@ -59,6 +59,13 @@ not refactor merely to make module boundaries match it.
 
 # 2. Primary Rule: Intermediate Results Are First-Class Artifacts
 
+An editable blueprint is a separate target projection of accepted musical
+units, not a new interpretation of native Segments. Removing timbre and
+software-envelope definitions must not flatten volume curves. Keep explicit
+volume holds, gate/continuation decisions, source-to-template lane mapping and
+projection losses inspectable. A user-edited optional template must be preserved
+without preventing ordinary target conversion. See `docs/musical_blueprint.md`.
+
 Generating inspectable intermediate results is a primary project
 requirement, not merely a debugging aid.
 
@@ -616,6 +623,33 @@ It is:
 A final target file is not sufficient evidence that the conversion is
 correct. The path from source register stream to target must remain
 inspectable.
+
+## Cross-chip source adapters and repeated traversal
+
+A retained target VGM may adapt native source analysis into an established
+target pipeline, provided native State/Segments and source-to-target event
+links remain separately inspectable. Later target-chip Segments must not be
+presented as the original source evidence. Cross-chip register equality is not
+an appropriate roundtrip criterion.
+
+Suppressing a redundant register write during the first traversal is not
+necessarily safe inside a song loop: that write may restore a different EOF
+state. Check repeated native and target dependencies, including muted pitch
+updates and waveform upload pointers. Do not solve loop entry by resetting
+unrelated held voices to first-traversal snapshots.
+
+A small number of equal loop traversals does not prove independence from phase
+or an evolving write pointer. Either prove/reset that dependency or reject the
+unsupported operation explicitly; increasing the sampled traversal count alone
+is not a proof of periodic behavior.
+
+The shared musical plan separates interpreted units/curves and native provenance
+from the initial target profile and output encoding. MML envelope-bank capacity,
+macro spelling and compiler buffers must not limit direct VGM. Shared chip
+operations remain ordered even outside notes. An instantaneous transition group
+must include its settling state; replaying only a zero-duration key-on can invent
+a sustained note. Backend-specific losses must be reported explicitly rather
+than redefining the common musical information.
 
 ## Distribution and tool scope
 

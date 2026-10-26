@@ -9,7 +9,7 @@ from rhythm_mml import render_groups
 from rhythm_notation import optimize
 
 
-def project(candidates, native_segments, performances, *, timing=None, raw_ticks=False, target_boundaries=None):
+def project_groups(candidates, native_segments, performances, *, timing=None, raw_ticks=False, target_boundaries=None):
     """Merge inferred hits with native rhythm; never steal native melody voices."""
     blocked = any(s.keyon and s.fnum for ch in (6, 7, 8)
                   for s in native_segments.get(ch, ()))
@@ -95,9 +95,6 @@ def project(candidates, native_segments, performances, *, timing=None, raw_ticks
     if ticks:
         end = max(end, ticks[-1] + minimum)
     added = len(winners)
-    text = (optimize(render_groups(groups, raw_ticks=True if timing else raw_ticks,
-                                   end_tick=end, minimum_steps=minimum),
-                     raw_ticks=True if timing else raw_ticks) if added else '')
     summary = dict(enabled=True, status='applied' if added else 'unchanged',
                    reason='native_opll_melody_channels_6_8' if blocked else
                           'inferred_percussion_overlay' if added else 'no_projectable_candidates',
@@ -110,11 +107,23 @@ def project(candidates, native_segments, performances, *, timing=None, raw_ticks
                    instruments={name: sum(r['status'] == 'added' and r['instrument'] == name
                                           for r in decisions)
                                 for name in ('BD', 'SD', 'TOM', 'CYM', 'HH')})
+    return groups, end, summary, decisions
+
+
+def project(candidates, native_segments, performances, *, timing=None, raw_ticks=False, target_boundaries=None):
+    """Render the same pure hit decisions used by non-MML consumers."""
+    groups, end, summary, decisions = project_groups(candidates, native_segments, performances,
+        timing=timing, raw_ticks=raw_ticks, target_boundaries=target_boundaries)
+    minimum = max(1, timing.tempo // 75) if timing else 1
+    text = (optimize(render_groups(groups, raw_ticks=True if timing else raw_ticks,
+                                   end_tick=end, minimum_steps=minimum),
+                     raw_ticks=True if timing else raw_ticks) if summary['added_hits'] else '')
     return text, summary, decisions
 
 
 def apply(candidates, native_segments, performances, output_dir, stem, *,
-          native_mode, normalization, raw_ticks=False, dump_passes=False, control_sources=None):
+          native_mode, normalization, raw_ticks=False, dump_passes=False, control_sources=None,
+          decision_projection=None):
     """Commit only a successfully rendered overlay after native normalization."""
     timing = None
     if normalization.get('applied'):
@@ -122,7 +131,7 @@ def apply(candidates, native_segments, performances, output_dir, stem, *,
         timing = TimingPlan(**normalization['timing'])
     root = Path(output_dir)
     boundaries = None
-    if timing:
+    if timing and decision_projection is None:
         from mml_sync import analyze_mml, _leaves, _NOTE
         boundaries = {}
         for chip in ('psg', 'scc'):
@@ -143,8 +152,16 @@ def apply(candidates, native_segments, performances, output_dir, stem, *,
                 channel = int(track) - (1 if chip == 'psg' else 4)
                 for first, second in zip(original, projected):
                     boundaries[chip, channel, first.start / 3] = second.start
-    text, summary, decisions = project(candidates, native_segments, performances,
-                                       timing=timing, raw_ticks=raw_ticks, target_boundaries=boundaries)
+    if decision_projection is None:
+        text, summary, decisions = project(candidates, native_segments, performances,
+                                           timing=timing, raw_ticks=raw_ticks, target_boundaries=boundaries)
+    else:
+        groups, end, accepted_summary, accepted_decisions = decision_projection
+        summary, decisions = dict(accepted_summary), [dict(row) for row in accepted_decisions]
+        minimum = max(1, timing.tempo // 75) if timing else 1
+        text = (optimize(render_groups(groups, raw_ticks=True if timing else raw_ticks,
+                                       end_tick=end, minimum_steps=minimum),
+                         raw_ticks=True if timing else raw_ticks) if summary['added_hits'] else '')
     path = root / f'{stem}.opll.target.mml'
     before = path.read_text(encoding='utf-8')
     if text:

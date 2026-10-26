@@ -221,3 +221,6 @@ tests/fixtures/public/psg_scc/002/reference/*.mgs
 node_modules
 /field_notes/
 field_notes/
+
+/.tools/huc6280-reference/
+/.tools/musical-vgm-reference/

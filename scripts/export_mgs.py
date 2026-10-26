@@ -11,7 +11,8 @@ from batch_vgm_to_mgs import run_batch
 
 
 def build_parser():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, epilog=(
+        'Also writes editable blueprint/<stem>.mml: timbre/SW-envelope definitions removed, volume changes retained.'))
     parser.add_argument('input', type=Path, help='VGM/VGZ file or directory (recursive)')
     parser.add_argument('--outdir', type=Path,
                         help='Output root preserving input-relative parents (default: beside each source VGM)')
@@ -72,7 +73,7 @@ def main(argv=None):
                          software_volume_curves=args.software_volume_curves)
     except (RuntimeError, ValueError) as error:
         parser.exit(2, str(error) + '\n')
-    return 0 if all(row['status'] == 'success' and row['keyon_status'] in ('compared', 'disabled', 'selection_only')
+    return 0 if all(row['status'] == 'success' and row['keyon_status'] in ('compared', 'disabled', 'selection_only', 'projected_source')
                     for row in rows) else 1
 
 
