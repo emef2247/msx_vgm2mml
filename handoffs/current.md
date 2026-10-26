@@ -1,3 +1,20 @@
+# SALAMD01 long PSG/SCC parity supplement completed (2026-10-26)
+
+User requested a longer PSG+SCC case beyond the short sync blocks. Added only
+psg_scc/vgmrips.net/SALAMD/SALAMD01.vgm (90 seconds), comparing the same fixed
+mainab58c3e and implementation9da7011 with the preceding audit settings.
+Ordinary MML is12373 bytes in both and byte-identical; both MGS compiles succeed,
+and MGS bytes match. Force omissions0; input hashes unchanged. Total now29/29
+ordinary MML pairs and29/29 compiled MGS pairs identical. No implementation or
+README changes. Previous28 results reused; only the one new pair converted.
+
+Evidence outputs/diagnostics/main_vs_musical_hal_9da7011/ now includes the long
+case in summary.json/results.csv/analysis_ja.md and runs/psg_scc_long/SALAMD01/.
+salamd01_source.json retains duration evidence. This completes the specifically
+authorized supplement; no additional broad private run or listening performed.
+
+---
+
 # FMPAC rhythm parity supplement completed (2026-10-26)
 
 User added opll/vgmrips.net/FMPAC because the previous MSLND selection does not
