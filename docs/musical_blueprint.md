@@ -23,21 +23,24 @@ Standalone `vgm2mml.py` keeps its ordinary MML directly under `--outdir`;
 canonical output is `both`; explicit `--output-format mml` or `vgm` remains
 available. MGS exports request both ordinary MML and reconstructed VGM.
 
-## A score, not an audition arrangement
+## Score and fixed audition initialization
 
 Blueprint retains pitches, sounding durations, rests, attacks, held pitch
-changes and finite repeated phrases. It contains **no executable instrument
-selections, waveform/patch definitions, software-envelope definitions or volume
-commands**. Volume-only and timbre-only control boundaries therefore do not
-subdivide its notes. No audition volume or placeholder `@` selection is inserted.
+changes and finite repeated phrases. Source instrument selections, waveform/patch
+definitions, software envelopes and volume commands are removed. Volume-only
+and timbre-only control boundaries therefore do not subdivide its notes.
+Each melodic track starts with fixed audition initialization: `v15`, OPLL ROM
+voice `@1`, or SCC `@0` with a shared square-wave definition where applicable.
+These editable target defaults do not reproduce source dynamics or timbres and
+do not participate in score repeat detection.
 
 Source chip, instance, section, channel and projected track are written before
 each part. Comments document source timbre identities, available FM parameters,
 SCC waveform data, source pitch ranges, part counts and timing statistics. Full
 source curves remain in NativePerformance and diagnostic sidecars; stripping
 controls from a score never deletes them from the shared musical representation.
-Users supply their own instruments and dynamics when arranging or auditioning.
-A definition-free SCC score is not guaranteed to be audible before editing.
+Users supply their own instruments and dynamics when arranging. The fixed
+initialization allows the generated score to sound before those edits.
 
 ## Structure before target notation
 
@@ -50,7 +53,9 @@ macro compactor follows structural repeat selection.
 
 Both ordinary MML and blueprint use a whitespace-only presentation pass. A loop
 starts on a new line; nested loops are indented after the repeated track prefix.
-Closing a loop does not force a line break. This formatting changes no commands.
+Every loop closure ends its line. Leaf loops may remain inline; loops containing
+nested loops close on a separate line at their opening indentation. Following
+commands use the current nesting indentation. This formatting changes no commands.
 Finite repeats describe the rendered traversal; they do not automatically turn
 a declared VGM song loop into an infinite MGSDRV loop.
 

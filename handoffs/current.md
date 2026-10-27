@@ -3669,3 +3669,28 @@ codex/score-guidance-huc6280. Include task source/tests/docs only; preserve
 untracked user logs/run_test.sh/run_sweep.sh. External three October27 MSX notes
 are committed separately; no private push. Resume scoped HuC unsupported noise,
 dynamic-wave and OPLL spill investigation; do not alter audition defaults.
+
+## 2026-10-28 loop presentation, audible blueprint and HuC force subset
+
+User paused MUCOM musical-layer work in favor of these light MSX changes.
+Loop closures now end their lines; parent loops close at their opening indent,
+while leaf loops can stay inline. Normal MML and blueprint share this whitespace
+pass. Source tokens/timing are preserved; README/user scripts/logs stay untouched.
+
+User explicitly authorized fixed blueprint audition initialization after silence
+was reproduced: v15 on melodic parts, OPLL ROM1 and a shared SCC square wave.
+Source dynamics/timbres remain documentary only and absent from score atoms.
+The old definition-terminator fix remains present; current silence was missing
+audition setup. Unedited PSG/SCC/OPLL blueprint compilation/playback is tested.
+
+Ordinary HuC reference VGM retains original native operations. The diagnostic
+_huc6280_target VGM is the SCC/PSG/OPLL projection. Force now forwards to HuC
+preparation and can retain an ordinarily validated nonempty channel subset;
+whole-channel omissions and original event IDs are explicit. No source guards
+or native evidence are bypassed. All-unsupported input still blocks MGS.
+
+Focused suite: 82 tests passed, including actual MGSC/libkss audio. No new private
+regression or browser listening claim. Authored artifacts/logs are under
+outputs/diagnostics/blueprint_silence_20261028. Changes are uncommitted. MUCOM
+source-package copy remains incomplete/unvalidated; no MUC integration claimed.
+Next: user audition/review, then resume MUCOM only when requested.

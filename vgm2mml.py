@@ -421,6 +421,11 @@ def main():
             print(f"Forced MGS projection: {force_summary['omission_count']} omitted source writes")
             if force_summary['omission_count']:
                 print(f"Omission details: {force_summary['csv_path']}")
+            partial = report.get('source_projection') or {}
+            if partial.get('force_partial'):
+                print(f"HuC6280 partial projection: retained source channels {partial['retained_source_channels']}; "
+                      f"omitted source channels {partial['omitted_source_channels']} (zero-based)")
+                print(f"Projection details: {root / (base_name + '.huc6280.projection.json')}")
         if not args.normalize_lengths:
             disabled = dict(enabled=False, applied=False, status='disabled',
                 reason='optional normalization not requested', source_segments_unchanged=True,

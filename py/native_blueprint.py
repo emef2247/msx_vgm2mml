@@ -199,9 +199,12 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None):
             sorted(file['voices'], key=lambda identity: (first_use.get(identity, 0), identity)))}
         lines = ['; Editable blueprint: dynamics and synthesis controls are omitted.',
                  '; All source volume commands and instrument definitions are removed.',
+                 '; Audition defaults only: fixed v15, OPLL ROM1, SCC square wave; edit freely.',
                  '; Target clock approximates short intervals; native samples remain in the sidecar.',
-                 '; Source timbres are documentary only; executable score contains no instrument selection.',
+                 '; Source timbres are documentary only; no source instrument selections are restored.',
                  '#opll_mode 0', f'#tempo {tempo}']
+        if any(chip == 'scc' for chip, _ in file['parts']):
+            lines.append('@s0={' + '80'*16 + '78'*16 + '}')
         lines.append(f'; Source duration {performance.end_sample} samples; projected duration {end_step} steps.')
         if terminal_tail:
             lines.append(f'; Terminal rhythm attacks receive {terminal_tail} target-only tail steps; source end is unchanged.')
@@ -303,7 +306,8 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None):
             pitches = [value for unit in part.units for _, value in points(unit) if value is not None]
             if pitches:
                 lines.append(f'; Source MIDI range {min(pitches)}..{max(pitches)}; roles '+', '.join(sorted({unit.role for unit in part.units}))+'.')
-            lines.append(f'{track} q8 ' + ('/1 ' if target_chip == 'psg' else '') + body)
+            setup = '/1 v15' if target_chip == 'psg' else '@0 v15' if target_chip == 'scc' else '@1 v15'
+            lines.append(f'{track} q8 {setup} ' + body)
         text = format_mml_loops(annotate_sync_points(compress_macros('\n'.join(lines)+'\n')))
         report = dict(status='success', tempo=tempo, file_index=file_index, file_count=len(packed),
             sounding_units=len(allocations), omitted_units=0, allocations=allocations, loops=loop_rows,
@@ -323,8 +327,9 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None):
             timing_max_shift_samples=max((abs(row['shift_samples']) for row in rounding), default=0),
             timing_duration_expansion_steps=end_step-round(performance.end_sample*ratio),
             removed_internal_timbres=removed_timbres,
-            volume_policy='all_volume_commands_removed; native curves retained',
-            timbre_policy='all source timbres documentary only; no executable instrument selections or definitions',
+            volume_policy='source_volume_commands_removed; fixed audition volume only; native curves retained',
+            timbre_policy='all source timbres documentary only; fixed audition defaults are target-only',
+            audition_defaults=dict(volume=15,opll_rom=1,scc_wave='square32'),
             source_sha256=performance.source_sha256)
         results.append((text, report))
     rhythm_devices = defaultdict(list)

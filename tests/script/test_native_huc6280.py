@@ -78,5 +78,49 @@ class NativeHuCTests(unittest.TestCase):
             self.assertEqual(list(command_times(output))[-1].vgmticks,735)
             self.assertTrue((out/'song.mml').is_file())
 
+    def test_force_keeps_supported_wave_when_another_channel_uses_dda(self):
+        raw=make_vgm(write(1,255)+wave(0)+write(0,5)+write(5,255)+write(4,223)+write(6,17)+wait(735))
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);source=root/'partial.vgm';source.write_bytes(raw);out=root/'out'
+            args=['vgm2mml.py',str(source),'--outdir',str(out),'--dump-passes','--force']
+            with patch.object(sys,'argv',args),contextlib.redirect_stdout(io.StringIO()) as console:vgm2mml.main()
+            self.assertIn('omitted source channels [5] (zero-based)',console.getvalue())
+            report=json.loads((out/'partial.huc6280.projection.json').read_text())
+            self.assertEqual(report['retained_source_channels'],[0])
+            self.assertEqual(report['omitted_source_channels'],[5])
+            self.assertTrue((out/'partial.mml').is_file())
+            projected=read_vgm_bytes(out/'_huc6280_target/partial.vgm')
+            self.assertTrue(any(e.command==0xd2 for e in command_times(projected)))
+            native=read_vgm_bytes(out/'tracks/partial.vgm')
+            huc=lambda data:[data[e.address:e.address+3] for e in command_times(data) if e.command==0xb9]
+            self.assertEqual(huc(native),huc(raw))
+            controls=json.loads((out/'partial.native_music.json').read_text())['controls']
+            original_ids={c['source_event_id'] for c in controls}
+            import csv
+            with (out/'partial.huc6280.controls.csv').open() as stream:
+                self.assertTrue(all(int(r['source_event_id']) in original_ids for r in csv.DictReader(stream)))
+
+    def test_force_all_dda_remains_explicit_not_an_empty_success(self):
+        from huc6280_projection import project,ProjectionError
+        raw=make_vgm(write(1,255)+write(5,255)+write(4,223)+write(6,17)+wait(735))
+        with self.assertRaisesRegex(ProjectionError,'no validated nonempty target subset'):project(raw,force=True)
+
+    def test_partial_view_preserves_loop_time_and_original_command_mapping(self):
+        import struct
+        from huc6280_partial import _filtered
+        from vgm_loop import read_loop_metadata
+        prefix=write(1,255)+wave(0)+wait(735)+write(0,5)+write(4,223)
+        raw=bytearray(make_vgm(prefix+write(6,17)+wait(735)))
+        struct.pack_into('<I',raw,0x1c,256+len(prefix)-0x1c)
+        filtered,mapping=_filtered(bytes(raw),{0})
+        events=list(command_times(filtered))
+        boundary=read_loop_metadata(filtered)['loop_address']
+        at=next(e for e in events if e.address==boundary)
+        self.assertEqual((at.command,at.vgmticks),(0x61,735))
+        originals=list(command_times(raw))
+        for index,event in enumerate(events):
+            original=originals[mapping[index]]
+            self.assertEqual((event.command,event.vgmticks),(original.command,original.vgmticks))
+
 
 if __name__=='__main__':unittest.main()

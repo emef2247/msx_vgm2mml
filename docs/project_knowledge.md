@@ -684,6 +684,13 @@ unit can contain a repeated pitch phrase; its source gate and control lineage
 must remain inspectable. Coarse score clocks require explicit interval mapping
 and displacement diagnostics, not silent deletion of short positive notes.
 
+Fixed audition initialization is a separate target convenience: it may set a
+constant volume and neutral instrument without restoring source control curves
+or using them in score repeat equality. Definition allocation must still include
+the driver terminator. An explicit partial target projection must name omitted
+source parts and preserve native reference output and original event links;
+failure of one target part does not establish that all source parts are unmappable.
+
 ## Score guidance and hardware envelopes
 
 Score repeat candidates are chip-independent; software-envelope assignment is

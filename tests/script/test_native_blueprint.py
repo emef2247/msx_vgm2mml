@@ -44,7 +44,7 @@ class NativeBlueprintTests(unittest.TestCase):
         text,report=pages[0];body=report['allocations'][0]['mml']
         self.assertEqual(asdict(performance),before)
         self.assertNotIn('&',body);self.assertNotRegex(body,r'\bv\d+')
-        self.assertNotRegex(text,r'\bv\d+')
+        self.assertEqual(re.findall(r'\bv\d+',text),['v15','v15'])  # comment and one track initializer
         self.assertEqual(report['sounding_units'],1)
         self.assertIn('OPM #1 / fm ch 1',text)
 
@@ -52,7 +52,7 @@ class NativeBlueprintTests(unittest.TestCase):
         performance=source(count=2,voices=True);text,report=render_native_blueprints(performance)[0]
         self.assertEqual([r['comment_number'] for r in report['voice_mapping']],[1,2])
         code='\n'.join(line.split(';')[0] for line in text.splitlines())
-        self.assertNotIn('@',code)
+        self.assertEqual(re.findall(r'@\d+',code),['@1'])
         self.assertIn('Timbre 1: source voice',text)
         self.assertIn('Timbre 2: source voice',text)
         self.assertTrue(any(r['emitted_repeats']>=2 for r in report['loops']))
@@ -77,7 +77,7 @@ class NativeBlueprintTests(unittest.TestCase):
         self.assertEqual(tracks['9'][0].start,0)
         self.assertEqual(min(r['step_start'] for r in report['allocations']),0)
         self.assertTrue(any(r['emitted_repeats']==20 for r in report['loops']))
-        self.assertNotIn('@','\n'.join(line.split(';')[0] for line in text.splitlines()))
+        self.assertEqual(re.findall(r'@\d+','\n'.join(line.split(';')[0] for line in text.splitlines())),['@1'])
 
     def test_pitch_phrase_repeats_inside_one_held_gate(self):
         performance=source()

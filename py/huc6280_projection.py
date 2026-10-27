@@ -415,16 +415,21 @@ def _project_static(raw, trace=None):
     return Projection(bytes(result), allocation, controls, target_writes, gates, summary)
 
 
-def project(raw, trace=None):
+def project(raw, trace=None, *, force=False):
     trace = analyze(raw) if trace is None else trace
     try:
         return _project_static(raw, trace)
     except ProjectionError:
         from huc6280_extended import project_extended
-        return project_extended(raw, trace)
+        try:
+            return project_extended(raw, trace)
+        except ProjectionError:
+            if not force:raise
+            from huc6280_partial import project_subset
+            return project_subset(raw, trace)
 
 
-def prepare(source, outdir, stem):
+def prepare(source, outdir, stem, *, force=False):
     """Save native evidence before checking target eligibility; never own inputs."""
     raw = read_vgm_bytes(source)
     if not has_huc6280(raw):
@@ -453,7 +458,7 @@ def prepare(source, outdir, stem):
             target_path.unlink()
         for name in ('allocation', 'controls', 'target_writes', 'gates'):
             (root / f'{stem}.huc6280.{name}.csv').unlink(missing_ok=True)
-        projected = project(raw, trace)
+        projected = project(raw, trace, force=force)
         projected.dump(root, stem)
         target_path.parent.mkdir(parents=True, exist_ok=True)
         target_path.write_bytes(projected.vgm)

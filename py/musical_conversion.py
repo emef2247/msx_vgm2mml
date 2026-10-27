@@ -60,7 +60,7 @@ def _build_accepted_plan(source, outdir, stem=None, *, normalization_ms=8, fm_st
         raise ValueError('Invalid source CSV selection')
     original = read_vgm_bytes(source)
     conversion_input, projection = ((prepared_input, prepared_projection) if prepared_input is not None
-                                    else prepare(source, root, stem))
+                                    else prepare(source, root, stem, force=force))
     raw = read_vgm_bytes(conversion_input)
     from native_imports import inspect_source
     source_inventory = inspect_source(raw)
@@ -259,7 +259,7 @@ def build_plan(source, outdir, stem=None, **options):
         guide=build_score_guide(performance,repeats=options.get('score_guided_loops',False))
         guide.dump(root,stem)
     try:
-        conversion_input,projection=prepare(source,root,stem)
+        conversion_input,projection=prepare(source,root,stem,force=options.get('force',False))
         plan,report=_build_accepted_plan(source,root,stem,**options,
             source_performance=performance,prepared_input=conversion_input,prepared_projection=projection,
             source_score_guide=guide)

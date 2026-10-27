@@ -45,9 +45,9 @@ class BlueprintTests(unittest.TestCase):
         for chip,track in (('psg','1'),('scc','4'),('opll','9')):
             with self.subTest(chip=chip):
                 p=plan(note(chip));before=asdict(p);text,report=render_blueprint(p)
-                self.assertEqual(re.findall(r'\bv(?:[bsmch])?[-+]?\d+',music(text)),[])
+                self.assertEqual(re.findall(r'\bv(?:[bsmch])?[-+]?\d+',music(text)),['v15'])
                 self.assertNotIn('&',music(text))
-                self.assertNotRegex(text,r'(?m)^\s*@[sev]?\d+\s*=')
+                self.assertEqual(bool(re.search(r'(?m)^@s0=',text)),chip=='scc')
                 self.assertNotIn('@e',text)
                 tracks,_,_=analyze_mml(text)
                 self.assertEqual(set(tracks),{track});self.assertEqual(tracks[track][-1].end,6)
@@ -114,7 +114,7 @@ class BlueprintTests(unittest.TestCase):
                      MusicalControl(0,'psg',None,'psg_envelope_shape',(10,))]
         p=plan((unit,controls));before=asdict(p);text,_=render_blueprint(p)
         self.assertNotRegex(music(text),r'\b[ms]\d+')
-        self.assertEqual(re.findall(r'\bv\d+',music(text)),[])
+        self.assertEqual(re.findall(r'\bv\d+',music(text)),['v15'])
         self.assertEqual(asdict(p),before)
 
     def test_zero_time_positive_gate_is_not_silently_discarded(self):
@@ -161,10 +161,8 @@ class BlueprintPlaybackTests(unittest.TestCase):
             root=Path(temporary);r=write_blueprint(p,root,'probe')
             compiled=subprocess.run(['mgsc',r['path'],str(root/'probe.mgs')],capture_output=True,timeout=30)
             self.assertEqual(compiled.returncode,0,compiled.stdout)
-            # Blueprint has no volume commands. Supply an external audition level
-            # solely for measuring the generated gate with libkss.
             audition=root/'audition.mml'
-            audition.write_text(Path(r['path']).read_text().replace('1 q8 ', '1 q8 v12 '))
+            audition.write_text(Path(r['path']).read_text())
             compiled=subprocess.run(['mgsc',str(audition),str(root/'probe.mgs')],capture_output=True,timeout=30)
             self.assertEqual(compiled.returncode,0,compiled.stdout)
             if not shutil.which('node'):return
@@ -178,6 +176,18 @@ class BlueprintPlaybackTests(unittest.TestCase):
             self.assertTrue(levels)
             self.assertEqual(len(set(v for _,v in levels)),1)
             self.assertLess(abs(actual[-1][0]-levels[0][0]-44100),735)
+
+    def test_unedited_blueprints_play_at_a_fixed_level_on_all_three_chips(self):
+        if not shutil.which('node'):self.skipTest('Node required')
+        for chip in ('psg','scc','opll'):
+            with self.subTest(chip=chip), tempfile.TemporaryDirectory() as temporary:
+                root=Path(temporary);result=write_blueprint(plan(note(chip,length=44100)),root,'audition')
+                compiled=subprocess.run(['mgsc',result['path'],str(root/'audition.mgs')],capture_output=True,timeout=30)
+                self.assertEqual(compiled.returncode,0,compiled.stdout)
+                played=subprocess.run(['node',str(ROOT/'scripts/probe_mgs_audio.mjs'),str(root/'audition.mgs'),
+                    str(root/'audio.json'),'2000'],capture_output=True,timeout=45)
+                self.assertEqual(played.returncode,0,played.stderr)
+                self.assertGreater(json.loads((root/'audio.json').read_text())['peak'],100)
 
     def test_tiny_opll_retriggers_survive_compilation_and_driver_playback(self):
         if not shutil.which('node'):

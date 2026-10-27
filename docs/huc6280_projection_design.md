@@ -228,6 +228,25 @@ VGM inputs need a separate explicit discovery/staging decision. Do not rename
 private originals implicitly. Preserve the established export package layout.
 README remains user-maintained.
 
+## Reference VGM and explicit partial projection
+
+The published `tracks/<stem>.vgm` retains native HuC6280 operations from the
+source musical layer, including when MGS projection fails. It is not the
+SCC/PSG/OPLL projection. That projection is separately retained as
+`_diagnostics/<stem>/_huc6280_target/<stem>.vgm`; its allocation, controls,
+gates and writes accompany `<stem>.huc6280.projection.json`.
+
+`--force` can retain a validated nonempty subset of source channels after normal
+projection fails. Channels requiring active DDA, active LFO dependency or
+unsupported waveform handling are excluded as whole channels. Remaining subsets
+are checked by the ordinary projector, preferring the greatest channel count.
+Mixed/unknown source commands and source-analysis issues are not bypassed.
+The report lists retained and omitted native channel indices and the omission
+scope. Target CSV event references retain original input command ordinals;
+native source evidence and reference VGM are unchanged. This is an explicit
+target loss, not a new interpretation of the source music. If every channel is
+unsupported, force still reports failure rather than generating an empty MML.
+
 ## Primary references
 
 - [VGM specification](https://vgmrips.theclassicgamer.net/VGM_Specification):

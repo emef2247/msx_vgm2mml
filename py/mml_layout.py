@@ -1,14 +1,15 @@
 """Whitespace-only presentation of MGSDRV track repeats.
 
 Retain the channel designator on every physical score line. Repeat depth is
-carried across sync comments; closing brackets do not force a line break.
+carried across sync comments. Leaf repeats close inline; parent repeats close
+at their opening indentation. Every closure ends its physical score line.
 Definitions, allocation blocks and comments keep their original order.
 """
 import re
 
 
 def format_mml_loops(text, width=110, indent=2):
-    output=[];depths={};pending=[];channel=None;level=0;brace_depth=0
+    output=[];stacks={};pending=[];channel=None;level=0;brace_depth=0
 
     def flush():
         if pending:
@@ -25,18 +26,29 @@ def format_mml_loops(text, width=110, indent=2):
             current,body=match[1],match[2]
             if current!=channel:
                 flush();channel=current
-            depth=depths.get(current,0)
+            stack=stacks.setdefault(current,[])
+            depth=len(stack)
             for word in re.findall(r'\[|\]\s*\d*|[^\s\[\]]+',body):
                 if word=='[':
+                    if stack:stack[-1]=True
                     flush();level=depth;pending.append(word);depth+=1
+                    stack.append(False)
+                    continue
+                if word.startswith(']'):
+                    word=re.sub(r'\s+','',word)
+                    parent=stack.pop() if stack else False
+                    depth=len(stack)
+                    if parent:
+                        flush();level=depth
+                    elif not pending:
+                        level=depth
+                    pending.append(word)
+                    flush()
                     continue
                 if not pending:level=depth
-                word=re.sub(r'\s+','',word) if word.startswith(']') else word
                 if pending and len(current)+1+level*indent+sum(len(x)+1 for x in pending)+len(word)>width:
                     flush();level=depth
                 pending.append(word)
-                if word.startswith(']'):depth=max(0,depth-1)
-            depths[current]=depth
             if separator:
                 flush();output.append(';'+comment)
         brace_depth+=code.count('{')-code.count('}')
