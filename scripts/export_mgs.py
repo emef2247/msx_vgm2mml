@@ -8,11 +8,13 @@ import argparse
 from pathlib import Path
 
 from batch_vgm_to_mgs import run_batch
+from mgs_conversion_config import add_curve_arguments, curve_option_values
 
 
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__, epilog=(
-        'Also writes editable blueprint/<stem>.mml: timbre/SW-envelope definitions removed, volume changes retained.'))
+        'Also writes musical reference tracks/<stem>.vgm and editable blueprint/<stem>.mml: '
+        'structured score without executable timbre or volume controls; source instruments documented in comments.'))
     parser.add_argument('input', type=Path, help='VGM/VGZ file or directory (recursive)')
     parser.add_argument('--outdir', type=Path,
                         help='Output root preserving input-relative parents (default: beside each source VGM)')
@@ -28,6 +30,7 @@ def build_parser():
                         help='OPLL internal pitch/volume state threshold in milliseconds (default: 24)')
     parser.add_argument('--normalization-ms', type=float, default=8.0,
                         help='Maximum target timing correction in milliseconds (default: 8)')
+    add_curve_arguments(parser)
     parser.add_argument('--enhance-rhythm', '--enhance-drums', dest='enhance_drums', action='store_true',
                         help='Add inferred PSG/SCC percussion on OPLL rhythm')
     volume_curves = parser.add_mutually_exclusive_group()
@@ -70,10 +73,12 @@ def main(argv=None):
                          force=args.force, fm_state_ms=args.fm_state_ms,
                          normalization_ms=args.normalization_ms, dump_passes=args.dump_passes,
                          enhance_drums=args.enhance_drums, psg_part=args.psg_part,
-                         software_volume_curves=args.software_volume_curves)
+                         software_volume_curves=args.software_volume_curves,
+                         **curve_option_values(args))
     except (RuntimeError, ValueError) as error:
         parser.exit(2, str(error) + '\n')
-    return 0 if all(row['status'] == 'success' and row['keyon_status'] in ('compared', 'disabled', 'selection_only', 'projected_source')
+    return 0 if all(row['status'] == 'success' and row.get('vgm_status') not in ('failed', 'blocked')
+                    and row['keyon_status'] in ('compared', 'disabled', 'selection_only', 'projected_source')
                     for row in rows) else 1
 
 

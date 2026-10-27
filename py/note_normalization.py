@@ -177,7 +177,7 @@ def _gate(observed, available, default_gate, plan):
 
 
 def render_melody(segments, voice_path, plan, num_channels=6, source_loops=False, *,
-                  fm_state_ms=1, state_evidence=None, decision_plan=None):
+                  fm_state_ms=1, state_evidence=None, decision_plan=None,score_guided=False):
     from opll_target import decode_patch
     from performed_patterns import Unit, compress
     from musical_timing import plan_melody
@@ -202,12 +202,14 @@ def render_melody(segments, voice_path, plan, num_channels=6, source_loops=False
             prefix.append(f'@{track_plan.voice}')
         prefix.append(f'v{track_plan.default_volume}')
         commands, units, cursor = [], [], 0
+        score_keys=[]
         for note in track_plan.notes:
             start = note.start_step
             if start > cursor:
                 rest = length_token('r', start - cursor, minimum=minimum)
                 commands.append(rest)
                 units.append(Unit(len(units), len(units) + 1, 'rest', (start - cursor, rest)))
+                score_keys.append(('rest',start-cursor))
             body, kept = [], []
             current_gate = default_gate
             current_volume = (track_plan.default_volume if track_plan.constant_volume
@@ -231,10 +233,17 @@ def render_melody(segments, voice_path, plan, num_channels=6, source_loops=False
                 body.append(f'q{default_gate}')
             commands.append(' '.join(body))
             units.append(Unit(len(units), len(units) + 1, 'note', (note.end_step - start, tuple(kept))))
+            from score_structure import pitched_trajectory_key
+            score_keys.append(('note',note.end_step-start,pitched_trajectory_key(
+                (state.start_step-start,state.end_step-state.start_step,(state.value[0],state.value[1]))
+                for state in note.states)))
             cursor = note.end_step
         if source_loops:
             from source_loop_plan import SourceLoopPlan
             structure = SourceLoopPlan.build(((u.kind, u.key) for u in units), strategy='structural')
+            if score_guided:
+                from score_structure import GuidedLoopPlan
+                structure=GuidedLoopPlan(SourceLoopPlan.build(score_keys,strategy='structural'),structure)
             text, report = structure.render(commands)
         else:
             text, report = compress(units, commands)
@@ -389,7 +398,7 @@ def retime_rhythm(segments, plan):
 
 def normalize_outputs(opll_trace, voice_path, output_dir, stem, dump=False, controls=None, *,
                       opll_mode=1, source_loops=False, normalization_ms=8, fm_state_ms=1,
-                      decision_mapper=None):
+                      decision_mapper=None,score_guided=False):
     """Prepare all target projections before replacing files; abstain if unsafe."""
     from opll import _build_segments
     from rhythm_mml import render as render_rhythm
@@ -426,7 +435,8 @@ def normalize_outputs(opll_trace, voice_path, output_dir, stem, dump=False, cont
                                                               num_channels=6 if opll_mode else 9,
                                                               source_loops=source_loops, fm_state_ms=fm_state_ms,
                                                               state_evidence=state_rows,
-                                                              decision_plan=decision_mapper.melody if decision_mapper else None)
+                                                              decision_plan=decision_mapper.melody if decision_mapper else None,
+                                                              score_guided=score_guided)
             # Rhythm uses the same source clock, with a target-only proxy.
             proxies, maximum_rhythm_shift = retime_rhythm(segments, plan)
             end = max((round(plan.position(s.vgmticks_end)) for rows in segments.values() for s in rows

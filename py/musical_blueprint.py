@@ -1,13 +1,7 @@
-"""Editable, timbre-free MGSDRV score lowered from accepted musical units.
-
-This backend does not edit native evidence or the ordinary MML backend. Volume
-holds are explicit score controls; wave/patch/SW-envelope banks are not copied.
-"""
-from bisect import bisect_right
-from collections import Counter, defaultdict
+"""Editable scores: remove dynamics only at the blueprint target boundary."""
+from collections import defaultdict
+from dataclasses import replace
 import csv
-from fractions import Fraction
-from itertools import groupby
 import hashlib
 import json
 import math
@@ -15,40 +9,9 @@ import re
 from pathlib import Path
 import tempfile
 
-from mml_envelopes import length_tokens
-from mml_macros import compress_macros
-from mml_sync import annotate_sync_points
-from opll_target import MGSDRV_FNUM, NOTE_NAMES
-from psg_scc_target import BASE_PERIODS, TUNING_HEADER, envelope_period_tokens
-from source_loop_plan import SourceLoopPlan
-
-
-class BlueprintError(ValueError):
-    def __init__(self, message, **projection_detail):
-        super().__init__(message)
-        self.projection_detail = projection_detail
-
-
-TRACKS = {'psg': '123', 'scc': '45678', 'opll': '9abcdefgh'}
-
-
-def _length(pitch, steps, tie=False, minimum=1):
-    # A one/two-step hold must use %1/%2: c192/c96 exceed MGSC's
-    # denominator range. The normal frame renderer never reaches those holds.
-    parts = []
-    while steps:
-        chunk = min(steps, 255)
-        if 0 < steps-chunk < minimum:
-            chunk -= minimum-(steps-chunk)
-        if chunk < minimum:
-            raise BlueprintError('Encoded duration is below the MGSC minimum', steps=steps, minimum=minimum)
-        parts.append(length_tokens(pitch, chunk, True, tie=tie or bool(parts)))
-        steps -= chunk
-    text = ' '.join(parts)
-    def spelling(match):
-        amount = int(match[1])
-        return str(192 // amount) if 192 % amount == 0 and 192 // amount <= 64 else match[0]
-    return re.sub(r'%(\d+)', spelling, text)
+from native_music import NativeControl, NativeDevice, NativePerformance, NativePercussion, NativeUnit, NativeVoice
+from native_blueprint import NativeBlueprintError as BlueprintError
+from native_blueprint import encoded_length as _length, render_native_blueprints
 
 
 def _origins(plan):
@@ -58,371 +21,319 @@ def _origins(plan):
             for row in projection.get('allocation', ())}
 
 
-def _pitch(chip, value, target, clocks):
+def _frequency(chip, value, clocks):
+    if value is None:
+        return None
     if chip == 'opll':
         fnum, block, _ = value
-        if not fnum:
-            raise BlueprintError('An active OPLL note has no pitch')
-        octave, scale = min(((o, n) for o in range(1, 9) for n in range(12)),
-            key=lambda pair: abs(math.log2((MGSDRV_FNUM[pair[1]] * 2 ** (pair[0]-1)) /
-                                          (fnum * 2 ** block))))
-        return octave, NOTE_NAMES[scale], 0
+        return 49716*fnum*2**block/2**19 if fnum else None
     period = value[0]
-    if chip == target:
-        if period <= 0:
-            raise BlueprintError('A pitched PSG/SCC note has zero period')
-        octave, scale = min(((o, n) for o in range(1, 9) for n in range(12)),
-            key=lambda pair: abs(math.log2((BASE_PERIODS[pair[1]] >> (pair[0]-1)) / period)))
-        base = BASE_PERIODS[scale] >> (octave-1)
-        detune = base - period
-        if not -127 <= detune <= 127:
-            raise BlueprintError('PSG/SCC pitch exceeds MGSDRV detune range')
-        return octave, NOTE_NAMES[scale], detune
-    # The native frequency is interpreted here, not written back into the plan.
-    frequency = clocks.get(chip, 1789773) / (16 * max(1, period + (chip == 'scc')))
-    if target == 'opll':
-        octave, scale = min(((o, n) for o in range(1, 9) for n in range(12)),
-            key=lambda pair: abs(math.log2((49716 * MGSDRV_FNUM[pair[1]] * 2 ** (pair[0]-1) /
-                                          2 ** 19) / frequency)))
-        return octave, NOTE_NAMES[scale], 0
-    wanted = round(clocks.get('psg', 1789773) / (16 * frequency))
-    return _pitch('psg', (wanted,), 'psg', clocks)
+    if not period and chip != 'scc':
+        return None
+    return clocks.get(chip, 1789773)/(16*max(1, period+(chip == 'scc')))
 
 
-def _allocate(plan, units, rhythm):
-    origins = _origins(plan)
-    native = {(u.chip, u.channel) for u in units if (u.chip, u.channel) not in origins}
-    occupied = defaultdict(list)
-    allocations, affinity = {}, {}
-    for unit in sorted(units, key=lambda u: (u.start_sample, u.chip, u.channel, u.unit_id)):
-        lane = unit.chip, unit.channel
-        if lane not in origins:
-            target = lane
-        else:
-            candidates = [('opll', ch) for ch in range(6 if rhythm else 9)] + [('psg', ch) for ch in range(3)]
-            if lane in affinity:
-                candidates.remove(affinity[lane])
-                candidates.insert(0, affinity[lane])
-            target = next((item for item in candidates if item not in native and all(
-                unit.end_sample <= start or unit.start_sample >= stop for start, stop in occupied[item])), None)
-            if target is None:
-                raise BlueprintError(f'No free OPLL/PSG lane for {origins[lane]} at {unit.start_sample}')
-            affinity[lane] = target
-        if target[0] not in TRACKS:
-            raise BlueprintError(f'No blueprint notation for {target[0]}')
-        if rhythm and target[0] == 'opll' and target[1] >= 6:
-            raise BlueprintError('Nine-channel OPLL melody and rhythm require different MGSDRV modes')
-        if any(unit.start_sample < stop and unit.end_sample > start for start, stop in occupied[target]):
-            raise BlueprintError(f'Overlapping sounding units in blueprint lane {target}')
-        occupied[target].append((unit.start_sample, unit.end_sample))
-        allocations[unit.unit_id] = target
-    return allocations, origins
+def _legacy_performance(plan):
+    """Adapt accepted legacy decisions, without mutating their original curves."""
+    origins, clocks = _origins(plan), dict(plan.chip_clocks)
+    controls = plan.ordered_controls()
+    by_channel = defaultdict(list)
+    for c in controls:
+        if c.channel is not None:
+            by_channel[c.chip, c.channel].append(c)
+    devices, voices, units, decisions = {}, {}, [], []
+    for original in plan.units:
+        if original.rest or original.end_sample <= original.start_sample or original.articulation == 'inferred_percussion':
+            continue
+        lane = original.chip, original.channel
+        chip, channel = origins.get(lane, lane)
+        device_id = chip+':0'
+        devices.setdefault(device_id, NativeDevice(device_id, chip, 0, clocks.get(original.chip, 1789773)))
+        section = {'opll': 'fm', 'psg': 'tone', 'scc': 'wave'}.get(original.chip, 'tone')
+        rows = by_channel[lane]
+        current = {'pitch': None, 'instrument': (None,), 'volume': (None,)}
+        for c in rows:
+            if c.sample < original.start_sample and c.kind in current:
+                current[c.kind] = c.value
+        events = [c for c in rows if original.start_sample <= c.sample < original.end_sample
+                  and c.unit_id in (None, original.unit_id)]
+        points = defaultdict(list)
+        for c in events:
+            points[c.sample].append(c)
+        def voice(at):
+            if original.chip == 'opll':
+                instrument = current['instrument'][0]
+                parameters = (('instrument', instrument),)
+                if instrument == 0:
+                    patch = [None]*8
+                    for c in controls:
+                        if c.sample > at:
+                            break
+                        if c.chip == 'opll' and c.kind == 'patch_write':
+                            patch[c.value[0]] = c.value[1]
+                    parameters += (('patch', tuple(patch)),)
+            elif original.chip == 'scc':
+                data = dict(original.parameters)
+                parameters = (('waveform_id', data.get('waveform_id')),
+                              ('waveform_hex', data.get('waveform_hex')))
+            else:
+                data = dict(original.parameters)
+                parameters = (('mode', data.get('mode', 1)),)
+            identity = device_id+':voice:'+hashlib.sha256(repr(parameters).encode()).hexdigest()[:12]
+            voices.setdefault(identity, NativeVoice(identity, device_id, section, parameters))
+            return identity
+        active, start, pitch_curve, volume_curve, selected_voice, piece = True, original.start_sample, [], [], None, 0
+        def close(stop):
+            if stop <= start:
+                decisions.append(dict(unit_id=original.unit_id, reason='zero_duration_gate'))
+                return
+            role = 'noise' if original.chip == 'psg' and dict(original.parameters).get('mode') == 2 else 'melody'
+            units.append(NativeUnit(original.unit_id+(f':attack{piece}' if piece else ''), device_id,
+                section, channel, start, stop, tuple(pitch_curve), tuple(volume_curve),
+                ((start, selected_voice or voice(start)),), source_indices=original.source_indices,
+                role=role, parameters=(('legacy_unit_ids', (original.unit_id,)),
+                                       ('source_gate_ids', original.gate_ids))))
+        for at in sorted({original.start_sample, *points}):
+            group = points[at]
+            incoming, off_seen = active, False
+            for c in group:
+                if c.kind in current:
+                    current[c.kind] = c.value
+                elif c.kind == 'gate':
+                    off_seen |= c.value == (0,)
+                    active = bool(c.value[0])
+            if incoming and (not active or off_seen and at > start):
+                close(at)
+            if active and (not incoming or off_seen and at > start):
+                piece += 1
+                start, pitch_curve, volume_curve, selected_voice = at, [], [], voice(at)
+            if active:
+                if selected_voice is None:
+                    selected_voice = voice(at)
+                frequency = _frequency(original.chip, current['pitch'], clocks)
+                if not pitch_curve or pitch_curve[-1][1] != frequency:
+                    pitch_curve.append((at, frequency))
+                if not volume_curve or volume_curve[-1][1] != current['volume'][0]:
+                    volume_curve.append((at, current['volume'][0]))
+        if active:
+            close(original.end_sample)
+    # Target score partitions sharing one source gate may differ only in dynamics.
+    # Only join adjacent partitions with shared gate evidence and no observed edge.
+    merged = []
+    observed_edges = {(c.chip, c.channel, c.sample) for c in controls
+                      if c.kind == 'gate' and c.value == (0,) and c.origin.startswith('observed_')}
+    for unit in sorted(units, key=lambda u: (u.device_id, u.section, u.channel, u.start_sample)):
+        if merged:
+            previous = merged[-1]
+            a, b = dict(previous.parameters), dict(unit.parameters)
+            shared_gate = set(a.get('source_gate_ids', ())) & set(b.get('source_gate_ids', ()))
+            source_edge = any(at == unit.start_sample and origins.get((chip, ch), (chip, ch)) ==
+                              (devices[unit.device_id].chip, unit.channel)
+                              for chip, ch, at in observed_edges)
+            if (previous.device_id, previous.section, previous.channel, previous.end_sample) == (
+                    unit.device_id, unit.section, unit.channel, unit.start_sample) and shared_gate and not source_edge:
+                merged[-1] = replace(previous, end_sample=unit.end_sample,
+                    pitch_curve=previous.pitch_curve+unit.pitch_curve,
+                    volume_curve=previous.volume_curve+unit.volume_curve,
+                    voice_curve=previous.voice_curve+unit.voice_curve,
+                    source_indices=previous.source_indices+unit.source_indices,
+                    parameters=(('legacy_unit_ids', a.get('legacy_unit_ids', ())+b.get('legacy_unit_ids', ())),
+                                ('source_gate_ids', tuple(dict.fromkeys(a['source_gate_ids']+b['source_gate_ids'])))))
+                continue
+        merged.append(unit)
+    percussion = []
+    source_mask, held, overlay = 0, {}, {}
+    for c in controls:
+        if c.chip != 'opll':
+            continue
+        if c.kind == 'rhythm_register' and c.value[0] == 14:
+            devices.setdefault('opll:0', NativeDevice('opll:0', 'opll', 0, clocks.get('opll', 3579545)))
+            new = c.value[1] & 31 if c.value[1] & 32 else 0
+            for bit, family in ((16, 'BD'), (8, 'SD'), (4, 'TOM'), (2, 'CYM'), (1, 'HH')):
+                if new & bit and not source_mask & bit:
+                    identity = f'opll:rhythm:{family}:{len(percussion)}'
+                    held[bit] = len(percussion)
+                    percussion.append(NativePercussion(identity, 'opll:0', family, family, c.sample,
+                        parameters=(('origin', 'observed_opll_rhythm'),)))
+                elif source_mask & bit and not new & bit and bit in held:
+                    index = held.pop(bit)
+                    percussion[index] = replace(percussion[index], stop_sample=c.sample)
+            source_mask = new
+        elif c.kind == 'percussion':
+            devices.setdefault('opll:0', NativeDevice('opll:0', 'opll', 0, clocks.get('opll', 3579545)))
+            instrument, volume, enabled = c.value
+            family = ('BD', 'SD', 'TOM', 'CYM', 'HH')[instrument]
+            identity = c.unit_id or f'opll:inferred:{family}:{c.source_sample}'
+            if enabled:
+                overlay[identity] = len(percussion)
+                percussion.append(NativePercussion(identity, 'opll:0', family, family, c.sample,
+                    observed=False, parameters=(('origin', 'inferred_percussion'),)))
+            elif identity in overlay:
+                index = overlay.pop(identity)
+                percussion[index] = replace(percussion[index], stop_sample=c.sample)
+    normalization = dict(plan.metadata).get('normalization') or {}
+    tempo = (normalization.get('timing') or {}).get('tempo', 225) if normalization.get('applied') else 225
+    return NativePerformance(tuple(devices.values()), tuple(merged), (), tuple(voices.values()), tuple(percussion), (),
+        plan.end_sample, dict(plan.metadata).get('source_sha256', ''), '',
+        metadata=(('blueprint_tempo', tempo),), decisions=tuple(decisions))
+
+
+def render_blueprints(plan):
+    source = getattr(plan, 'source_performance', None)
+    if source is not None and _origins(plan):
+        # HuC currently reaches the legacy engine through a documented native
+        # projection. Correct blueprint provenance without changing that bundle.
+        origins = _origins(plan)
+        devices = {device.device_id: device for device in source.devices}
+        units, remapped_devices = [], {}
+        for unit in source.units:
+            device = devices[unit.device_id]
+            origin = origins.get((device.chip, unit.channel))
+            if origin is not None:
+                chip, channel = origin
+                identity = f'{chip}:{device.instance}'
+                remapped_devices.setdefault(identity, NativeDevice(identity, chip, device.instance,
+                    device.clock_hz, parameters=(('blueprint_source_alias', device.device_id),)))
+                units.append(replace(unit, device_id=identity, channel=channel))
+            else:
+                units.append(unit)
+        source = replace(source, devices=source.devices+tuple(remapped_devices.values()), units=tuple(units))
+    return render_native_blueprints(source if source is not None else _legacy_performance(plan),
+                                    score_guide=getattr(plan,'score_guide',None))
 
 
 def render_blueprint(plan):
-    """Return MML and an inspectable projection report, without file mutation."""
-    normalization = dict(plan.metadata).get('normalization') or {}
-    tempo = (normalization.get('timing') or {}).get('tempo', 225) if normalization.get('applied') else 225
-    ratio = Fraction(str(tempo)) * 48 / (44100 * 60)
-    # Same compiler-frame bound used by the ordinary normalized MML backend.
-    minimum = max(1, int(tempo) // 75)
-    rounding = {}
-    def step(sample):
-        value = round(sample * ratio)
-        shift = float(Fraction(value, 1) / ratio - sample)
-        if abs(shift) > 0.51:
-            rounding[sample] = dict(sample=sample, step=value, shift_samples=shift)
-        return value
-    def encode_duration(pitch, steps, tie=False, **context):
-        if 0 < steps < minimum:
-            raise BlueprintError('Blueprint interval is below the MGSC minimum duration',
-                tempo=tempo, steps=steps, minimum_steps=minimum, **context)
-        return _length(pitch, steps, tie=tie, minimum=minimum)
-    controls = plan.ordered_controls()
-    rhythm = any(c.kind == 'percussion' or c.kind == 'rhythm_register' and
-                 c.value[0] == 14 and c.value[1] & 32 for c in controls)
-    units = [u for u in plan.units if not u.rest and u.end_sample > u.start_sample
-             and u.articulation != 'inferred_percussion']
-    allocations, origins = _allocate(plan, units, rhythm)
-    channels, globals_ = defaultdict(list), []
-    for control in controls:
-        if control.channel is None:
-            globals_.append(control)
-        else:
-            channels[control.chip, control.channel].append(control)
-    histories = {}
-    for lane, rows in channels.items():
-        kinds = defaultdict(list)
-        for c in rows:
-            kinds[c.kind].append(c)
-        histories[lane] = {kind: ([c.sample for c in seq], seq) for kind, seq in kinds.items()}
-    def before(lane, kind, sample, default):
-        times, rows = histories.get(lane, {}).get(kind, ([], []))
-        index = bisect_right(times, sample - 1) - 1
-        return rows[index].value if index >= 0 else default
-    global_history = defaultdict(list)
-    for c in globals_:
-        global_history[c.kind].append(c)
-    def global_before(kind, sample, default):
-        rows = global_history.get(kind, ())
-        index = bisect_right([c.sample for c in rows], sample) - 1
-        return rows[index].value if index >= 0 else default
-
-    lanes = defaultdict(list)
-    evidence, excluded = [], Counter()
-    for c in controls:
-        if c.kind in ('instrument', 'waveform', 'wave_write', 'patch_write'):
-            excluded[c.kind] += 1
-    for unit in units:
-        lane = unit.chip, unit.channel
-        target = allocations[unit.unit_id]
-        events = [c for c in channels[lane] if unit.start_sample <= c.sample < unit.end_sample
-                  and c.unit_id in (None, unit.unit_id) and c.kind in
-                  ('pitch', 'volume', 'gate', 'psg_mode', 'psg_envelope_enable')]
-        if unit.chip == target[0] == 'psg':
-            parameters = dict(unit.parameters)
-            events += [c for c in globals_ if unit.start_sample <= c.sample < unit.end_sample and
-                       (c.kind == 'psg_noise' and parameters.get('mode', 1) & 2 or
-                        c.kind in ('psg_envelope_period', 'psg_envelope_shape') and
-                        parameters.get('hardware_envelope', False))]
-        events.sort(key=lambda c: (c.sample, c.order))
-        points = defaultdict(list)
-        start, stop = step(unit.start_sample), step(unit.end_sample)
-        if stop <= start:
-            raise BlueprintError(f'Positive sounding unit collapses on the MML clock: {unit.unit_id}')
-        for c in events:
-            points[min(stop, step(c.sample))].append(c)
-        state = {kind: before(lane, kind, unit.start_sample, default) for kind, default in
-                 (('pitch', None), ('volume', (15,)), ('psg_mode', (1,)),
-                  ('psg_envelope_enable', (0,)))}
-        state['gate'] = (1,)
-        for kind, default in (('psg_noise', (0,)), ('psg_envelope_period', (0,)),
-                              ('psg_envelope_shape', (0,))):
-            state[kind] = global_before(kind, unit.start_sample, default)
-        commands, previous, sounding = [], {}, False
-        cuts = sorted({start, stop, *points})
-        for index, at in enumerate(cuts[:-1]):
-            reattack, envelope_trigger = False, False
-            for c in points[at]:
-                if c.kind == 'gate' and c.value == (0,):
-                    reattack = True
-                if c.kind == 'psg_envelope_shape':
-                    envelope_trigger = True
-                state[c.kind] = c.value
-            duration = cuts[index+1] - at
-            if not duration:
-                continue
-            def duration_text(pitch, tie=False):
-                return encode_duration(pitch, duration, tie=tie, unit_id=unit.unit_id,
-                    sample_start=unit.start_sample, sample_end=unit.end_sample,
-                    step_start=at, step_end=cuts[index+1], controls=[dict(
-                        sample=c.sample, kind=c.kind, value=c.value, source_event_id=c.source_event_id)
-                        for c in points[at]])
-            if state['gate'] == (0,):
-                commands.append(duration_text('r'))
-                sounding = False
-                continue
-            if state['pitch'] is None:
-                raise BlueprintError(f'No accepted pitch for {unit.unit_id}')
-            octave, note, detune = _pitch(unit.chip, state['pitch'], target[0], dict(plan.chip_clocks))
-            desired = {'octave': octave, 'detune': detune, 'volume': state['volume'][0]}
-            for key, value in desired.items():
-                if previous.get(key) != value:
-                    prefix = {'octave': 'o', 'detune': '\\', 'volume': 'v'}[key]
-                    commands.append(f'{prefix}{value}')
-            if target[0] == 'psg':
-                mode = state['psg_mode'][0] if unit.chip == 'psg' and lane not in origins else 1
-                if previous.get('mode') != mode:
-                    commands.append(f'/{mode}')
-                previous['mode'] = mode
-                noise = state['psg_noise'][0]
-                if mode & 2 and previous.get('noise') != noise:
-                    commands.append(f'n{noise}')
-                previous['noise'] = noise
-                hw = bool(state['psg_envelope_enable'][0]) and lane not in origins
-                if hw:
-                    period, shape = state['psg_envelope_period'][0], state['psg_envelope_shape'][0]
-                    if previous.get('period') != period:
-                        commands.append(envelope_period_tokens(period))
-                    if (envelope_trigger or not previous.get('hw') or previous.get('shape') != shape
-                            or previous.get('volume') != desired['volume']):
-                        commands.append(f's{shape}')
-                    previous.update(period=period, shape=shape)
-                elif previous.get('hw'):
-                    commands.append(f'v{desired["volume"]}')
-                previous['hw'] = hw
-            commands.append(duration_text(note, tie=sounding and not reattack))
-            previous.update(desired)
-            sounding = True
-        text = ' '.join(commands)
-        lanes[target].append((start, stop, text, unit.unit_id))
-        source_chip, source_channel = origins.get(lane, lane)
-        evidence.append(dict(unit_id=unit.unit_id, source_chip=source_chip, source_channel=source_channel,
-            plan_chip=unit.chip, plan_channel=unit.channel, target_chip=target[0], target_channel=target[1],
-            track=TRACKS[target[0]][target[1]], sample_start=unit.start_sample, sample_end=unit.end_sample,
-            step_start=start, step_end=stop, mml=text))
-
-    lines = ['; Editable blueprint: assign your own timbres; @0 is a placeholder.',
-             '; No SCC wave, OPLL patch, or software-envelope definitions are copied.',
-             '; Volume changes are explicit v commands. SCC needs your own @s0 definition.',
-             f'#opll_mode {1 if rhythm else 0}', f'#tempo {tempo}', TUNING_HEADER]
-    loops = []
-    for lane, rows in sorted(lanes.items()):
-        commands, cursor = [], 0
-        for start, stop, text, _ in sorted(rows):
-            if start < cursor:
-                raise BlueprintError('MML clock rounding overlaps allocated sounding units')
-            if start > cursor:
-                commands.append(encode_duration('r', start-cursor, lane=lane, step_start=cursor, step_end=start))
-            commands.append(text)
-            cursor = stop
-        if cursor < step(plan.end_sample):
-            commands.append(encode_duration('r', step(plan.end_sample)-cursor,
-                                     lane=lane, step_start=cursor, step_end=step(plan.end_sample)))
-        loop_plan = SourceLoopPlan.build(commands, strategy='structural')
-        body, hierarchy = loop_plan.render(commands)
-        loops.extend(dict(row, chip=lane[0], channel=lane[1]) for row in hierarchy)
-        track = TRACKS[lane[0]][lane[1]]
-        lines.append(f'; Track {track}: {lane[0]} {lane[1]+1}; edit @0 to choose a timbre.')
-        lines.append(f'{track} @0 q8 ' + body)
-    rhythm_text, rhythm_evidence = _rhythm(controls, step, plan.end_sample, minimum)
-    if rhythm_text:
-        lines.append(rhythm_text)
-    text = annotate_sync_points(compress_macros('\n'.join(lines) + '\n'))
-    report = dict(status='success', tempo=tempo, sounding_units=len(units), omitted_units=0,
-        allocations=evidence, loops=loops, rhythm=rhythm_evidence,
-        rhythm_source_controls=[dict(sample=c.sample, kind=c.kind, value=c.value)
-            for c in controls if c.kind in ('rhythm_register', 'percussion')],
-        timing_rounding=list(rounding.values()), stripped_controls=dict(excluded),
-        volume_policy='accepted numeric levels retained as inline v commands',
-        timbre_policy='editable @0 placeholders; no source timbre/SW-envelope definitions',
-        song_loop_policy='finite accepted traversal; source loop position retained in musical_plan')
-    return text, report
+    """Compatibility view of the first score; file_count reports required splits."""
+    pages = render_blueprints(plan)
+    if not pages:
+        raise BlueprintError('No non-PCM sounding parts for blueprint')
+    return pages[0]
 
 
-def _rhythm_levels(registers):
-    return (15-(registers.get(0x36, 0) & 15), 15-(registers.get(0x37, 0) & 15),
-            15-(registers.get(0x38, 0) >> 4), 15-(registers.get(0x38, 0) & 15),
-            15-(registers.get(0x37, 0) >> 4))
-
-
-def _rhythm_stable_levels(controls):
-    """Reject positive held level changes, not zero-width setup transients."""
-    registers, mask, levels = {}, 0, {}
-    bits = (16, 8, 4, 2, 1)
-    for sample, group in groupby(controls, key=lambda c: c.sample):
-        incoming, released, before = mask, 0, _rhythm_levels(registers)
-        for c in group:
-            if c.kind != 'rhythm_register':
-                continue
-            reg, value = c.value
-            registers[reg] = value
-            if reg == 14:
-                new = value & 31 if value & 32 else 0
-                released |= mask & ~new
-                mask = new
-        after = _rhythm_levels(registers)
-        if any(incoming & mask & ~released & bit and before[i] != after[i] for i, bit in enumerate(bits)):
-            raise BlueprintError('Held OPLL percussion volume curve is not representable by rhythm attack MML')
-        levels[sample] = after
-    return levels
-
-
-def _rhythm(controls, step, end, minimum=1):
-    """Retain rhythm attacks/levels in MGSDRV's fixed-preset score grammar."""
-    registers, mask = {}, 0
-    stable_levels = _rhythm_stable_levels(controls)
-    hits = defaultdict(dict)
-    letters, bits = 'bsmch', (16, 8, 4, 2, 1)
-    for c in controls:
-        if c.kind == 'rhythm_register':
-            reg, value = c.value
-            registers[reg] = value
-            if reg != 14:
-                continue
-            new = value & 31 if value & 32 else 0
-            for i, bit in enumerate(bits):
-                if new & bit and not mask & bit:
-                    key = step(c.sample)
-                    if letters[i] in hits[key]:
-                        raise BlueprintError('Multiple same-instrument rhythm attacks collapse on the MML clock')
-                    hits[key][letters[i]] = stable_levels[c.sample][i]
-            mask = new
-        elif c.kind == 'percussion' and c.value[2]:
-            instrument, volume, _ = c.value
-            key = step(c.sample)
-            if letters[instrument] in hits[key]:
-                raise BlueprintError('Overlapping native/inferred rhythm attacks in blueprint')
-            hits[key][letters[instrument]] = volume
-    if not hits:
-        return '', []
-    times = sorted(hits)
-    commands = [_length('r', times[0], minimum=minimum)] if times[0] else []
-    evidence = []
-    for i, at in enumerate(times):
-        stop = times[i+1] if i+1 < len(times) else step(end)
-        if stop-at < minimum:
-            raise BlueprintError('Rhythm interval is below the MGSC minimum duration',
-                step_start=at, step_end=stop, minimum_steps=minimum)
-        if stop-at > 255:
-            duration = 255
-            if 0 < stop-at-duration < minimum:
-                duration -= minimum-(stop-at-duration)
-        else:
-            duration = stop-at
-        notes = ''.join(sorted(hits[at]))
-        commands.extend(f'v{letter}{volume}' for letter, volume in sorted(hits[at].items()))
-        commands.append(f'{notes}%{duration}')
-        if stop-at > duration:
-            commands.append(_length('r', stop-at-duration, minimum=minimum))
-        evidence.append(dict(step=at, volumes=hits[at]))
-    return 'f ' + ' '.join(commands), evidence
+def _digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def write_blueprint(plan, output_root, stem):
-    """Isolate blueprint capacity/notation failures and protect hand-edited files."""
+    """Publish all score pages atomically and protect any hand-edited page."""
     root = Path(output_root).resolve()
     root.mkdir(parents=True, exist_ok=True)
-    report_path = root / f'{stem}.blueprint.json'
-    target = root / 'blueprint' / f'{stem}.mml'
+    if not stem or Path(stem).name != stem:
+        return dict(status='blocked', detail='Blueprint stem must be a file name')
+    report_path = root/f'{stem}.blueprint.json'
+    csv_path = root/f'{stem}.blueprint.units.csv'
+    if report_path.is_symlink() or report_path.exists() and not report_path.is_file():
+        return dict(status='blocked', detail='Blueprint diagnostic path is not a regular owned output')
     try:
         previous = json.loads(report_path.read_text(encoding='utf-8'))
     except (OSError, ValueError):
         previous = {}
-    report = dict(status='blocked', source_sha256=dict(plan.metadata).get('source_sha256'))
-    # Keep the ownership digest across an unsuccessful attempt, without marking
-    # the previous artifact as a successful result of this attempt.
+    if not isinstance(previous, dict):
+        previous = {}
+    source = getattr(plan, 'source_performance', None)
+    source_hash = source.source_sha256 if source is not None else dict(plan.metadata).get('source_sha256')
+    report = dict(status='blocked', source_sha256=source_hash)
+    previous_files = previous.get('files') or ([dict(path=previous.get('path', str(root/'blueprint'/f'{stem}.mml')),
+                                                 sha256=previous['sha256'])] if previous.get('sha256') else [])
+    if not isinstance(previous_files, list):
+        previous_files = []
+    invalid_ownership = False
+    for item in previous_files:
+        if not isinstance(item, dict) or not isinstance(item.get('path'), str) or not isinstance(item.get('sha256'), str):
+            invalid_ownership = True
+            break
+        path = Path(item['path'])
+        extra = re.fullmatch(re.escape(stem)+r'\.part(\d{2,})\.mml', path.name)
+        if (not path.is_absolute() or path.parent.resolve() != (root/'blueprint').resolve()
+                or path.name != stem+'.mml' and not (extra and int(extra[1]) >= 2)
+                or not re.fullmatch(r'[0-9a-f]{64}', item['sha256'])):
+            invalid_ownership = True
+            break
+    if invalid_ownership:
+        previous_files = []
+    owned = {str(Path(item['path']).resolve()): item['sha256'] for item in previous_files}
     if previous.get('sha256'):
-        report.update(sha256=previous['sha256'], previous_artifact_retained=target.is_file())
+        report.update(sha256=previous['sha256'], files=previous_files,
+                      previous_artifact_retained=any(Path(item['path']).exists() for item in previous_files))
     try:
-        if not target.resolve().is_relative_to(root) or target.is_symlink():
-            raise BlueprintError('Blueprint output escapes its output root')
-        initial_digest = hashlib.sha256(target.read_bytes()).hexdigest() if target.is_file() else None
-        if target.exists() and (not target.is_file() or initial_digest != previous.get('sha256')):
-            raise BlueprintError(f'Refusing to overwrite an unowned or edited blueprint: {target}')
-        text, result = render_blueprint(plan)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        with tempfile.NamedTemporaryFile(dir=target.parent, suffix='.tmp', delete=False) as stream:
-            temporary = Path(stream.name)
-            stream.write(text.encode('utf-8'))
-        try:
-            current_digest = hashlib.sha256(target.read_bytes()).hexdigest() if target.is_file() else None
-            if target.is_symlink() or current_digest != initial_digest:
-                raise BlueprintError('Blueprint changed during rendering; keeping the edited file')
-            temporary.replace(target)
-        finally:
-            temporary.unlink(missing_ok=True)
-        report.update(result, path=str(target), sha256=hashlib.sha256(target.read_bytes()).hexdigest())
-        report.pop('previous_artifact_retained', None)
-        rows = result['allocations']
-        with (root / f'{stem}.blueprint.units.csv').open('w', encoding='utf-8', newline='') as stream:
-            fields = list(rows[0]) if rows else ['unit_id', 'source_chip', 'source_channel', 'target_chip', 'target_channel']
-            writer = csv.DictWriter(stream, fieldnames=fields)
-            writer.writeheader()
-            writer.writerows(rows)
+        if invalid_ownership:
+            raise BlueprintError('Invalid blueprint ownership record; keeping existing files')
+        if (root/'blueprint').is_symlink():
+            raise BlueprintError('Blueprint output directory is a symbolic link')
+        if csv_path.is_symlink() or csv_path.exists() and not csv_path.is_file():
+            raise BlueprintError('Blueprint diagnostic path is a symbolic link')
+        rendered = render_blueprints(plan)
+        if not rendered:
+            report.update(status='not_applicable', detail='No non-PCM sounding parts for blueprint')
+            report_path.write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
+            return report
+        targets = [root/'blueprint'/(f'{stem}.mml' if i == 0 else f'{stem}.part{i+1:02d}.mml')
+                   for i in range(len(rendered))]
+        candidates = {Path(name) for name in owned} | set(targets)
+        initial = {}
+        for target in candidates:
+            if not target.resolve().is_relative_to(root) or target.is_symlink():
+                raise BlueprintError('Blueprint output escapes its output root')
+            value = _digest(target) if target.is_file() else None
+            if target.exists() and (not target.is_file() or value != owned.get(str(target.resolve()))):
+                raise BlueprintError(f'Refusing to overwrite an unowned or edited blueprint: {target}')
+            initial[target] = value
+        files, allocations = [], []
+        for i, ((text, data), target) in enumerate(zip(rendered, targets)):
+            files.append(dict(path=str(target), name=target.name,
+                              sha256=hashlib.sha256(text.encode('utf-8')).hexdigest(),
+                              sounding_units=data['sounding_units'], source_parts=sorted({
+                                  (r['source_chip'], r['source_instance'], r['source_section'], r['source_channel'])
+                                  for r in data['allocations']})))
+            allocations.extend(dict(row, file_name=target.name) for row in data['allocations'])
+        report = dict(rendered[0][1], source_sha256=source_hash, path=str(targets[0]),
+            sha256=files[0]['sha256'], files=files, file_count=len(files),
+            sounding_units=sum(data['sounding_units'] for _, data in rendered),
+            allocations=allocations, per_file_reports=[data for _, data in rendered])
+        target_root = root/'blueprint'
+        target_root.mkdir(parents=True, exist_ok=True)
+        # Prepare the complete score/diagnostic bundle before changing owned files.
+        with tempfile.TemporaryDirectory(dir=root, prefix='.blueprint_') as temporary:
+            temporary = Path(temporary)
+            prepared = {}
+            for i, ((text, _), target) in enumerate(zip(rendered, targets)):
+                stage = temporary/f'score{i}'
+                stage.write_text(text, encoding='utf-8')
+                prepared[target] = stage
+            stage = temporary/'units.csv'
+            with stage.open('w', encoding='utf-8', newline='') as stream:
+                fields = list(allocations[0]) if allocations else ['unit_id','source_chip','source_channel','file_name']
+                writer = csv.DictWriter(stream, fieldnames=fields)
+                writer.writeheader();writer.writerows(allocations)
+            prepared[csv_path] = stage
+            stage = temporary/'report.json'
+            stage.write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
+            prepared[report_path] = stage
+            for target, value in initial.items():
+                now = _digest(target) if target.is_file() else None
+                if target.is_symlink() or now != value:
+                    raise BlueprintError('Blueprint changed during rendering; keeping the edited file')
+            backups = {p: p.read_bytes() if p.is_file() else None for p in candidates | set(prepared)}
+            try:
+                for target, stage in prepared.items():
+                    stage.replace(target)
+                for target in candidates-set(targets):
+                    target.unlink(missing_ok=True)
+            except OSError:
+                for target, data in backups.items():
+                    if data is None:
+                        target.unlink(missing_ok=True)
+                    else:
+                        target.write_bytes(data)
+                raise
+        return report
     except (ValueError, OSError) as error:
         report.update(status='blocked', detail=str(error), error_type=type(error).__name__)
         if isinstance(error, BlueprintError):
             report['projection_detail'] = error.projection_detail
-    report_path.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
-    return report
+        if not report_path.is_symlink():
+            try:
+                report_path.write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
+            except OSError as diagnostic_error:
+                report['diagnostic_error'] = str(diagnostic_error)
+        return report

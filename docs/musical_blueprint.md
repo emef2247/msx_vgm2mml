@@ -1,96 +1,111 @@
-# Editable blueprint MML
+# Editable score blueprint
 
 The canonical converter, `export_mgs.py` / `batch_vgm_to_mgs.py`, and
-`export_vgm.py` automatically emit an additional MGSDRV score template:
+`export_vgm.py` independently attempt a score template from retained musical
+source evidence:
 
 ```text
 <output>/<input-relative-parent>/
   blueprint/<stem>.mml
-  tracks/...ordinary MML/MGS or reconstructed VGM...
+  blueprint/<stem>.part02.mml       # only when additional parts need another page
+  tracks/<stem>.mml
+  tracks/<stem>.mgs                # when ordinary compilation succeeds
+  tracks/<stem>.vgm
   _diagnostics/<stem>/
     <stem>.blueprint.json
     <stem>.blueprint.units.csv
-    ...shared musical plan and native evidence...
+    <stem>.native_music.json
+    ...native evidence, timing maps and ordinary projection diagnostics...
 ```
 
-For standalone `vgm2mml.py`, `blueprint/` is directly beneath its `--outdir`.
-Existing export defaults and ordinary output products are unchanged. VGM-only
-conversion does not invoke the ordinary MML backend or MGSC; the separate
-blueprint attempt does not have to succeed for VGM generation to succeed.
-The historical `mml_generated` field refers to the ordinary MML product;
-the additional template has its own `blueprint.status` and path.
+Standalone `vgm2mml.py` keeps its ordinary MML directly under `--outdir`;
+`blueprint/` and `tracks/<stem>.vgm` are also beneath that directory. Default
+canonical output is `both`; explicit `--output-format mml` or `vgm` remains
+available. MGS exports request both ordinary MML and reconstructed VGM.
 
-## What remains editable
+## A score, not an audition arrangement
 
-The template is lowered from accepted `MusicalPlan` sounding units and control
-holds. It is not made by deleting lines from the final ordinary MML. Native
-PSG/SCC/OPLL lane identities, accepted pitches, rests, gates, internal pitch
-changes and numeric volume changes are retained. Software volume curves become
-inline `v` commands and tied continuations, without envelope definitions or
-dangling `@e` references. Fixed-preset OPLL rhythm attacks and levels use the
-ordinary rhythm grammar. Rhythm is an attack-grid/preset-decay template:
-independent native key-off lengths are retained in the sidecar, not encoded as
-per-instrument gates. A positive held percussion volume change blocks the
-template instead of being discarded or turned into a fabricated new attack.
-Same-sample release/setup transients are distinguished from positive holds.
-PSG hardware-envelope controls remain hardware controls.
+Blueprint retains pitches, sounding durations, rests, attacks, held pitch
+changes and finite repeated phrases. It contains **no executable instrument
+selections, waveform/patch definitions, software-envelope definitions or volume
+commands**. Volume-only and timbre-only control boundaries therefore do not
+subdivide its notes. No audition volume or placeholder `@` selection is inserted.
 
-Source SCC waveforms, OPLL patches/instrument selections and software-envelope
-banks are not copied. Each melodic lane has an editable `@0` placeholder.
-OPLL therefore uses its first preset until edited. SCC users must supply their
-own `@s0` waveform (or change the selection and add a matching definition).
-The template is a composition starting point, not a timbre-faithful rendition.
-Volume numbers remain accepted target levels, without loudness normalization
-for the new instrument.
+Source chip, instance, section, channel and projected track are written before
+each part. Comments document source timbre identities, available FM parameters,
+SCC waveform data, source pitch ranges, part counts and timing statistics. Full
+source curves remain in NativePerformance and diagnostic sidecars; stripping
+controls from a score never deletes them from the shared musical representation.
+Users supply their own instruments and dynamics when arranging or auditioning.
+A definition-free SCC score is not guaranteed to be audible before editing.
 
-Finite repeats are reconstructed over complete emitted sounding units before
-the existing lossless macro compactor runs. Durations use ordinary note values
-where possible and bounded tied pieces otherwise. Internal volume or pitch
-controls do not become new attacks. The accepted finite traversal is emitted;
-the optional source-song-loop location remains in the shared plan rather than
-being turned into an infinite MGSDRV loop.
+## Structure before target notation
 
-## Other source chips
+Repeated phrases are detected over score events: pitch, duration, rest and
+attack/continuation. Timbre identities and volume curves do not participate in
+repeat equality. Internal pitch phrases in a long held gate can also repeat;
+the entire gate need not match another complete gate to obtain a finite loop.
+Source attacks remain distinct from held continuations. The existing lossless
+macro compactor follows structural repeat selection.
 
-The HuC6280 adapter now retains its source-to-profile channel allocation in
-projection metadata. Blueprint allocation uses this provenance: those parts
-are placed in free OPLL lanes first, then free PSG lanes, rather than retaining
-the temporary SCC projection as the template destination. Native active lanes
-are reserved; a whole sounding unit is never moved halfway through its gate.
-An existing source-to-template affinity is preferred when that lane is free.
-Pitch is translated from the accepted profile frequency; OPLL spill uses the
-nearest supported semitone. Native evidence and the normal target remain intact.
+Both ordinary MML and blueprint use a whitespace-only presentation pass. A loop
+starts on a new line; nested loops are indented after the repeated track prefix.
+Closing a loop does not force a line break. This formatting changes no commands.
+Finite repeats describe the rendered traversal; they do not automatically turn
+a declared VGM song loop into an infinite MGSDRV loop.
 
-This is not a general implementation for unanalysed source chips. Future adapters
-must supply source provenance and accepted executable musical controls first.
-There is no silent capacity-based omission. Exhausted OPLL/PSG lanes, overlapping
-units, a positive gate collapsing on the MML step clock, or a nine-melody-channel
-OPLL/rhythm layout conflict block only the template and give a diagnostic reason.
-Every encoded note/rest must also satisfy MGSC's tempo-dependent frame bound
-`max(1, tempo // 75)`. Below-bound intervals block only the blueprint, with unit,
-sample/step boundaries and responsible controls recorded in `projection_detail`.
-Do not silently remove a volume hold or introduce a new 60-Hz timing approximation
-to make compilation succeed. Long durations are split so the final tied piece
-also satisfies this bound; raw `%1`/`%2` notation is used only at tempos that
-support it, never invalid `c192`/`c96` note divisors.
+## Target clock and part allocation
 
-## Inspection and ownership
+The default score tempo is 75, giving one MML step per 1/60 second. Native time
+remains 44,100-Hz source samples. A shared monotone sample-to-step map satisfies
+positive rendered note, rest and actual semitone-change intervals, so short
+sounding units are not discarded merely because ordinary rounding would make
+them zero length. Nearby timestamps on independent parts need not consume
+separate steps. All pages share the same map and time origin.
 
-The JSON and unit CSV expose source identity, shared-plan lane, template lane,
-accepted sample boundaries, MML steps and each unit's explicit score commands.
-The JSON also records finite-loop decisions, stripped control counts, rhythm
-attacks and sample-to-step rounding. These are backend decisions; native
-Segments and the shared plan are never overwritten by template approximations.
+This is an explicit target approximation, not a source timing correction.
+Arbitrarily dense events cannot retain every positive duration with a bounded
+error on a coarser clock. Sidecars report each mapping, maximum displacement,
+duration expansion, pitch placeholders and octave folds. Unknown pitches use a
+reported C placeholder; out-of-range pitches use a reported octave displacement.
+Long durations use legal bounded note/tie pieces. Volume changes introduce no
+extra score intervals.
 
-The blueprint is not automatically compiled into MGS. Long inline volume curves
-can still exceed MGSDRV track buffers even when the template MML is valid.
-Compilation is not proof of preserved musical interpretation, and removal of
-SCC waves deliberately prevents a claim of identical audio.
+Native PSG/SCC/OPLL parts retain their preferred target family. Other analyzed
+melodic sources use free OPLL, then PSG tracks. Source identity is documentary,
+not replaced by the destination identity. Overlapping source parts and channel
+capacity overflow receive additional lanes/pages rather than silent omission.
+Timbre count does not consume score channels or force additional pages. PCM is
+excluded from blueprint and does not cause WAV asset generation.
 
-Existing blueprint files require matching ownership digests for regeneration.
-Edited/unowned package templates are preserved and only their update is skipped;
-ordinary MML/VGM conversion continues. Standalone template attempts likewise
-report `blocked` and preserve the file. A failed attempt keeps the last
-owned artifact without labelling it a success for the new source. Successful
-templates may be published even when ordinary MML lowering or MGS compilation
-fails; the previous listening pair remains protected independently.
+OPLL percussion is a separate attack-grid score page using rhythm labels.
+Simultaneous duplicate instruments receive extra pages; independent source stops
+remain in source evidence rather than becoming independent MGSDRV drum gates.
+A rhythm attack exactly at source EOF receives an explicitly reported one-step
+target-only tail shared by every page; the source endpoint is unchanged.
+Non-OPLL native percussion currently has no score-rhythm mapping. Its event IDs,
+chip and family are listed in `excluded_percussion` and comments, while melodic
+pages continue. This is a documented blueprint limitation, not source-data loss
+or an implicit claim that OPNA percussion is excluded by the PCM policy.
+
+## Independent outcomes and ownership
+
+Source analysis precedes accepted MGS lowering. Supported source evidence can
+therefore produce blueprint and native reference VGM when ordinary MGS timing,
+projection policy or compilation fails. The failed target stage is recorded;
+source analysis is not silently replaced with a different successful basis.
+The accepted legacy execution is retained when it succeeds. See
+[musical_hal.md](musical_hal.md) for direct-VGM timing and scope.
+
+Blueprint generation, ordinary MML/MGS and reference VGM have separate outcomes.
+Successful text generation does not guarantee that MGSC has sufficient track
+buffer, nor prove musical accuracy. Blueprint is not automatically compiled as
+a normal listening product. Its JSON/CSV expose source-to-score allocation,
+score-atom ranges, removed controls, repeat decisions and target approximations.
+
+Existing products require matching ownership digests for regeneration. Edited
+or unowned files are preserved with an explicit conflict outcome. A failed
+attempt preserves the previous owned artifact without claiming it was generated
+for the new source. Invalid/unsupported source evidence and ownership conflicts
+remain explicit failures; "always output" is not permission to overwrite edits
+or invent missing source analysis.

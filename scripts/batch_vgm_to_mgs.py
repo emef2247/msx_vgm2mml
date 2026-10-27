@@ -14,7 +14,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'py'))
-from mgs_conversion_config import MgsOptions
+from mgs_conversion_config import MgsOptions, add_curve_arguments, curve_option_values
 from vgm_io import read_vgm_bytes
 from vgm_timing import command_times
 from check_opll_key_edges import compare_files
@@ -72,21 +72,94 @@ def file_digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def blueprint_product(report, folder, stem):
-    """Accept only the current report's owned, complete blueprint artifact."""
-    value = report.get('blueprint', {})
-    expected = folder / 'blueprint' / (stem + '.mml')
-    if not isinstance(value, dict) or value.get('status') != 'success':
-        return None
+def reference_vgm_product(report, folder, stem):
+    """Accept only the current musical-layer writer's verified product."""
+    value = report.get('direct_vgm', {}) if isinstance(report, dict) else {}
+    if not isinstance(value, dict):
+        return None, 'blocked', 'Invalid direct VGM report'
+    status, detail = value.get('status', 'unavailable'), value.get('detail', '')
+    if status != 'success':
+        return None, status, detail
     try:
-        path = Path(value['path'])
-        if (path.resolve() != expected.resolve()
-                or not path.resolve().is_relative_to(folder.resolve())
-                or not path.is_file() or file_digest(path) != value.get('sha256')):
-            return None
+        path = Path(value['vgm'])
+        if (path.resolve() != (folder / 'tracks' / (stem + '.vgm')).resolve()
+                or path.is_symlink() or not path.is_file() or not path.stat().st_size
+                or file_digest(path) != value.get('vgm_sha256')):
+            raise ValueError('Invalid direct VGM product')
     except (KeyError, OSError, TypeError, ValueError):
-        return None
-    return path
+        return None, 'blocked', 'Direct VGM report has a missing or invalid product'
+    return path, status, detail
+
+
+def blueprint_product(report, folder, stem):
+    """Compatibility accessor for the first validated blueprint page."""
+    paths = blueprint_products(report, folder, stem)
+    return paths[0] if paths else None
+
+
+def blueprint_name(name, stem):
+    import re
+    return bool(re.fullmatch(re.escape(stem) + r'(?:\.part\d{2,})?\.mml', name))
+
+
+def blueprint_products(report, folder, stem):
+    """Validate the complete template set before publishing any of its voices."""
+    value = report.get('blueprint', {}) if isinstance(report, dict) else {}
+    if not isinstance(value, dict) or value.get('status') != 'success':
+        return ()
+    records = value['files'] if 'files' in value else [value]
+    if not isinstance(records, list) or not records:
+        return ()
+    count = value.get('file_count', len(records))
+    if type(count) is not int or count < 1 or count != len(records):
+        return ()
+    paths = []
+    try:
+        for record in records:
+            if not isinstance(record, dict):
+                return ()
+            path = Path(record['path'])
+            expected = folder / 'blueprint' / path.name
+            if (not blueprint_name(path.name, stem) or path.resolve() != expected.resolve()
+                    or not path.resolve().is_relative_to(folder.resolve())
+                    or not path.is_file() or file_digest(path) != record.get('sha256')):
+                return ()
+            paths.append(path)
+        if not paths or paths[0].name != stem+'.mml' or len({p.name.casefold() for p in paths}) != len(paths):
+            return ()
+    except (KeyError, OSError, TypeError, ValueError):
+        return ()
+    return tuple(paths)
+
+
+def prepare_blueprints(report, folder, stem, package, products):
+    """Plan an all-or-nothing optional template update, preserving hand edits."""
+    value = report.get('blueprint', {}) if isinstance(report, dict) else {}
+    if not isinstance(value, dict):
+        return [], [], dict(products), 'blocked', 'Invalid blueprint report', []
+    status, detail = value.get('status', 'unavailable'), value.get('detail', '')
+    generated = blueprint_products(report, folder, stem)
+    if status != 'success':
+        return [], [], dict(products), status, detail, []
+    if not generated:
+        return [], [], dict(products), 'blocked', 'Blueprint report has missing or invalid pages', []
+    old_names = {name for name in products if Path(name).parent.as_posix() == 'blueprint'
+                 and blueprint_name(Path(name).name, stem)}
+    new_names = {('blueprint/'+path.name) for path in generated}
+    for name in old_names | new_names:
+        target = package/name
+        if not target.resolve().is_relative_to(package.resolve()) or target.is_symlink():
+            return [], [], dict(products), 'blocked', 'Blueprint target escapes its package', []
+        if target.exists() and (not target.is_file() or file_digest(target) != products.get(name)):
+            return [], [], dict(products), 'blocked', 'Edited/unowned blueprint preserved', []
+    updated = dict(products)
+    deletions = [package/name for name in sorted(old_names-new_names) if (package/name).is_file()]
+    for name in old_names-new_names:
+        updated.pop(name, None)
+    publications = [(path, package/'blueprint'/path.name) for path in generated]
+    for source, target in publications:
+        updated[target.relative_to(package).as_posix()] = file_digest(source)
+    return publications, deletions, updated, status, detail, [target for _, target in publications]
 
 
 def save_json(path, value):
@@ -96,7 +169,7 @@ def save_json(path, value):
     temporary.replace(path)
 
 
-def publish_bundle(publications, manifest, state, workspace):
+def publish_bundle(publications, manifest, state, workspace, *, deletions=()):
     """Prepare every product and manifest before replacing the owned bundle."""
     with tempfile.TemporaryDirectory(prefix='publish_', dir=workspace) as temporary:
         temporary = Path(temporary)
@@ -110,13 +183,16 @@ def publish_bundle(publications, manifest, state, workspace):
         manifest_data.write_text(json.dumps(state, indent=2) + '\n', encoding='utf-8')
         prepared.append((manifest_data, manifest))
         backups = {}
-        for index, (_, target) in enumerate(prepared):
+        for index, target in enumerate([target for _, target in prepared] + list(deletions)):
             if target.exists():
                 backup = temporary / ('old_' + str(index))
                 shutil.copyfile(target, backup)
                 backups[target] = backup
         replaced = []
         try:
+            for target in deletions:
+                target.unlink()
+                replaced.append(target)
             for source, target in prepared:
                 os.replace(source, target)
                 replaced.append(target)
@@ -161,9 +237,10 @@ def publication_targets(files, source_root, output, psg_part):
         folder = package / '_diagnostics' / path.stem
         staged = package / '_source_inputs' / path.name
         targets = (final, final.with_suffix('.mgs'))
+        reference = final.with_suffix('.vgm')
         blueprint = package / 'blueprint' / (path.stem + '.mml')
         manifest = package / 'listening_manifest.json'
-        for candidate in (*targets, blueprint, folder, staged, manifest, package / 'results.csv', package / 'results.json',
+        for candidate in (*targets, reference, blueprint, folder, staged, manifest, package / 'results.csv', package / 'results.json',
                           diagnostics / 'results.csv', diagnostics / 'results.json', diagnostics / 'keyon_setup.log'):
             if not candidate.resolve().is_relative_to(output):
                 raise ValueError(f'Output route escapes output tree: {candidate}')
@@ -186,10 +263,11 @@ def publication_targets(files, source_root, output, psg_part):
             allowed_products = {target.relative_to(package).as_posix() for target in targets}
             allowed_products.add((package / 'tracks' / (path.stem + '.vgm')).relative_to(package).as_posix())
             allowed_products.add(blueprint.relative_to(package).as_posix())
-            if name not in allowed_products:
+            if name not in allowed_products and not (Path(name).parent.as_posix() == 'blueprint'
+                    and blueprint_name(Path(name).name, path.stem)):
                 raise ValueError(f'Unexpected published path in manifest: {name}')
         # A hand-edited template protects that optional product, not the main conversion.
-        for target in targets:
+        for target in (*targets, reference):
             if target.exists():
                 recorded = owned.get(target.relative_to(package).as_posix())
                 if not target.is_file() or recorded != file_digest(target):
@@ -203,7 +281,7 @@ def publication_targets(files, source_root, output, psg_part):
     directories = set()
     for path, _, folder, targets, manifest in routes:
         package = manifest.parent
-        for item in (*targets, package / 'blueprint' / (path.stem + '.mml'), package / '_source_inputs' / path.name, manifest,
+        for item in (*targets, targets[0].with_suffix('.vgm'), package / 'blueprint' / (path.stem + '.mml'), package / '_source_inputs' / path.name, manifest,
                      package / 'results.csv', package / 'results.json',
                      diagnostics / 'results.csv', diagnostics / 'results.json', diagnostics / 'keyon_setup.log'):
             key = item.relative_to(output).as_posix().casefold()
@@ -232,7 +310,7 @@ def save_package_results(package, output, rows):
     selected = json.loads(previous.read_text(encoding='utf-8')) if previous.is_file() else []
     if not isinstance(selected, list) or any(not isinstance(item, dict) for item in selected):
         raise ValueError(f'Invalid package results: {previous}')
-    path_fields = ('mml', 'mgs', 'blueprint', 'log', 'report', 'diagnostics')
+    path_fields = ('mml', 'mgs', 'vgm', 'blueprint', 'log', 'report', 'diagnostics')
     for row in rows:
         if (output / row['report']).parent.parent.parent != package:
             continue
@@ -241,6 +319,9 @@ def save_package_results(package, output, rows):
         for field in path_fields:
             if item.get(field):
                 item[field] = (output / item[field]).relative_to(package).as_posix()
+        if item.get('blueprint_files'):
+            item['blueprint_files'] = [(output/name).relative_to(package).as_posix()
+                                       for name in item['blueprint_files']]
         selected = [prior for prior in selected if prior.get('input') != item['input']]
         selected.append(item)
     if selected:
@@ -270,10 +351,13 @@ def discover_inputs(source, adjacent=False):
 def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=None, alloc=None,
               keyon=True, libkss_module=None, normalize_lengths=False, enhance_macros=True, legacy_loops=False,
               force=False, fm_state_ms=None, normalization_ms=None, dump_passes=False, enhance_drums=False, psg_part='all',
-              software_volume_curves=False):
+              software_volume_curves=False, score_guided_loops=False,
+              psg_state_ms=None, scc_state_ms=None, curve_volume_error=None, curve_mean_error=None):
     options = MgsOptions(normalize_lengths=normalize_lengths, normalization_ms=normalization_ms,
                          fm_state_ms=fm_state_ms, force=force, dump_passes=dump_passes, enhance_drums=enhance_drums, psg_part=psg_part,
-                         software_volume_curves=software_volume_curves)
+                         software_volume_curves=software_volume_curves, score_guided_loops=score_guided_loops,
+                         psg_state_ms=psg_state_ms, scc_state_ms=scc_state_ms,
+                         curve_volume_error=curve_volume_error, curve_mean_error=curve_mean_error)
     option_args = options.cli_args()
     effective_options = options.as_dict()
     if not math.isfinite(timeout) or timeout <= 0:
@@ -289,19 +373,19 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
         raise ValueError('No VGM files found')
     diagnostics, routes = publication_targets(files, source_root, output, psg_part)
     native = shutil.which(str(mgsc)) if mgsc else (None if module else shutil.which('mgsc'))
-    if mgsc and not native:
-        raise RuntimeError(f'Native MGSC executable not found: {mgsc}')
+    compiler_setup_error = f'Native MGSC executable not found: {mgsc}' if mgsc and not native else ''
     if native:
         print(f'Compiler: {native}', flush=True)
-    else:
+    elif not compiler_setup_error:
         check = [node, str(ROOT/'scripts/compile_mgs.mjs'), '--check', '-'] + ([str(module.resolve())] if module else [])
         try:
             setup = subprocess.run(check, capture_output=True, timeout=timeout)
         except (OSError, subprocess.TimeoutExpired) as error:
-            raise RuntimeError(f'MGSC setup failed before conversion: {error}') from error
-        if setup.returncode:
-            raise RuntimeError('MGSC setup failed before conversion:\n' +
-                               (setup.stdout+setup.stderr).decode('utf-8', errors='replace'))
+            compiler_setup_error = f'MGSC setup failed: {error}'
+        else:
+            if setup.returncode:
+                compiler_setup_error = ('MGSC setup failed:\n' +
+                    (setup.stdout+setup.stderr).decode('utf-8', errors='replace'))
     diagnostics.mkdir(parents=True, exist_ok=True)
     keyon_setup_error = ''
     if keyon:
@@ -342,7 +426,7 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
         save_json(manifest, state)
         converted = False
         # Never let an earlier successful artifact look like this run's success.
-        for artifact in (mml, mgs, folder / (path.stem + '.roundtrip.vgm'),
+        for artifact in (mml, mgs, folder / 'tracks' / (path.stem + '.vgm'), folder / (path.stem + '.roundtrip.vgm'),
                          folder / 'report.json', folder / 'report.txt',
                          folder / 'convert.log', folder / 'compile.log', folder / 'keyon.log',
                          folder / (path.stem + '.normalization.json'),
@@ -365,7 +449,7 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
                 raise ValueError(f'Diagnostic artifact escapes output tree: {artifact}')
             artifact.unlink(missing_ok=True)
         row = dict(input=str(relative), status='conversion_failed', mml='',
-                   mgs='', blueprint='', blueprint_status='unavailable', blueprint_detail='', log='', detail='', stage='', error_code='', legacy_status='',
+                   mgs='', vgm='', vgm_status='unavailable', vgm_detail='', blueprint='', blueprint_files=[], blueprint_status='unavailable', blueprint_detail='', log='', detail='', stage='', error_code='', legacy_status='',
                    report=str((folder / 'report.txt').relative_to(output)),
                    diagnostics=str((folder / 'report.json').relative_to(output)), force_summary='',
                    normalization_status='unavailable', normalization_reason='',
@@ -374,7 +458,7 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
         force_data = None
         row.update(dict.fromkeys(KEYON_FIELDS, ''))
         row.update(keyon_status='not_compiled' if keyon else 'disabled', keyon_error='')
-        stages = [('convert', [sys.executable, str(ROOT/'vgm2mml.py'), str(staged), '--outdir', str(folder)]),
+        stages = [('convert', [sys.executable, str(ROOT/'vgm2mml.py'), str(staged), '--outdir', str(folder), '--output-format', 'both']),
                   ('compile', [native, str(mml), str(mgs)] if native else [node, str(ROOT/'scripts/compile_mgs.mjs'), str(mml), str(mgs)] +
                    ([str(module.resolve())] if module else []))]
         if alloc is not None:
@@ -389,13 +473,28 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
             commands.append(dict(stage=stage, command=command))
             log = folder / (stage+'.log')
             row['log'] = str(log.relative_to(output))
+            if stage == 'compile' and compiler_setup_error:
+                log.write_text(compiler_setup_error, encoding='utf-8')
+                row.update(status='compilation_failed', error_code='compiler_setup_error',
+                           legacy_status='compiler_setup_error', detail=compiler_setup_error)
+                break
             try:
                 proc = subprocess.run(command, capture_output=True, timeout=timeout, cwd=folder)
                 text = (proc.stdout+proc.stderr).decode('utf-8', errors='replace')
                 log.write_text(text, encoding='utf-8')
                 target = mml if stage == 'convert' else mgs
                 missing_output = not target.is_file() or target.stat().st_size == 0
-                if proc.returncode or missing_output:
+                partial_mml = False
+                if stage == 'convert' and proc.returncode and not missing_output:
+                    try:
+                        partial = json.loads((folder / (path.stem + '.conversion.json')).read_text(encoding='utf-8'))
+                        product = partial.get('outputs', {}).get('mml', {})
+                        partial_mml = (partial.get('status') == 'partial_failure'
+                            and product.get('status') == 'success'
+                            and Path(product.get('path', '')).resolve() == mml.resolve())
+                    except (OSError, ValueError, TypeError):
+                        pass
+                if (proc.returncode and not partial_mml) or missing_output:
                     code = ('missing_output' if not proc.returncode and missing_output else
                             'conversion_error' if stage == 'convert' else
                             'compiler_setup_error' if not native and proc.returncode == 2 else
@@ -472,25 +571,30 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
             current_report = json.loads(conversion_report.read_text(encoding='utf-8'))
         except (OSError, ValueError):
             current_report = {}
-        row['blueprint_status'] = current_report.get('blueprint', {}).get('status', 'unavailable')
-        row['blueprint_detail'] = current_report.get('blueprint', {}).get('detail', '')
-        generated_blueprint = blueprint_product(current_report, folder, path.stem)
-        if generated_blueprint is not None:
-            final_blueprint = package / 'blueprint' / (path.stem + '.mml')
-            name = final_blueprint.relative_to(package).as_posix()
-            if final_blueprint.exists() and (not final_blueprint.is_file() or
-                    file_digest(final_blueprint) != products.get(name)):
-                row.update(blueprint_status='blocked', blueprint_detail='Edited/unowned blueprint preserved')
-            else:
-                products[name] = file_digest(generated_blueprint)
-                publications.append((generated_blueprint, final_blueprint))
-                row['blueprint'] = str(final_blueprint.relative_to(output))
-                entry.update(published=products, blueprint_source_sha256=current_source_hash)
+        reference, vgm_status, vgm_detail = reference_vgm_product(current_report, folder, path.stem)
+        row.update(vgm_status=vgm_status, vgm_detail=vgm_detail)
+        if reference:
+            final_vgm = final_mml.with_suffix('.vgm')
+            name = final_vgm.relative_to(package).as_posix()
+            if final_vgm.exists() and file_digest(final_vgm) != products.get(name):
+                raise ValueError(f'Final VGM changed during conversion: {final_vgm}')
+            products[name] = file_digest(reference)
+            publications.append((reference, final_vgm))
+            row['vgm'] = final_vgm.relative_to(output).as_posix()
+            entry.update(published=products, vgm_source_sha256=current_source_hash)
+        bp_publish, bp_delete, products, bp_status, bp_detail, bp_targets = prepare_blueprints(
+            current_report, folder, path.stem, package, products)
+        row.update(blueprint_status=bp_status, blueprint_detail=bp_detail,
+                   blueprint_files=[target.relative_to(output).as_posix() for target in bp_targets])
+        if bp_targets:
+            row['blueprint'] = row['blueprint_files'][0]
+            publications.extend(bp_publish)
+            entry.update(published=products, blueprint_source_sha256=current_source_hash)
         entry.update(stem=path.stem, status=entry.get('publication_status', row['status']),
                      latest_attempt_status=row['status'], latest_attempt=dict(row, source_sha256=current_source_hash))
         state['entries'][path.name] = entry
         if publications:
-            publish_bundle(publications, manifest, state, folder)
+            publish_bundle(publications, manifest, state, folder, deletions=bp_delete)
         else:
             save_json(manifest, state)
         summaries = {}
@@ -572,6 +676,7 @@ def build_parser():
                         help='Enable optional musical duration normalization for every conversion')
     parser.add_argument('--normalization-ms', type=float, help='Duration correction threshold in milliseconds; enables normalization')
     parser.add_argument('--fm-state-ms', type=float, help='Internal FM state threshold in milliseconds (default: 1)')
+    add_curve_arguments(parser)
     parser.add_argument('--enhance-rhythm', '--enhance-drums', dest='enhance_drums', action='store_true', help='Add inferred PSG/SCC percussion on OPLL rhythm')
     volume_curves = parser.add_mutually_exclusive_group()
     volume_curves.add_argument('--software-volume-curves', action='store_true', default=False,
@@ -605,7 +710,9 @@ if __name__ == '__main__':
                             normalize_lengths=args.normalize_lengths, enhance_macros=args.enhance_macros, legacy_loops=args.legacy_loops,
                             force=args.force, fm_state_ms=args.fm_state_ms, normalization_ms=args.normalization_ms,
                             dump_passes=args.dump_passes, enhance_drums=args.enhance_drums, psg_part=args.psg_part,
-                            software_volume_curves=args.software_volume_curves)
+                            software_volume_curves=args.software_volume_curves,
+                            **curve_option_values(args))
     except (RuntimeError, ValueError) as error:
         parser.exit(2, str(error)+'\n')
-    sys.exit(0 if all(r['status'] == 'success' and r['keyon_status'] in ('compared', 'disabled', 'selection_only', 'projected_source') for r in results) else 1)
+    sys.exit(0 if all(r['status'] == 'success' and r.get('vgm_status') not in ('failed', 'blocked')
+                     and r['keyon_status'] in ('compared', 'disabled', 'selection_only', 'projected_source') for r in results) else 1)

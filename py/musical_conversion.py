@@ -23,10 +23,12 @@ def _source_patterns(performance):
     return tuple(rows)
 
 
-def build_plan(source, outdir, stem=None, *, normalization_ms=8, fm_state_ms=24,
+def _build_accepted_plan(source, outdir, stem=None, *, normalization_ms=8, fm_state_ms=24,
                normalize_lengths=True, software_volume_curves=True, force=False,
                psg_part='all', enhance_drums=False, song_loop='none', dump_passes=True,
-               decision_sink=None, psg_input='trace', scc_input='trace'):
+               decision_sink=None, psg_input='trace', scc_input='trace',
+               source_performance=None, prepared_input=None, prepared_projection=None,
+               source_score_guide=None, score_guided_loops=False, curve_approx_options=None):
     """Native evidence -> reconstructed units/curves -> executable shared plan.
 
     MGSDRV envelope banks and textual loops are deliberately absent. They can
@@ -57,9 +59,17 @@ def build_plan(source, outdir, stem=None, *, normalization_ms=8, fm_state_ms=24,
     if psg_input not in ('trace', 'log') or scc_input not in ('trace', 'log'):
         raise ValueError('Invalid source CSV selection')
     original = read_vgm_bytes(source)
-    conversion_input, projection = prepare(source, root, stem)
+    conversion_input, projection = ((prepared_input, prepared_projection) if prepared_input is not None
+                                    else prepare(source, root, stem))
     raw = read_vgm_bytes(conversion_input)
-    inventory = inspect_projection(conversion_input, root, stem, force=force)
+    from native_imports import inspect_source
+    source_inventory = inspect_source(raw)
+    native_profile = bool(source_inventory['active_chips'])
+    if native_profile and (psg_part != 'all' or enhance_drums):
+        raise ValueError('Native VGM profiles currently preserve all source parts; MSX part selection/enhancement is separate')
+    inventory = (dict(enabled=False, omission_count=0, omissions=[], csv_path='',
+                      scope='source acceptance; MGS projection policy is separate') if native_profile else
+                 inspect_projection(conversion_input, root, stem, force=force))
     metadata = {}
     paths = parse_vgm(str(conversion_input), str(root), include_vgmticks=True,
                       dump_loop=True, loop_metadata=metadata)
@@ -81,17 +91,33 @@ def build_plan(source, outdir, stem=None, *, normalization_ms=8, fm_state_ms=24,
         performances = [analyze(selected, 'psg')]
     else:
         performances = native
+    mapper = choose_timing(opll_segments, paths[6], enabled=normalize_lengths,
+                           normalization_ms=normalization_ms, fm_state_ms=fm_state_ms,
+                           num_channels=9)
     accepted = []
+    curve_reports={}
     for performance in performances:
         if software_volume_curves:
             curves = project_curves(performance)
             dump_curves(curves, root / f'{stem}.{performance.chip}.volume_curves', details=dump_passes)
             performance = curves.performance
+        if curve_approx_options and curve_approx_options.get(performance.chip,{}).get('state_ms'):
+            from psg_scc_curve_approx import project as approximate, dump as dump_approximation
+            approximation=approximate(performance,**curve_approx_options[performance.chip])
+            if mapper.applied:
+                from psg_scc_curve_approx import abstain
+                approximation=abstain(approximation,'normalized_clock_requires_post_lowering_error_validation')
+            dump_approximation(approximation,root/f'{stem}.{performance.chip}.curve_approx',details=True)
+            curve_reports[performance.chip]=approximation.summary()
+            performance=approximation.performance
+        if source_score_guide is not None:
+            from score_structure import map_partitions
+            rows=map_partitions(source_score_guide,performance)
+            (root/f'{stem}.{performance.chip}.score_guide.mapping.json').write_text(
+                json.dumps(dict(source_guide=f'{stem}.score_guide.json',
+                    executable_cuts_applied=False,mappings=rows),indent=2)+'\n',encoding='utf-8')
         dump(performance, root / f'{stem}.{performance.chip}.accepted')
         accepted.append(performance)
-    mapper = choose_timing(opll_segments, paths[6], enabled=normalize_lengths,
-                           normalization_ms=normalization_ms, fm_state_ms=fm_state_ms,
-                           num_channels=9)
     # Every accepted boundary is checked before either output is published.
     # Curve holds remain semantic frame durations, independent of bank packing.
     try:
@@ -115,7 +141,7 @@ def build_plan(source, outdir, stem=None, *, normalization_ms=8, fm_state_ms=24,
     source_end = list(command_times(raw))[-1].vgmticks
     end = max(plan.end_sample, mapper.source_sample(source_end))
     loop_sample = None
-    if song_loop == 'source':
+    if song_loop == 'source' and not native_profile:
         loop = read_loop_metadata(raw)
         if loop['status'] != 'valid':
             raise ValueError('Source song-loop requested but no valid declared loop exists')
@@ -146,6 +172,34 @@ def build_plan(source, outdir, stem=None, *, normalization_ms=8, fm_state_ms=24,
             if h.channel != -1 or (g.tick, h.instrument) in accepted_hits)) for g in groups)
         drum_projection = (groups, drum_end, summary, decisions)
         (root / f'{stem}.drums.json').write_text(json.dumps(summary, indent=2) + '\n', encoding='utf-8')
+    # The source layer is primary. The former MusicalPlan is an output-specific
+    # accepted execution, retained separately when native chips are present.
+    if source_performance is None:
+        from native_source_music import build_native_performance
+        try:
+            source_performance = build_native_performance(conversion_input, root, stem,
+                legacy_performances=tuple(native), legacy_opll_segments=opll_segments)
+        except ValueError:
+            if native_profile:
+                raise
+            source_performance = None
+    if source_performance is not None:
+        source_performance.dump(root, stem)
+        plan = replace(plan, source_performance=source_performance,score_guide=source_score_guide,
+            metadata=plan.metadata + (('source_performance_ref', f'{stem}.native_music.json'),)+
+                ((('score_guide_ref',f'{stem}.score_guide.json'),) if source_score_guide is not None else ()))
+    legacy_execution_plan = plan
+    if native_profile:
+        plan.dump(root, stem+'.mgs_projection')
+        loop_sample = source_performance.song_loop_sample if song_loop == 'source' else None
+        if song_loop == 'source' and loop_sample is None:
+            raise ValueError('Native source has no valid declared loop')
+        plan = replace(plan, units=(), controls=(), patterns=(),
+            end_sample=source_performance.end_sample, source_end_sample=source_performance.end_sample,
+            song_loop_sample=loop_sample, chip_clocks=tuple((d.device_id, d.clock_hz)
+                for d in source_performance.devices), metadata=tuple(
+                    (k, v) for k, v in plan.metadata if k != 'target_profile') +
+                (('target_profile', 'native'), ('native_time_domain', 'original_source_samples')))
     plan.dump(root, stem)
     if decision_sink is not None:
         decision_sink.update(performances=tuple(accepted), mapper=mapper,
@@ -154,17 +208,89 @@ def build_plan(source, outdir, stem=None, *, normalization_ms=8, fm_state_ms=24,
             native_performances=tuple(native), selection_candidates=selection_candidates,
             selection_summary=selection_summary, drum_projection=drum_projection,
             conversion_input=str(conversion_input), source_projection=projection, musical_plan=plan)
+        decision_sink['legacy_execution_plan'] = legacy_execution_plan
     report = dict(status='planned', output='direct_vgm', source=str(source.resolve()),
-        target_profile='msx_standard', source_projection=projection,
+        target_profile='native' if native_profile else 'msx_standard', source_projection=projection,
         source_end_sample=source_end, end_sample=plan.end_sample,
-        units=len(plan.units), controls=len(plan.controls), patterns=len(plan.patterns),
-        chips=sorted({c.chip for c in plan.controls}),
+        units=len(source_performance.units) if native_profile else len(plan.units),
+        controls=len(source_performance.controls) if native_profile else len(plan.controls),
+        patterns=len(source_performance.patterns) if native_profile else len(plan.patterns),
+        chips=sorted({d.chip for d in source_performance.devices}) if native_profile else sorted({c.chip for c in plan.controls}),
         normalization=mapper.report, force=inventory, psg_part=psg_part,
         software_volume_curves=software_volume_curves, enhance_drums=enhance_drums,
+        curve_approximation=curve_reports,score_guided_loops=score_guided_loops,
         loop_policy=song_loop, source_loop=metadata,
         mml_generated=False, compiler_invoked=False)
+    if native_profile:
+        from native_vgm import capability_report
+        report['native_source'] = capability_report(source_performance)
     (root / f'{stem}.execution.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     return plan, report
+
+
+def build_plan(source, outdir, stem=None, **options):
+    """Retain source music before independently lowering the MGS execution.
+
+    A supported native performance remains usable by the score/reference
+    backends even when accepted MGS timing or source policy cannot be lowered.
+    The failure and the different execution basis are explicit, never silent.
+    """
+    from huc6280_projection import prepare
+    from native_source_music import build_native_performance
+    from musical_plan import MusicalPlan
+    from musical_timing import AcceptedTimingMapper
+    from native_vgm import capability_report
+    source=Path(source);root=Path(outdir)
+    root.mkdir(parents=True,exist_ok=True)
+    stem=source.stem if stem is None else stem
+    conversion_input,projection=prepare(source,root,stem)
+    source_error=None
+    try:
+        performance=build_native_performance(conversion_input,root,stem)
+    except ValueError as error:
+        performance=None
+        source_error=dict(status='failed',error_type=type(error).__name__,detail=str(error))
+    sink=options.get('decision_sink')
+    guide=None
+    if performance is not None:
+        from score_structure import build as build_score_guide
+        guide=build_score_guide(performance,repeats=options.get('score_guided_loops',False))
+        guide.dump(root,stem)
+    try:
+        plan,report=_build_accepted_plan(source,root,stem,**options,
+            source_performance=performance,prepared_input=conversion_input,prepared_projection=projection,
+            source_score_guide=guide)
+    except Exception as error:
+        if performance is None:
+            raise
+        failure=dict(error_type=type(error).__name__,detail=str(error))
+        loop=performance.song_loop_sample if options.get('song_loop','none')=='source' else None
+        if options.get('song_loop','none')=='source' and loop is None:
+            raise ValueError('Native source has no valid declared loop') from error
+        plan=MusicalPlan((),(),performance.end_sample,performance.end_sample,
+            tuple((d.device_id,d.clock_hz) for d in performance.devices),loop,
+            metadata=(('target_profile','native'),('native_time_domain','original_source_samples'),
+                ('source_sha256',performance.source_sha256),('source_performance_ref',f'{stem}.native_music.json'),
+                ('source_projection',projection),('mgs_projection_error',failure)),
+            source_performance=performance,score_guide=guide)
+        plan.dump(root,stem)
+        unavailable=dict(status='unavailable',applied=False,reason='MGS execution lowering failed; native source retained')
+        report=dict(status='planned',target_profile='native',source=str(source.resolve()),
+            source_projection=projection,source_end_sample=performance.end_sample,end_sample=performance.end_sample,
+            force=dict(enabled=False,omission_count=0,omissions=[],csv_path=''),normalization=unavailable,
+            native_source=capability_report(performance),mgs_projection_error=failure,
+            compiler_invoked=False,mml_generated=False)
+        (root/f'{stem}.execution.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+        if sink is not None:
+            sink.update(conversion_input=str(conversion_input),source_projection=projection,
+                musical_plan=plan,mapper=AcceptedTimingMapper(report=unavailable),
+                legacy_execution_plan=plan,mgs_projection_error=failure)
+        return plan,report
+    if source_error is not None:
+        report['native_source_error']=source_error
+        if sink is not None:sink['native_source_error']=source_error
+        (root/f'{stem}.execution.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+    return plan,report
 
 
 def source_gd3(path):

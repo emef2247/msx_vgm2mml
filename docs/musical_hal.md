@@ -47,7 +47,7 @@ python vgm2mml.py <input.vgm> --outdir <output> --output-format vgm
 python vgm2mml.py <input.vgm> --outdir <output> --output-format both
 ```
 
-Its default remains MML. `both` publishes VGM first; a subsequent MML capacity or
+Its default is `both`. VGM publication is independent; a subsequent MML capacity or
 lowering error does not erase successful VGM output. Canonical VGM is placed in
 `tracks/<stem>.vgm`; its existing standalone MML placement remains unchanged.
 
@@ -58,12 +58,14 @@ existing unnormalized musical clock. No MGSC or Node installation is required.
 
 ## Layers and scope
 
-All entry points also attempt an editable, timbre-free MGSDRV blueprint from
-the same accepted musical plan. It keeps numeric volume changes inline and
-publishes separately in `blueprint/`; a template failure does not block the
-primary VGM/MML product. Edited templates are preserved. See
-[musical_blueprint.md](musical_blueprint.md) for placeholders, source allocation,
-diagnostics and the template's rhythm/capacity limits.
+All entry points also attempt a structured MGSDRV score in `blueprint/`.
+It removes executable timbre and volume controls, retains finite score loops,
+and documents source instruments in comments. Supported source music is built
+before accepted MGS lowering; a failed MGS projection does not prevent the
+source-derived blueprint and native reference VGM. Each artifact has its own
+outcome, and edited products remain protected. See
+[musical_blueprint.md](musical_blueprint.md) for score allocation and explicit
+target-clock approximations.
 
 ```text
 Source VGM -> native State/Segments and ordered shared operations

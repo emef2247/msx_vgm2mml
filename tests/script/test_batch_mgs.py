@@ -122,16 +122,16 @@ class BatchMgs(unittest.TestCase):
                 self.assertEqual(len(list(csv.DictReader(stream))),2)
 
     @patch('batch_vgm_to_mgs.shutil.which', return_value=None)
-    def test_setup_failure_stops_before_conversion(self, _which):
+    def test_setup_failure_still_attempts_conversion(self, _which):
         with tempfile.TemporaryDirectory() as tmp:
             source, out = Path(tmp)/'input', Path(tmp)/'out'
             source.mkdir(); (source/'a.vgm').write_bytes(b'fixture')
             with patch('batch_vgm_to_mgs.subprocess.run', return_value=
                        subprocess.CompletedProcess([],2,b'',b'MGSC setup error')) as run:
-                with self.assertRaisesRegex(RuntimeError, 'before conversion'):
-                    run_batch(source,out,keyon=False)
-                self.assertEqual(run.call_count,1)
-            self.assertFalse(out.exists())
+                rows = run_batch(source,out,keyon=False)
+                self.assertEqual(run.call_count,2)
+            self.assertEqual(rows[0]['status'], 'conversion_failed')
+            self.assertTrue((out/'_diagnostics/a/convert.log').is_file())
 
     @patch('batch_vgm_to_mgs.shutil.which', return_value='/usr/local/bin/mgsc')
     def test_keyon_counts_reuse_compiled_mgs_and_keep_failures_separate(self, _which):

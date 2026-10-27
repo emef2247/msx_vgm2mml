@@ -3543,3 +3543,94 @@ User chose the original1ms/44sample default. Shared fm_state_runs default is44
 again; docs updated. x68k/MUCOM expose independent --fm-state-ms while their
 whole-gate/clock --normalization-ms stays8ms. No new MSXCLI option. No public
 pattern sweep or local_only conversion performed in this follow-up.
+
+## 2026-10-27 completed user-run v1.1.0 comparison
+
+User finished run_test.sh. Compared only requested local groups: TWINBEE7,
+SALAMD14, FMPAC5, contrail1. All 27 staged input hashes agree. All 26 ordinary
+MML and 24 generated MGS files are byte-identical to ../../test2/msx_vgm2mml
+(v1.1.0), with matching publication hashes. Both runs: 24 success, SALAMD02/06
+buffer errors, contrail unsupported OPLL register range. No ordinary-output
+regression found. FM24ms/normalization8ms unchanged. No rerun/listening/public
+comparison. See outputs/diagnostics/v110_user_run_comparison_20261027/analysis_ja.md
+and external field_notes/2026-10-27_v110_user_run_parity.md.
+
+Current native integration remains uncommitted; comparison alone is not a full
+completion claim for seven source chips. Pending approved next direction:
+always-output blueprint/reference VGM, volume-free blueprint with source voice
+comments, then new indented loop-start line layout in normal MML and blueprint.
+Preserve this parity baseline before intentional formatting changes. README,
+user run scripts/logs, inputs and normal products remain untouched. No staging,
+commit or push. x68k runtime/PDX investigation is separate; driver was supplied
+but guest configuration was not changed.
+
+## 2026-10-27 score-only blueprint and independent reference products
+
+Implemented the approved post-v1.1.0 update on codex/musical_HAL. Native source
+music is constructed before accepted MGS lowering. Blueprint and reference VGM
+survive target lowering/compilation failure with independent outcomes. Default
+canonical output is both; MGS export also publishes reference VGM. Failed VGM
+plus successful MML is an aggregate partial_failure/nonzero result; batch still
+compiles the explicitly successful current MML. Edited/unowned products remain
+protected. Normal MML loop layout is whitespace-only and preserves CP932.
+
+Latest user correction supersedes placeholder-voice requests: blueprint contains
+no executable @ or v commands, definitions or software envelopes. Timbres/FM
+parameters/SCC waves remain comments and sidecars. Score repeats use pitch,
+duration, rest, attack/hold atoms, including phrases inside a long held gate.
+One global constrained target clock keeps short positive intervals; split pages
+share timing. Overlaps get additional lanes/pages. Terminal OPLL rhythm attacks
+have explicit target-only tail; non-OPLL percussion is explicitly unmapped in
+comments/excluded_percussion. PCM remains outside blueprint.
+
+Verification: 206 focused tests pass, no errors/skips. SALAMD01 fresh default
+export produces MML/MGS/VGM/blueprint. Its score lines shrink 20816->11937 chars;
+finite-loop openers 44->102. Saved source rerender: 27/27 blueprints,32 pages,
+31 compile; only contrail first page exceeds MGSC buffer. All14 SALAMD scores
+compile. Ordinary layout:26 token-preserved/idempotent,24 byte-identical MGS,
+2 unchanged SALAMD02/06 buffer failures. No listening claim. Original source
+and output files protected. Artifacts: outputs/diagnostics/blueprint_v2_20261027/
+(analysis_ja.md, integration.json, fixture_rerender, normal_layout, end_to_end).
+
+README/user run scripts/logs untouched. No staging, commit or push. External
+note: field_notes/2026-10-27_blueprint_score_and_independent_vgm.md. Next: user
+score/listening review. Do not resume HuC KATOKEN until requested; do not claim
+all-source blueprint rhythm mapping or automatic envelope reattachment exists.
+
+## 2026-10-27 source score guidance and bounded curves
+
+Implemented score_structure before target lowering; blueprint shares native
+pitch spans. Opt-in --score-guided-loops uses whole-note source-guide mappings,
+all exact curve/settings variants and exact-command/fallback guards. Applies to
+PSG/SCC and ordinary/normalized OPLL; source guides cover other analyzed melodic
+chips without new MGS mappings. HW presence is not a repeat barrier; no phase
+simulation in score identity or invented resets.
+
+Added default-off --psg-state-ms/--scc-state-ms with explicit maximum/mean volume
+register-error budgets; observed compatible-curve reuse only. Source/renderer
+profiles checked independently. Applied normalized clocks cause explicit
+abstention until post-lowering budgets are proven. Backend fallback retains
+accepted projected curves via repartitioning.
+
+322 focused tests pass, including actual MGSC/libkss two phases/full-bank inline
+fallback. Dispatch jitter means no raw-sample/acoustic bound claimed. Frozen
+3input/4mode comparison: SALAMD02/06 still buffer-fail; small MML gains only.
+GRA2split01 allcompile but allMGS1536bytes. Current SALAMD06/GRA2 24ms outputs
+match grid MML bytes. Inputs/user publications unchanged. See ignored
+outputs/diagnostics/score_guided_curves_20261027/analysis_ja.md and English private
+field_notes/2026-10-27_score_guidance_and_bounded_volume_curves.md.
+
+HW probe: MGSDRV can restart envelopes at new notes even with one MML shape
+selection; q0 alone does not fix it. Native VGM single-write retention tested.
+Existing target HW-articulation repair remains separate, not claimed solved.
+README unchanged; no staging/commit/push. User scripts/logs preserved. Next user
+score/listening/sweep review; no HuC resumption or default approximation.
+
+## 2026-10-27 checkpoint and HuC6280 resumption authorized
+
+User is auditioning score/curve results and explicitly requests a new branch,
+checkpoint commit, then continued HuC6280 implementation. Checkpoint branch:
+codex/score-guidance-huc6280. Include task source/tests/docs only; preserve
+untracked user logs/run_test.sh/run_sweep.sh. External three October27 MSX notes
+are committed separately; no private push. Resume scoped HuC unsupported noise,
+dynamic-wave and OPLL spill investigation; do not alter audition defaults.

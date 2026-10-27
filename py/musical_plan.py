@@ -119,6 +119,8 @@ class MusicalPlan:
     patterns: tuple = ()
     decisions: tuple = ()
     metadata: tuple = ()
+    source_performance: object | None = None
+    score_guide: object | None = None
 
     def __post_init__(self):
         if self.end_sample < 0 or self.source_end_sample < 0:
@@ -137,7 +139,16 @@ class MusicalPlan:
     def dump(self, folder, stem):
         root = Path(folder)
         root.mkdir(parents=True, exist_ok=True)
-        data = asdict(self)
+        # Native ROM/stream assets have their own source dump. Do not recursively
+        # duplicate them into an already-projected execution plan.
+        from dataclasses import replace
+        data = asdict(replace(self, source_performance=None,score_guide=None))
+        data.pop('source_performance', None)
+        data.pop('score_guide',None)
+        if self.source_performance is not None:
+            data['source_performance_ref'] = dict(self.metadata).get('source_performance_ref', f'{stem}.native_music.json')
+        if self.score_guide is not None:
+            data['score_guide_ref']=dict(self.metadata).get('score_guide_ref',f'{stem}.score_guide.json')
         data.update(sample_rate=44100, interval_convention='half_open',
                     curve_interpolation='piecewise_constant', patterns_executable=False)
         (root / f'{stem}.musical_plan.json').write_text(json.dumps(data, indent=2) + '\n', encoding='utf-8')

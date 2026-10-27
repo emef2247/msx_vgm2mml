@@ -11,8 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'py'))
 from musical_conversion import build_plan, source_gd3
 from musical_vgm import write_vgm
-from mgs_conversion_config import sample_threshold
-from batch_vgm_to_mgs import blueprint_product, discover_inputs, file_digest, package_manifest, publish_bundle, save_json
+from mgs_conversion_config import sample_threshold, MgsOptions, add_curve_arguments, curve_option_values
+from batch_vgm_to_mgs import discover_inputs, file_digest, package_manifest, prepare_blueprints, publish_bundle, save_json
 
 
 def parser():
@@ -25,6 +25,7 @@ def parser():
                         help='Shared musical clock-fit tolerance in milliseconds (default: 8)')
     result.add_argument('--fm-state-ms', type=float, default=24,
                         help='OPLL internal pitch/volume threshold when normalization is accepted (default: 24)')
+    add_curve_arguments(result)
     result.add_argument('--no-normalization', action='store_true', help='Use the existing unnormalized musical clock')
     curves = result.add_mutually_exclusive_group()
     curves.add_argument('--software-volume-curves', action='store_true', default=True,
@@ -50,12 +51,14 @@ def _worker(args):
     target.unlink(missing_ok=True)
     stage = 'interpretation'
     try:
+        options = MgsOptions(software_volume_curves=args.software_volume_curves, **curve_option_values(args))
         plan, report = build_plan(args.input, folder, stem,
             normalization_ms=args.normalization_ms, fm_state_ms=args.fm_state_ms,
             normalize_lengths=not args.no_normalization,
             software_volume_curves=args.software_volume_curves, force=args.force,
             psg_part=args.psg_part, enhance_drums=args.enhance_drums,
-            song_loop=args.song_loop, dump_passes=args.dump_passes)
+            song_loop=args.song_loop, dump_passes=args.dump_passes,
+            score_guided_loops=options.score_guided_loops, curve_approx_options=options.curve_approx_options)
         from musical_blueprint import write_blueprint
         report['blueprint'] = write_blueprint(plan, folder, stem)
         stage = 'vgm_generation'
@@ -86,6 +89,8 @@ def _flags(args):
         result.append('--no-software-volume-curves')
     if args.psg_part != 'all':
         result.append('--psg-' + args.psg_part + '-only')
+    options = MgsOptions(software_volume_curves=args.software_volume_curves, **curve_option_values(args))
+    result.extend(options.curve_cli_args())
     return result
 
 
@@ -97,6 +102,7 @@ def run_export(args):
         raise ValueError('--timeout must be positive')
     sample_threshold(args.normalization_ms, '--normalization-ms')
     sample_threshold(args.fm_state_ms, '--fm-state-ms')
+    MgsOptions(software_volume_curves=args.software_volume_curves, **curve_option_values(args))
     source_root = source.parent if source.is_file() else source
     output = args.outdir.resolve() if args.outdir else source_root
     if args.outdir and (source == output or source in output.parents or output in source.parents):
@@ -173,29 +179,22 @@ def run_export(args):
             publications.append((generated, target))
         else:
             entry.update(last_status=report['status'])
-        generated_blueprint = blueprint_product(report, folder, path.stem)
-        blueprint_target = package / 'blueprint' / (path.stem + '.mml')
-        blueprint_status = report.get('blueprint', {}).get('status', 'unavailable')
-        blueprint_detail = report.get('blueprint', {}).get('detail', '')
-        if generated_blueprint is not None:
-            name = blueprint_target.relative_to(package).as_posix()
-            if blueprint_target.exists() and (not blueprint_target.is_file() or
-                    file_digest(blueprint_target) != published.get(name)):
-                blueprint_status, blueprint_detail = 'blocked', 'Edited/unowned blueprint preserved'
-            else:
-                published[name] = file_digest(generated_blueprint)
-                publications.append((generated_blueprint, blueprint_target))
-                entry.update(published=published, blueprint_source_sha256=file_digest(path))
+        bp_publish, bp_delete, published, blueprint_status, blueprint_detail, bp_targets = prepare_blueprints(
+            report, folder, path.stem, package, published)
+        if bp_targets:
+            publications.extend(bp_publish)
+            entry.update(published=published, blueprint_source_sha256=file_digest(path))
         state['entries'][path.name] = entry
         if publications:
-            publish_bundle(publications, package / 'listening_manifest.json', state, folder)
+            publish_bundle(publications, package / 'listening_manifest.json', state, folder, deletions=bp_delete)
         else:
             save_json(package / 'listening_manifest.json', state)
         row = dict(input=relative.as_posix(), status=report['status'],
                    vgm=target.relative_to(output).as_posix() if target.exists() else '',
                    diagnostics=(folder / 'report.json').relative_to(output).as_posix(),
                    units=report.get('units', ''), controls=report.get('controls', ''),
-                    blueprint=blueprint_target.relative_to(output).as_posix() if blueprint_status == 'success' and generated_blueprint else '',
+                    blueprint=bp_targets[0].relative_to(output).as_posix() if bp_targets else '',
+                    blueprint_files=[target.relative_to(output).as_posix() for target in bp_targets],
                     blueprint_status=blueprint_status, blueprint_detail=blueprint_detail,
                    vgm_bytes=report.get('vgm_bytes', ''), detail=report.get('detail', ''))
         rows.append(row)

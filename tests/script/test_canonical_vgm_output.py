@@ -96,6 +96,27 @@ class CanonicalVgmTests(unittest.TestCase):
                 self.invoke(source, output, '--output-format', 'vgm')
             self.assertEqual(target.read_bytes(), b'foreign file')
 
+    def test_failed_reference_keeps_successful_mml_but_returns_partial_failure(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);source=root/'authored.vgm';output=root/'out'
+            authored_psg(source)
+            with patch.object(vgm2mml,'_write_direct_vgm',side_effect=ValueError('reference failure')):
+                result=self.invoke(source,output,'--output-format','both')
+            report=json.loads((output/'authored.conversion.json').read_text())
+            self.assertEqual(result,1)
+            self.assertEqual(report['status'],'partial_failure')
+            self.assertEqual(report['outputs']['mml']['status'],'success')
+            self.assertEqual(report['outputs']['vgm']['status'],'failed')
+            self.assertTrue((output/'authored.mml').is_file())
+
+    def test_loop_layout_preserves_cp932_metadata(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);source=root/'authored.vgm';output=root/'out'
+            authored_psg(source)
+            self.invoke(source,output,'--title','日本語の曲名')
+            text=(output/'authored.mml').read_text(encoding='cp932')
+            self.assertIn('日本語の曲名',text)
+
     def test_owned_direct_target_can_be_regenerated(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

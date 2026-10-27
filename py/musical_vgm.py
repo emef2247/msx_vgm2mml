@@ -179,6 +179,12 @@ def scheduled_writes(plan):
 
 def write_vgm(plan, path, *, gd3=None, mapping_path=None):
     """Encode one VGM with global sample time; return inspectable write rows."""
+    if dict(plan.metadata).get('target_profile') == 'native':
+        from native_vgm import write_native_vgm
+        if plan.source_performance is None:
+            raise ValueError('Native VGM profile requires source-native musical information')
+        return write_native_vgm(plan.source_performance, path, gd3=gd3,
+            mapping_path=mapping_path, source_loop=plan.song_loop_sample is not None)
     writes = scheduled_writes(plan)
     body = bytearray()
     cursor, loop_address = 0, None

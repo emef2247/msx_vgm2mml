@@ -678,7 +678,8 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
                      dump_passes: bool = False, debug: bool = True,
                      voice_csv_path: str | None = None,
                      raw_ticks: bool = False, *, source_loops: bool = True,
-                     source_strategy: str = 'structural', opll_mode: int | None = None) -> str:
+                     source_strategy: str = 'structural', opll_mode: int | None = None,
+                     score_guided: bool = False) -> str:
     """Run the OPLL MML generation pipeline.
 
     Args:
@@ -766,7 +767,7 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     target_dump = os.path.join(output_dir, f'{stem}.opll.target_notes.csv') if dump_passes else None
     target_text = render_melody(segments, voice_csv_path, raw_ticks, target_dump,
                                 source_loops=source_loops, source_strategy=source_strategy,
-                                num_channels=num_channels)
+                                num_channels=num_channels,score_guided=score_guided)
     # Rhythm Segments retain attacks only: the final key-off can be later.
     import csv
     with open(trace_path, newline='') as stream:

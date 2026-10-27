@@ -82,7 +82,7 @@ def segment_decisions(rows, updates=()):
     return tuple(result)
 
 def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, source_loops=False,
-           source_strategy='retained', num_channels=6):
+           source_strategy='retained', num_channels=6,score_guided=False):
 
     from melody_patterns import analyze
     from melody_loops import project, dump_projection
@@ -98,7 +98,7 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
         for ch in range(num_channels):
             if ch in analysis:
                 members, source_units = group_notes(segments[ch], analysis[ch][0])
-                plan = OpllLoopPlan.build(members, source_units, analysis[ch][0], source_strategy)
+                plan = OpllLoopPlan.build(members, source_units, analysis[ch][0], source_strategy,score_guided)
                 source_plans[ch] = (plan, members, source_units)
     times = [tick for tick, _ in updates]
     patches, lines, evidence = {}, [], []
@@ -167,7 +167,7 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
                 if source_loops == 'after':
                     from opll_inner_loops import OpllLoopPlan
                     members, source_units = group_notes(segments[ch], analysis[ch][0])
-                    plan = OpllLoopPlan.build(members, source_units, analysis[ch][0], source_strategy)
+                    plan = OpllLoopPlan.build(members, source_units, analysis[ch][0], source_strategy,score_guided)
                     source_plans[ch] = (plan, members, source_units)
                 plan, members, source_units = source_plans[ch]
                 text, hierarchy = plan.render(body, boundaries)

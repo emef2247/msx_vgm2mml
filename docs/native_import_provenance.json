@@ -1,0 +1,125 @@
+{
+  "scope": "source analysis only; no MDX/MUC/PDX projection",
+  "files": [
+    {
+      "module": "opm",
+      "source_project": "x68k_vgm2mml",
+      "source_path": "py/opm.py",
+      "source_revision": "64fc049e324f21dbf168634d0b6c335881e989a8",
+      "source_worktree_status": "clean",
+      "source_sha256": "c8626f3a6449a685d3a3292e903c3977bbbea516d92f38c817cedc103be5a214",
+      "imported_sha256": "c8626f3a6449a685d3a3292e903c3977bbbea516d92f38c817cedc103be5a214",
+      "adaptation": "package-relative imports only"
+    },
+    {
+      "module": "opna",
+      "source_project": "x68k_vgm2mml",
+      "source_path": "py/opna.py",
+      "source_revision": "64fc049e324f21dbf168634d0b6c335881e989a8",
+      "source_worktree_status": "clean",
+      "source_sha256": "b43e3831ff42b1cfd2ff0f7284c84d3e63aff34a12a66f69cbe32c3e3e463d6e",
+      "imported_sha256": "b43e3831ff42b1cfd2ff0f7284c84d3e63aff34a12a66f69cbe32c3e3e463d6e",
+      "adaptation": "package-relative imports only"
+    },
+    {
+      "module": "dcsg",
+      "source_project": "x68k_vgm2mml",
+      "source_path": "py/dcsg.py",
+      "source_revision": "64fc049e324f21dbf168634d0b6c335881e989a8",
+      "source_worktree_status": "clean",
+      "source_sha256": "9d868a873a5925647d1b8324eeedc1241cfc458438139cad0915485e89fe013f",
+      "imported_sha256": "ce025aefa2da98cba2393a28fac8a0f6d8ace7f290ad93bd7b40638bbf1e8317",
+      "adaptation": "package-relative imports only"
+    },
+    {
+      "module": "msm6258",
+      "source_project": "x68k_vgm2mml",
+      "source_path": "py/msm6258.py",
+      "source_revision": "64fc049e324f21dbf168634d0b6c335881e989a8",
+      "source_worktree_status": "clean",
+      "source_sha256": "3d085695232520e07e4bbb9482b8fa7fa945fa63297a0918ed6bab694b1cf8de",
+      "imported_sha256": "923c8a91e580a31a8b4b2563b396c67c9dca2b0bd43fb1ec15b1d8f5ce961606",
+      "adaptation": "package-relative imports only"
+    },
+    {
+      "module": "msm6295",
+      "source_project": "x68k_vgm2mml",
+      "source_path": "py/msm6295.py",
+      "source_revision": "64fc049e324f21dbf168634d0b6c335881e989a8",
+      "source_worktree_status": "?? py/msm6295.py",
+      "source_sha256": "0df7e7e1f71826b50a3c08fc7d99a94d209030cabfca12a9d7e6c2cfe3bbc293",
+      "imported_sha256": "2ece6fdd6a52151c6ffa4c945aed1c567877e712812a01ef0d2a48d7fe99f686",
+      "adaptation": "package-relative imports only"
+    },
+    {
+      "module": "segapcm",
+      "source_project": "x68k_vgm2mml",
+      "source_path": "py/segapcm.py",
+      "source_revision": "64fc049e324f21dbf168634d0b6c335881e989a8",
+      "source_worktree_status": "clean",
+      "source_sha256": "0271ce0971d9c088b16669d105647f61a9e8ced0263394e97c60f3fafc700751",
+      "imported_sha256": "0271ce0971d9c088b16669d105647f61a9e8ced0263394e97c60f3fafc700751",
+      "adaptation": "package-relative imports only"
+    },
+    {
+      "module": "c140",
+      "source_project": "x68k_vgm2mml",
+      "source_path": "py/c140.py",
+      "source_revision": "64fc049e324f21dbf168634d0b6c335881e989a8",
+      "source_worktree_status": "clean",
+      "source_sha256": "be02734dd81e875d3eeecfd14c9b2005ace4e852ed618dc96ffc906f9e90d55e",
+      "imported_sha256": "9749ba80569c32fee2cc2abbbbeb579bb469a50a89d24d916f8dc4b12b4887e1",
+      "adaptation": "package-relative imports only"
+    },
+    {
+      "module": "pcm_stream",
+      "source_project": "x68k_vgm2mml",
+      "source_path": "py/pcm_stream.py",
+      "source_revision": "64fc049e324f21dbf168634d0b6c335881e989a8",
+      "source_worktree_status": "clean",
+      "source_sha256": "dccd763881b985f9ae7ecbd9e27785008d43fd3ce6dfe3bc8d42004ee37ba933",
+      "imported_sha256": "dccd763881b985f9ae7ecbd9e27785008d43fd3ce6dfe3bc8d42004ee37ba933",
+      "adaptation": "package-relative imports only"
+    },
+    {
+      "module": "vgm_io",
+      "source_project": "x68k_vgm2mml",
+      "source_path": "py/vgm_io.py",
+      "source_revision": "64fc049e324f21dbf168634d0b6c335881e989a8",
+      "source_worktree_status": "M py/vgm_io.py",
+      "source_sha256": "a1eefb71bb8f47f1245c0a5b3b82b37c32b847884fece2ef67a62d00610647bf",
+      "imported_sha256": "a1eefb71bb8f47f1245c0a5b3b82b37c32b847884fece2ef67a62d00610647bf",
+      "adaptation": "package-relative imports only"
+    },
+    {
+      "module": "vgm_timing",
+      "source_project": "x68k_vgm2mml",
+      "source_path": "py/vgm_timing.py",
+      "source_revision": "64fc049e324f21dbf168634d0b6c335881e989a8",
+      "source_worktree_status": "clean",
+      "source_sha256": "0f8db110acd235fe70882de385f5021ddaf84d72e58ec4c5bd4402db494d2e67",
+      "imported_sha256": "7505d813a7466f0bfe0554bd0a8de130f48bd97dbfddce4b95499c17ffd0aa29",
+      "adaptation": "package-relative imports only"
+    },
+    {
+      "module": "vgm_loop",
+      "source_project": "x68k_vgm2mml",
+      "source_path": "py/vgm_loop.py",
+      "source_revision": "64fc049e324f21dbf168634d0b6c335881e989a8",
+      "source_worktree_status": "clean",
+      "source_sha256": "f820e63f8bfc9788de518a54c33ace888cddc29703cffd16ef2749386d1b4089",
+      "imported_sha256": "f820e63f8bfc9788de518a54c33ace888cddc29703cffd16ef2749386d1b4089",
+      "adaptation": "package-relative imports only"
+    },
+    {
+      "module": "opna_music",
+      "source_project": "mucom88_vgm2mml",
+      "source_path": "py/opna_music.py",
+      "source_revision": "ee839abcf3b9967550cf7896b818cd39ba145ac9",
+      "source_worktree_status": "clean",
+      "source_sha256": "3df2fd59570d8c39e4fbeaae48c80a32dab681c7fca04256bcdd98845fc53f7e",
+      "imported_sha256": "3df2fd59570d8c39e4fbeaae48c80a32dab681c7fca04256bcdd98845fc53f7e",
+      "adaptation": "package-relative imports only"
+    }
+  ]
+}

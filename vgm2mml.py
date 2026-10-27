@@ -7,7 +7,7 @@ Usage:
                       [--scc-input trace|log] [--psg-input trace|log]
 
 Default output (no --debug):
-    A single merged <stem>.mml file containing PSG, SCC, and OPLL parts.
+    Merged <stem>.mml, tracks/<stem>.vgm, and a structured blueprint/<stem>.mml.
 
 With --debug:
     The merged <stem>.mml file plus all chip-specific MML variants and the
@@ -149,9 +149,9 @@ def _write_direct_vgm(plan, source, song_dir, stem):
         temporary = Path(temporary)
         generated, trace = temporary / 'output.vgm', temporary / 'writes.csv'
         writes = write_vgm(plan, generated, gd3=source_gd3(source), mapping_path=trace)
-        record = dict(source=str(Path(source).resolve()), vgm=str(target),
+        record = dict(status='success',source=str(Path(source).resolve()), vgm=str(target),
                       vgm_sha256=hashlib.sha256(generated.read_bytes()).hexdigest(),
-                      controls=len(plan.controls), writes=len(writes),
+                      controls=len(plan.source_performance.controls) if dict(plan.metadata).get('target_profile') == 'native' else len(plan.controls), writes=len(writes),
                       end_sample=plan.end_sample, compiler_invoked=False, mml_generated=False)
         prepared = temporary / 'manifest.json'
         prepared.write_text(json.dumps(record, indent=2) + '\n', encoding='utf-8')
@@ -205,10 +205,10 @@ def _curve_timeline(performance):
 def main():
     parser = argparse.ArgumentParser(
         description='Convert a VGM file to MGSDRV MML (SCC + PSG + OPLL)',
-        epilog='Also attempts an editable blueprint/<stem>.mml with inline volume changes and no timbre/SW-envelope definitions.')
+        epilog='Also emits a volume-free blueprint/<stem>.mml with source-timbre comments; direct VGM is enabled by default.')
     parser.add_argument('vgm', help='Input VGM file')
-    parser.add_argument('--output-format', choices=['mml', 'vgm', 'both'], default='mml',
-                        help='Emit MML, reconstructed PSG/SCC/OPLL VGM, or both (default: mml)')
+    parser.add_argument('--output-format', choices=['mml', 'vgm', 'both'], default='both',
+                        help='Emit MML, reconstructed musical VGM, or both (default: both)')
     parser.add_argument('--song-loop', choices=['none', 'source'], default='none',
                         help='Direct VGM song loop: finite playback or declared source loop (default: none)')
     parser.add_argument('--target', choices=['mgs'], default='mgs',
@@ -250,6 +250,16 @@ def main():
                         help='Share exact fixed-pitch PSG/SCC attack volume curves (opt-in)')
     volume_curves.add_argument('--no-software-volume-curves', dest='software_volume_curves',
                                action='store_false', help='Disable PSG/SCC software volume curve projection')
+    parser.add_argument('--score-guided-loops',action='store_true',
+                        help='Propose melodic repeats from score; preserve exact output commands and target-specific envelope handling')
+    parser.add_argument('--psg-state-ms',type=float,default=None,
+                        help='Opt-in maximum contiguous changed PSG volume interval in ms (default: disabled)')
+    parser.add_argument('--scc-state-ms',type=float,default=None,
+                        help='Opt-in maximum contiguous changed SCC volume interval in ms (default: disabled)')
+    parser.add_argument('--curve-volume-error',type=float,default=None,
+                        help='Explicit maximum register-level volume error, 0..15, for curve approximation')
+    parser.add_argument('--curve-mean-error',type=float,default=None,
+                        help='Explicit maximum duration-weighted mean register-level error for curve approximation')
     parser.add_argument('--force', action='store_true',
                         help='Omit explicitly listed unsupported chip writes for MGS; malformed streams and compiler limits still fail')
     parser.add_argument('--debug', action='store_true',
@@ -274,10 +284,15 @@ def main():
     try:
         options = MgsOptions(args.normalize_lengths, args.normalization_ms, args.fm_state_ms,
                              args.force, args.dump_passes, args.enhance_drums, psg_part=args.psg_part,
-                             software_volume_curves=args.software_volume_curves)
+                             software_volume_curves=args.software_volume_curves,
+                             score_guided_loops=args.score_guided_loops,
+                             psg_state_ms=args.psg_state_ms,scc_state_ms=args.scc_state_ms,
+                             curve_volume_error=args.curve_volume_error,curve_mean_error=args.curve_mean_error)
     except ValueError as error:
         parser.error(str(error))
     args.normalize_lengths = options.enabled
+    if args.score_guided_loops and args.legacy_loops:
+        parser.error('--score-guided-loops cannot be combined with --legacy-loops')
     if args.sync_min_gap < 0:
         parser.error('--sync-min-gap must be nonnegative')
     if args.song_loop != 'none' and args.output_format == 'mml':
@@ -346,8 +361,16 @@ def main():
             psg_part=args.psg_part, enhance_drums=args.enhance_drums,
             song_loop=args.song_loop, dump_passes=args.dump_passes or args.debug,
             psg_input=args.psg_input, scc_input=args.scc_input,
+            score_guided_loops=args.score_guided_loops,curve_approx_options=options.curve_approx_options,
             decision_sink=decisions)
         from musical_blueprint import write_blueprint
+        report['curve_approximation']=execution.get('curve_approximation',{})
+        for chip,summary in report['curve_approximation'].items():
+            if summary.get('status')=='abstained':
+                print(f"{chip.upper()} curve approximation: abstained ({summary['reason']})")
+            else:
+                print(f"{chip.upper()} curve approximation: {summary['replaced_notes']} notes replaced; "
+                      f"maximum register-level error {summary['maximum_volume_error']}")
         report['blueprint'] = write_blueprint(shared_plan, root, base_name)
         save_report()
         conversion_input = decisions.get('conversion_input', vgm_path)
@@ -357,7 +380,8 @@ def main():
         report['shared_musical_plan'] = str(root / f'{base_name}.musical_plan.json')
         report['shared_normalization'] = decisions['mapper'].report
         if args.output_format != 'vgm':
-            sustained = [c for c in shared_plan.controls if c.chip == 'opll'
+            legacy_execution = decisions.get('legacy_execution_plan', shared_plan)
+            sustained = [c for c in legacy_execution.controls if c.chip == 'opll'
                          and c.kind == 'pitch' and c.value[2]]
             report['backend_losses'] = ([dict(kind='opll_sustain_not_encoded_by_mgs_lowering',
                 inherited=True, state_controls=len(sustained),
@@ -365,8 +389,15 @@ def main():
                 unit_ids=sorted({c.unit_id for c in sustained if c.unit_id}))] if sustained else [])
         force_summary = execution['force']
         if args.output_format in ('vgm', 'both'):
-            report['direct_vgm'] = _write_direct_vgm(shared_plan, vgm_path, song_dir, base_name)
-            report.setdefault('outputs', {})['vgm'] = dict(status='success', path=report['direct_vgm']['vgm'])
+            try:
+                report['direct_vgm'] = _write_direct_vgm(shared_plan, vgm_path, song_dir, base_name)
+                report.setdefault('outputs', {})['vgm'] = dict(status='success', path=report['direct_vgm']['vgm'])
+            except Exception as error:
+                report['direct_vgm']=dict(status='failed',error_type=type(error).__name__,detail=str(error))
+                report.setdefault('outputs',{})['vgm']=dict(status='failed',detail=str(error))
+                if args.output_format=='vgm':
+                    save_report()
+                    raise
             save_report()
         if args.output_format == 'vgm':
             report.update(status='success', vgm=report['direct_vgm']['vgm'],
@@ -374,6 +405,13 @@ def main():
                           mml_generated=False)
             save_report()
             return
+        if execution.get('target_profile') == 'native':
+            from mgs_force import inspect_projection
+            # Native source acceptance and native VGM are not MGS projection.
+            # Apply the existing explicit omission/blocking policy only here.
+            force_summary = inspect_projection(conversion_input, root, base_name, force=args.force)
+        if execution.get('mgs_projection_error'):
+            raise ValueError('MGS execution lowering failed: '+execution['mgs_projection_error']['detail'])
         report['force'] = dict(enabled=bool(args.force), omission_count=force_summary['omission_count'],
                                csv_path=force_summary['csv_path'])
         if args.force:
@@ -390,6 +428,10 @@ def main():
             (root / f'{base_name}.normalization.json').write_text(json.dumps(disabled, indent=2), encoding='utf-8')
             (root / f'{base_name}.fm.short_states.json').write_text(json.dumps(disabled, indent=2), encoding='utf-8')
         _convert_mgs(args, options, str(conversion_input), song_dir, base_name, decision_context=decisions)
+        from mml_layout import format_mml_loops
+        main_mml=root/f'{base_name}.mml'
+        main_mml.write_text(format_mml_loops(main_mml.read_text(encoding='cp932')),
+                            encoding='cp932', newline='\n')
         report['normalization'] = json.loads((root / f'{base_name}.normalization.json').read_text(encoding='utf-8'))
         if args.software_volume_curves:
             report['volume_curve_target'] = json.loads((root / f'{base_name}.volume_curves.target.json').read_text(encoding='utf-8'))
@@ -400,6 +442,8 @@ def main():
         report.update(status='success', mml=str(root / f'{base_name}.mml'), mml_generated=True)
         report.setdefault('outputs', {})['mml'] = dict(status='success', path=report['mml'],
             song_loop='finite score; loop selection applies to direct VGM')
+        if report.get('direct_vgm', {}).get('status') == 'failed':
+            report.update(status='partial_failure', detail='MML generated; requested reference VGM failed')
     except Exception as error:
         report.update(status='conversion_failed', error_type=type(error).__name__, detail=str(error))
         if args.output_format != 'vgm':
@@ -408,6 +452,7 @@ def main():
         raise
     else:
         save_report()
+        return 1 if report['status'] == 'partial_failure' else 0
 
 
 def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_context=None):
@@ -446,8 +491,10 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
     if args.legacy_loops:
         envelope_bank = EnvelopeBank(deferred=True)
     else:
-        from pre_envelope_loops import LoopFirstEnvelopeBank
-        envelope_bank = LoopFirstEnvelopeBank(deferred=True)
+        from pre_envelope_loops import LoopFirstEnvelopeBank,ScoreGuidedEnvelopeBank
+        envelope_bank = (ScoreGuidedEnvelopeBank if args.score_guided_loops else LoopFirstEnvelopeBank)(deferred=True)
+        if args.score_guided_loops:
+            envelope_bank.score_guide=getattr((decision_context or {}).get('musical_plan'),'score_guide',None)
     scc_csv = scc_trace_csv if args.scc_input == 'trace' else scc_log_csv
 
     scc_mml_path = process_scc_csv(scc_csv, song_dir, stem=base_name,
@@ -548,7 +595,7 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
                                      debug=args.debug,
                                      voice_csv_path=opll_voice_csv,
                                      raw_ticks=args.raw_ticks, source_loops=not args.legacy_loops,
-                                     opll_mode=opll_mode)
+                                     opll_mode=opll_mode,score_guided=args.score_guided_loops)
     if args.debug:
         print(f"OPLL MML: {opll_mml_path}")
 
@@ -576,7 +623,8 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
                                              opll_mode=opll_mode, source_loops=not args.legacy_loops,
                                              normalization_ms=options.effective_normalization_ms,
                                              fm_state_ms=options.effective_fm_state_ms,
-                                             decision_mapper=decision_context.get('mapper') if decision_context else None)
+                                             decision_mapper=decision_context.get('mapper') if decision_context else None,
+                                             score_guided=args.score_guided_loops)
         if normalized_tempo is not None:
             print(f'Note normalization: applied (tempo {normalized_tempo})')
         else:
@@ -619,6 +667,9 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
                     if performance.chip not in accepted:
                         continue
                     source = accepted[performance.chip]
+                    if _curve_timeline(performance) != _curve_timeline(source) and options.curve_approx_options:
+                        from curve_projection_validation import repartition
+                        performance=repartition(performance,source)
                     if _curve_timeline(performance) != _curve_timeline(source):
                         raise ValueError('MML partition fallback would change the accepted volume timeline') from error
                     decomposition.append(performance)
@@ -741,4 +792,4 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

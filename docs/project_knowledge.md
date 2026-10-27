@@ -59,12 +59,13 @@ not refactor merely to make module boundaries match it.
 
 # 2. Primary Rule: Intermediate Results Are First-Class Artifacts
 
-An editable blueprint is a separate target projection of accepted musical
-units, not a new interpretation of native Segments. Removing timbre and
-software-envelope definitions must not flatten volume curves. Keep explicit
-volume holds, gate/continuation decisions, source-to-template lane mapping and
-projection losses inspectable. A user-edited optional template must be preserved
-without preventing ordinary target conversion. See `docs/musical_blueprint.md`.
+An editable score blueprint is a separate target projection of retained musical
+source evidence. It deliberately omits executable dynamics and synthesis while
+keeping those original curves and controls in the shared representation. Keep
+source gates, continuation decisions, lane mappings and projection losses
+inspectable. A source score guide may propose target loops, but cannot replace
+native pitch or impose new envelope restarts. Preserve user-edited templates
+without preventing other outputs. See `docs/musical_blueprint.md`.
 
 Generating inspectable intermediate results is a primary project
 requirement, not merely a debugging aid.
@@ -657,3 +658,34 @@ MGSDRV is the supported output target here. MDX export, compilation, replay and 
 are maintained in x68k_vgm2mml. Shared analysis/structural modules and reference
 evidence may still mention MDX; their presence does not provide an MDX toolchain
 in this repository. Keep required attribution for retained referenced code.
+
+## Independent source products and score projection
+
+Build and retain source musical information before output-specific execution
+lowering. A valid source performance remains available to independent score and
+reference backends if MGS projection fails. Keep failure causes and each
+artifact's outcome separate; never label a retained previous artifact as a new
+success. Successful accepted legacy execution remains a distinct projection.
+
+A score-only projection strips dynamics and synthesis without deleting those
+curves from source music. Detect repeats using pitch, duration, rest and
+attack/continuation rather than documentary timbre IDs or volume slices. A held
+unit can contain a repeated pitch phrase; its source gate and control lineage
+must remain inspectable. Coarse score clocks require explicit interval mapping
+and displacement diagnostics, not silent deletion of short positive notes.
+
+## Score guidance and hardware envelopes
+
+Score repeat candidates are chip-independent; software-envelope assignment is
+one later target-specific operation. A running hardware envelope is not a score
+repeat barrier. Do not compare simulated oscillator/envelope phase as score
+identity, and do not add resets merely to make loop entry match. Preserve the
+original target operations in every emitted iteration. Different complete
+commands still require expansion or a separately validated approximation.
+
+When score keys omit dynamics or timbres, the first occurrence of a motif is
+not sufficient evidence for choosing envelopes: retain all exact settings/curve
+variants at each structural position. Source guides are not one-to-one target
+note maps. Initially retain existing boundaries and abstain from guide cuts
+requiring envelope-phase handling. Keep original and projected curves separate;
+post-clock clipping can invalidate a previously accepted approximation budget.
