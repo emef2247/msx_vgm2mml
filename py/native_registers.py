@@ -7,6 +7,16 @@ from native_music import NativeControl
 
 
 RECIPES = {
+    'huc_select': (('channel_select',7,0),),
+    'huc_balance': (('right_level',15,0),('left_level',240,4)),
+    'huc_period_low': (('period_low',255,0),),
+    'huc_period_high': (('period_high',15,0),),
+    'huc_control': (('level',31,0),('dda_enabled',64,6),('enabled',128,7)),
+    'huc_wave_data': (('sample_u5',31,0),),
+    'huc_sample_data': (('sample_u5',31,0),),
+    'huc_noise': (('rate',31,0),('enabled',128,7)),
+    'huc_lfo_frequency': (('frequency',255,0),),
+    'huc_lfo_control': (('mode',3,0),('reset',128,7)),
     'opm_test': (('test_flags',255,0),),
     'opm_timer_a_high': (('timer_a_high',255,0),),
     'opm_timer_a_low': (('timer_a_low',3,0),),
@@ -99,7 +109,22 @@ def decode_control(device, event, raw, *, order=None, latches=None):
     """Decode one supported non-PCM command into an original-time control."""
     command,pos=event.command,event.address
     chip=device.chip;port=0;channel=None;section='shared';kind=None
-    if chip=='dcsg':
+    if chip=='huc6280':
+        latches={} if latches is None else latches
+        register=raw[pos+1]&127;data=raw[pos+2]
+        if register==0:latches[device.device_id,'select']=data&7
+        selected=latches.get((device.device_id,'select'),0)
+        if register==4:latches[device.device_id,selected,'control']=data
+        if register==7:latches[device.device_id,selected,'noise']=data
+        control=latches.get((device.device_id,selected,'control'),0)
+        noise=latches.get((device.device_id,selected,'noise'),0)
+        if 2<=register<=7:
+            channel=selected
+            section='noise' if selected>=4 and noise&128 else 'pcm_dda' if control&64 else 'wave'
+        kind={0:'huc_select',1:'huc_balance',2:'huc_period_low',3:'huc_period_high',
+            4:'huc_control',5:'huc_balance',6:'huc_sample_data' if control&64 else 'huc_wave_data',
+            7:'huc_noise',8:'huc_lfo_frequency',9:'huc_lfo_control'}.get(register,'huc_unknown_register')
+    elif chip=='dcsg':
         data=raw[pos+1]
         if command in (0x4f,0x3f):
             kind='dcsg_stereo';parameters=(('stereo_mask',data),)
@@ -124,7 +149,7 @@ def decode_control(device, event, raw, *, order=None, latches=None):
         elif port==2:kind='scc_level';channel=register;section='tone'
         elif port==3:kind='scc_enable';section='tone'
         else:kind='scc_native_parameter'
-    else:
+    elif chip!='huc6280':
         register,data=raw[pos+1:pos+3]
         if chip=='opm':
             from native_imports.opm import register_channel
@@ -200,4 +225,5 @@ def encode_control(control, device):
     if chip=='opll':return bytes((0xa1 if device.instance else 0x51,register,value))
     if chip=='psg':return bytes((0xa0,register|(device.instance<<7),value))
     if chip=='scc':return bytes((0xd2,p['port']|(device.instance<<7),register,value))
+    if chip=='huc6280':return bytes((0xb9,register|(device.instance<<7),value))
     raise ValueError(f'No native register codec for {chip}')

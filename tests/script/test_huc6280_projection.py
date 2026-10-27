@@ -51,8 +51,10 @@ class ProjectionTests(unittest.TestCase):
     def test_six_complex_waves_are_not_silently_omitted(self):
         raw = make_vgm(write(1, 255) + b''.join(wave(ch, tuple((n * (2 * ch + 1)) % 32
                        for n in range(32))) for ch in range(6)) + wait(735))
-        with self.assertRaisesRegex(ProjectionError, 'do not fit'):
-            project(raw)
+        projection = project(raw)
+        self.assertEqual(projection.summary['scc_channels'], 4)
+        self.assertEqual(projection.summary['opll_channels'], 2)
+        self.assertTrue(projection.summary['waveform_fits'])
 
     def test_no_future_wave_preload_and_blocked_native_dumps_survive(self):
         raw = make_vgm(write(1, 255) + write(5, 255) + write(4, 159) + wait(10) +
@@ -163,13 +165,10 @@ class ProjectionTests(unittest.TestCase):
         struct.pack_into('<I', raw, 0x1c, 256 + len(intro) - 0x1c)
         self.assertEqual(project(raw).summary['scc_channels'], 1)
 
-    def test_noise_dda_lfo_mixed_and_changing_waves_are_explicit(self):
-        cases = [write(1, 255) + wave(4, SQUARE) + write(7, 128) + wait(10),
-                 write(1, 255) + wave(values=SQUARE) + write(4, 223) + wait(10),
+    def test_dda_lfo_and_mixed_remain_explicit(self):
+        cases = [write(1, 255) + wave(values=SQUARE) + write(4, 223) + wait(10),
                  write(1, 255) + wave(values=SQUARE) + write(9, 1) + wait(10),
-                 write(1, 255) + wave(values=SQUARE) + b'\xa0\x08\x0f' + wait(10),
-                 write(1, 255) + wave(values=SQUARE) + wait(10) + write(4, 0) +
-                 wave(values=tuple(range(32))) + wait(10)]
+                 write(1, 255) + wave(values=SQUARE) + b'\xa0\x08\x0f' + wait(10)]
         for commands in cases:
             with self.subTest(commands=hashlib.sha256(commands).hexdigest()[:8]):
                 with self.assertRaises(ProjectionError):

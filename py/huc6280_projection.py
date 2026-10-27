@@ -1,4 +1,4 @@
-"""Inspectable, conservative HuC6280 periodic-wave projection to SCC + AY.
+"""Inspectable HuC6280 projection to SCC, AY and approximate OPLL spill.
 
 Native evidence is never retimed or rewritten. The generated VGM is a target
 adapter into the ordinary sounding-unit, loop, macro and envelope pipeline.
@@ -186,6 +186,7 @@ def _validate_target_loop(raw):
         return
     commands = list(command_times(raw))
     ay, frequency, volume, waves, enabled = [0] * 16, [0] * 10, [0] * 5, [0] * 128, 0
+    opll = [0] * 64
 
     def traverse(items):
         nonlocal enabled
@@ -194,6 +195,8 @@ def _validate_target_loop(raw):
             data = raw[command.address:command.address + 4]
             if data[0] == 0xa0:
                 ay[data[1]] = data[2]
+            elif data[0] == 0x51:
+                opll[data[1]] = data[2]
             elif data[0] == 0xd2:
                 port, register, value = data[1:]
                 if port == 0:
@@ -208,9 +211,13 @@ def _validate_target_loop(raw):
                 scc = tuple((frequency[2 * ch] + 256 * frequency[2 * ch + 1], volume[ch],
                              tuple(waves[min(ch, 3) * 32:(min(ch, 3) + 1) * 32]))
                             if enabled & (1 << ch) and volume[ch] else None for ch in range(5))
-                psg = tuple((ay[2 * ch] + 256 * ay[2 * ch + 1], ay[8 + ch])
-                            if not ay[7] & (1 << ch) and ay[8 + ch] else None for ch in range(3))
-                intervals.append((command.wait_samples, scc, psg))
+                psg = tuple((ay[2 * ch] + 256 * ay[2 * ch + 1] if not ay[7] & (1 << ch) else None,
+                             ay[6] if not ay[7] & (1 << (ch + 3)) else None, ay[8 + ch])
+                            if ay[8 + ch] and ay[7] & (9 << ch) != 9 << ch else None for ch in range(3))
+                fm = tuple((opll[0x10 + ch], opll[0x20 + ch], opll[0x30 + ch],
+                            tuple(opll[:8]) if not opll[0x30 + ch] >> 4 else None)
+                           if opll[0x20 + ch] & 16 else None for ch in range(9))
+                intervals.append((command.wait_samples, scc, psg, fm, opll[14]))
         return intervals
     first = traverse(commands)
     second = traverse([c for c in commands if c.address >= loop['loop_address']])
@@ -230,8 +237,7 @@ class Projection:
     def dump(self, root, stem):
         root = Path(root)
         for name, rows, fields in (
-            ('allocation', [dict(source_channel=ch, target_chip=chip, target_channel=dest)
-                            for ch, (chip, dest) in sorted(self.allocation.items())],
+            ('allocation', self.summary['allocation'],
              ['source_channel', 'target_chip', 'target_channel']),
             ('controls', self.controls, ['source_event_id', 'vgmticks', 'source_channel',
                 'target_chip', 'target_channel', 'source_period', 'target_period',
@@ -242,10 +248,11 @@ class Projection:
                 'target_address', 'command_hex']),
             ('gates', self.gates, ['source_channel', 'start_vgmticks', 'end_vgmticks',
                 'start_source_event_id', 'end_source_event_id'])):
+            fields = list(dict.fromkeys(fields + [key for row in rows for key in row]))
             _csv(root / f'{stem}.huc6280.{name}.csv', rows, fields)
 
 
-def project(raw, trace=None):
+def _project_static(raw, trace=None):
     trace = analyze(raw) if trace is None else trace
     if trace.issues:
         raise ProjectionError('HuC6280 source issues: ' + ', '.join(trace.issues))
@@ -406,6 +413,15 @@ def project(raw, trace=None):
                 'phase/reset and target mixer gain are approximate',
                 'active noise, DDA, LFO, mixed chips and OPLL spill unsupported'])
     return Projection(bytes(result), allocation, controls, target_writes, gates, summary)
+
+
+def project(raw, trace=None):
+    trace = analyze(raw) if trace is None else trace
+    try:
+        return _project_static(raw, trace)
+    except ProjectionError:
+        from huc6280_extended import project_extended
+        return project_extended(raw, trace)
 
 
 def prepare(source, outdir, stem):

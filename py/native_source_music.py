@@ -18,12 +18,12 @@ from native_registers import decode_control
 
 COMMAND_CHIPS = {0x54:'opm',0xa4:'opm',0x56:'opna',0x57:'opna',0xa6:'opna',0xa7:'opna',
     0x50:'dcsg',0x30:'dcsg',0x4f:'dcsg',0x3f:'dcsg',0xb7:'msm6258',0xb8:'msm6295',
-    0xc0:'segapcm',0xd4:'c140',0xa0:'psg',0xd2:'scc',0x51:'opll',0xa1:'opll'}
+    0xc0:'segapcm',0xd4:'c140',0xa0:'psg',0xd2:'scc',0x51:'opll',0xa1:'opll',0xb9:'huc6280'}
 BLOCK_CHIPS = {4:'msm6258',0x44:'msm6258',0x7f:'pcm',0x80:'segapcm',0x81:'opna',0x8b:'msm6295',0x8d:'c140'}
 STREAM_CHIPS = {0:'dcsg',1:'opll',3:'opm',4:'segapcm',7:'opna',0x12:'psg',
                 0x17:'msm6258',0x18:'msm6295',0x19:'scc',0x1c:'c140'}
 HEADER_OFFSETS = {'opm':0x30,'opna':0x48,'dcsg':0x0c,'msm6258':0x90,'msm6295':0x98,
-                  'segapcm':0x38,'c140':0xa8,'psg':0x74,'scc':0x9c,'opll':0x10}
+                  'segapcm':0x38,'c140':0xa8,'psg':0x74,'scc':0x9c,'opll':0x10,'huc6280':0xa4}
 CARRIERS = (8,8,8,8,12,14,14,15)  # Source register-bank order M1,M2,C1,C2.
 
 
@@ -35,7 +35,7 @@ def _clock(header, raw, chip):
 
 def _chip_instance(command, raw, pos):
     if command in (0xa4,0xa6,0xa7,0xa1,0x30,0x3f):return 1
-    if command in (0xb7,0xb8,0xa0):return raw[pos+1]>>7
+    if command in (0xb7,0xb8,0xa0,0xb9):return raw[pos+1]>>7
     if command==0xc0:return int.from_bytes(raw[pos+1:pos+3],'little')>>15
     if command==0xd4:return raw[pos+1]>>7
     if command==0xd2:return raw[pos+1]>>7
@@ -410,7 +410,9 @@ def _patterns(units,root,stem,end_sample):
     """Describe complete-unit repetition without replacing/expanding controls."""
     from loop_structure import LoopStructure
     parts=defaultdict(list);patterns=[];artifacts=[]
-    for unit in units:parts[unit.device_id,unit.section,unit.channel].append(unit)
+    for unit in units:
+        if unit.role not in ('pcm','sample'):
+            parts[unit.device_id,unit.section,unit.channel].append(unit)
     for (device,section,channel),rows in sorted(parts.items()):
         rows.sort(key=lambda u:(u.start_sample,u.end_sample,u.unit_id))
         keys=[]
@@ -442,6 +444,9 @@ def build_native_performance(source,outdir,stem=None,legacy_performances=(),lega
     stem=('source' if isinstance(source,(bytes,bytearray,memoryview)) else Path(source).stem) if stem is None else stem
     bundle=analyze_source(source,root,stem)
     builder=_Builder(bundle);builder.commands()
+    if any(e.command==0xb9 for e in bundle['events']):
+        from native_huc6280 import add_units
+        add_units(builder,root,stem)
     for chip in ('opm','opna'):builder.fm(chip)
     builder.dcsg()
     performances,_=_legacy_performances(bundle,root,stem,legacy_performances,legacy_opll_segments,bundle['raw'])

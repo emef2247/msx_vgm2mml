@@ -111,7 +111,8 @@ class AdjacentExportTests(unittest.TestCase):
                 self.assertEqual(run.returncode,0,run.stdout+run.stderr)
                 self.assertEqual(source.read_bytes(),original)
                 self.assertEqual(sorted(p.name for p in folder.iterdir()),
-                                 ['SONG01.vgm','_diagnostics','_source_inputs','listening_manifest.json','results.csv','results.json','tracks'])
+                                 ['SONG01.vgm','_diagnostics','_source_inputs','blueprint','listening_manifest.json','results.csv','results.json','tracks'])
+                self.assertTrue((folder/'blueprint/SONG01.mml').is_file())
                 report=json.loads((folder/'_diagnostics/SONG01/report.json').read_text())
                 self.assertTrue(report['adjacent_output'])
                 self.assertEqual(report['result']['reference_keyon'],report['result']['actual_keyon'])

@@ -57,7 +57,7 @@ def _header(performance):
         header[0x28:0x34] = bytes(12)
     offsets = {'dcsg':0x0c, 'opll':0x10, 'opm':0x30, 'segapcm':0x38,
                'opna':0x48, 'psg':0x74, 'msm6258':0x90, 'msm6295':0x98,
-               'scc':0x9c, 'c140':0xa8}
+               'scc':0x9c, 'c140':0xa8,'huc6280':0xa4}
     by_chip = {}
     for device in performance.devices:
         by_chip.setdefault(device.chip, []).append(device)

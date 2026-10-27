@@ -385,7 +385,10 @@ def main():
                          and c.kind == 'pitch' and c.value[2]]
             report['backend_losses'] = ([dict(kind='opll_sustain_not_encoded_by_mgs_lowering',
                 inherited=True, state_controls=len(sustained),
-                retained_in_shared_plan=True, retained_in_direct_vgm=True,
+                retained_in_shared_plan=execution.get('target_profile') != 'native',
+                retained_in_direct_vgm=execution.get('target_profile') != 'native',
+                retained_in_projected_execution=True,
+                reference_basis='original_source' if execution.get('target_profile') == 'native' else 'accepted_msx_execution',
                 unit_ids=sorted({c.unit_id for c in sustained if c.unit_id}))] if sustained else [])
         force_summary = execution['force']
         if args.output_format in ('vgm', 'both'):
@@ -405,13 +408,13 @@ def main():
                           mml_generated=False)
             save_report()
             return
+        if execution.get('mgs_projection_error'):
+            raise ValueError('MGS execution lowering failed: '+execution['mgs_projection_error']['detail'])
         if execution.get('target_profile') == 'native':
             from mgs_force import inspect_projection
             # Native source acceptance and native VGM are not MGS projection.
             # Apply the existing explicit omission/blocking policy only here.
             force_summary = inspect_projection(conversion_input, root, base_name, force=args.force)
-        if execution.get('mgs_projection_error'):
-            raise ValueError('MGS execution lowering failed: '+execution['mgs_projection_error']['detail'])
         report['force'] = dict(enabled=bool(args.force), omission_count=force_summary['omission_count'],
                                csv_path=force_summary['csv_path'])
         if args.force:
@@ -495,6 +498,7 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
         envelope_bank = (ScoreGuidedEnvelopeBank if args.score_guided_loops else LoopFirstEnvelopeBank)(deferred=True)
         if args.score_guided_loops:
             envelope_bank.score_guide=getattr((decision_context or {}).get('musical_plan'),'score_guide',None)
+            envelope_bank.guide_bindings=((decision_context or {}).get('source_projection') or {}).get('allocation',())
     scc_csv = scc_trace_csv if args.scc_input == 'trace' else scc_log_csv
 
     scc_mml_path = process_scc_csv(scc_csv, song_dir, stem=base_name,

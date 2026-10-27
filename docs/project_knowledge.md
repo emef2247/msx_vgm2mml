@@ -666,6 +666,16 @@ lowering. A valid source performance remains available to independent score and
 reference backends if MGS projection fails. Keep failure causes and each
 artifact's outcome separate; never label a retained previous artifact as a new
 success. Successful accepted legacy execution remains a distinct projection.
+Validate native output selection after successful target lowering as well as
+after failure: target preparation must not substitute projected chip data for
+the original source performance in the reference backend.
+
+When multiple target parts share a register or waveform memory, per-part
+caches alone are insufficient. Reconcile final positive-time shared demand
+after zero-time owner transitions. A transient owner must not leave its state
+on a continuing voice. FM key-off must preserve frequency while its release
+tail remains audible; inactive score gates do not imply instant oscillator
+silence.
 
 A score-only projection strips dynamics and synthesis without deleting those
 curves from source music. Detect repeats using pitch, duration, rest and

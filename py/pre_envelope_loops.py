@@ -48,7 +48,7 @@ class LoopFirstEnvelopeBank(EnvelopeBank):
             guide_keys=None
             if self.score_guided and getattr(self,'score_guide',None) is not None:
                 from score_structure import guided_partition_keys
-                guide_keys=guided_partition_keys(self.score_guide,performance)
+                guide_keys=guided_partition_keys(self.score_guide,performance,getattr(self,'guide_bindings',()))
             plans, representatives = prepare(notes, chip, self.source_strategy,self.score_guided,guide_keys)
             counts.update(candidate_curves(representatives))
             prepared.append((segments, chip, path, kwargs, plans, notes, representatives))

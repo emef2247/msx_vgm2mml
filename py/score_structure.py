@@ -185,7 +185,7 @@ class GuidedLoopPlan:
             json.dumps(self.comparison,indent=2)+'\n',encoding='utf-8')
 
 
-def map_partitions(guide, performance):
+def map_partitions(guide, performance,bindings=()):
     """Inspectable many-to-many mapping; never turn guide cuts into attacks."""
     events=defaultdict(list)
     for event in guide.events:
@@ -208,9 +208,14 @@ def map_partitions(guide, performance):
             stop=max(s.vgmticks_end for s in segments) if known and segments else None
             matches=[]
             if known:
-                items,starts,ends=indexed.get((performance.chip+':0',channel),([],[],[]))
-                matches=[e for e in items[bisect_right(ends,start):bisect_left(starts,stop)]
-                         if start < e.end_sample]
+                routes=[r for r in bindings if r['target_chip']==performance.chip and r['target_channel']==channel]
+                if not routes:routes=[dict(source_device=performance.chip+':0',source_channel=channel)]
+                for route in routes:
+                    key=(route.get('source_device','huc6280:0'),route['source_channel'])
+                    items,starts,ends=indexed.get(key,([],[],[]))
+                    matches.extend(e for e in items[bisect_right(ends,start):bisect_left(starts,stop)]
+                        if start < e.end_sample and (not route.get('source_mode') or e.section==route['source_mode']))
+                matches.sort(key=lambda e:(e.start_sample,e.end_sample,e.event_id))
             cuts=sorted({e.start_sample for e in matches if start < e.start_sample < stop})
             rows.append(dict(channel=channel,note_index=index,source_segment_indices=note.segment_indices,
                 source_start=start,source_end=stop,score_event_ids=[e.event_id for e in matches],
@@ -221,12 +226,12 @@ def map_partitions(guide, performance):
     return rows
 
 
-def guided_partition_keys(guide, performance):
+def guided_partition_keys(guide, performance,bindings=()):
     """Refine the source guide onto whole accepted notes, without new cuts."""
     events={e.event_id:e for e in guide.events}
     notes=dict(performance.channels)
     keys={}
-    for row in map_partitions(guide,performance):
+    for row in map_partitions(guide,performance,bindings):
         channel,index=row['channel'],row['note_index'];note=notes[channel][index]
         if note.rest:
             keys[channel,index]=partition_key(note)

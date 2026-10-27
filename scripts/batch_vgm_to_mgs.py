@@ -333,18 +333,25 @@ def save_package_results(package, output, rows):
 
 
 def discover_inputs(source, adjacent=False):
+    def is_input(path):
+        if path.suffix.lower() in ('.vgm', '.vgz'):return True
+        # Some public/private collections omit the filename separator. Detect
+        # actual VGM data without renaming or accepting arbitrary binary files.
+        try:
+            with path.open('rb') as handle:return handle.read(4) == b'Vgm '
+        except OSError:return False
     if source.is_file():
-        return [source] if source.suffix.lower() in ('.vgm', '.vgz') else []
+        return [source] if is_input(source) else []
     if not adjacent:
-        return sorted(p for p in source.rglob('*') if p.is_file() and p.suffix.lower() in ('.vgm', '.vgz')
-                      and '_huc6280_target' not in [part.casefold() for part in p.relative_to(source).parts[:-1]])
+        return sorted(p for p in source.rglob('*') if p.is_file()
+                      and '_huc6280_target' not in [part.casefold() for part in p.relative_to(source).parts[:-1]]
+                      and is_input(p))
     # Adjacent reruns must not convert their own roundtrip VGM or audition trees.
     reserved = {'_diagnostics', '_source_inputs', 'tracks', 'blueprint', 'psg_melody', 'psg_rhythm', '_huc6280_target'}
     files = []
     for parent, directories, names in os.walk(source):
         directories[:] = [name for name in directories if name.casefold() not in reserved]
-        files.extend(Path(parent) / name for name in names
-                     if Path(name).suffix.lower() in ('.vgm', '.vgz'))
+        files.extend(Path(parent) / name for name in names if is_input(Path(parent) / name))
     return sorted(files)
 
 

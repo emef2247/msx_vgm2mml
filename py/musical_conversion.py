@@ -64,7 +64,9 @@ def _build_accepted_plan(source, outdir, stem=None, *, normalization_ms=8, fm_st
     raw = read_vgm_bytes(conversion_input)
     from native_imports import inspect_source
     source_inventory = inspect_source(raw)
-    native_profile = bool(source_inventory['active_chips'])
+    native_profile = bool(source_inventory['active_chips']) or bool(
+        projection and source_performance is not None and
+        any(device.chip == 'huc6280' for device in source_performance.devices))
     if native_profile and (psg_part != 'all' or enhance_drums):
         raise ValueError('Native VGM profiles currently preserve all source parts; MSX part selection/enhancement is separate')
     inventory = (dict(enabled=False, omission_count=0, omissions=[], csv_path='',
@@ -112,7 +114,7 @@ def _build_accepted_plan(source, outdir, stem=None, *, normalization_ms=8, fm_st
             performance=approximation.performance
         if source_score_guide is not None:
             from score_structure import map_partitions
-            rows=map_partitions(source_score_guide,performance)
+            rows=map_partitions(source_score_guide,performance,(projection or {}).get('allocation',()))
             (root/f'{stem}.{performance.chip}.score_guide.mapping.json').write_text(
                 json.dumps(dict(source_guide=f'{stem}.score_guide.json',
                     executable_cuts_applied=False,mappings=rows),indent=2)+'\n',encoding='utf-8')
@@ -243,10 +245,10 @@ def build_plan(source, outdir, stem=None, **options):
     source=Path(source);root=Path(outdir)
     root.mkdir(parents=True,exist_ok=True)
     stem=source.stem if stem is None else stem
-    conversion_input,projection=prepare(source,root,stem)
+    conversion_input,projection=source,None
     source_error=None
     try:
-        performance=build_native_performance(conversion_input,root,stem)
+        performance=build_native_performance(source,root,stem)
     except ValueError as error:
         performance=None
         source_error=dict(status='failed',error_type=type(error).__name__,detail=str(error))
@@ -257,6 +259,7 @@ def build_plan(source, outdir, stem=None, **options):
         guide=build_score_guide(performance,repeats=options.get('score_guided_loops',False))
         guide.dump(root,stem)
     try:
+        conversion_input,projection=prepare(source,root,stem)
         plan,report=_build_accepted_plan(source,root,stem,**options,
             source_performance=performance,prepared_input=conversion_input,prepared_projection=projection,
             source_score_guide=guide)

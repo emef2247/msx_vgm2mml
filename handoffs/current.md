@@ -1,3 +1,38 @@
+# HuC6280 continuation after score checkpoint (2026-10-27)
+
+User requested saving the completed score/blueprint work on a separate branch
+before continuing HuC. Branch `codex/score-guidance-huc6280` contains checkpoint
+`2a2f3b4`; private notes checkpoint `46fa6f1` is separate. No push performed.
+User is auditioning the score/curve work; do not change its defaults or README.
+
+HuC native source controls/units and the score guide now precede target prepare.
+Successful and failed MGS lowering both retain original B9 commands/time in
+reference VGM. DDA data writes are typed once, not duplicated PCM packets;
+PCM units stay outside blueprint. The accepted target execution stays separate.
+Source-to-target guide bindings carry original channel/mode provenance.
+
+Extended MGS routing supports stopped waveform changes, PSG noise and OPLL ROM
+overflow; the initial static SCC/PSG route remains. Shared SCC RAM and AY noise
+are validated on positive overlaps and restored after zero-time transitions.
+OPLL fits use a reproducible numeric reference catalog, with spectral/gain losses
+reported. Key-off retains release pitch. DDA/LFO, enabled RAM writes and mixed
+chip MGS lowering remain explicit limitations; native products survive them.
+Extensionless `Vgm ` files are discovered without renaming inputs.
+
+285 relevant tests pass, including authored real MGSC/libkss SCC+OPLL/noise
+playback. Scoped private BIKKR06, DSPILT01 and KATOKEN11 compile and export real
+MGS playback VGM with nonzero assigned-chip audio. DSAVER13 deliberately fails
+MGS lowering for DDA while native VGM/blueprint succeed. All4 source hashes,
+ordered B9 commands and native durations match. Evidence:
+`outputs/diagnostics/huc6280_remaining_20261027/{summary.json,analysis_ja.md,unit_tests.log,exports/}`.
+Generated/private data are untracked. Broad regression/listening are user-run.
+
+Next allowed: user HuC listening/regression feedback or narrowly scoped fixes.
+Do not claim exact OPLL/noise sound, hardware verification or DDA MGS support.
+Do not modify user README, run_test.sh, run_sweep.sh or logs, or push private notes.
+
+---
+
 # SALAMD01 long PSG/SCC parity supplement completed (2026-10-26)
 
 User requested a longer PSG+SCC case beyond the short sync blocks. Added only
