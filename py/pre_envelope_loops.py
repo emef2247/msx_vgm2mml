@@ -37,7 +37,9 @@ class LoopFirstEnvelopeBank(EnvelopeBank):
         prepared = []
         if not self.loop_first:
             for segments, chip, _, kwargs in self.pending:
-                counts.update(candidate_curves(dict(kwargs['performance'].channels)))
+                counts.update(candidate_curves(dict(kwargs['performance'].channels),kwargs['performance'].tick_clock_hz))
+            if any(kwargs.get('score_timing') and kwargs['score_timing'].tempo!=225
+                   for _,_,_,kwargs in self.pending):counts.clear()
             self.select(counts)
         for segments, chip, path, kwargs in self.pending:
             performance = kwargs.get('performance')
@@ -50,17 +52,22 @@ class LoopFirstEnvelopeBank(EnvelopeBank):
                 from score_structure import guided_partition_keys
                 guide_keys=guided_partition_keys(self.score_guide,performance,getattr(self,'guide_bindings',()))
             plans, representatives = prepare(notes, chip, self.source_strategy,self.score_guided,guide_keys)
-            counts.update(candidate_curves(representatives))
+            counts.update(candidate_curves(representatives,performance.tick_clock_hz))
             prepared.append((segments, chip, path, kwargs, plans, notes, representatives))
         if self.loop_first:
+            if any(kwargs.get('score_timing') and kwargs['score_timing'].tempo!=225
+                   for _,_,_,kwargs,_,_,_ in prepared):
+                # Uniform tied-envelope compensation is validated at tempo225.
+                # Other score tempi retain the curve as timed inline controls.
+                counts.clear()
             self.select(counts)
         self.prepared = True
         for segments, chip, path, kwargs, plans, notes, representatives in prepared:
             dump = kwargs.get('dump_path')
             if dump:
-                expanded, structural = candidate_curves(notes), candidate_curves(representatives)
+                expanded, structural = candidate_curves(notes,performance.tick_clock_hz), candidate_curves(representatives,performance.tick_clock_hz)
                 score_slots=candidate_curves({ch:[notes[ch][i] for i in plan.guide.representatives()]
-                    if hasattr(plan,'guide') else representatives[ch] for ch,plan in plans.items()})
+                    if hasattr(plan,'guide') else representatives[ch] for ch,plan in plans.items()},performance.tick_clock_hz)
                 report = str(dump).replace('.target_notes.csv', '.pre_envelope_counts.csv')
                 with Path(report).open('w', newline='', encoding='utf-8') as stream:
                     writer = csv.writer(stream)

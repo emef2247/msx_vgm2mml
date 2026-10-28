@@ -68,11 +68,18 @@ def _timed(token, steps, raw, minimum_steps=1):
     return result
 
 
-def render(segments, raw_ticks=False, end_tick=None, collision_path=None, minimum_steps=1):
+def render(segments, raw_ticks=False, end_tick=None, collision_path=None, minimum_steps=1,score_timing=None):
     end = max((s.tick_end for rows in segments.values() for s in rows), default=0)
     if end_tick is not None:
         end = max(end, end_tick)
-    return render_groups(group_segments(segments), raw_ticks, end, collision_path, minimum_steps)
+    groups=group_segments(segments)
+    if score_timing:
+        from dataclasses import replace
+        groups=[replace(g,tick=score_timing.position(g.tick),
+            gap=score_timing.position(g.tick+g.gap)-score_timing.position(g.tick) if g.gap is not None else None)
+            for g in groups]
+        return render_groups(groups,True,score_timing.position(end),collision_path,3)
+    return render_groups(groups, raw_ticks, end, collision_path, minimum_steps)
 
 
 def render_groups(groups, raw_ticks=False, end_tick=0, collision_path=None, minimum_steps=1):

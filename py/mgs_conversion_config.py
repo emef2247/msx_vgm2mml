@@ -62,8 +62,14 @@ class MgsOptions:
     scc_state_ms: float | None = None
     curve_volume_error: float | None = None
     curve_mean_error: float | None = None
+    score_normalize: bool = False
+    score_tempo: int = 225
 
     def __post_init__(self):
+        from score_normalization import score_tempo
+        score_tempo(self.score_tempo)
+        if self.score_normalize and self.normalize_lengths:
+            raise ValueError('--score-normalize and --normalize-lengths select different timing algorithms')
         if self.psg_part not in ('all', 'melody', 'rhythm'):
             raise ValueError("psg_part must be all, melody, or rhythm")
         sample_threshold(self.effective_normalization_ms, '--normalization-ms')
@@ -82,6 +88,7 @@ class MgsOptions:
 
     @property
     def enabled(self):
+        if self.score_normalize:return False
         return self.normalize_lengths or self.normalization_ms is not None or self.fm_state_ms is not None
 
     @property
@@ -115,6 +122,7 @@ class MgsOptions:
         result.append('--software-volume-curves' if self.software_volume_curves
                       else '--no-software-volume-curves')
         result.extend(self.curve_cli_args())
+        if self.score_normalize:result+=['--score-normalize','--score-tempo',str(self.score_tempo)]
         return result
 
     def curve_cli_args(self):
@@ -126,6 +134,7 @@ class MgsOptions:
 
     def as_dict(self):
         return dict(normalize_lengths_requested=bool(self.normalize_lengths),
+                    score_normalize=self.score_normalize,score_tempo=self.score_tempo,
                     normalization_enabled=bool(self.enabled),
                     normalization_ms_requested=None if self.normalization_ms is None else float(self.normalization_ms),
                     fm_state_ms_requested=None if self.fm_state_ms is None else float(self.fm_state_ms),

@@ -82,7 +82,7 @@ def segment_decisions(rows, updates=()):
     return tuple(result)
 
 def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, source_loops=False,
-           source_strategy='retained', num_channels=6,score_guided=False):
+           source_strategy='retained', num_channels=6,score_guided=False,score_timing=None):
 
     from melody_patterns import analyze
     from melody_loops import project, dump_projection
@@ -107,8 +107,25 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
         boundaries = {}
         sounding = False
         active, pending_edge, previous_key = False, False, False
+        score_cursor=0
         rows = segments.get(ch, ())
         decisions = segment_decisions(rows, updates)
+        schedule={}
+        if score_timing and rows:
+            # Truncate a complete keyed unit once. Internal register slices
+            # neither define independent short notes nor each lose a residue.
+            members,_=group_notes(rows,analysis[ch][0])
+            for member in members:
+                begin,end=score_timing.span(member.start,member.start+member.length,
+                    rest=not rows[member.segment_indices[0]].keyon)
+                positive=[]
+                for index in member.segment_indices:
+                    segment=rows[index]
+                    start=max(begin,min(end,score_timing.position(segment.tick_start)))
+                    stop=max(start,min(end,score_timing.position(segment.tick_end)))
+                    schedule[index]=(start,stop)
+                    if stop>start:positive.append(index)
+                for index in positive:decisions[index].continuation=index!=positive[-1]
         for index, seg in enumerate(rows):
             boundaries[index] = len(body)
             decision = decisions[index]
@@ -120,13 +137,20 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
             length = seg.tick_end - seg.tick_start
             if length <= 0:
                 continue
-            if seg.tick_start > cursor:
+            if score_timing:
+                start,stop=schedule[index]
+                if stop<=start:continue
+                if start<score_cursor:raise ValueError('Score OPLL intervals overlap after projection')
+                if start>score_cursor:
+                    body.append(length_tokens('r',start-score_cursor,True));active=False
+                length=stop-start;score_cursor=stop
+            elif seg.tick_start > cursor:
                 body.append(length_tokens('r', seg.tick_start - cursor, raw_ticks))
                 active = False
             cursor = seg.tick_end
             octave, note = decision.octave, decision.note
             if not seg.keyon or not seg.fnum or note == 'r':
-                body.append(length_tokens('r', length, raw_ticks))
+                body.append(length_tokens('r', length,True if score_timing else raw_ticks))
                 active, pending_edge = False, False
                 continue
             sounding = True
@@ -156,7 +180,7 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
             if current.get('gate', 8) != gate:
                 body.append(f'q{gate}')
                 current['gate'] = gate
-            body.append(length_tokens(note, length, raw_ticks))
+            body.append(length_tokens(note, length,True if score_timing else raw_ticks))
             evidence.append((ch, index, seg.tick_start, seg.tick_end, seg.inst,
                              voice, patch_hex, note, octave, 15-seg.vol,
                              seg.keyon, int(edge), getattr(seg, 'onset', 0)))
@@ -203,7 +227,7 @@ def render(segments, voice_csv_path=None, raw_ticks=False, dump_path=None, *, so
                     entry['status'] = 'legacy_projection_selected'
             loop_report.extend(report)
             lines.append(track_id_to_mgsdrv(ch + 9) + ' ' + ' '.join(body))
-    header = ['#tempo 75' if raw_ticks else '#tempo 225', '#alloc 9=0']
+    header = [f'#tempo {score_timing.tempo}' if score_timing else '#tempo 75' if raw_ticks else '#tempo 225', '#alloc 9=0']
     for patch, voice in patches.items():
         values = decode_patch(patch)
         header.extend((f'@{voice} = {{', '; TL FB', f'{values[0]}, {values[1]},',

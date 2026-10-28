@@ -121,6 +121,7 @@ class MusicalPlan:
     metadata: tuple = ()
     source_performance: object | None = None
     score_guide: object | None = None
+    score_performance: object | None = None
 
     def __post_init__(self):
         if self.end_sample < 0 or self.source_end_sample < 0:
@@ -142,9 +143,12 @@ class MusicalPlan:
         # Native ROM/stream assets have their own source dump. Do not recursively
         # duplicate them into an already-projected execution plan.
         from dataclasses import replace
-        data = asdict(replace(self, source_performance=None,score_guide=None))
+        data = asdict(replace(self, source_performance=None,score_guide=None,score_performance=None))
         data.pop('source_performance', None)
         data.pop('score_guide',None)
+        data.pop('score_performance',None)
+        if self.score_performance is not None:
+            data['score_performance_ref']=dict(self.metadata).get('original_source_performance_ref')
         if self.source_performance is not None:
             data['source_performance_ref'] = dict(self.metadata).get('source_performance_ref', f'{stem}.native_music.json')
         if self.score_guide is not None:

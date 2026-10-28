@@ -58,8 +58,33 @@ class ExportMgsTests(unittest.TestCase):
         self.assertTrue(run.call_args.kwargs['software_volume_curves'])
         self.assertEqual(export_mgs.main(['input', '--no-software-volume-curves']), 0)
         self.assertFalse(run.call_args.kwargs['software_volume_curves'])
+        export_mgs.main(['--','--legacy-macros'])
+        self.assertEqual(run.call_args.args[0],Path('--legacy-macros'))
+        self.assertTrue(run.call_args.kwargs['enhance_macros'])
         with self.assertRaises(SystemExit):
             export_mgs.main(['input', '--software-volume-curves', '--no-software-volume-curves'])
+
+    def test_help_has_one_visible_switch_per_default_enabled_feature(self):
+        help_text=export_mgs.build_parser().format_help()
+        self.assertNotIn('--enhance-macros',help_text)
+        self.assertNotIn(' --software-volume-curves',help_text)
+        self.assertIn('--legacy-macros',help_text)
+        self.assertIn('--no-software-volume-curves',help_text)
+
+    @patch('export_mgs.run_batch',return_value=[dict(status='success',keyon_status='disabled')])
+    def test_boolean_values_and_negative_switch_meanings(self,run):
+        for value in ('yes','y','Y','1','true','TRUE'):
+            export_mgs.main(['input','--legacy-macros',value,'--no-software-volume-curves',value])
+            self.assertFalse(run.call_args.kwargs['enhance_macros'])
+            self.assertFalse(run.call_args.kwargs['software_volume_curves'])
+        for value in ('no','n','N','0','false','FALSE'):
+            export_mgs.main(['input','--legacy-macros',value,'--no-software-volume-curves',value])
+            self.assertTrue(run.call_args.kwargs['enhance_macros'])
+            self.assertTrue(run.call_args.kwargs['software_volume_curves'])
+        with self.assertRaises(SystemExit):export_mgs.main(['input','--legacy-macros','maybe'])
+        export_mgs.main(['--legacy-macros','--no-software-volume-curves','input'])
+        self.assertFalse(run.call_args.kwargs['enhance_macros'])
+        self.assertFalse(run.call_args.kwargs['software_volume_curves'])
 
     def test_exit_status_keeps_compilation_and_verification_failures(self):
         for row in [dict(status='compilation_failed', keyon_status='not_compiled'),

@@ -28,7 +28,7 @@ def _build_accepted_plan(source, outdir, stem=None, *, normalization_ms=8, fm_st
                psg_part='all', enhance_drums=False, song_loop='none', dump_passes=True,
                decision_sink=None, psg_input='trace', scc_input='trace',
                source_performance=None, prepared_input=None, prepared_projection=None,
-               source_score_guide=None, score_guided_loops=False, curve_approx_options=None):
+               source_score_guide=None, score_guided_loops=False, curve_approx_options=None,score_target_clock=False):
     """Native evidence -> reconstructed units/curves -> executable shared plan.
 
     MGSDRV envelope banks and textual loops are deliberately absent. They can
@@ -75,12 +75,22 @@ def _build_accepted_plan(source, outdir, stem=None, *, normalization_ms=8, fm_st
     metadata = {}
     paths = parse_vgm(str(conversion_input), str(root), include_vgmticks=True,
                       dump_loop=True, loop_metadata=metadata)
+    if score_target_clock:
+        from score_normalization import sample_csv
+        sample_csv(paths[5])
+        sample_csv(paths[6])
     psg_segments = build_psg(paths[2] if psg_input == 'trace' else paths[0], root, stem, dump_passes=dump_passes)
     scc_segments = build_scc(paths[3] if scc_input == 'trace' else paths[1], root, dump_passes=dump_passes, stem=stem).segments
     opll_segments, _ = build_opll_segments(paths[5])
     from opll_segments import dump_segments as dump_opll_segments
     dump_opll_segments(opll_segments, root / f'{stem}.opll.native.segments.csv')
-    native = [analyze(psg_segments, 'psg'), analyze(scc_segments, 'scc')]
+    if score_target_clock:
+        from score_normalization import sample_segments
+        psg_segments=sample_segments(psg_segments,root/f'{stem}.psg.sample_clock.csv')
+        scc_segments=sample_segments(scc_segments,root/f'{stem}.scc.sample_clock.csv')
+        opll_segments=sample_segments(opll_segments,root/f'{stem}.opll.sample_clock.csv')
+    native = [analyze(psg_segments, 'psg',tick_clock_hz=44100 if score_target_clock else 60),
+              analyze(scc_segments, 'scc',tick_clock_hz=44100 if score_target_clock else 60)]
     for performance in native:
         dump(performance, root / f'{stem}.{performance.chip}.native')
     selection_candidates = None
@@ -90,12 +100,15 @@ def _build_accepted_plan(source, outdir, stem=None, *, normalization_ms=8, fm_st
         selected, selection_candidates, summary, catalog, membership = select(native[0], psg_part)
         selection_summary = summary
         dump_selection(root, stem, summary, catalog, membership)
-        performances = [analyze(selected, 'psg')]
+        performances = [analyze(selected, 'psg',tick_clock_hz=native[0].tick_clock_hz)]
     else:
         performances = native
     mapper = choose_timing(opll_segments, paths[6], enabled=normalize_lengths,
                            normalization_ms=normalization_ms, fm_state_ms=fm_state_ms,
                            num_channels=9)
+    if score_target_clock:
+        from score_normalization import SampleTimingMapper
+        mapper=SampleTimingMapper()
     accepted = []
     curve_reports={}
     for performance in performances:
@@ -230,7 +243,7 @@ def _build_accepted_plan(source, outdir, stem=None, *, normalization_ms=8, fm_st
     return plan, report
 
 
-def build_plan(source, outdir, stem=None, **options):
+def _build_native_plan(source, outdir, stem=None, **options):
     """Retain source music before independently lowering the MGS execution.
 
     A supported native performance remains usable by the score/reference
@@ -293,6 +306,52 @@ def build_plan(source, outdir, stem=None, **options):
         report['native_source_error']=source_error
         if sink is not None:sink['native_source_error']=source_error
         (root/f'{stem}.execution.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+    return plan,report
+
+
+def build_plan(source,outdir,stem=None,*,score_normalize=False,score_tempo=225,**options):
+    """Optional per-device score view, then the established target lowerer."""
+    root=Path(outdir);stem=stem or Path(source).stem
+    for suffix in ('json','anchors.csv','intervals.csv','controls.csv'):
+        (root/f'{stem}.score_normalization.{suffix}').unlink(missing_ok=True)
+    if not score_normalize:return _build_native_plan(source,outdir,stem,**options)
+    from native_source_music import build_native_performance
+    from native_vgm import write_native_vgm
+    from score_normalization import normalize
+    source=Path(source)
+    root.mkdir(parents=True,exist_ok=True)
+    original=build_native_performance(source,root,stem)
+    normalized=normalize(original,tempo=score_tempo,source_loop=options.get('song_loop')=='source')
+    normalized.dump(root,stem)
+    # Never run the old fitted clock after this independent musical decision.
+    options=dict(options,normalize_lengths=False,score_target_clock=True)
+    work=root/'_score_normalized';work.mkdir(exist_ok=True)
+    projected=work/f'{stem}.vgm'
+    if projected.resolve()==source.resolve():raise ValueError('Score projection must not overwrite its source VGM')
+    write_native_vgm(normalized.performance,projected,gd3=source_gd3(source),
+                     mapping_path=work/f'{stem}.projected.writes.csv',source_loop=options.get('song_loop')=='source')
+    # Interpret original durations. Reference-VGM boundary warping is a separate
+    # projection and cannot supply the durations that the score pass truncates.
+    plan,report=_build_native_plan(source,work,stem,**options)
+    reference=build_native_performance(projected,work/'reference',stem)
+    if plan.source_performance is None:raise ValueError('Score normalization requires a reparsed native performance')
+    metadata=tuple((key,value) for key,value in plan.metadata if key not in
+        ('target_profile','source_performance_ref','score_guide_ref'))
+    metadata+=(('target_profile','native'),('native_time_domain','score_normalized_source_samples'),
+        ('source_performance_ref',str(work/'reference'/f'{stem}.native_music.json')),
+        ('score_guide_ref',str(work/f'{stem}.score_guide.json')),
+        ('original_source_performance_ref',str(root/f'{stem}.native_music.json')),
+        ('score_normalization',normalized.report))
+    plan=replace(plan,metadata=metadata,source_end_sample=original.end_sample,
+                 source_performance=reference,score_performance=original)
+    sink=options.get('decision_sink')
+    if sink is not None:
+        sink.update(musical_plan=plan,score_output_root=str(work),score_normalization=normalized.report)
+    report.update(source=str(source.resolve()),score_normalization=normalized.report,
+        target_profile='native',execution_source=str(source),reference_source=str(projected),
+        original_segments_retained=True,score_duration_input='original interpreted sample spans')
+    plan.dump(root,stem)
+    (root/f'{stem}.execution.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     return plan,report
 
 

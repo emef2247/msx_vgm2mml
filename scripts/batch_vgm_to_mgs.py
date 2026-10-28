@@ -11,6 +11,7 @@ import math
 import os
 import hashlib
 import tempfile
+import errno
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'py'))
@@ -169,10 +170,31 @@ def save_json(path, value):
     temporary.replace(path)
 
 
+def replace_product(source, target, *, allow_copy=True):
+    """Replace an owned product; tolerate DrvFS rename/share failures.
+
+    The caller retains backups for this non-atomic fallback. A missing staged
+    file or parent is a real error, not a reason to fabricate a publication.
+    The manifest itself always retains atomic replacement.
+    """
+    try:
+        os.replace(source,target)
+        return 'replace'
+    except OSError as error:
+        if (not allow_copy or error.errno not in (errno.ENOENT,errno.EACCES,errno.EPERM,errno.EBUSY)
+                or not source.is_file() or not target.parent.is_dir() or target.is_symlink()):
+            raise
+        shutil.copyfile(source,target)
+        if file_digest(source)!=file_digest(target):
+            raise OSError(errno.EIO,'Published copy verification failed',str(target))
+        return 'verified_copy'
+
+
 def publish_bundle(publications, manifest, state, workspace, *, deletions=()):
     """Prepare every product and manifest before replacing the owned bundle."""
-    with tempfile.TemporaryDirectory(prefix='publish_', dir=workspace) as temporary:
-        temporary = Path(temporary)
+    temporary=Path(tempfile.mkdtemp(prefix='publish_',dir=workspace))
+    preserve_recovery=False
+    try:
         prepared = []
         for index, (source, target) in enumerate(publications):
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -188,21 +210,48 @@ def publish_bundle(publications, manifest, state, workspace, *, deletions=()):
                 backup = temporary / ('old_' + str(index))
                 shutil.copyfile(target, backup)
                 backups[target] = backup
-        replaced = []
+        replaced = [];methods=[];operation_source=None
         try:
             for target in deletions:
+                operation_source=None
+                replaced.append(target)
                 target.unlink()
-                replaced.append(target)
             for source, target in prepared:
-                os.replace(source, target)
+                operation_source=source
                 replaced.append(target)
-        except OSError:
+                method=replace_product(source,target,allow_copy=target!=manifest)
+                methods.append(dict(target=str(target),method=method))
+        except OSError as error:
+            error.publication_context=dict(source=str(operation_source) if operation_source else None,target=str(target),
+                staged_source_exists=operation_source.is_file() if operation_source else False,target_parent_exists=target.parent.is_dir(),
+                errno=error.errno,winerror=getattr(error,'winerror',None))
+            rollback_errors=[]
             for target in reversed(replaced):
-                if target in backups:
-                    os.replace(backups[target], target)
-                else:
-                    target.unlink(missing_ok=True)
+                try:
+                    if target in backups:
+                        replace_product(backups[target],target,allow_copy=target!=manifest)
+                    else:
+                        target.unlink(missing_ok=True)
+                except OSError as rollback_error:
+                    rollback_errors.append(dict(target=str(target),error=str(rollback_error)))
+            error.publication_context['rollback_errors']=rollback_errors
+            if rollback_errors:
+                preserve_recovery=True
+                error.publication_context.update(recovery_required=True,recovery_directory=str(temporary))
+                recovery=dict(error=str(error),targets=[dict(target=str(target),backup=str(backup))
+                    for target,backup in backups.items() if backup.is_file()],
+                    rollback_errors=rollback_errors,manifest=str(manifest))
+                try:
+                    (temporary/'recovery.json').write_text(json.dumps(recovery,indent=2)+'\n',encoding='utf-8')
+                except OSError as metadata_error:
+                    error.publication_context['recovery_metadata_error']=str(metadata_error)
             raise
+        return dict(status='success',operations=methods)
+    finally:
+        if not preserve_recovery:
+            if temporary.resolve().parent!=Path(workspace).resolve():
+                raise ValueError('Publication staging directory escaped its workspace')
+            shutil.rmtree(temporary)
 
 
 def package_manifest(package):
@@ -225,7 +274,7 @@ def publication_targets(files, source_root, output, psg_part):
     routes, seen = [], set()
     for path in files:
         relative = path.relative_to(source_root)
-        if any(part.casefold() in ('_diagnostics', '_source_inputs', 'tracks', 'blueprint', 'psg_melody', 'psg_rhythm', '_huc6280_target')
+        if any(part.casefold() in ('_diagnostics', '_source_inputs', 'tracks', 'blueprint', 'psg_melody', 'psg_rhythm', '_huc6280_target', '_score_normalized', 'native_legacy')
                for part in relative.parts[:-1]):
             raise ValueError(f'Reserved output route in input: {relative}')
         package = output / mode / relative.parent
@@ -347,7 +396,7 @@ def discover_inputs(source, adjacent=False):
                       and '_huc6280_target' not in [part.casefold() for part in p.relative_to(source).parts[:-1]]
                       and is_input(p))
     # Adjacent reruns must not convert their own roundtrip VGM or audition trees.
-    reserved = {'_diagnostics', '_source_inputs', 'tracks', 'blueprint', 'psg_melody', 'psg_rhythm', '_huc6280_target'}
+    reserved = {'_diagnostics', '_source_inputs', 'tracks', 'blueprint', 'psg_melody', 'psg_rhythm', '_huc6280_target', '_score_normalized', 'native_legacy'}
     files = []
     for parent, directories, names in os.walk(source):
         directories[:] = [name for name in directories if name.casefold() not in reserved]
@@ -359,12 +408,14 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
               keyon=True, libkss_module=None, normalize_lengths=False, enhance_macros=True, legacy_loops=False,
               force=False, fm_state_ms=None, normalization_ms=None, dump_passes=False, enhance_drums=False, psg_part='all',
               software_volume_curves=False, score_guided_loops=False,
-              psg_state_ms=None, scc_state_ms=None, curve_volume_error=None, curve_mean_error=None):
+              psg_state_ms=None, scc_state_ms=None, curve_volume_error=None, curve_mean_error=None,
+              score_normalize=False, score_tempo=225):
     options = MgsOptions(normalize_lengths=normalize_lengths, normalization_ms=normalization_ms,
                          fm_state_ms=fm_state_ms, force=force, dump_passes=dump_passes, enhance_drums=enhance_drums, psg_part=psg_part,
                          software_volume_curves=software_volume_curves, score_guided_loops=score_guided_loops,
                          psg_state_ms=psg_state_ms, scc_state_ms=scc_state_ms,
-                         curve_volume_error=curve_volume_error, curve_mean_error=curve_mean_error)
+                         curve_volume_error=curve_volume_error, curve_mean_error=curve_mean_error,
+                         score_normalize=score_normalize,score_tempo=score_tempo)
     option_args = options.cli_args()
     effective_options = options.as_dict()
     if not math.isfinite(timeout) or timeout <= 0:
@@ -435,6 +486,7 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
         # Never let an earlier successful artifact look like this run's success.
         for artifact in (mml, mgs, folder / 'tracks' / (path.stem + '.vgm'), folder / (path.stem + '.roundtrip.vgm'),
                          folder / 'report.json', folder / 'report.txt',
+                         folder / 'publication.json',
                          folder / 'convert.log', folder / 'compile.log', folder / 'keyon.log',
                          folder / (path.stem + '.normalization.json'),
                          folder / (path.stem + '.fm.short_states.json'),
@@ -456,6 +508,7 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
                 raise ValueError(f'Diagnostic artifact escapes output tree: {artifact}')
             artifact.unlink(missing_ok=True)
         row = dict(input=str(relative), status='conversion_failed', mml='',
+                   publication_status='not_attempted',publication_error='',processing_status='',
                    mgs='', vgm='', vgm_status='unavailable', vgm_detail='', blueprint='', blueprint_files=[], blueprint_status='unavailable', blueprint_detail='', log='', detail='', stage='', error_code='', legacy_status='',
                    report=str((folder / 'report.txt').relative_to(output)),
                    diagnostics=str((folder / 'report.json').relative_to(output)), force_summary='',
@@ -556,6 +609,7 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
                     except (OSError, ValueError, struct.error) as error:
                         row.update(keyon_status='error', keyon_error=str(error))
                         (folder / 'keyon.log').write_text(str(error), encoding='utf-8')
+        previous_state=json.loads(json.dumps(state))
         products = dict(previous.get('published', {}))
         # Keep a previously complete listening pair when a later attempt fails.
         listening_names = {target.relative_to(package).as_posix() for target in (final_mml, final_mgs)}
@@ -597,13 +651,35 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
             row['blueprint'] = row['blueprint_files'][0]
             publications.extend(bp_publish)
             entry.update(published=products, blueprint_source_sha256=current_source_hash)
+        row['processing_status']=row['status']
+        row['publication_status']='success' if publications else 'not_needed'
         entry.update(stem=path.stem, status=entry.get('publication_status', row['status']),
                      latest_attempt_status=row['status'], latest_attempt=dict(row, source_sha256=current_source_hash))
         state['entries'][path.name] = entry
-        if publications:
-            publish_bundle(publications, manifest, state, folder, deletions=bp_delete)
-        else:
-            save_json(manifest, state)
+        try:
+            if publications:
+                publication=publish_bundle(publications, manifest, state, folder, deletions=bp_delete)
+                row['publication_status']='success'
+            else:
+                save_json(manifest, state)
+                publication=dict(status='not_needed',operations=[])
+                row['publication_status']='not_needed'
+        except OSError as error:
+            publication=dict(status='failed',error=str(error),
+                context=getattr(error,'publication_context',{}),processing_status=row['status'])
+            row.update(status='publication_failed',stage='publish',error_code='publication_error',
+                publication_status='failed',publication_error=str(error),
+                detail=f"Output publication failed after {row['processing_status']}: {error}",
+                mml='',mgs='',vgm='',blueprint='',blueprint_files=[])
+            if reference:row['vgm_status']='publication_failed'
+            if bp_targets:row['blueprint_status']='publication_failed'
+            state=previous_state
+            prior=state['entries'][path.name]
+            prior.setdefault('status','unpublished')
+            prior.update(latest_attempt_status=row['status'],latest_attempt=dict(row,source_sha256=current_source_hash))
+            try:save_json(manifest,state)
+            except OSError as manifest_error:publication['manifest_error']=str(manifest_error)
+        (folder/'publication.json').write_text(json.dumps(publication,indent=2)+'\n',encoding='utf-8')
         summaries = {}
         for name, suffix in (('normalization', 'normalization.json'),
                              ('fm_states', 'fm.short_states.json'), ('conversion', 'conversion.json'),
@@ -633,7 +709,8 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
                       commands=commands, logs={name: str(folder / (name + '.log'))
                                               for name in ('convert', 'compile', 'keyon')
                                               if (folder / (name + '.log')).is_file()},
-                      force=force_data, summaries=summaries)
+                      force=force_data, summaries=summaries,publication=publication)
+        report['logs']['publication']=str(folder/'publication.json')
         (folder / 'report.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
         lines = [f"{relative}: {row['status']}", f"Stage: {row['stage']}",
                  f"Error code: {row['error_code']}", f"Detail: {row['detail']}",
@@ -681,6 +758,8 @@ def build_parser():
     parser.add_argument('--alloc', help='Allocation overrides forwarded to every conversion')
     parser.add_argument('--normalize-lengths', action='store_true',
                         help='Enable optional musical duration normalization for every conversion')
+    from score_normalization import add_arguments
+    add_arguments(parser)
     parser.add_argument('--normalization-ms', type=float, help='Duration correction threshold in milliseconds; enables normalization')
     parser.add_argument('--fm-state-ms', type=float, help='Internal FM state threshold in milliseconds (default: 1)')
     add_curve_arguments(parser)
@@ -715,6 +794,7 @@ if __name__ == '__main__':
         results = run_batch(args.input_dir, args.outdir, args.mgsc_module, args.node, args.timeout, args.mgsc, args.alloc,
                             keyon=not args.skip_keyon_counts, libkss_module=args.libkss_module,
                             normalize_lengths=args.normalize_lengths, enhance_macros=args.enhance_macros, legacy_loops=args.legacy_loops,
+                            score_normalize=args.score_normalize,score_tempo=args.score_tempo,
                             force=args.force, fm_state_ms=args.fm_state_ms, normalization_ms=args.normalization_ms,
                             dump_passes=args.dump_passes, enhance_drums=args.enhance_drums, psg_part=args.psg_part,
                             software_volume_curves=args.software_volume_curves,

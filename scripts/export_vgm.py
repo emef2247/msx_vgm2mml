@@ -26,7 +26,9 @@ def parser():
     result.add_argument('--fm-state-ms', type=float, default=24,
                         help='OPLL internal pitch/volume threshold when normalization is accepted (default: 24)')
     add_curve_arguments(result)
-    result.add_argument('--no-normalization', action='store_true', help='Use the existing unnormalized musical clock')
+    result.add_argument('--no-normalization', action='store_true', help='Disable legacy OPLL clock fitting; independent of --score-normalize')
+    from score_normalization import add_arguments
+    add_arguments(result)
     curves = result.add_mutually_exclusive_group()
     curves.add_argument('--software-volume-curves', action='store_true', default=True,
                         help='Join supported exact PSG/SCC software volume curves (default: enabled)')
@@ -51,14 +53,15 @@ def _worker(args):
     target.unlink(missing_ok=True)
     stage = 'interpretation'
     try:
-        options = MgsOptions(software_volume_curves=args.software_volume_curves, **curve_option_values(args))
+        options = MgsOptions(software_volume_curves=args.software_volume_curves,score_normalize=args.score_normalize,score_tempo=args.score_tempo, **curve_option_values(args))
         plan, report = build_plan(args.input, folder, stem,
             normalization_ms=args.normalization_ms, fm_state_ms=args.fm_state_ms,
             normalize_lengths=not args.no_normalization,
             software_volume_curves=args.software_volume_curves, force=args.force,
             psg_part=args.psg_part, enhance_drums=args.enhance_drums,
             song_loop=args.song_loop, dump_passes=args.dump_passes,
-            score_guided_loops=options.score_guided_loops, curve_approx_options=options.curve_approx_options)
+            score_guided_loops=options.score_guided_loops, curve_approx_options=options.curve_approx_options,
+            score_normalize=args.score_normalize,score_tempo=args.score_tempo)
         from musical_blueprint import write_blueprint
         report['blueprint'] = write_blueprint(plan, folder, stem)
         stage = 'vgm_generation'
@@ -82,6 +85,7 @@ def _worker(args):
 def _flags(args):
     result = ['--normalization-ms', str(args.normalization_ms), '--fm-state-ms', str(args.fm_state_ms),
               '--song-loop', args.song_loop]
+    if args.score_normalize:result+=['--score-normalize','--score-tempo',str(args.score_tempo)]
     for flag in ('force', 'dump_passes', 'enhance_drums', 'no_normalization'):
         if getattr(args, flag):
             result.append('--' + flag.replace('_', '-'))
@@ -89,7 +93,7 @@ def _flags(args):
         result.append('--no-software-volume-curves')
     if args.psg_part != 'all':
         result.append('--psg-' + args.psg_part + '-only')
-    options = MgsOptions(software_volume_curves=args.software_volume_curves, **curve_option_values(args))
+    options = MgsOptions(software_volume_curves=args.software_volume_curves,score_normalize=args.score_normalize,score_tempo=args.score_tempo, **curve_option_values(args))
     result.extend(options.curve_cli_args())
     return result
 
@@ -102,7 +106,7 @@ def run_export(args):
         raise ValueError('--timeout must be positive')
     sample_threshold(args.normalization_ms, '--normalization-ms')
     sample_threshold(args.fm_state_ms, '--fm-state-ms')
-    MgsOptions(software_volume_curves=args.software_volume_curves, **curve_option_values(args))
+    MgsOptions(software_volume_curves=args.software_volume_curves,score_normalize=args.score_normalize,score_tempo=args.score_tempo, **curve_option_values(args))
     source_root = source.parent if source.is_file() else source
     output = args.outdir.resolve() if args.outdir else source_root
     if args.outdir and (source == output or source in output.parents or output in source.parents):
@@ -115,7 +119,7 @@ def run_export(args):
     # All ownership checks precede the first publication or input copy.
     for path in files:
         relative = path.relative_to(source_root)
-        if any(part.casefold() in ('_diagnostics', '_source_inputs', 'tracks', 'blueprint', 'psg_melody', 'psg_rhythm')
+        if any(part.casefold() in ('_diagnostics', '_source_inputs', 'tracks', 'blueprint', 'psg_melody', 'psg_rhythm', '_score_normalized', 'native_legacy')
                for part in relative.parts[:-1]):
             raise ValueError(f'Reserved generated output route in input: {relative}')
         package = output / mode / relative.parent

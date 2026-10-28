@@ -18,7 +18,11 @@ class StructuredMacros(unittest.TestCase):
         text+=''.join('; sync '+str(i)+'\n9 [*0 r8]2\n' for i in range(6))
         result=enhance_macros(text)
         self.assertEqual(expanded(text),expanded(result))
-        self.assertLessEqual(len(result),len(text))
+        # Absolute entry setters now remain outside shared relative definitions.
+        # Macro-frame priority may increase source characters for these resets.
+        from mml_relative_state import relative_body
+        import re
+        self.assertTrue(all(relative_body([body]) for body in re.findall(r'^\*\d+\s*=\s*\{([^}]*)\}',result,re.M)))
         self.assertEqual([l for l in text.splitlines() if l.startswith(';')],[l for l in result.splitlines() if l.startswith(';')])
 
     def test_rhythm_and_ties(self):

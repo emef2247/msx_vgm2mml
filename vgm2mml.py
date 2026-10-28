@@ -152,7 +152,8 @@ def _write_direct_vgm(plan, source, song_dir, stem):
         record = dict(status='success',source=str(Path(source).resolve()), vgm=str(target),
                       vgm_sha256=hashlib.sha256(generated.read_bytes()).hexdigest(),
                       controls=len(plan.source_performance.controls) if dict(plan.metadata).get('target_profile') == 'native' else len(plan.controls), writes=len(writes),
-                      end_sample=plan.end_sample, compiler_invoked=False, mml_generated=False)
+                      end_sample=plan.source_performance.end_sample if dict(plan.metadata).get('target_profile')=='native' else plan.end_sample,
+                      compiler_invoked=False, mml_generated=False)
         prepared = temporary / 'manifest.json'
         prepared.write_text(json.dumps(record, indent=2) + '\n', encoding='utf-8')
         operations = ((generated, target), (trace, mapping), (prepared, manifest))
@@ -241,6 +242,8 @@ def main():
                         help='Append absolute VGM sample positions to trace/Segment evidence; does not retime MML')
     parser.add_argument('--normalize-lengths', action='store_true',
                         help='Infer a shared musical clock and normalize target note lengths; retain source samples')
+    from score_normalization import add_arguments as add_score_arguments
+    add_score_arguments(parser)
     parser.add_argument('--fm-state-ms', type=float, default=None,
                         help='OPLL internal pitch/volume state threshold in ms (effective default 1); enables optional normalization')
     parser.add_argument('--normalization-ms', type=float, default=None,
@@ -287,7 +290,8 @@ def main():
                              software_volume_curves=args.software_volume_curves,
                              score_guided_loops=args.score_guided_loops,
                              psg_state_ms=args.psg_state_ms,scc_state_ms=args.scc_state_ms,
-                             curve_volume_error=args.curve_volume_error,curve_mean_error=args.curve_mean_error)
+                             curve_volume_error=args.curve_volume_error,curve_mean_error=args.curve_mean_error,
+                             score_normalize=args.score_normalize,score_tempo=args.score_tempo)
     except ValueError as error:
         parser.error(str(error))
     args.normalize_lengths = options.enabled
@@ -299,6 +303,8 @@ def main():
         parser.error('--song-loop applies to VGM output; select --output-format vgm or both')
     if args.normalize_lengths and args.raw_ticks:
         parser.error('--normalize-lengths cannot be combined with --raw-ticks')
+    if args.score_normalize and args.raw_ticks:
+        parser.error('--score-normalize cannot be combined with --raw-ticks')
 
     for field, value in (('name', args.name), ('title', args.title)):
         if value is not None and (any(c in value for c in '\r\n') or
@@ -362,6 +368,7 @@ def main():
             song_loop=args.song_loop, dump_passes=args.dump_passes or args.debug,
             psg_input=args.psg_input, scc_input=args.scc_input,
             score_guided_loops=args.score_guided_loops,curve_approx_options=options.curve_approx_options,
+            score_normalize=options.score_normalize,score_tempo=options.score_tempo,
             decision_sink=decisions)
         from musical_blueprint import write_blueprint
         report['curve_approximation']=execution.get('curve_approximation',{})
@@ -379,6 +386,14 @@ def main():
             report['source_projection'] = source_projection
         report['shared_musical_plan'] = str(root / f'{base_name}.musical_plan.json')
         report['shared_normalization'] = decisions['mapper'].report
+        if options.score_normalize:
+            report['score_normalization']=execution.get('score_normalization')
+            timing=report['score_normalization']
+            print(f"Score normalization: tempo {timing['reference_tempo']}; 1/64={timing['quantum_ms']:.4f} ms; "
+                  f"{len(timing['sync_points'])} per-device quiet anchors")
+            for device in timing['devices']:
+                print(f"  {device['device_id']}: {device['status']}; "
+                      f"collapsed gates {device['collapsed_units']}; {device['reason']}")
         if args.output_format != 'vgm':
             legacy_execution = decisions.get('legacy_execution_plan', shared_plan)
             sustained = [c for c in legacy_execution.controls if c.chip == 'opll'
@@ -435,7 +450,15 @@ def main():
                 psg_scc_curves_filtered=False, omitted_states=0)
             (root / f'{base_name}.normalization.json').write_text(json.dumps(disabled, indent=2), encoding='utf-8')
             (root / f'{base_name}.fm.short_states.json').write_text(json.dumps(disabled, indent=2), encoding='utf-8')
-        _convert_mgs(args, options, str(conversion_input), song_dir, base_name, decision_context=decisions)
+        mgs_root=decisions.get('score_output_root',song_dir)
+        _convert_mgs(args, options, str(conversion_input), mgs_root, base_name, decision_context=decisions)
+        if mgs_root!=song_dir:
+            import shutil
+            shutil.copyfile(Path(mgs_root)/f'{base_name}.mml',root/f'{base_name}.mml')
+            for suffix in ('mgs.force.json','mgs.force.csv','normalization.json','volume_curves.target.json',
+                           'drums.json','psg.selection.json'):
+                artifact=Path(mgs_root)/f'{base_name}.{suffix}'
+                if artifact.is_file():shutil.copyfile(artifact,root/artifact.name)
         from mml_layout import format_mml_loops
         main_mml=root/f'{base_name}.mml'
         main_mml.write_text(format_mml_loops(main_mml.read_text(encoding='cp932')),
@@ -470,8 +493,12 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
     (psg_log_csv, scc_log_csv, psg_trace_csv, scc_trace_csv,
      opll_log_csv, opll_trace_csv, opll_voice_csv, opll_regs_csv) = parse_vgm(
          vgm_path, song_dir, dump_loop=args.debug or args.dump_passes,
-         include_vgmticks=args.vgmticks or args.normalize_lengths or args.enhance_drums or args.software_volume_curves or args.psg_part != 'all',
+         include_vgmticks=args.vgmticks or args.normalize_lengths or args.score_normalize or args.enhance_drums or args.software_volume_curves or args.psg_part != 'all',
          opm_metadata=opm_metadata, dump_opm_segments=args.debug or args.dump_passes)
+    if options.score_normalize:
+        from score_normalization import sample_csv,timing_for_chip
+        sample_csv(opll_trace_csv)
+        sample_csv(opll_voice_csv)
 
     if args.debug:
         print(f"PSG log:       {psg_log_csv}")
@@ -537,7 +564,9 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
                 continue
             performance = accepted[chip]
             pending.append((performance.reconstruct_segments(), chip, path,
-                            dict(kwargs, performance=performance)))
+                            dict(kwargs, performance=performance,
+                                 **({'score_timing':timing_for_chip(decision_context['score_normalization'],chip)}
+                                    if options.score_normalize else {}))))
         envelope_bank.pending = pending
         selection_candidates = decision_context.get('selection_candidates') or ()
         if args.psg_part != 'all':
@@ -554,7 +583,7 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
             native_psg = next(p for p in performances if p.chip == 'psg')
             selected_psg, selection_candidates, summary, catalog, membership = select(native_psg, args.psg_part)
             dump_selection(song_dir, base_name, summary, catalog, membership)
-            projected_performance = analyze(selected_psg, 'psg')
+            projected_performance = analyze(selected_psg, 'psg',tick_clock_hz=native_psg.tick_clock_hz)
             pending = []
             for segments, chip, path, kwargs in envelope_bank.pending:
                 if chip != 'psg':
@@ -593,7 +622,7 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
     from opll_mode import mode_from_trace
     opll_mode = mode_from_trace(opll_trace_csv)
     if decision_context is not None and opll_mode:
-        shared = decision_context['musical_plan']
+        shared = decision_context.get('legacy_execution_plan',decision_context['musical_plan'])
         if any(unit.chip == 'opll' and unit.channel >= 6 and not unit.rest
                and unit.articulation != 'inferred_percussion' for unit in shared.units):
             raise ValueError('MGSDRV rhythm layout cannot also represent accepted melodic channels 7-9; direct VGM remains available')
@@ -604,7 +633,9 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
                                      debug=args.debug,
                                      voice_csv_path=opll_voice_csv,
                                      raw_ticks=args.raw_ticks, source_loops=not args.legacy_loops,
-                                     opll_mode=opll_mode,score_guided=args.score_guided_loops)
+                                     opll_mode=opll_mode,score_guided=args.score_guided_loops,
+                                     score_timing=timing_for_chip(decision_context['score_normalization'],'opll') if options.score_normalize else None,
+                                     decision_segments=(decision_context or {}).get('opll_source_segments') if options.score_normalize else None)
     if args.debug:
         print(f"OPLL MML: {opll_mml_path}")
 
@@ -653,7 +684,12 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
         try:
             if normalized_tempo is not None:
                 raise ValueError('normalized note splitting requires separately validated envelope timing')
-            corrected, tie_report = compensate(control_texts, tempo=75 if args.raw_ticks else 225)
+            if options.score_normalize and options.score_tempo!=225:
+                corrected=control_texts
+                tie_report=dict(status='inline_curves',applied=False,
+                    reason='score tempo differs from validated tied-envelope driver profile')
+            else:
+                corrected, tie_report = compensate(control_texts, tempo=75 if args.raw_ticks else 225)
         except ValueError as error:
             # Retry the ordinary complete pipeline, including clock acceptance and
             # drum boundary mapping. A plan accepted for fewer projected boundaries
@@ -750,6 +786,7 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
         print(f"Rhythm enhancement: {drum_report['added_hits']} added hits; {drum_report['reason']}")
 
     # ── Step 5: Build merged MML ──────────────────────────────────
+    if options.score_normalize:normalized_tempo=options.score_tempo
     target_scc = has_scc and args.psg_part == 'all'
     target_opll = has_opll if args.psg_part == 'all' else bool(args.enhance_drums and drum_report['added_hits'])
     merged_text = _build_merged_mml(base_name, song_dir,
@@ -758,12 +795,19 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
                                     sync_min_gap=args.sync_min_gap,
                                     name=args.name, title=args.title, tempo=normalized_tempo, opll_mode=opll_mode)
     merged_text = override_alloc(merged_text, args.alloc)
+    if options.score_normalize:
+        from mml_note_values import decompose
+        merged_text=decompose(merged_text,dump_prefix=os.path.join(song_dir,base_name))
+        from score_normalization import comment_header
+        merged_text=comment_header(merged_text,(decision_context or {}).get('score_normalization'))
     if args.enhance_macros:
         from structured_macros import enhance_macros
         merged_text = enhance_macros(merged_text,
             dump_prefix=os.path.join(song_dir, base_name) if args.dump_passes else None)
     from mml_format import format_mml
     merged_text = format_mml(merged_text)
+    from mml_notation import compact as compact_notation
+    merged_text=compact_notation(merged_text)
     merged_path = os.path.join(song_dir, f'{base_name}.mml')
     with open(merged_path, 'w', encoding='cp932', errors='replace', newline='\n') as fh:
         fh.write(merged_text)

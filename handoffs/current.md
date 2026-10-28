@@ -1,5 +1,102 @@
 # HuC6280 continuation after score checkpoint (2026-10-27)
 
+## 2026-10-29 checkpoint requested by user
+
+User confirmed that the earlier publication FileNotFoundError was caused by a
+VGM player holding the output file open. Do not continue disk-space/permission
+speculation. Boolean defaults remain provisional and user-controlled.
+The accumulated sample-clock score, relative/complete-phrase macro, notation,
+blueprint and export robustness changes are being committed as one checkpoint.
+Validation:168 focused conversion/export tests passed;20 additional publication/
+CLI guard tests pass, including retaining old bytes when rollback itself fails.
+Failed rollback now preserves a recovery directory and mapping; -- stops boolean
+argument rewriting. README and private/generated fixtures stay out of Git.
+
+Next objective is MUCOM88/MUCOMSX parity with the current MSX musical layer.
+Audit found a partially copied namespaced musical_hal package in MUCOM but no
+connected CLI reference-VGM/blueprint route. Preserve existing MUCOM OPNA/PCM,
+runtime and target mapping code, unrelated uncommitted changes and -w.mub.
+Compare module boundaries before choosing incremental shared-core synchronization
+versus rebuilding MUCOM target outputs on the MSX tree. Do not transplant MGSDRV
+tie/default-length/envelope syntax directly into MUCOM renderers.
+
+## 2026-10-28 export switch cleanup / publication follow-up
+
+User requested prioritizing option cleanup over further filesystem diagnosis.
+export_mgs now shows only --legacy-macros [BOOL] and
+--no-software-volume-curves [BOOL] for those default-enabled features.
+Bare flags activate their named legacy/disable behavior; optional values accept
+yes/y/1/true and no/n/0/false case-insensitively. Internal is_legacy_macros
+defaults False; is_software_volume_curves defaults True. Older positive flags
+remain hidden compatibility aliases. Input after a bare flag is not consumed
+as a boolean. Original batch entrypoint defaults remain unchanged. README stays
+unchanged.19 focused export/publication tests passed; no commit/push requested.
+
+Before the user's scope reduction, publication handling was also made resilient:
+eligible DrvFS rename errors can use a verified owned-product copy fallback
+(manifest replacement remains atomic). Actual missing staged source/parent is
+not hidden. Failed publication attempts roll back, retain generated diagnostics,
+record publication_failed separately from processing_status, and continue the
+next input. publication.json records operation methods or error/rollback detail.
+The reported SALAMD tracks path is a normal directory, WSL755, without an
+explicit Windows ACL deny; the original ENOENT/root cause is NOT established.
+Do not claim it was purely permissions or a confirmed converter logic error.
+User will compare another output location/free space. Do not spend more quota
+on private conversion or filesystem probing unless requested.
+
+## 2026-10-28 score timing / notation checkpoint (current)
+
+User reaffirmed integer source vgmticks as time authority. Score mode now
+interprets the ORIGINAL sample-clock spans, not the boundary-warped reference
+VGM. Native interpretation uses explicit44100Hz compatibility views; original
+Segment dumps stay intact. Complete sounding durations floor to a1/64 at
+--score-tempo225 by default. No epsilon promotes a734-sample duration. Original
+device quiet anchors affect onset/rest phase; rests use mapped endpoints so
+they cannot overrun the next synchronized note. Source instances are independent.
+OPLL schedules a complete keyed group before its short internal state slices.
+
+MusicalPlan.score_performance retains original native score input; its separate
+source_performance is the reimported reference-VGM view. Both are represented
+by refs in dumps. Blueprint uses the original score input, clips internal pitch
+changes to its truncated end, reports collapsed units and the actual clock
+shifts, and protects its original-source ownership hash. Protected devices do
+not receive score-grid duration truncation; final target-step projection still
+applies. PSG part selection preserves the sample-clock tag.
+
+Software-envelope holds alone lower to physical60Hz driver counts. Non225
+score tempi use inline varying curves instead of unvalidated tied-envelope
+compensation. Added score_notes.csv exposes original spans, final steps, signed
+residues/rest compensation and driver-frame curves. See docs/score_normalization.md.
+
+MGSC actual playback disproved the proposed implicit-tie interpretation of
+contiguous notes. Final notation uses documented additive ^ only for safe same-
+pitch full-gate continuations (<=256 steps, same physical line, no intervening
+controls/uncertain state), and an explicit common l to omit matching lengths.
+Partial q, changing-l scopes and macro-body caller defaults remain protected.
+Exact dotted values reduce decompositions. Real attacks and necessary slurs
+remain. README is unchanged; all these changes remain UNCOMMITTED, together
+with the preceding relative/complete-phrase macro work.
+
+Validation:287 broader focused tests passed before the last boundary fixes;
+108 affected tests subsequently passed; the final score/notation boundary
+suite has31 passing tests, including two-channel rest/anchor, collapsed gates,
+OPLL internal updates, strict fractional-grid durations and real MGSC replay.
+Public PSG/SCC/OPLL exports check main and blueprint nonempty MGS plus VGM at
+225/127. Evidence is ignored outputs/diagnostics/score_sync_20261028, including
+authored driver timing probes. No new full private VGM regression or listening
+claim. Existing supplied MML text-only audit: BIKKR04 MGS11776->10496 bytes;
+GENPEI01 blueprint3456->2816; SALAMD02 remains track-buffer-full. No exact
+duplicate macro bodies or envelope curves among these supplied products.
+
+External note: ../my-external-intelligence/msx_vgm2mml/field_notes/
+2026-10-28_score_samples_and_mgsc_notation.md (saved separately, uncommitted).
+Next allowed action: user regression/audition, then focused source-vs-score
+CSV inspection for reported differences. Do not restore a60Hz musical clock,
+truncate each control slice as an independent note, replace near envelopes
+silently, remove all &, overwrite supplied outputs, edit README, or claim the
+reference VGM exactly realizes per-note duration truncation. No commit/push
+was requested in this task. Preserve unrelated private-repository changes.
+
 User requested saving the completed score/blueprint work on a separate branch
 before continuing HuC. Branch `codex/score-guidance-huc6280` contains checkpoint
 `2a2f3b4`; private notes checkpoint `46fa6f1` is separate. No push performed.
@@ -3694,3 +3791,65 @@ regression or browser listening claim. Authored artifacts/logs are under
 outputs/diagnostics/blueprint_silence_20261028. Changes are uncommitted. MUCOM
 source-package copy remains incomplete/unvalidated; no MUC integration claimed.
 Next: user audition/review, then resume MUCOM only when requested.
+
+## 2026-10-28 relative octave/volume macros
+
+User committed the previous changes and requested mandatory state preparation
+for ordinary MML, prioritizing macro slots over text length. New
+mml_relative_state normalizes entry octave/volume plus relative internal changes.
+Newly selected macro bodies contain no absolute octave/volume setters, even for
+large jumps. Only callers shorten runs of >=3 relative steps to absolute form.
+Rhythm absolute volumes remain outside macros. Loop entry is conservative;
+finite transfer tables preserve nested-loop exit state without expanding counts.
+
+Default structured selection expands generated definitions, prepares state, and
+compares effective timed commands/exit state. Portfolio choice prioritizes macro
+count, then text length. Baseline compressor and blueprint share preparation.
+External pre-existing macros passed directly to the legacy compressor remain
+untouched. Dump-passes adds before/relative MML and setter audit JSON. Native
+source/music evidence is unchanged. README and user scripts/logs untouched.
+
+73 focused tests passed, including shifted octave/volume sharing, loop resets,
+range guards and MGSC/libkss replay. The authored OPLL register-value/order stream
+matches with <=4 source-sample dispatch jitter; no sample-exact audio claim.
+No full private regression. Current changes are uncommitted; user handles the
+next regression. Do not resume MUCOM work as part of this macro task.
+The supplied GENPEI01 blueprint was reprocessed without overwriting it: macros
+32 ->12; characters13046 ->13032. Effective timed commands/exit states match.
+Evidence and relative-preparation passes: outputs/diagnostics/relative_macros_20261028.
+
+## 2026-10-28 complete-phrase macro policy and normalization audit
+
+User requested implementation after noting SALAMD02's short continuation
+macros *7 and *15. Added mml_macro_phrases: exact adjacent timed-command groups
+become finite loops before macro search, preserving accumulated relative state.
+Macro candidates prefer multiple attacks, then complete one-gate gestures;
+leading holds, incomplete tied exits, single events and control-only bodies are
+not assigned slots. Unknown nested-scope exits are conservative. This is target
+syntax evidence, not a claim to recover source gate IDs. Existing native music
+and software-envelope selection remain intact. Changing default-length commands
+are excluded from new loop folding. Candidate summaries avoid repeated subtree
+expansion; same-class first-choice alternatives preserve phrase priority.
+
+Pass artifacts: macro_phrases.before/after.mml, macro_phrases.loops.json; selected
+macro CSV gains phrase_kind. Previous relative-state work remains part of the
+same uncommitted tree. README and supplied products were not overwritten.
+
+Normalization audit: ordinary MML consumes --normalize-lengths when a valid
+OPLL-derived clock is accepted; PSG/SCC-only material can abstain. export_mgs
+already requests it through default8ms/24ms thresholds. Native-source blueprint
+has its independent tempo75 constrained score clock; the MGS fitted timing is
+not applied there. Public sample verifies applied ordinary tempo120 and
+byte-identical blueprint/source Segments with and without normalization.
+Percent lengths remain valid fallbacks in either backend.
+
+83 focused tests passed, including public normalization integration and actual
+PSG driver playback of a descending tied-hold loop (matching register values/order,
+<=4-sample dispatch jitter). Supplied existing SALAMD02 MML reprocessed only to
+outputs/diagnostics/macro_phrases_20261028: chars23151->22419, macros32->32,
+428 adjacent-repeat decisions; the two pointed-out isolated fragment bodies are
+gone. Effective timed commands/states match. Native MGSC still buffer-fails
+before and after; do not claim the capacity problem solved. The original input
+and published product remain untouched. No full private VGM regression or new
+listening claim. Next: user regression and a separate decision if blueprint
+should gain an optional musical clock fitter. MUCOM work remains paused.

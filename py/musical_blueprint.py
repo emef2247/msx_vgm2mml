@@ -179,7 +179,7 @@ def _legacy_performance(plan):
 
 
 def render_blueprints(plan):
-    source = getattr(plan, 'source_performance', None)
+    source = getattr(plan,'score_performance',None) or getattr(plan, 'source_performance', None)
     if source is not None and _origins(plan):
         # HuC currently reaches the legacy engine through a documented native
         # projection. Correct blueprint provenance without changing that bundle.
@@ -198,7 +198,10 @@ def render_blueprints(plan):
             else:
                 units.append(unit)
         source = replace(source, devices=source.devices+tuple(remapped_devices.values()), units=tuple(units))
-    return render_native_blueprints(source if source is not None else _legacy_performance(plan),
+    timing=dict(plan.metadata).get('score_normalization',{})
+    tempo=timing.get('reference_tempo') if timing.get('enabled') else None
+    return render_native_blueprints(source if source is not None else _legacy_performance(plan),tempo=tempo,
+                                    note_values=bool(timing.get('enabled')),sync_report=timing,
                                     score_guide=getattr(plan,'score_guide',None))
 
 
@@ -230,7 +233,7 @@ def write_blueprint(plan, output_root, stem):
         previous = {}
     if not isinstance(previous, dict):
         previous = {}
-    source = getattr(plan, 'source_performance', None)
+    source = getattr(plan,'score_performance',None) or getattr(plan, 'source_performance', None)
     source_hash = source.source_sha256 if source is not None else dict(plan.metadata).get('source_sha256')
     report = dict(status='blocked', source_sha256=source_hash)
     previous_files = previous.get('files') or ([dict(path=previous.get('path', str(root/'blueprint'/f'{stem}.mml')),

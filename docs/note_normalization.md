@@ -1,5 +1,10 @@
 # Optional musical duration normalization
 
+The independent sample-based score mode is documented in
+[score_normalization.md](score_normalization.md). Its `--score-tempo` defaults
+to 225; it does not require an inferred OPLL clock. The following sections
+describe the older fitted-clock mode, which remains separately selectable.
+
 ```sh
 python vgm2mml.py tests/fixtures/public/psg_opll/msxplay.com/sample/sample.vgm \
   --outdir outputs/sample-normalized --normalization-ms 8 --fm-state-ms 1 --dump-passes
@@ -61,6 +66,20 @@ a suitable OPLL anchor clock remains unchanged. Existing MGSDRV pitch, sustain
 and rhythm timbre limitations still apply.
 
 Standard note lengths are used where representable, with `%N` otherwise.
+This is not a switch that prohibits all step notation. `export_mgs.py` already
+requests normalization through its default correction/state thresholds; the
+explicit `--normalize-lengths` flag there is a compatibility alias. Inspect the
+normalization report's `applied`/`reason` fields, since unsupported or unanchored
+material retains its ordinary target timing.
+
+Native-source blueprint is a separate backend: it uses its own shared monotone
+score clock (currently tempo 75) and does not apply the ordinary MGS fitted
+clock or its `--normalize-lengths` timing corrections. It also emits note-value
+notation where exact and `%N` otherwise. A public integration check verifies
+that accepted ordinary-MML normalization can change the MML tempo while its
+native-source blueprint remains byte-identical. Preserving this independence
+also permits blueprint output when ordinary MGS timing/projection fails.
+
 Minimum lengths respect MGSC's tempo-dependent representation: a one-step
 interval can be accepted at tempo 120 but rejected at 160. Unsupported ordinary
 length divisors such as `96`/`192` are never emitted. The current 80..200 range

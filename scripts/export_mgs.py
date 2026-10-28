@@ -5,10 +5,18 @@ Conversion, compilation, diagnostics and optional key-on comparison are provided
 by the existing batch runner. Its own defaults remain unchanged.
 """
 import argparse
+import sys
 from pathlib import Path
 
 from batch_vgm_to_mgs import run_batch
 from mgs_conversion_config import add_curve_arguments, curve_option_values
+
+
+def boolean_value(value):
+    normalized=str(value).strip().casefold()
+    if normalized in ('yes','y','1','true'):return True
+    if normalized in ('no','n','0','false'):return False
+    raise argparse.ArgumentTypeError('Use yes/y/1/true or no/n/0/false')
 
 
 def build_parser():
@@ -26,6 +34,8 @@ def build_parser():
     parser.add_argument('--alloc', help='Track allocation overrides forwarded to conversion')
     parser.add_argument('--normalize-lengths', action='store_true',
                         help='Compatibility flag; normalization is already requested by the export thresholds')
+    from score_normalization import add_arguments
+    add_arguments(parser)
     parser.add_argument('--fm-state-ms', type=float, default=24.0,
                         help='OPLL internal pitch/volume state threshold in milliseconds (default: 24)')
     parser.add_argument('--normalization-ms', type=float, default=8.0,
@@ -34,10 +44,11 @@ def build_parser():
     parser.add_argument('--enhance-rhythm', '--enhance-drums', dest='enhance_drums', action='store_true',
                         help='Add inferred PSG/SCC percussion on OPLL rhythm')
     volume_curves = parser.add_mutually_exclusive_group()
-    volume_curves.add_argument('--software-volume-curves', action='store_true', default=True,
-                        help='Project exact fixed-pitch PSG/SCC volume curves to software envelopes (default: enabled)')
-    volume_curves.add_argument('--no-software-volume-curves', dest='software_volume_curves',
-                               action='store_false', help='Disable PSG/SCC software volume curve projection')
+    volume_curves.add_argument('--no-software-volume-curves', dest='is_software_volume_curves',
+        nargs='?',const=False,default=True,type=lambda value:not boolean_value(value),metavar='BOOL',
+        help='Disable software volume curves (enabled by default); optional yes/no, 1/0 or true/false')
+    volume_curves.add_argument('--software-volume-curves',dest='is_software_volume_curves',
+        nargs='?',const=True,type=boolean_value,help=argparse.SUPPRESS)
     parts = parser.add_mutually_exclusive_group()
     parts.add_argument('--psg-melody-only', '--psg-melody_only', dest='psg_part',
                        action='store_const', const='melody', default='all')
@@ -47,10 +58,12 @@ def build_parser():
                         help='Apply only documented target omission rules')
     parser.add_argument('--dump-passes', action='store_true',
                         help='Retain inspectable conversion passes')
-    parser.add_argument('--enhance-macros', action='store_true', default=True,
-                        help='Enable enhanced macros (default)')
-    parser.add_argument('--legacy-macros', dest='enhance_macros', action='store_false',
-                        help='Use the previous macro compressor')
+    macros=parser.add_mutually_exclusive_group()
+    macros.add_argument('--legacy-macros',dest='is_legacy_macros',nargs='?',const=True,
+        default=False,type=boolean_value,metavar='BOOL',
+        help='Use the previous macro compressor (enhanced macros by default); optional boolean')
+    macros.add_argument('--enhance-macros',dest='is_legacy_macros',nargs='?',const=False,
+        type=lambda value:not boolean_value(value),help=argparse.SUPPRESS)
     parser.add_argument('--legacy-loops', action='store_true',
                         help='Use the previous OPLL loop projection')
     parser.add_argument('--skip-keyon-counts', action='store_true',
@@ -62,6 +75,18 @@ def build_parser():
 
 def main(argv=None):
     parser = build_parser()
+    # Optional booleans must not swallow a positional input after a bare flag.
+    argv=list(sys.argv[1:] if argv is None else argv)
+    boolean_flags={'--legacy-macros','--enhance-macros','--no-software-volume-curves','--software-volume-curves'}
+    known_values={'yes','y','1','true','no','n','0','false'}
+    normalized=[];options_ended=False
+    for index,word in enumerate(argv):
+        if word=='--':options_ended=True
+        if (not options_ended and word in boolean_flags and
+                (index+1==len(argv) or argv[index+1].strip().casefold() not in known_values)):
+            word+='=true'
+        normalized.append(word)
+    argv=normalized
     args = parser.parse_args(argv)
     try:
         rows = run_batch(args.input, args.outdir, module=args.mgsc_module,
@@ -69,11 +94,12 @@ def main(argv=None):
                          alloc=args.alloc, keyon=not args.skip_keyon_counts,
                          libkss_module=args.libkss_module,
                          normalize_lengths=args.normalize_lengths,
-                         enhance_macros=args.enhance_macros, legacy_loops=args.legacy_loops,
+                         score_normalize=args.score_normalize,score_tempo=args.score_tempo,
+                         enhance_macros=not args.is_legacy_macros, legacy_loops=args.legacy_loops,
                          force=args.force, fm_state_ms=args.fm_state_ms,
                          normalization_ms=args.normalization_ms, dump_passes=args.dump_passes,
                          enhance_drums=args.enhance_drums, psg_part=args.psg_part,
-                         software_volume_curves=args.software_volume_curves,
+                         software_volume_curves=args.is_software_volume_curves,
                          **curve_option_values(args))
     except (RuntimeError, ValueError) as error:
         parser.exit(2, str(error) + '\n')

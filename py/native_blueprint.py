@@ -4,7 +4,7 @@ Dynamics and synthesis controls stay in NativePerformance. This projection
 retains gates, semitone pitch changes and source-timbre identities only.
 """
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from fractions import Fraction
 import json
 import re
@@ -122,7 +122,7 @@ def _pack(parts, devices):
     return files
 
 
-def _clock(parts, performance, ratio, minimum, devices, score_guide=None):
+def _device_clock(parts, performance, ratio, minimum, devices, score_guide=None):
     """Smallest monotone target clock satisfying each rendered interval."""
     constraints, samples = defaultdict(list), {0, performance.end_sample}
     def interval(start, stop):
@@ -143,7 +143,7 @@ def _clock(parts, performance, ratio, minimum, devices, score_guide=None):
         if devices[event.device_id].chip == 'opll':
             rhythms[event.device_id].append(event)
             if event.stop_sample is not None:
-                samples.add(event.stop_sample)
+                interval(event.start_sample,event.stop_sample)
     for events in rhythms.values():
         times = sorted({event.start_sample for event in events} | {performance.end_sample})
         for start, stop in zip([0]+times, times):
@@ -158,12 +158,33 @@ def _clock(parts, performance, ratio, minimum, devices, score_guide=None):
     return mapping, rows
 
 
-def render_native_blueprints(performance, *, tempo=None, score_guide=None):
+def _clock(parts,performance,ratio,minimum,devices,score_guide=None):
+    mapping={};rows=[]
+    for identity in devices:
+        local=[part for part in parts if part.identity[0]==identity]
+        selected=replace(performance,percussion=tuple(e for e in performance.percussion if e.device_id==identity))
+        if not local and not any(devices[e.device_id].chip=='opll' for e in selected.percussion):continue
+        clock,rounding=_device_clock(local,selected,ratio,minimum,devices,score_guide)
+        mapping.update({(identity,at):step for at,step in clock.items()})
+        rows.extend(dict(row,device_id=identity) for row in rounding)
+    return mapping,rows
+
+
+def render_native_blueprints(performance, *, tempo=None, score_guide=None, note_values=False, sync_report=None):
     """Return all (MML, report) files; never rewrite the source performance."""
     tempo = tempo or 75
     ratio = Fraction(str(tempo))*48/(44100*60)
     minimum = max(1, int(tempo)//75)
     devices = {d.device_id: d for d in performance.devices}
+    def finish(text):
+        if note_values:
+            from mml_note_values import decompose
+            text=decompose(text)
+        if sync_report:
+            from score_normalization import comment_header
+            text=comment_header(text,sync_report)
+        from mml_notation import compact
+        return compact(format_mml_loops(annotate_sync_points(compress_macros(text))))
     voices = {v.voice_id: v for v in performance.voices}
     parts, excluded = _parts(performance)
     excluded_percussion = [dict(event_id=event.event_id, source_chip=devices[event.device_id].chip,
@@ -175,10 +196,26 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None):
     if not packed:
         packed = [dict(parts={}, voices=set())]
     clock, rounding = _clock(parts, performance, ratio, minimum, devices,score_guide)
+    score_clocks={}
+    if note_values and sync_report:
+        from score_normalization import timing_for_devices
+        for device in sync_report.get('devices',()):
+            if device['status']=='applied':score_clocks[device['device_id']]=timing_for_devices(
+                sync_report,{device['device_id']})
+        for key in clock:
+            identity,sample=key
+            if identity in score_clocks:clock[key]=score_clocks[identity].position(sample)
+        for row in rounding:
+            identity=row.get('device_id')
+            if identity in score_clocks:
+                row['timebase']='vgmticks_to_score_steps'
+                row['step']=score_clocks[identity].position(row['sample'])
+                row['shift_samples']=float(Fraction(row['step'])/ratio-row['sample'])
     def points(unit):
         return score_guide.points(unit) if score_guide else _pitch_points(unit)
-    def step(sample):
-        return clock.get(sample, round(sample*ratio))
+    def step(sample,device_id=None):
+        if device_id is not None:return clock.get((device_id,sample),round(sample*ratio))
+        return max((clock.get((identity,sample),round(sample*ratio)) for identity in devices),default=round(sample*ratio))
     terminal_attacks = [event.event_id for event in performance.percussion
         if devices[event.device_id].chip == 'opll' and event.start_sample == performance.end_sample]
     terminal_tail = minimum if terminal_attacks else 0
@@ -221,14 +258,20 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None):
                 description='Voice parameters: '+json.dumps(dict(voice.parameters), ensure_ascii=True, sort_keys=True)
                 lines.extend('; '+line for line in textwrap.wrap(description, width=106,
                              break_long_words=True, break_on_hyphens=False))
-        allocations, loop_rows, unknown, removed_timbres = [], [], [], []
+        allocations, loop_rows, unknown, removed_timbres, collapsed = [], [], [], [], []
         for (target_chip, target_ch), part in sorted(file['parts'].items()):
             device_id, section, channel = part.identity
             device = devices[device_id]
             track = TRACKS[target_chip][target_ch]
             commands, cursor = [], 0
             for unit in part.units:
-                start, stop = step(unit.start_sample), step(unit.end_sample)
+                start, stop = step(unit.start_sample,device_id), step(unit.end_sample,device_id)
+                if device_id in score_clocks:
+                    start,stop=score_clocks[device_id].span(unit.start_sample,unit.end_sample)
+                    if stop<=start:
+                        collapsed.append(dict(unit_id=unit.unit_id,source_start=unit.start_sample,
+                            source_end=unit.end_sample,reason='score_duration_below_1_64'))
+                        continue
                 if start < cursor:
                     raise NativeBlueprintError('MML clock rounding overlaps source sounding units',
                                                unit_id=unit.unit_id)
@@ -243,7 +286,9 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None):
                 changes = defaultdict(dict)
                 changes[start].update(midi=midi, voice=voice)
                 for at, value in points(unit)[1:]:
-                    changes[step(at)]['midi'] = value
+                    change_step=step(at,device_id)
+                    if change_step<stop:
+                        changes[max(start,change_step)]['midi'] = value
                 for at, identity in unit.voice_curve:
                     if unit.start_sample < at < unit.end_sample:
                         removed_timbres.append(dict(unit_id=unit.unit_id, sample=at, voice_id=str(identity)))
@@ -308,9 +353,10 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None):
                 lines.append(f'; Source MIDI range {min(pitches)}..{max(pitches)}; roles '+', '.join(sorted({unit.role for unit in part.units}))+'.')
             setup = '/1 v15' if target_chip == 'psg' else '@0 v15' if target_chip == 'scc' else '@1 v15'
             lines.append(f'{track} q8 {setup} ' + body)
-        text = format_mml_loops(annotate_sync_points(compress_macros('\n'.join(lines)+'\n')))
+        text = finish('\n'.join(lines)+'\n')
         report = dict(status='success', tempo=tempo, file_index=file_index, file_count=len(packed),
-            sounding_units=len(allocations), omitted_units=0, allocations=allocations, loops=loop_rows,
+            sounding_units=len(allocations), omitted_units=len(collapsed), allocations=allocations, loops=loop_rows,
+            score_collapsed_units=collapsed,
             structure_basis='score pitch/duration/rest/attack-or-hold events; timbre and volume excluded',
             voice_mapping=[dict(voice_id=identity, comment_number=number+1,
                                 source_device=voices[identity].device_id if identity in voices else None)
@@ -323,7 +369,7 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None):
             excluded_percussion=excluded_percussion, terminal_rhythm_attacks=terminal_attacks,
             timing_terminal_tail_steps=terminal_tail,
             pitch_placeholders=unknown, timing_rounding=rounding,
-            timing_policy='global_monotone_interval_constraints; target_only',
+            timing_policy='sample_to_score_grid_for_applied_devices; constrained_target_clock_for_abstentions' if score_clocks else 'per_device_monotone_interval_constraints; target_only',
             timing_max_shift_samples=max((abs(row['shift_samples']) for row in rounding), default=0),
             timing_duration_expansion_steps=end_step-round(performance.end_sample*ratio),
             removed_internal_timbres=removed_timbres,
@@ -337,7 +383,7 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None):
     for event in performance.percussion:
         if devices[event.device_id].chip == 'opll':
             layer=0
-            key=(step(event.start_sample),event.instrument_family.upper())
+            key=(step(event.start_sample,event.device_id),event.instrument_family.upper())
             while key in rhythm_occupancy[event.device_id,layer]:layer+=1
             rhythm_occupancy[event.device_id,layer].add(key)
             rhythm_devices[event.device_id,layer].append(event)
@@ -347,7 +393,7 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None):
         device = devices[device_id]
         groups = defaultdict(list)
         for event in events:
-            groups[step(event.start_sample)].append(event)
+            groups[step(event.start_sample,event.device_id)].append(event)
         times, commands, allocations = sorted(groups), [], []
         if times and times[0]:
             commands.append(duration('r', times[0], device_id=device_id))
@@ -370,7 +416,7 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None):
                     source_instance=device.instance, source_section='rhythm',
                     source_channel=channels[family], target_chip='opll', target_channel=6,
                     track='f', sample_start=event.start_sample, sample_end=event.stop_sample,
-                    step_start=at, step_end=None if event.stop_sample is None else step(event.stop_sample),
+                    step_start=at, step_end=None if event.stop_sample is None else step(event.stop_sample,event.device_id),
                     voice_ids=[event.instrument_id], mml=letters[family]))
             held = min(count, 255)
             if 0 < count-held < minimum:
@@ -380,18 +426,18 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None):
                 commands.append(duration('r', count-held, device_id=device_id))
         loop_plan = SourceLoopPlan.build(commands, strategy='structural')
         body, loop_rows = loop_plan.render(commands)
-        text = format_mml_loops(annotate_sync_points(compress_macros('\n'.join([
+        text = finish('\n'.join([
             '; Editable rhythm blueprint: source dynamics are omitted.', '#opll_mode 1',
             f'#tempo {tempo}', f'; Source: OPLL #{device.instance+1} / rhythm instruments -> rhythm track f, layer {rhythm_layer+1}',
             f'; Terminal target-only tail steps: {terminal_tail}; source end is unchanged.',
-            'f '+body])+'\n')))
+            'f '+body])+'\n')
         results.append((text, dict(status='success', tempo=tempo, file_index=len(results),
             sounding_units=len(events), omitted_units=0, allocations=allocations, loops=loop_rows,
             voice_mapping=[], excluded_units=excluded, percussion_events=len(events),
             excluded_percussion=excluded_percussion, terminal_rhythm_attacks=terminal_attacks,
             timing_terminal_tail_steps=terminal_tail,
             pitch_placeholders=[], timing_rounding=rounding,
-            timing_policy='global_monotone_interval_constraints; target_only',
+            timing_policy='per_device_monotone_interval_constraints; target_only',
             timing_max_shift_samples=max((abs(row['shift_samples']) for row in rounding), default=0),
             timing_duration_expansion_steps=end_step-round(performance.end_sample*ratio),
             volume_policy='all_volume_commands_removed; native curves retained',

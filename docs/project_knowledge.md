@@ -2,6 +2,14 @@
 
 ## Project Knowledge & Design Principles
 
+Score normalization uses original integer VGM sample spans through musical
+interpretation, then derives note values at an explicit reference tempo.
+Do not use a reference VGM's already warped gates to recover original note
+durations. Keep musical score steps separate from driver-frame software
+envelope holds. Exact notation shortening must preserve real attacks and
+compiler default-length scope; whitespace is not an MGSC tie operator.
+See [sample-based score timing](score_normalization.md).
+
 This document records **stable project principles and durable domain
 knowledge** for `emef2247/msx_vgm2mml`.
 
@@ -690,6 +698,13 @@ or using them in score repeat equality. Definition allocation must still include
 the driver terminator. An explicit partial target projection must name omitted
 source parts and preserve native reference output and original event links;
 failure of one target part does not establish that all source parts are unmappable.
+
+Target macro slots are not a reason to treat repeated envelope-control fragments
+as independent phrases. Fold exact adjacent repetitions first, preserving
+relative-state accumulation; prioritize complete sounding gestures and phrases
+over internal holds. Target spelling alone does not prove that a compile-time
+default-length change is safe to move into a finite loop. Keep source gate
+identity distinct from boundaries established only by target tie/rest syntax.
 
 ## Score guidance and hardware envelopes
 
