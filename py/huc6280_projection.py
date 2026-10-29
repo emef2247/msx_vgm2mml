@@ -423,8 +423,14 @@ def project(raw, trace=None, *, force=False):
         from huc6280_extended import project_extended
         try:
             return project_extended(raw, trace)
-        except ProjectionError:
+        except ProjectionError as error:
             if not force:raise
+            if 'loop state/waveform dependency changes on second traversal' in str(error):
+                from huc6280_loop_view import project_loop_view
+                try:
+                    return project_loop_view(raw, trace)
+                except ProjectionError:
+                    pass  # Unsupported modes keep their existing explicit subset policy.
             from huc6280_partial import project_subset
             return project_subset(raw, trace)
 

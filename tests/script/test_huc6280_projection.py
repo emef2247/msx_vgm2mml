@@ -135,6 +135,32 @@ class ProjectionTests(unittest.TestCase):
         # on two traversals, including latent pitch after muted source writes.
         self.assertEqual(read_loop_metadata(projection.vgm)['status'], 'valid')
 
+    def test_force_restores_loop_entry_instead_of_dropping_whole_voices(self):
+        intro = write(1, 255) + b''.join(wave(ch, SQUARE, period=428)
+                                       for ch in range(4)) + wait(100)
+        # Only the low byte is written in the body: EOF's high byte would
+        # otherwise alter the next traversal's pitch for two voices.
+        body = (write(0, 1) + write(2, 172) + wait(1) +
+                write(0, 2) + write(2, 172) + wait(100) +
+                write(0, 1) + write(3, 2) + write(0, 2) + write(3, 2))
+        raw = bytearray(make_vgm(intro + body))
+        struct.pack_into('<I', raw, 0x1c, 256 + len(intro) - 0x1c)
+        original = bytes(raw)
+        with self.assertRaisesRegex(ProjectionError, 'second traversal'):
+            project(raw)
+        projection = project(raw, force=True)
+        self.assertEqual(projection.summary['scc_channels'], 4)
+        self.assertTrue(projection.summary['force_loop_approximation'])
+        self.assertNotIn('omitted_source_channels', projection.summary)
+        self.assertEqual(bytes(raw), original)
+        self.assertEqual(projection.summary['source_sha256'], hashlib.sha256(original).hexdigest())
+        self.assertEqual(read_loop_metadata(projection.vgm)['decoded_end_samples'], 201)
+        self.assertTrue(any(row['source_event_id'] is None and row['vgmticks'] == 100
+                            for row in projection.controls))
+        original_count = len(list(command_times(raw)))
+        self.assertTrue(all(row['source_event_id'] is None or row['source_event_id'] < original_count
+                            for row in projection.controls))
+
     def test_loop_wave_upload_retains_native_pointer_dependency(self):
         # A disabled upload without a DDA falling-edge reset inherits the
         # playback index from EOF. A first-traversal wave is not enough proof.

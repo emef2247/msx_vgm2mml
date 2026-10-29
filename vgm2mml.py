@@ -443,6 +443,10 @@ def main():
             if force_summary['omission_count']:
                 print(f"Omission details: {force_summary['csv_path']}")
             partial = report.get('source_projection') or {}
+            if partial.get('force_loop_approximation'):
+                print('HuC6280 loop approximation: restore first-traversal state at loop entry; '
+                      'native source evidence is unchanged')
+                print(f"Projection details: {root / (base_name + '.huc6280.projection.json')}")
             if partial.get('force_partial'):
                 print(f"HuC6280 partial projection: retained source channels {partial['retained_source_channels']}; "
                       f"omitted source channels {partial['omitted_source_channels']} (zero-based)")

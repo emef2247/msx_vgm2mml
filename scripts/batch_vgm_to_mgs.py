@@ -711,7 +711,8 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
                              ('drums', 'drums.json'), ('psg_selection', 'psg.selection.json'),
                              ('psg_volume_curves', 'psg.volume_curves.json'),
                              ('scc_volume_curves', 'scc.volume_curves.json'),
-                             ('volume_curve_target', 'volume_curves.target.json')):
+                             ('volume_curve_target', 'volume_curves.target.json'),
+                             ('source_projection', 'huc6280.projection.json')):
             summary_path = folder / (path.stem + '.' + suffix)
             if summary_path.is_file():
                 try:
@@ -764,6 +765,11 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
             print(f"PSG selection: {selection['part']}; {selection['eligible_rhythm_candidates']} rhythm candidates; "
                   f"{selection['selected_audible_intervals']} audible intervals; "
                   f"{selection['hardware_phase_abstentions']} hardware-envelope abstentions", flush=True)
+        source_projection = summaries.get('source_projection', {})
+        if source_projection.get('force_loop_approximation'):
+            print('HuC6280 loop approximation: restore first-traversal state at loop entry; '
+                  'native source evidence is unchanged', flush=True)
+            print('Projection details: ' + str(folder / (path.stem + '.huc6280.projection.json')), flush=True)
         if row['force_summary']:
             print('Forced MGS projection: ' + row['force_summary'], flush=True)
             print('Omission details: ' + str(force_data.get('csv_path', sidecar) if force_data else sidecar), flush=True)

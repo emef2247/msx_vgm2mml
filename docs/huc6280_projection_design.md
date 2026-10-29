@@ -260,3 +260,18 @@ unsupported, force still reports failure rather than generating an empty MML.
 
 These broader hardware references do not override the explicitly pinned source
 profile used by the initial implementation.
+
+
+## Force-only loop entry approximation
+
+A nonperiodic native loop can otherwise cause the whole-channel fallback to
+remove an otherwise representable voice. With `--force`, waveform-only loops
+without in-loop waveform RAM writes may use an explicit first-traversal entry
+state restoration before trying that fallback. The native trace, Segments and
+native reference VGM remain unchanged. This repeats the first traversal's
+register state and can differ from the original source's later loop behavior.
+
+The projection JSON marks `force_loop_approximation`; synthetic restoration
+controls use null source event IDs. Normal source-view and target-loop checks
+still run. DDA, active LFO/noise, malformed evidence and RAM cursor dependencies
+are outside this approximation. Strict projection remains unchanged.
