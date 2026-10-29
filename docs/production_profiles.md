@@ -35,3 +35,8 @@ only their intra-package imports qualified. They depend on unchanged shared
 source/target helpers. Do not apply later blueprint compaction changes there
 without a separate baseline compatibility decision. Native evidence is never
 replaced with a historical or target-normalized source representation.
+
+Correctness exception (2026-10-30): the historical renderer also receives the
+PSG HW-envelope continuation fix. Pitch/control partitions without a real source
+shape reset remain tied; real resets remain attacks. Historical byte identity
+is not expected for inputs affected by that inherited retrigger bug.

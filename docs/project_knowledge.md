@@ -727,3 +727,9 @@ variants at each structural position. Source guides are not one-to-one target
 note maps. Initially retain existing boundaries and abstain from guide cuts
 requiring envelope-phase handling. Keep original and projected curves separate;
 post-clock clipping can invalidate a previously accepted approximation budget.
+
+PSG hardware-envelope pitch partitions must retain the running hardware envelope
+unless an observed shape/reset event restarts it. In MGSC, place the continuation
+`&` immediately after the preceding note and before subsequent pitch/control
+commands: controls before `&` can prevent attachment and retrigger the envelope.
+Source audibility/shape-reset evidence governs this decision, not note spelling.

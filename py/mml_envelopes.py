@@ -191,6 +191,9 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
             from psg_scc_performance import dump
             dump(performance, str(dump_path).replace('.target_notes.csv', ''))
     notes = performance.to_notes(Note)
+    from psg_hw_envelope_mml import continuation_starts, dump_decisions
+    hw_continuations = continuation_starts(performance)
+    hw_rows = []
     if score_timing and dump_path:
         timing_path=Path(str(dump_path).replace('.target_notes.csv','.score_notes.csv'))
         with timing_path.open('w',newline='',encoding='utf-8') as stream:
@@ -263,6 +266,11 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
                              else 'inline' if len(note.runs) > 1 else 'constant')
             for source_index in note.segment_indices:
                 envelope_assignments[ch, source_index] = (envelope_id, envelope_kind)
+            continuation = bool(hw and current.get('hw') and (ch, note.start) in hw_continuations)
+            if continuation:
+                # MGSC attaches & to the preceding note. Controls before &
+                # break that attachment and retrigger the HW envelope.
+                body.append('&')
             if chip == 'scc':
                 if current.get('wave') != seg.waveform_id:
                     set_value('wave', seg.waveform_id, f'@{seg.waveform_id}')
@@ -278,12 +286,16 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
             detune = period_detune(seg)
             set_value('detune', detune, f'\\{detune}')
             if hw:
-                # v disables hardware envelopes, so apply it before s.
-                set_value('volume', 15, 'v15')
+                # MGSDRV resets the HW envelope on an untied note even without s.
+                if not continuation:
+                    set_value('volume', 15, 'v15')
                 set_value('period', seg.envelope_period, envelope_period_tokens(seg.envelope_period))
-                body.append(f's{seg.envelope_shape}')
+                if not continuation:
+                    body.append(f's{seg.envelope_shape}')
                 current['hw'] = True
                 current.pop('env', None)
+                hw_rows.append((ch, note.start, note.start + note.length, seg.envelope_shape,
+                                continuation, ';'.join(map(str, note.segment_indices))))
                 body.append(duration(seg.scale))
             else:
                 if current.pop('hw', False):
@@ -362,6 +374,7 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
         import warnings
         warnings.warn(f'{chip}: {approximated} notes exceed MGSDRV detune range; '
                       'tone periods are approximated (see target_notes.csv with --dump-passes)')
+    dump_decisions(dump_path, hw_rows)
     dump_units(dump_path, performed)
     result = '\n'.join(header + [''] + lines) + '\n'
     dump_projection(dump_path, '\n'.join(header + [''] + before_lines) + '\n', result, loop_report)

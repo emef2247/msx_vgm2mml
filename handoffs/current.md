@@ -1,3 +1,11 @@
+# PSG HW drum checkpoint (2026-10-30)
+
+- User SALAMD03 audition is hybrid legacy+score-guided. Extra HW shape resets confirmed in actual playback.
+- Current and production_v110 renderers now tie HW pitch continuations; & precedes new controls. Real source resets retained.
+- .hw_envelope.csv provides decision/source lineage. Native evidence untouched.
+- Two authored checks pass; real driver probe covers current, guided and historical banks (6pitch partitions/2resets).
+- User owns SALAMD full regeneration/listening; do not claim full audio equivalence. README unchanged.
+
 # Commit checkpoint (2026-10-30): HuC loop recovery and production profiles are being committed separately; private findings are committed in their own repository. No release tag or PR is created by this task.
 
 # Validation update: SALAMD01 restored MGS exactly matches v1.1.0 (11,264 bytes); 12 export tests pass.
