@@ -1,11 +1,13 @@
 """Editable scores: remove dynamics only at the blueprint target boundary."""
 from collections import defaultdict
 from dataclasses import replace
+from contextlib import contextmanager
 import csv
 import hashlib
 import json
 import math
 import re
+import shutil
 from pathlib import Path
 import tempfile
 
@@ -178,6 +180,21 @@ def _legacy_performance(plan):
         metadata=(('blueprint_tempo', tempo),), decisions=tuple(decisions))
 
 
+def score_timing_view(plan, *, tempo=225, output_root=None, stem=None):
+    """Independent blueprint projection; never retime the target or its guide."""
+    if dict(plan.metadata).get('score_normalization', {}).get('enabled'):
+        return plan
+    source = getattr(plan, 'score_performance', None) or getattr(plan, 'source_performance', None)
+    if source is None:
+        source = _legacy_performance(plan)
+    from score_normalization import normalize
+    normalized = normalize(source, tempo=tempo)
+    if output_root is not None:
+        normalized.dump(Path(output_root) / 'blueprint_score_timing', stem)
+    return replace(plan, score_performance=source,
+        metadata=plan.metadata + (('score_normalization', normalized.report),))
+
+
 def render_blueprints(plan):
     source = getattr(plan,'score_performance',None) or getattr(plan, 'source_performance', None)
     if source is not None and _origins(plan):
@@ -217,6 +234,19 @@ def _digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+@contextmanager
+def _staging(root):
+    temporary=Path(tempfile.mkdtemp(dir=root,prefix='.blueprint_'))
+    preserve=False
+    try:
+        yield temporary
+    except BaseException as error:
+        preserve=bool(getattr(error,'blueprint_recovery',None))
+        raise
+    finally:
+        if not preserve:shutil.rmtree(temporary)
+
+
 def write_blueprint(plan, output_root, stem):
     """Publish all score pages atomically and protect any hand-edited page."""
     root = Path(output_root).resolve()
@@ -225,6 +255,7 @@ def write_blueprint(plan, output_root, stem):
         return dict(status='blocked', detail='Blueprint stem must be a file name')
     report_path = root/f'{stem}.blueprint.json'
     csv_path = root/f'{stem}.blueprint.units.csv'
+    notes_path = root/f'{stem}.blueprint.notes.csv'
     if report_path.is_symlink() or report_path.exists() and not report_path.is_file():
         return dict(status='blocked', detail='Blueprint diagnostic path is not a regular owned output')
     try:
@@ -240,30 +271,38 @@ def write_blueprint(plan, output_root, stem):
                                                  sha256=previous['sha256'])] if previous.get('sha256') else [])
     if not isinstance(previous_files, list):
         previous_files = []
-    invalid_ownership = False
-    for item in previous_files:
+    previous_midi_files = previous.get('midi_files', [])
+    if not isinstance(previous_midi_files, list):
+        previous_midi_files = []
+        invalid_midi = True
+    else:
+        invalid_midi = False
+    invalid_ownership = invalid_midi
+    for item, suffix in [(item, 'mml') for item in previous_files]+[(item, 'midi') for item in previous_midi_files]:
         if not isinstance(item, dict) or not isinstance(item.get('path'), str) or not isinstance(item.get('sha256'), str):
             invalid_ownership = True
             break
         path = Path(item['path'])
-        extra = re.fullmatch(re.escape(stem)+r'\.part(\d{2,})\.mml', path.name)
+        extra = re.fullmatch(re.escape(stem)+r'\.part(\d{2,})\.'+suffix, path.name)
         if (not path.is_absolute() or path.parent.resolve() != (root/'blueprint').resolve()
-                or path.name != stem+'.mml' and not (extra and int(extra[1]) >= 2)
+                or path.name != stem+'.'+suffix and not (extra and int(extra[1]) >= 2)
                 or not re.fullmatch(r'[0-9a-f]{64}', item['sha256'])):
             invalid_ownership = True
             break
     if invalid_ownership:
         previous_files = []
-    owned = {str(Path(item['path']).resolve()): item['sha256'] for item in previous_files}
+        previous_midi_files = []
+    owned = {str(Path(item['path']).resolve()): item['sha256'] for item in previous_files+previous_midi_files}
     if previous.get('sha256'):
-        report.update(sha256=previous['sha256'], files=previous_files,
-                      previous_artifact_retained=any(Path(item['path']).exists() for item in previous_files))
+        report.update(sha256=previous['sha256'], files=previous_files,midi_files=previous_midi_files,
+                      previous_artifact_retained=any(Path(item['path']).exists() for item in previous_files+previous_midi_files))
+    retained_report = dict(report)
     try:
         if invalid_ownership:
             raise BlueprintError('Invalid blueprint ownership record; keeping existing files')
         if (root/'blueprint').is_symlink():
             raise BlueprintError('Blueprint output directory is a symbolic link')
-        if csv_path.is_symlink() or csv_path.exists() and not csv_path.is_file():
+        if any(path.is_symlink() or path.exists() and not path.is_file() for path in (csv_path,notes_path)):
             raise BlueprintError('Blueprint diagnostic path is a symbolic link')
         rendered = render_blueprints(plan)
         if not rendered:
@@ -272,7 +311,10 @@ def write_blueprint(plan, output_root, stem):
             return report
         targets = [root/'blueprint'/(f'{stem}.mml' if i == 0 else f'{stem}.part{i+1:02d}.mml')
                    for i in range(len(rendered))]
-        candidates = {Path(name) for name in owned} | set(targets)
+        midi_targets = [target.with_suffix('.midi') for target in targets]
+        from blueprint_midi import render as render_midi
+        midis = [render_midi(data, target.stem) for (_,data),target in zip(rendered,targets)]
+        candidates = {Path(name) for name in owned} | set(targets+midi_targets)
         initial = {}
         for target in candidates:
             if not target.resolve().is_relative_to(root) or target.is_symlink():
@@ -281,7 +323,7 @@ def write_blueprint(plan, output_root, stem):
             if target.exists() and (not target.is_file() or value != owned.get(str(target.resolve()))):
                 raise BlueprintError(f'Refusing to overwrite an unowned or edited blueprint: {target}')
             initial[target] = value
-        files, allocations = [], []
+        files, allocations, midi_files, score_notes = [], [], [], []
         for i, ((text, data), target) in enumerate(zip(rendered, targets)):
             files.append(dict(path=str(target), name=target.name,
                               sha256=hashlib.sha256(text.encode('utf-8')).hexdigest(),
@@ -289,19 +331,27 @@ def write_blueprint(plan, output_root, stem):
                                   (r['source_chip'], r['source_instance'], r['source_section'], r['source_channel'])
                                   for r in data['allocations']})))
             allocations.extend(dict(row, file_name=target.name) for row in data['allocations'])
+            midi, midi_report = midis[i]
+            midi_files.append(dict(path=str(midi_targets[i]),name=midi_targets[i].name,
+                sha256=hashlib.sha256(midi).hexdigest(),summary=midi_report))
+            score_notes.extend(dict(note,file_name=midi_targets[i].name) for note in data['score_notes'])
         report = dict(rendered[0][1], source_sha256=source_hash, path=str(targets[0]),
-            sha256=files[0]['sha256'], files=files, file_count=len(files),
+            sha256=files[0]['sha256'], files=files, file_count=len(files),midi_files=midi_files,
+            midi_status='success',midi_note_count=len(score_notes),
             sounding_units=sum(data['sounding_units'] for _, data in rendered),
             allocations=allocations, per_file_reports=[data for _, data in rendered])
         target_root = root/'blueprint'
         target_root.mkdir(parents=True, exist_ok=True)
         # Prepare the complete score/diagnostic bundle before changing owned files.
-        with tempfile.TemporaryDirectory(dir=root, prefix='.blueprint_') as temporary:
-            temporary = Path(temporary)
+        with _staging(root) as temporary:
             prepared = {}
             for i, ((text, _), target) in enumerate(zip(rendered, targets)):
                 stage = temporary/f'score{i}'
                 stage.write_text(text, encoding='utf-8')
+                prepared[target] = stage
+            for i, (target, (data, _)) in enumerate(zip(midi_targets, midis)):
+                stage = temporary/f'midi{i}'
+                stage.write_bytes(data)
                 prepared[target] = stage
             stage = temporary/'units.csv'
             with stage.open('w', encoding='utf-8', newline='') as stream:
@@ -309,6 +359,12 @@ def write_blueprint(plan, output_root, stem):
                 writer = csv.DictWriter(stream, fieldnames=fields)
                 writer.writeheader();writer.writerows(allocations)
             prepared[csv_path] = stage
+            stage = temporary/'notes.csv'
+            with stage.open('w',encoding='utf-8',newline='') as stream:
+                fields=list(score_notes[0]) if score_notes else ['unit_id','step_start','step_end','midi_note']
+                writer=csv.DictWriter(stream,fieldnames=fields)
+                writer.writeheader();writer.writerows(score_notes)
+            prepared[notes_path] = stage
             stage = temporary/'report.json'
             stage.write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
             prepared[report_path] = stage
@@ -317,21 +373,40 @@ def write_blueprint(plan, output_root, stem):
                 if target.is_symlink() or now != value:
                     raise BlueprintError('Blueprint changed during rendering; keeping the edited file')
             backups = {p: p.read_bytes() if p.is_file() else None for p in candidates | set(prepared)}
+            backup_paths={}
+            for index,(target,data) in enumerate(backups.items()):
+                if data is not None:
+                    backup=temporary/f'old_{index}'
+                    backup.write_bytes(data)
+                    backup_paths[target]=backup
             try:
                 for target, stage in prepared.items():
                     stage.replace(target)
-                for target in candidates-set(targets):
+                for target in candidates-set(targets+midi_targets):
                     target.unlink(missing_ok=True)
-            except OSError:
+            except OSError as error:
+                rollback_errors=[]
                 for target, data in backups.items():
-                    if data is None:
-                        target.unlink(missing_ok=True)
-                    else:
-                        target.write_bytes(data)
+                    try:
+                        if data is None:target.unlink(missing_ok=True)
+                        else:target.write_bytes(data)
+                    except OSError as rollback_error:
+                        rollback_errors.append(dict(path=str(target),detail=str(rollback_error)))
+                if rollback_errors:
+                    error.blueprint_recovery=dict(directory=str(temporary),errors=rollback_errors,
+                        backups=[dict(path=str(path),backup=str(backup)) for path,backup in backup_paths.items()])
+                    try:
+                        (temporary/'recovery.json').write_text(json.dumps(error.blueprint_recovery,indent=2)+'\n',encoding='utf-8')
+                    except OSError:
+                        pass
                 raise
         return report
     except (ValueError, OSError) as error:
+        # Failed publication must not claim candidate hashes over restored or
+        # absent products. Keep the last validated ownership for a safe retry.
+        report = dict(retained_report)
         report.update(status='blocked', detail=str(error), error_type=type(error).__name__)
+        if getattr(error,'blueprint_recovery',None):report['publication_recovery']=error.blueprint_recovery
         if isinstance(error, BlueprintError):
             report['projection_detail'] = error.projection_detail
         if not report_path.is_symlink():

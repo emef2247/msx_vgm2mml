@@ -44,9 +44,22 @@ selection occurs only once. That target articulation behavior must be checked
 separately from repeat discovery. Current guidance preserves existing complete
 commands rather than claiming to repair all hardware-envelope articulation.
 
-## Experimental options
+## Export settings and low-level experimental options
 
-The following are initially disabled. Existing default MML behavior is retained.
+`export_mgs.py` exposes `--fm-state-ms MS` (default 24 ms), which affects OPLL
+internal-state handling when clock normalization is accepted. PSG/SCC state
+thresholds and their error budgets are left unspecified, so bounded volume
+approximation is disabled in this frontend. Exact software-volume grouping
+and envelope reuse remain enabled by default and are separate from lossy
+approximation. The temporary common `--state-ms` switch has been withdrawn
+to reduce configuration differences while comparing loop/macro behavior.
+
+The following lower-level switches remain on `vgm2mml.py`,
+`batch_vgm_to_mgs.py` and `export_vgm.py`; the chip-specific approximation
+thresholds are initially disabled there. They are no longer exposed by
+`export_mgs.py`, which also omits rhythm enhancement, PSG solo selection and
+the redundant `--normalize-lengths` flag. `--score-guided-loops` remains an
+opt-in switch on all these entry points.
 
 - `--score-guided-loops`: use score-based melodic repeat proposals; retain exact
   command equality and the existing plan as fallback.
@@ -57,15 +70,14 @@ The following are initially disabled. Existing default MML behavior is retained.
 
 Both error limits must be explicit when a positive chip threshold is requested.
 Their domain is native register levels 0..15, not linear acoustic amplitude,
-percentage or dB. These switches do not automatically enable score timing
-normalization or exact software-volume grouping. They are accepted by the
-canonical converter and the MGS/VGM export frontends.
+percentage or dB. These lower-level switches do not automatically enable score
+timing normalization or exact software-volume grouping.
 
 Example comparison (the error budgets are experiment settings, not defaults):
 
 ```sh
-python scripts/export_mgs.py input.vgm --outdir outputs/exact --score-guided-loops
-python scripts/export_mgs.py input.vgm --outdir outputs/approx --score-guided-loops \
+python vgm2mml.py input.vgm --outdir outputs/exact --score-guided-loops
+python vgm2mml.py input.vgm --outdir outputs/approx --score-guided-loops \
   --psg-state-ms 24 --scc-state-ms 24 --curve-volume-error 1 --curve-mean-error 0.25
 ```
 

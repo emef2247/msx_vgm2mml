@@ -291,7 +291,8 @@ def main():
                              score_guided_loops=args.score_guided_loops,
                              psg_state_ms=args.psg_state_ms,scc_state_ms=args.scc_state_ms,
                              curve_volume_error=args.curve_volume_error,curve_mean_error=args.curve_mean_error,
-                             score_normalize=args.score_normalize,score_tempo=args.score_tempo)
+                             score_normalize=args.score_normalize,score_tempo=args.score_tempo,
+                             blueprint_score_normalize=args.blueprint_score_normalize)
     except ValueError as error:
         parser.error(str(error))
     args.normalize_lengths = options.enabled
@@ -378,7 +379,12 @@ def main():
             else:
                 print(f"{chip.upper()} curve approximation: {summary['replaced_notes']} notes replaced; "
                       f"maximum register-level error {summary['maximum_volume_error']}")
-        report['blueprint'] = write_blueprint(shared_plan, root, base_name)
+        blueprint_plan = shared_plan
+        if options.blueprint_score_normalize:
+            from musical_blueprint import score_timing_view
+            blueprint_plan = score_timing_view(shared_plan, tempo=options.score_tempo,
+                                              output_root=root, stem=base_name)
+        report['blueprint'] = write_blueprint(blueprint_plan, root, base_name)
         save_report()
         conversion_input = decisions.get('conversion_input', vgm_path)
         source_projection = decisions.get('source_projection')

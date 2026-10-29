@@ -174,7 +174,7 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None, note_
     """Return all (MML, report) files; never rewrite the source performance."""
     tempo = tempo or 75
     ratio = Fraction(str(tempo))*48/(44100*60)
-    minimum = max(1, int(tempo)//75)
+    minimum = 3 if note_values else max(1, int(tempo)//75)
     devices = {d.device_id: d for d in performance.devices}
     def finish(text):
         if note_values:
@@ -200,22 +200,28 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None, note_
     if note_values and sync_report:
         from score_normalization import timing_for_devices
         for device in sync_report.get('devices',()):
-            if device['status']=='applied':score_clocks[device['device_id']]=timing_for_devices(
-                sync_report,{device['device_id']})
+            if device['status']=='applied':
+                timing=timing_for_devices(sync_report,{device['device_id']})
+                # Source-end compensation may land between note values. This
+                # score-only sink truncates the residue, including at anchors.
+                score_clocks[device['device_id']]=replace(timing,
+                    anchors=tuple((sample,steps//3*3) for sample,steps in timing.anchors))
+    if note_values:
         for key in clock:
             identity,sample=key
-            if identity in score_clocks:clock[key]=score_clocks[identity].position(sample)
+            clock[key]=(score_clocks[identity].position(sample) if identity in score_clocks else clock[key]//3*3)
         for row in rounding:
             identity=row.get('device_id')
-            if identity in score_clocks:
-                row['timebase']='vgmticks_to_score_steps'
-                row['step']=score_clocks[identity].position(row['sample'])
-                row['shift_samples']=float(Fraction(row['step'])/ratio-row['sample'])
+            row['timebase']='vgmticks_to_blueprint_note_values'
+            row['step']=clock.get((identity,row['sample']),round(row['sample']*ratio)//3*3)
+            row['shift_samples']=float(Fraction(row['step'])/ratio-row['sample'])
     def points(unit):
         return score_guide.points(unit) if score_guide else _pitch_points(unit)
     def step(sample,device_id=None):
-        if device_id is not None:return clock.get((device_id,sample),round(sample*ratio))
-        return max((clock.get((identity,sample),round(sample*ratio)) for identity in devices),default=round(sample*ratio))
+        fallback=round(sample*ratio)
+        if note_values:fallback=fallback//3*3
+        if device_id is not None:return clock.get((device_id,sample),fallback)
+        return max((clock.get((identity,sample),fallback) for identity in devices),default=fallback)
     terminal_attacks = [event.event_id for event in performance.percussion
         if devices[event.device_id].chip == 'opll' and event.start_sample == performance.end_sample]
     terminal_tail = minimum if terminal_attacks else 0
@@ -258,7 +264,7 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None, note_
                 description='Voice parameters: '+json.dumps(dict(voice.parameters), ensure_ascii=True, sort_keys=True)
                 lines.extend('; '+line for line in textwrap.wrap(description, width=106,
                              break_long_words=True, break_on_hyphens=False))
-        allocations, loop_rows, unknown, removed_timbres, collapsed = [], [], [], [], []
+        allocations, loop_rows, unknown, removed_timbres, collapsed, score_notes = [], [], [], [], [], []
         for (target_chip, target_ch), part in sorted(file['parts'].items()):
             device_id, section, channel = part.identity
             device = devices[device_id]
@@ -325,6 +331,11 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None, note_
                                  duration(NOTES[note_midi % 12], end-at, tie=number > 0,
                                           unit_id=unit.unit_id, sample_start=unit.start_sample,
                                           sample_end=unit.end_sample, step_start=at, step_end=end))))
+                    score_notes.append(dict(unit_id=unit.unit_id,source_device=device_id,
+                        source_chip=device.chip,source_instance=device.instance,
+                        source_section=section,source_channel=channel,track=track,
+                        step_start=at,step_end=end,midi_note=note_midi,
+                        attack=number==0,percussion=False))
                 text = ' '.join(body)
                 atom_start=len(commands)
                 commands.extend(body)
@@ -355,6 +366,7 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None, note_
             lines.append(f'{track} q8 {setup} ' + body)
         text = finish('\n'.join(lines)+'\n')
         report = dict(status='success', tempo=tempo, file_index=file_index, file_count=len(packed),
+            end_step=end_step,score_notes=score_notes,
             sounding_units=len(allocations), omitted_units=len(collapsed), allocations=allocations, loops=loop_rows,
             score_collapsed_units=collapsed,
             structure_basis='score pitch/duration/rest/attack-or-hold events; timbre and volume excluded',
@@ -369,7 +381,8 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None, note_
             excluded_percussion=excluded_percussion, terminal_rhythm_attacks=terminal_attacks,
             timing_terminal_tail_steps=terminal_tail,
             pitch_placeholders=unknown, timing_rounding=rounding,
-            timing_policy='sample_to_score_grid_for_applied_devices; constrained_target_clock_for_abstentions' if score_clocks else 'per_device_monotone_interval_constraints; target_only',
+            note_value_grid_steps=3 if note_values else None,
+            timing_policy='per_device_note_value_grid; protected_devices_use_constrained_clock_then_truncate_residue' if note_values else 'per_device_monotone_interval_constraints; target_only',
             timing_max_shift_samples=max((abs(row['shift_samples']) for row in rounding), default=0),
             timing_duration_expansion_steps=end_step-round(performance.end_sample*ratio),
             removed_internal_timbres=removed_timbres,
@@ -394,7 +407,7 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None, note_
         groups = defaultdict(list)
         for event in events:
             groups[step(event.start_sample,event.device_id)].append(event)
-        times, commands, allocations = sorted(groups), [], []
+        times, commands, allocations, score_notes = sorted(groups), [], [], []
         if times and times[0]:
             commands.append(duration('r', times[0], device_id=device_id))
         letters = {'BD': 'b', 'SD': 's', 'TOM': 'm', 'CYM': 'c', 'HH': 'h'}
@@ -418,6 +431,14 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None, note_
                     track='f', sample_start=event.start_sample, sample_end=event.stop_sample,
                     step_start=at, step_end=None if event.stop_sample is None else step(event.stop_sample,event.device_id),
                     voice_ids=[event.instrument_id], mml=letters[family]))
+                # Rhythm is an attack score, not the hardware decay waveform.
+                # MIDI uses one short fixed audition gate for an unspecified stop.
+                score_notes.append(dict(unit_id=event.event_id,source_device=device_id,
+                    source_chip=device.chip,source_instance=device.instance,
+                    source_section='rhythm',source_channel=channels[family],track='f',
+                    step_start=at,step_end=min(following,at+minimum),
+                    midi_note={'BD':35,'SD':38,'TOM':41,'CYM':49,'HH':42}[family],
+                    attack=True,percussion=True))
             held = min(count, 255)
             if 0 < count-held < minimum:
                 held -= minimum-(count-held)
@@ -432,12 +453,14 @@ def render_native_blueprints(performance, *, tempo=None, score_guide=None, note_
             f'; Terminal target-only tail steps: {terminal_tail}; source end is unchanged.',
             'f '+body])+'\n')
         results.append((text, dict(status='success', tempo=tempo, file_index=len(results),
+            end_step=end_step,score_notes=score_notes,
             sounding_units=len(events), omitted_units=0, allocations=allocations, loops=loop_rows,
             voice_mapping=[], excluded_units=excluded, percussion_events=len(events),
             excluded_percussion=excluded_percussion, terminal_rhythm_attacks=terminal_attacks,
             timing_terminal_tail_steps=terminal_tail,
             pitch_placeholders=[], timing_rounding=rounding,
-            timing_policy='per_device_monotone_interval_constraints; target_only',
+            note_value_grid_steps=3 if note_values else None,
+            timing_policy='per_device_note_value_grid; protected_devices_use_constrained_clock_then_truncate_residue' if note_values else 'per_device_monotone_interval_constraints; target_only',
             timing_max_shift_samples=max((abs(row['shift_samples']) for row in rounding), default=0),
             timing_duration_expansion_steps=end_step-round(performance.end_sample*ratio),
             volume_policy='all_volume_commands_removed; native curves retained',

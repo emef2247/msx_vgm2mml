@@ -7,13 +7,16 @@ source evidence:
 ```text
 <output>/<input-relative-parent>/
   blueprint/<stem>.mml
+  blueprint/<stem>.midi            # standard MIDI file, paired with this score
   blueprint/<stem>.part02.mml       # only when additional parts need another page
+  blueprint/<stem>.part02.midi
   tracks/<stem>.mml
   tracks/<stem>.mgs                # when ordinary compilation succeeds
   tracks/<stem>.vgm
   _diagnostics/<stem>/
     <stem>.blueprint.json
     <stem>.blueprint.units.csv
+    <stem>.blueprint.notes.csv
     <stem>.native_music.json
     ...native evidence, timing maps and ordinary projection diagnostics...
 ```
@@ -56,13 +59,18 @@ starts on a new line; nested loops are indented after the repeated track prefix.
 Every loop closure ends its line. Leaf loops may remain inline; loops containing
 nested loops close on a separate line at their opening indentation. Following
 commands use the current nesting indentation. This formatting changes no commands.
+Final note-value compaction preserves that indentation and physical line breaks.
 Finite repeats describe the rendered traversal; they do not automatically turn
 a declared VGM song loop into an infinite MGSDRV loop.
 
 ## Target clock and part allocation
 
-The default score tempo is 75, giving one MML step per 1/60 second. Native time
-remains 44,100-Hz source samples. A shared monotone sample-to-step map satisfies
+`export_mgs.py` always requests note-value blueprint timing at `--score-tempo`
+(default 225), independently of production MML. Sub-64th residues are truncated
+in this score projection, including end/synchronization-anchor residues.
+Other entry points retain the optional score normalization switch and their
+legacy blueprint tempo of 75 when it is absent. Native time remains integer
+44,100-Hz source samples. The fallback per-device monotone sample-to-step map satisfies
 positive rendered note, rest and actual semitone-change intervals, so short
 sounding units are not discarded merely because ordinary rounding would make
 them zero length. Nearby timestamps on independent parts need not consume
@@ -82,6 +90,35 @@ not replaced by the destination identity. Overlapping source parts and channel
 capacity overflow receive additional lanes/pages rather than silent omission.
 Timbre count does not consume score channels or force additional pages. PCM is
 excluded from blueprint and does not cause WAV asset generation.
+
+## Standard MIDI score
+
+Each MML page has a matching `.midi` file. The writer uses only Python's standard
+library and serializes the same final projected pitch/time spans as the MML;
+it does not parse formatted MML or reinterpret native chip commands. Finite
+repeats are expanded in MIDI. Held equal-pitch spans remain one note; actual
+repeated attacks remain separate notes, with note-off before note-on at the
+same time. Pitch-changing continuations remain documentary continuations in
+the score sidecar; neutral MIDI audition does not emulate chip legato.
+
+SMF type 1 uses 480 ticks per quarter note and a conductor tempo track. One
+MGSDRV score step is normally 10 MIDI ticks. Every track retains trailing rest
+through the page's projected endpoint. Fixed velocity 96 and melodic program 0
+are audition defaults; source dynamics, controller curves and synthesis are
+omitted. Documentary track names use UTF-8. Native parts, clock displacement,
+unknown pitches and octave folds remain inspectable in the blueprint reports.
+
+The supported OPLL rhythm score uses GM percussion notes 35 (BD), 38 (SD), 41 (TOM),
+49 (CYM), 42 (HH) on MIDI channel 10. Its MIDI audition gate is one minimum score
+interval, capped by the next attack; independent native stop/decay controls
+are not applied. Non-OPLL percussion retains the existing explicit limitation.
+Melodic parts avoid channel 10. More than 15 melodic parts use separate MIDI
+ports before reusing channel numbers; the receiving application must honor
+the port metadata. Track/port/channel allocation is recorded per MIDI file.
+
+SMF's 24-bit tempo value cannot directly encode score tempos 1..3. Those use
+an explicit metric scale in both MIDI tempo and event ticks, preserving elapsed
+time; the sidecar records the scale. No external MIDI library is required.
 
 OPLL percussion is a separate attack-grid score page using rhythm labels.
 Simultaneous duplicate instruments receive extra pages; independent source stops
@@ -114,3 +151,11 @@ attempt preserves the previous owned artifact without claiming it was generated
 for the new source. Invalid/unsupported source evidence and ownership conflicts
 remain explicit failures; "always output" is not permission to overwrite edits
 or invent missing source analysis.
+
+MML and MIDI are one optional blueprint publication bundle. A hand-edited file
+in either format protects the bundle without preventing ordinary products.
+Older MML-only ownership records migrate when the MIDI sibling is absent;
+an existing unowned MIDI file is never adopted. Stale paired pages are removed
+only when owned. Failed rollback preserves disk recovery copies. Batch results
+keep `blueprint_files` for MML and add `blueprint_midi_files`; the manifest owns
+both formats and diagnostic JSON includes `midi_files` with checksums/metadata.

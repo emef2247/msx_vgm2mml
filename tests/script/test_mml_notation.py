@@ -20,6 +20,18 @@ def meaning(text):
 
 
 class Notation(unittest.TestCase):
+    def test_compaction_preserves_nested_loop_indentation(self):
+        from mml_layout import format_mml_loops
+        before=format_mml_loops('1 [ [ [ c8 d8 e8 ]2 f8 g8 a8 ]3 b8 c8 ]2 d8 e8 f8\n')
+        result=compact(before)
+        self.assertLess(len(result),len(before))
+        depths=lambda text:[len(line)-len(line.lstrip()) for line in
+            (line[2:] for line in text.splitlines() if line.startswith('1 '))]
+        self.assertEqual(depths(result),depths(before))
+        self.assertIn('1     [',result)
+        self.assertIn('1   ]3',result)
+        self.assertEqual(meaning(before),meaning(result))
+
     def test_same_pitch_uses_additive_length_but_retriggers_remain(self):
         text='#tempo 225\n9 o5 c8 & c8 c8 & d8 e8 f8 g8\n'
         result=compact(text)

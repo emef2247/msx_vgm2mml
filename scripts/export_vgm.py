@@ -63,7 +63,11 @@ def _worker(args):
             score_guided_loops=options.score_guided_loops, curve_approx_options=options.curve_approx_options,
             score_normalize=args.score_normalize,score_tempo=args.score_tempo)
         from musical_blueprint import write_blueprint
-        report['blueprint'] = write_blueprint(plan, folder, stem)
+        blueprint_plan = plan
+        if args.blueprint_score_normalize:
+            from musical_blueprint import score_timing_view
+            blueprint_plan = score_timing_view(plan, tempo=args.score_tempo, output_root=folder, stem=stem)
+        report['blueprint'] = write_blueprint(blueprint_plan, folder, stem)
         stage = 'vgm_generation'
         writes = write_vgm(plan, target, gd3=source_gd3(args.input),
                            mapping_path=folder / f'{stem}.vgm.writes.csv')
@@ -86,6 +90,7 @@ def _flags(args):
     result = ['--normalization-ms', str(args.normalization_ms), '--fm-state-ms', str(args.fm_state_ms),
               '--song-loop', args.song_loop]
     if args.score_normalize:result+=['--score-normalize','--score-tempo',str(args.score_tempo)]
+    elif args.blueprint_score_normalize:result+=['--blueprint-score-normalize','--score-tempo',str(args.score_tempo)]
     for flag in ('force', 'dump_passes', 'enhance_drums', 'no_normalization'):
         if getattr(args, flag):
             result.append('--' + flag.replace('_', '-'))
@@ -198,7 +203,8 @@ def run_export(args):
                    diagnostics=(folder / 'report.json').relative_to(output).as_posix(),
                    units=report.get('units', ''), controls=report.get('controls', ''),
                     blueprint=bp_targets[0].relative_to(output).as_posix() if bp_targets else '',
-                    blueprint_files=[target.relative_to(output).as_posix() for target in bp_targets],
+                    blueprint_files=[target.relative_to(output).as_posix() for target in bp_targets if target.suffix=='.mml'],
+                    blueprint_midi_files=[target.relative_to(output).as_posix() for target in bp_targets if target.suffix=='.midi'],
                     blueprint_status=blueprint_status, blueprint_detail=blueprint_detail,
                    vgm_bytes=report.get('vgm_bytes', ''), detail=report.get('detail', ''))
         rows.append(row)

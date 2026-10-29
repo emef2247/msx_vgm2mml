@@ -66,6 +66,20 @@ retained separately as `score_performance` in the in-memory plan.
 
 ## Inspectable artifacts
 
+`export_mgs.py` always applies the score timing policy to its blueprint, using
+`--score-tempo` (225 by default). It no longer exposes a
+`--blueprint-score-normalize` switch. Without `--score-normalize`, production
+MML, MGS and reference VGM keep their established timing. Blueprint timing
+diagnostics are under `blueprint_score_timing/` in the input's diagnostic folder.
+When full score normalization is enabled, the blueprint reuses that report.
+Other entry points retain their optional `--blueprint-score-normalize` switch.
+
+`--score-guided-loops` reads the in-memory native score guide rather than the
+exported blueprint MML. It works independently of either output's duration
+notation and remains disabled by default. With `export_mgs.py`, use
+`--score-guided-loops` and leave `--score-normalize` absent for a note-value
+blueprint alongside existing production timing.
+
 - Original native evidence remains at the diagnostic root and `native_legacy/`.
 - `_score_normalized/` retains sample-clock interpretation and MML lowering.
 - `_score_normalized/reference/` contains the reparsed reference VGM view.

@@ -42,6 +42,7 @@ def compact(text):
             continue
         if not match or rhythm and match[1].lower()=='f':out.append(line);continue
         channel=match[1].lower();body=match[2];tokens=_TOKEN.findall(body)
+        padding=re.match(r'^[1-9a-h]([ \t]+)',code,re.I)[1]
         if ''.join(tokens)!=body:out.append(line);continue
         result=[];pitch=None;octave=octaves.get(channel,4);tie=False;total=0;adjacent=False
         if default and channel not in initialized:
@@ -77,6 +78,6 @@ def compact(text):
                 result.append(token)
         octaves[channel]=octave
         if tie:result.append('&')
-        out.append(match[1]+' '+''.join(result).strip()+((';'+comment) if semicolon else ''))
+        out.append(match[1]+padding+''.join(result).strip()+((';'+comment) if semicolon else ''))
     result='\n'.join(out)+'\n'
     return result if len(result)<len(text) else text

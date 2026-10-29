@@ -75,6 +75,12 @@ inspectable. A source score guide may propose target loops, but cannot replace
 native pitch or impose new envelope restarts. Preserve user-edited templates
 without preventing other outputs. See `docs/musical_blueprint.md`.
 
+Blueprint text and MIDI are encodings of the same projected score spans.
+Derive both before notation/macro compaction rather than reparsing final text
+or rerunning source interpretation. Keep original-device identity and explicit
+target pitch/time losses in the score sidecar. MIDI audition defaults must not
+restore source synthesis or overwrite source dynamics.
+
 Generating inspectable intermediate results is a primary project
 requirement, not merely a debugging aid.
 

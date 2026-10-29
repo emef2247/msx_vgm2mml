@@ -36,6 +36,21 @@ def music(text):
 
 
 class BlueprintTests(unittest.TestCase):
+    def test_blueprint_only_score_view_leaves_production_and_guide_untouched(self):
+        from musical_blueprint import score_timing_view, _legacy_performance
+        from score_structure import build
+        p = plan(*(note(start=i*4410, length=4000, uid=f'n{i}') for i in range(4)))
+        source = _legacy_performance(p)
+        p = replace(p, source_performance=source, score_guide=build(source, repeats=True))
+        before = asdict(p)
+        view = score_timing_view(p, tempo=225)
+        self.assertEqual(asdict(p), before)
+        self.assertIs(view.score_guide, p.score_guide)
+        self.assertIs(view.source_performance, p.source_performance)
+        self.assertIs(view.score_performance, p.source_performance)
+        self.assertIn('#tempo 225', render_blueprint(view)[0])
+        self.assertNotIn('score_normalization', dict(p.metadata))
+
     def test_subframe_duration_spelling_and_long_final_piece(self):
         self.assertEqual(_length('c',1),'c%1');self.assertEqual(_length('c',2),'c%2')
         self.assertEqual(_length('c',3),'c64');self.assertEqual(_length('c',48),'c4')

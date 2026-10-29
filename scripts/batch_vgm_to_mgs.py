@@ -98,9 +98,13 @@ def blueprint_product(report, folder, stem):
     return paths[0] if paths else None
 
 
-def blueprint_name(name, stem):
+def blueprint_name(name, stem, extension='mml'):
     import re
-    return bool(re.fullmatch(re.escape(stem) + r'(?:\.part\d{2,})?\.mml', name))
+    return bool(re.fullmatch(re.escape(stem) + r'(?:\.part\d{2,})?\.'+re.escape(extension), name))
+
+
+def blueprint_artifact_name(name, stem):
+    return blueprint_name(name,stem) or blueprint_name(name,stem,'midi')
 
 
 def blueprint_products(report, folder, stem):
@@ -144,8 +148,24 @@ def prepare_blueprints(report, folder, stem, package, products):
         return [], [], dict(products), status, detail, []
     if not generated:
         return [], [], dict(products), 'blocked', 'Blueprint report has missing or invalid pages', []
+    # Older MML-only reports remain readable. New writers publish paired MIDI
+    # records, and a malformed MIDI set must not publish a partial score bundle.
+    if 'midi_files' in value:
+        records=value['midi_files']
+        midi=[]
+        try:
+            if not isinstance(records,list) or len(records)!=len(generated):raise ValueError()
+            for record,score in zip(records,generated):
+                path=Path(record['path'])
+                if (path.resolve()!=score.with_suffix('.midi').resolve() or path.is_symlink()
+                        or not path.is_file() or file_digest(path)!=record.get('sha256')):
+                    raise ValueError()
+                midi.append(path)
+        except (OSError,ValueError,KeyError,TypeError):
+            return [], [], dict(products), 'blocked', 'Blueprint report has missing or invalid MIDI pages', []
+        generated=(*generated,*midi)
     old_names = {name for name in products if Path(name).parent.as_posix() == 'blueprint'
-                 and blueprint_name(Path(name).name, stem)}
+                 and blueprint_artifact_name(Path(name).name, stem)}
     new_names = {('blueprint/'+path.name) for path in generated}
     for name in old_names | new_names:
         target = package/name
@@ -313,7 +333,7 @@ def publication_targets(files, source_root, output, psg_part):
             allowed_products.add((package / 'tracks' / (path.stem + '.vgm')).relative_to(package).as_posix())
             allowed_products.add(blueprint.relative_to(package).as_posix())
             if name not in allowed_products and not (Path(name).parent.as_posix() == 'blueprint'
-                    and blueprint_name(Path(name).name, path.stem)):
+                    and blueprint_artifact_name(Path(name).name, path.stem)):
                 raise ValueError(f'Unexpected published path in manifest: {name}')
         # A hand-edited template protects that optional product, not the main conversion.
         for target in (*targets, reference):
@@ -330,7 +350,8 @@ def publication_targets(files, source_root, output, psg_part):
     directories = set()
     for path, _, folder, targets, manifest in routes:
         package = manifest.parent
-        for item in (*targets, targets[0].with_suffix('.vgm'), package / 'blueprint' / (path.stem + '.mml'), package / '_source_inputs' / path.name, manifest,
+        for item in (*targets, targets[0].with_suffix('.vgm'), package / 'blueprint' / (path.stem + '.mml'),
+                     package / 'blueprint' / (path.stem + '.midi'),package / '_source_inputs' / path.name, manifest,
                      package / 'results.csv', package / 'results.json',
                      diagnostics / 'results.csv', diagnostics / 'results.json', diagnostics / 'keyon_setup.log'):
             key = item.relative_to(output).as_posix().casefold()
@@ -368,9 +389,9 @@ def save_package_results(package, output, rows):
         for field in path_fields:
             if item.get(field):
                 item[field] = (output / item[field]).relative_to(package).as_posix()
-        if item.get('blueprint_files'):
-            item['blueprint_files'] = [(output/name).relative_to(package).as_posix()
-                                       for name in item['blueprint_files']]
+        for field in ('blueprint_files','blueprint_midi_files'):
+            if item.get(field):
+                item[field] = [(output/name).relative_to(package).as_posix() for name in item[field]]
         selected = [prior for prior in selected if prior.get('input') != item['input']]
         selected.append(item)
     if selected:
@@ -409,13 +430,14 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
               force=False, fm_state_ms=None, normalization_ms=None, dump_passes=False, enhance_drums=False, psg_part='all',
               software_volume_curves=False, score_guided_loops=False,
               psg_state_ms=None, scc_state_ms=None, curve_volume_error=None, curve_mean_error=None,
-              score_normalize=False, score_tempo=225):
+              score_normalize=False, score_tempo=225, blueprint_score_normalize=False):
     options = MgsOptions(normalize_lengths=normalize_lengths, normalization_ms=normalization_ms,
                          fm_state_ms=fm_state_ms, force=force, dump_passes=dump_passes, enhance_drums=enhance_drums, psg_part=psg_part,
                          software_volume_curves=software_volume_curves, score_guided_loops=score_guided_loops,
                          psg_state_ms=psg_state_ms, scc_state_ms=scc_state_ms,
                          curve_volume_error=curve_volume_error, curve_mean_error=curve_mean_error,
-                         score_normalize=score_normalize,score_tempo=score_tempo)
+                         score_normalize=score_normalize,score_tempo=score_tempo,
+                         blueprint_score_normalize=blueprint_score_normalize)
     option_args = options.cli_args()
     effective_options = options.as_dict()
     if not math.isfinite(timeout) or timeout <= 0:
@@ -493,6 +515,8 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
                          folder / (path.stem + '.fm.short_states.csv'),
                          folder / (path.stem + '.mgs.force.json'),
                          folder / (path.stem + '.mgs.force.csv'),
+                         *(folder / f'{path.stem}.{chip}.curve_approx.{suffix}'
+                           for chip in ('psg', 'scc') for suffix in ('json', 'decisions.csv')),
                          *(folder / (path.stem + '.' + suffix) for suffix in
                            ('conversion.json', 'mgs.source.json', 'volume_curves.target.json', 'opll.normalized.notes.csv',
                             'opll.normalized.loops.csv', 'opll.normalized.expanded.mml',
@@ -509,7 +533,7 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
             artifact.unlink(missing_ok=True)
         row = dict(input=str(relative), status='conversion_failed', mml='',
                    publication_status='not_attempted',publication_error='',processing_status='',
-                   mgs='', vgm='', vgm_status='unavailable', vgm_detail='', blueprint='', blueprint_files=[], blueprint_status='unavailable', blueprint_detail='', log='', detail='', stage='', error_code='', legacy_status='',
+                   mgs='', vgm='', vgm_status='unavailable', vgm_detail='', blueprint='', blueprint_files=[], blueprint_midi_files=[], blueprint_status='unavailable', blueprint_detail='', log='', detail='', stage='', error_code='', legacy_status='',
                    report=str((folder / 'report.txt').relative_to(output)),
                    diagnostics=str((folder / 'report.json').relative_to(output)), force_summary='',
                    normalization_status='unavailable', normalization_reason='',
@@ -646,7 +670,8 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
         bp_publish, bp_delete, products, bp_status, bp_detail, bp_targets = prepare_blueprints(
             current_report, folder, path.stem, package, products)
         row.update(blueprint_status=bp_status, blueprint_detail=bp_detail,
-                   blueprint_files=[target.relative_to(output).as_posix() for target in bp_targets])
+                   blueprint_files=[target.relative_to(output).as_posix() for target in bp_targets if target.suffix=='.mml'],
+                   blueprint_midi_files=[target.relative_to(output).as_posix() for target in bp_targets if target.suffix=='.midi'])
         if bp_targets:
             row['blueprint'] = row['blueprint_files'][0]
             publications.extend(bp_publish)
@@ -670,7 +695,7 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
             row.update(status='publication_failed',stage='publish',error_code='publication_error',
                 publication_status='failed',publication_error=str(error),
                 detail=f"Output publication failed after {row['processing_status']}: {error}",
-                mml='',mgs='',vgm='',blueprint='',blueprint_files=[])
+                mml='',mgs='',vgm='',blueprint='',blueprint_files=[],blueprint_midi_files=[])
             if reference:row['vgm_status']='publication_failed'
             if bp_targets:row['blueprint_status']='publication_failed'
             state=previous_state
@@ -795,6 +820,7 @@ if __name__ == '__main__':
                             keyon=not args.skip_keyon_counts, libkss_module=args.libkss_module,
                             normalize_lengths=args.normalize_lengths, enhance_macros=args.enhance_macros, legacy_loops=args.legacy_loops,
                             score_normalize=args.score_normalize,score_tempo=args.score_tempo,
+                            blueprint_score_normalize=args.blueprint_score_normalize,
                             force=args.force, fm_state_ms=args.fm_state_ms, normalization_ms=args.normalization_ms,
                             dump_passes=args.dump_passes, enhance_drums=args.enhance_drums, psg_part=args.psg_part,
                             software_volume_curves=args.software_volume_curves,

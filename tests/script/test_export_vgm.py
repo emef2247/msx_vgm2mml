@@ -189,7 +189,7 @@ class ExportVgmTests(unittest.TestCase):
             export_vgm.save_json(out/'listening_manifest.json',dict(schema_version=1,entries={'song.vgm':entry}))
             self.assertEqual(self.export(source,out)[0]['status'],'success')
             result=read_json(out/'listening_manifest.json')['entries']['song.vgm']['published']
-            self.assertEqual(set(result),set(products)|{'tracks/song.vgm','blueprint/song.mml'})
+            self.assertEqual(set(result),set(products)|{'tracks/song.vgm','blueprint/song.mml','blueprint/song.midi'})
             for name,data in products.items():self.assertEqual((out/name).read_bytes(),data)
 
 

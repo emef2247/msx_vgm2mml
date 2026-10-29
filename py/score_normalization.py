@@ -18,11 +18,14 @@ def score_tempo(value):
     return int(tempo)
 
 
-def add_arguments(parser):
+def add_arguments(parser, *, include_blueprint=True):
     parser.add_argument('--score-normalize',action='store_true',
         help='Quantize musical timing per original chip instance; compensate at score-gate quiet windows (opt-in)')
+    if include_blueprint:
+        parser.add_argument('--blueprint-score-normalize',action='store_true',
+            help='Apply score timing to blueprint only; production MML and reference VGM remain unchanged')
     parser.add_argument('--score-tempo',type=score_tempo,default=225,
-        help='Reference tempo for score-normalize; 1/64=60/tempo/16 seconds (default: 225)')
+        help='Reference tempo for score/blueprint normalization; 1/64=60/tempo/16 seconds (default: 225)')
 
 
 def option_values(args):
