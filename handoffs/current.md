@@ -1,3 +1,48 @@
+# Commit checkpoint (2026-10-30): HuC loop recovery and production profiles are being committed separately; private findings are committed in their own repository. No release tag or PR is created by this task.
+
+# Validation update: SALAMD01 restored MGS exactly matches v1.1.0 (11,264 bytes); 12 export tests pass.
+
+# Checkpoint: production v1.1.0 profiles (2026-10-30)
+
+- User explicitly requested v1.1.0 production default while retaining all comparison algorithms.
+- export_mgs: macro-mode v110 / loop-mode v110 default; current/current and greedy/envelope-first preserved.
+- New names: --current-macros, --greedy-macros, --envelope-first-loops. Old spellings hidden aliases.
+- Isolated production_v110 rendering modules from release tag; HAL/native/reference/blueprint retained.
+- 12 export tests pass. Single SALAMD01 comparison in outputs/diagnostics/v110_restore_20261030/.
+- Broad regression/listening belongs to user. Do not remove comparison paths or update README.
+- No commit/push; previous HuC changes remain. External decision note: 2026-10-30_production_v110_default_and_preserved_profiles.md.
+
+# Checkpoint: HuC loop voice recovery (2026-10-30)
+
+- Force-only first-traversal loop-entry register restoration added before whole-channel omission.
+- Native evidence/reference unchanged; explicit JSON and console approximation diagnostics.
+- Guarded waveform-only scope; in-loop RAM writes, active DDA/noise/LFO remain guarded.
+- BIKKR04 SCC2 -> SCC4 and full MML/MGS export succeeded. BIKKR09/24 recovered original3 voices.
+- HuC tests:46 pass. Listening and broad local regression remain with user.
+- No new OPLL/PSG supplementation. Strict projection unchanged. README untouched.
+- Details: external note 2026-10-30_huc_loop_entry_voice_recovery.md and ignored outputs/diagnostics/huc_scc_audit_20261030/.
+- Changes not committed; earlier SALAMD macro-default changes remain in the working tree.
+
+# SALAMD six-way comparison and export default (2026-10-30)
+
+Allsix saved macro/loop combinations now complete; compared with test2v1.1.0.
+Input hashes/effective flags checked. Legacy macro modes recover08/11 and match
+baseline12of14success; enhanced modes10of14. Legacy+score-guided gives smallest
+common-success MGS total, slightly better than baseline; not uniformly per-song.
+
+export_mgs now defaults to legacy macro selection; --enhance-macros opts in.
+--legacy-macros remains a hidden value-free compatibility flag. Normal loops
+remain default; score-guided still opt-in. Canonical/batch defaults unchanged.
+10 focused export checks passed, including existing public conversion. No new
+private conversion/compilation/listening. README unchanged, no commit/push.
+
+Japanese report/stats: outputs/diagnostics/salamd_six_way_20261030/.
+Private note:2026-10-30_salamd_six_way_macro_loop_comparison.md. Previous waiting
+status is superseded. Next: user listening/regression; do not attribute every
+cross-version difference solely to extraction or silently change loop defaults.
+
+---
+
 # HuC6280 continuation after score checkpoint (2026-10-27)
 
 ## 2026-10-29: FM-only state setting restored for comparison

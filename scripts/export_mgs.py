@@ -45,12 +45,19 @@ def build_parser():
     parser.add_argument('--dump-passes', action='store_true',
                         help='Retain inspectable conversion passes')
     macros=parser.add_mutually_exclusive_group()
-    macros.add_argument('--legacy-macros',dest='is_legacy_macros',action='store_true',
-        help='Use the previous macro compressor (enhanced macros by default)')
-    macros.add_argument('--enhance-macros',dest='is_legacy_macros',action='store_false',
-        help=argparse.SUPPRESS)
-    parser.add_argument('--legacy-loops', action='store_true',
-                        help='Use the previous OPLL loop projection')
+    macros.add_argument('--macro-mode',choices=('v110','current','greedy'),default='v110',
+        help='Production macros: v110 (default), current, or current greedy comparison')
+    macros.add_argument('--current-macros','--enhance-macros',dest='macro_mode',action='store_const',const='current',
+        help='Compare the current relative/phrase-based enhanced macros')
+    macros.add_argument('--greedy-macros',dest='macro_mode',action='store_const',const='greedy',
+        help='Compare current shared preprocessing with greedy macro selection')
+    macros.add_argument('--legacy-macros',dest='macro_mode',action='store_const',const='greedy',help=argparse.SUPPRESS)
+    loops=parser.add_mutually_exclusive_group()
+    loops.add_argument('--loop-mode',choices=('v110','current','envelope-first','score-guided'),default='v110',
+        help='Production loops: v110 (default), current, envelope-first, or score-guided')
+    loops.add_argument('--envelope-first-loops',dest='loop_mode',action='store_const',const='envelope-first',
+        help='Compare the older envelope-first loop policy')
+    loops.add_argument('--legacy-loops',dest='loop_mode',action='store_const',const='envelope-first',help=argparse.SUPPRESS)
     parser.add_argument('--skip-keyon-counts', action='store_true',
                         help=argparse.SUPPRESS)
     parser.add_argument('--libkss-module', type=Path,
@@ -61,6 +68,8 @@ def build_parser():
 def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.score_guided_loops and args.loop_mode=='envelope-first':
+        parser.error('--score-guided-loops cannot be combined with --envelope-first-loops')
     try:
         sample_threshold(args.fm_state_ms, '--fm-state-ms')
         rows = run_batch(args.input, args.outdir, module=args.mgsc_module,
@@ -70,7 +79,8 @@ def main(argv=None):
                          normalize_lengths=False,
                          score_normalize=args.score_normalize,score_tempo=args.score_tempo,
                          blueprint_score_normalize=True,
-                         enhance_macros=not args.is_legacy_macros, legacy_loops=args.legacy_loops,
+                         enhance_macros=args.macro_mode!='greedy', legacy_loops=args.loop_mode=='envelope-first',
+                         macro_mode=args.macro_mode, loop_mode='score-guided' if args.score_guided_loops else args.loop_mode,
                          force=args.force, fm_state_ms=args.fm_state_ms,
                          normalization_ms=args.normalization_ms, dump_passes=args.dump_passes,
                          enhance_drums=False, psg_part='all',

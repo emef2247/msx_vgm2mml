@@ -430,7 +430,8 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
               force=False, fm_state_ms=None, normalization_ms=None, dump_passes=False, enhance_drums=False, psg_part='all',
               software_volume_curves=False, score_guided_loops=False,
               psg_state_ms=None, scc_state_ms=None, curve_volume_error=None, curve_mean_error=None,
-              score_normalize=False, score_tempo=225, blueprint_score_normalize=False):
+              score_normalize=False, score_tempo=225, blueprint_score_normalize=False,
+              macro_mode=None, loop_mode=None):
     options = MgsOptions(normalize_lengths=normalize_lengths, normalization_ms=normalization_ms,
                          fm_state_ms=fm_state_ms, force=force, dump_passes=dump_passes, enhance_drums=enhance_drums, psg_part=psg_part,
                          software_volume_curves=software_volume_curves, score_guided_loops=score_guided_loops,
@@ -440,6 +441,7 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
                          blueprint_score_normalize=blueprint_score_normalize)
     option_args = options.cli_args()
     effective_options = options.as_dict()
+    effective_options.update(macro_mode=macro_mode or 'current', loop_mode=loop_mode or 'current')
     if not math.isfinite(timeout) or timeout <= 0:
         raise ValueError('Timeout must be finite and positive')
     source = source.resolve()
@@ -548,6 +550,8 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
         if alloc is not None:
             stages[0][1].extend(['--alloc', alloc])
         stages[0][1].extend(option_args)
+        if macro_mode is not None:stages[0][1].extend(['--macro-mode',macro_mode])
+        if loop_mode is not None:stages[0][1].extend(['--loop-mode',loop_mode])
         if not enhance_macros:
             stages[0][1].append('--legacy-macros')
         if legacy_loops:

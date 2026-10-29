@@ -7,6 +7,10 @@ from mml_macro_phrases import prepare as prepare_phrases, contexts, summaries, e
 
 
 def compress_macros(text, limit=32):
+    from production_policy import macro_mode
+    if macro_mode.get() == 'v110':
+        from production_v110.mml_macros import compress_macros as historical
+        return historical(text, limit)
     # Avoid renumbering externally supplied definitions.
     if re.search(r'^\*\d+\s*=', text, re.M):
         return text

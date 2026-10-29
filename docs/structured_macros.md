@@ -79,3 +79,21 @@ The runner preserves MML on compiler failure and writes `compile.log` and `compa
 Selective expansion of inner loops for alternative macro boundaries and permanent Segment/marker mappings are deferred. This stage first measures better macro selection with loop spelling preserved.
 
 Macro definitions are wrapped at 120 characters per physical line. Longer unwrapped definitions caused an Undefined Macro diagnostic in the es59 follow-up; wrapping preserves the command stream and character cost.
+
+
+## Export selection default
+
+`export_mgs.py` defaults to the retained macro selector. Use `--enhance-macros`
+to opt into the newer selector. The value-free `--legacy-macros` remains accepted
+as a hidden compatibility spelling. This export policy does not change the
+canonical converter or `batch_vgm_to_mgs.py` defaults. It does not restore all
+historical shared preprocessing when the retained selector is used.
+
+Prefer compiled track-buffer fit over source-text size alone when choosing a
+selector. A smaller MML or fewer definitions can still compile into a larger
+track. Score-guided repeat proposals are independent: `--score-guided-loops`
+remains opt-in; `--legacy-loops` is a separate loop-policy choice.
+
+The interim export default described above is superseded by the v1.1.0
+production profile. See [production comparison profiles](production_profiles.md)
+for the current defaults and independently selectable comparison policies.

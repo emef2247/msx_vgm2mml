@@ -148,6 +148,10 @@ def enhance_macros(text,limit=32,dump_prefix=None):
     Rank macro count, then complete character count. This is a bounded portfolio;
     compilation is checked separately by the experiment runner.
     """
+    from production_policy import macro_mode
+    if macro_mode.get() == 'v110':
+        from production_v110.structured_macros import enhance_macros as historical
+        return historical(text, limit, dump_prefix)
     original=text
     expected=expanded(text)
     state_rows=[]

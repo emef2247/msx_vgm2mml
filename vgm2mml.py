@@ -228,6 +228,10 @@ def main():
     psg_parts.add_argument('--psg-rhythm-only', '--psg-rhythm_only', dest='psg_part',
                            action='store_const', const='rhythm',
                            help='Solo conservatively classified native PSG rhythm intervals')
+    parser.add_argument('--macro-mode', choices=('v110', 'current', 'greedy'), default='current',
+                        help='Production macro policy; independent of blueprint')
+    parser.add_argument('--loop-mode', choices=('v110', 'current', 'envelope-first', 'score-guided'),
+                        default='current', help='Production loop/envelope policy')
     parser.add_argument('--legacy-macros', dest='enhance_macros', action='store_false',
                         help='Use the previous greedy macro compressor')
     parser.add_argument('--legacy-loops', action='store_true',
@@ -284,6 +288,10 @@ def main():
     parser.add_argument('--alloc', type=parse_alloc,
                         help='Override selected track allocations, e.g. "9=1800, a=3780"')
     args = parser.parse_args()
+    if args.loop_mode == 'score-guided':
+        args.score_guided_loops = True
+    if args.loop_mode == 'envelope-first':
+        args.legacy_loops = True
     try:
         options = MgsOptions(args.normalize_lengths, args.normalization_ms, args.fm_state_ms,
                              args.force, args.dump_passes, args.enhance_drums, psg_part=args.psg_part,
@@ -532,8 +540,20 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
     if args.psg_part != 'all' and not has_psg:
         raise ValueError('PSG part selection requires source PSG register data')
 
+    from production_policy import macro_mode
+    macro_token = macro_mode.set(args.macro_mode)
+    if args.macro_mode == 'v110':
+        args.enhance_macros = True
+    elif args.macro_mode == 'greedy':
+        args.enhance_macros = False
+    if args.loop_mode == 'envelope-first':
+        args.legacy_loops = True
+
     # ── Step 2: SCC MML pipeline ─────────────────────────────────
-    if args.legacy_loops:
+    if args.loop_mode == 'v110' and not args.score_guided_loops and not options.score_normalize:
+        from production_v110.pre_envelope_loops import LoopFirstEnvelopeBank as HistoricalBank
+        envelope_bank = HistoricalBank(deferred=True)
+    elif args.legacy_loops:
         envelope_bank = EnvelopeBank(deferred=True)
     else:
         from pre_envelope_loops import LoopFirstEnvelopeBank,ScoreGuidedEnvelopeBank
@@ -816,8 +836,10 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
             dump_prefix=os.path.join(song_dir, base_name) if args.dump_passes else None)
     from mml_format import format_mml
     merged_text = format_mml(merged_text)
-    from mml_notation import compact as compact_notation
-    merged_text=compact_notation(merged_text)
+    if args.macro_mode != 'v110':
+        from mml_notation import compact as compact_notation
+        merged_text=compact_notation(merged_text)
+    macro_mode.reset(macro_token)
     merged_path = os.path.join(song_dir, f'{base_name}.mml')
     with open(merged_path, 'w', encoding='cp932', errors='replace', newline='\n') as fh:
         fh.write(merged_text)
