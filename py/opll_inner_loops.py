@@ -16,15 +16,33 @@ class OpllLoopPlan:
     selection: str = 'outer_only'
 
     @classmethod
-    def build(cls, members, units, items, strategy='structural'):
+    def build(cls, members, units, items, strategy='structural',score_guided=False):
         outer = SourceLoopPlan.build(((u.kind, u.duration, u.validation_key) for u in units),
                                      strategy=strategy)
+        if score_guided:
+            from score_structure import GuidedLoopPlan,midi_pitch,pitched_trajectory_key
+            score_keys=[(u.kind,u.duration,pitched_trajectory_key(
+                (offset,duration,midi_pitch(49716*state[1]*2**state[2]/2**19)
+                 if state[0] else None) for offset,duration,state in u.validation_key)) for u in units]
+            outer=GuidedLoopPlan(SourceLoopPlan.build(score_keys,strategy=strategy),outer)
         cache, children = {}, []
         for note in members:
             keys = tuple(items[i].signature() for i in note.segment_indices)
             if keys not in cache:
-                cache[keys] = SourceLoopPlan.build(keys, strategy=strategy)
-            children.append(cache[keys])
+                child=SourceLoopPlan.build(keys, strategy=strategy)
+                if score_guided:
+                    from melody_patterns import FIELDS
+                    score=[]
+                    for i in note.segment_indices:
+                        item=items[i];state=dict(zip(FIELDS['opll'],item.state))
+                        score.append((item.duration,item.advance,state['keyon'],state['key_on_edge'],
+                            midi_pitch(49716*state['fnum']*2**state['block']/2**19) if state['keyon'] else None))
+                    child=GuidedLoopPlan(SourceLoopPlan.build(score,strategy=strategy),child)
+                cache[keys] = child
+            child=cache[keys]
+            if score_guided:
+                child=GuidedLoopPlan(child.guide,child.exact)
+            children.append(child)
         return cls(outer, tuple(tuple(n.segment_indices) for n in members), tuple(children))
 
     def render(self, body, boundaries):
@@ -42,6 +60,8 @@ class OpllLoopPlan:
             self.selection = 'inner'
         else:
             result, rows = baseline, baseline_rows
+            if hasattr(self.outer,'comparison'):
+                self.outer.render(plain)
             self.selection = 'outer_only'
         self.inner_reports = reports
         if expanded_tokens(result) != expanded_tokens(' '.join(plain)):

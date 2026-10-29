@@ -2,6 +2,14 @@
 
 ## Project Knowledge & Design Principles
 
+Score normalization uses original integer VGM sample spans through musical
+interpretation, then derives note values at an explicit reference tempo.
+Do not use a reference VGM's already warped gates to recover original note
+durations. Keep musical score steps separate from driver-frame software
+envelope holds. Exact notation shortening must preserve real attacks and
+compiler default-length scope; whitespace is not an MGSC tie operator.
+See [sample-based score timing](score_normalization.md).
+
 This document records **stable project principles and durable domain
 knowledge** for `emef2247/msx_vgm2mml`.
 
@@ -58,6 +66,20 @@ not refactor merely to make module boundaries match it.
 ------------------------------------------------------------------------
 
 # 2. Primary Rule: Intermediate Results Are First-Class Artifacts
+
+An editable score blueprint is a separate target projection of retained musical
+source evidence. It deliberately omits executable dynamics and synthesis while
+keeping those original curves and controls in the shared representation. Keep
+source gates, continuation decisions, lane mappings and projection losses
+inspectable. A source score guide may propose target loops, but cannot replace
+native pitch or impose new envelope restarts. Preserve user-edited templates
+without preventing other outputs. See `docs/musical_blueprint.md`.
+
+Blueprint text and MIDI are encodings of the same projected score spans.
+Derive both before notation/macro compaction rather than reparsing final text
+or rerunning source interpretation. Keep original-device identity and explicit
+target pitch/time losses in the score sidecar. MIDI audition defaults must not
+restore source synthesis or overwrite source dynamics.
 
 Generating inspectable intermediate results is a primary project
 requirement, not merely a debugging aid.
@@ -617,9 +639,91 @@ A final target file is not sufficient evidence that the conversion is
 correct. The path from source register stream to target must remain
 inspectable.
 
+## Cross-chip source adapters and repeated traversal
+
+A retained target VGM may adapt native source analysis into an established
+target pipeline, provided native State/Segments and source-to-target event
+links remain separately inspectable. Later target-chip Segments must not be
+presented as the original source evidence. Cross-chip register equality is not
+an appropriate roundtrip criterion.
+
+Suppressing a redundant register write during the first traversal is not
+necessarily safe inside a song loop: that write may restore a different EOF
+state. Check repeated native and target dependencies, including muted pitch
+updates and waveform upload pointers. Do not solve loop entry by resetting
+unrelated held voices to first-traversal snapshots.
+
+A small number of equal loop traversals does not prove independence from phase
+or an evolving write pointer. Either prove/reset that dependency or reject the
+unsupported operation explicitly; increasing the sampled traversal count alone
+is not a proof of periodic behavior.
+
+The shared musical plan separates interpreted units/curves and native provenance
+from the initial target profile and output encoding. MML envelope-bank capacity,
+macro spelling and compiler buffers must not limit direct VGM. Shared chip
+operations remain ordered even outside notes. An instantaneous transition group
+must include its settling state; replaying only a zero-duration key-on can invent
+a sustained note. Backend-specific losses must be reported explicitly rather
+than redefining the common musical information.
+
 ## Distribution and tool scope
 
 MGSDRV is the supported output target here. MDX export, compilation, replay and inspector tooling
 are maintained in x68k_vgm2mml. Shared analysis/structural modules and reference
 evidence may still mention MDX; their presence does not provide an MDX toolchain
 in this repository. Keep required attribution for retained referenced code.
+
+## Independent source products and score projection
+
+Build and retain source musical information before output-specific execution
+lowering. A valid source performance remains available to independent score and
+reference backends if MGS projection fails. Keep failure causes and each
+artifact's outcome separate; never label a retained previous artifact as a new
+success. Successful accepted legacy execution remains a distinct projection.
+Validate native output selection after successful target lowering as well as
+after failure: target preparation must not substitute projected chip data for
+the original source performance in the reference backend.
+
+When multiple target parts share a register or waveform memory, per-part
+caches alone are insufficient. Reconcile final positive-time shared demand
+after zero-time owner transitions. A transient owner must not leave its state
+on a continuing voice. FM key-off must preserve frequency while its release
+tail remains audible; inactive score gates do not imply instant oscillator
+silence.
+
+A score-only projection strips dynamics and synthesis without deleting those
+curves from source music. Detect repeats using pitch, duration, rest and
+attack/continuation rather than documentary timbre IDs or volume slices. A held
+unit can contain a repeated pitch phrase; its source gate and control lineage
+must remain inspectable. Coarse score clocks require explicit interval mapping
+and displacement diagnostics, not silent deletion of short positive notes.
+
+Fixed audition initialization is a separate target convenience: it may set a
+constant volume and neutral instrument without restoring source control curves
+or using them in score repeat equality. Definition allocation must still include
+the driver terminator. An explicit partial target projection must name omitted
+source parts and preserve native reference output and original event links;
+failure of one target part does not establish that all source parts are unmappable.
+
+Target macro slots are not a reason to treat repeated envelope-control fragments
+as independent phrases. Fold exact adjacent repetitions first, preserving
+relative-state accumulation; prioritize complete sounding gestures and phrases
+over internal holds. Target spelling alone does not prove that a compile-time
+default-length change is safe to move into a finite loop. Keep source gate
+identity distinct from boundaries established only by target tie/rest syntax.
+
+## Score guidance and hardware envelopes
+
+Score repeat candidates are chip-independent; software-envelope assignment is
+one later target-specific operation. A running hardware envelope is not a score
+repeat barrier. Do not compare simulated oscillator/envelope phase as score
+identity, and do not add resets merely to make loop entry match. Preserve the
+original target operations in every emitted iteration. Different complete
+commands still require expansion or a separately validated approximation.
+
+When score keys omit dynamics or timbres, the first occurrence of a motif is
+not sufficient evidence for choosing envelopes: retain all exact settings/curve
+variants at each structural position. Source guides are not one-to-one target
+note maps. Initially retain existing boundaries and abstain from guide cuts
+requiring envelope-phase handling. Keep original and projected curves separate;
+post-clock clipping can invalidate a previously accepted approximation budget.

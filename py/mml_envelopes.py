@@ -7,9 +7,11 @@ import csv
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
+from fractions import Fraction
 from mml_utils import compact_state_token
 from psg_scc_target import TUNING_HEADER, period_detune, envelope_period_tokens, rendered_period
 from psg_scc_performance import analyze as build_performance, audible, settings
+from psg_scc_execution import accepted_note_decision
 
 
 @dataclass
@@ -65,7 +67,9 @@ class EnvelopeBank:
     def flush(self):
         counts = Counter()
         for segments, chip, _, kwargs in self.pending:
-            counts.update(candidate_curves(dict(kwargs['performance'].channels)))
+            counts.update(candidate_curves(dict(kwargs['performance'].channels),kwargs['performance'].tick_clock_hz))
+        if any(kwargs.get('score_timing') and kwargs['score_timing'].tempo!=225
+               for _,_,_,kwargs in self.pending):counts.clear()
         self.select(counts)
         self.prepared = True
         for segments, chip, path, kwargs in self.pending:
@@ -75,7 +79,7 @@ class EnvelopeBank:
                 with open(report, 'w', newline='', encoding='utf-8') as stream:
                     writer = csv.writer(stream)
                     writer.writerow(('envelope_id', 'selection', 'ticks', 'occurrences', 'volume_runs'))
-                    local = candidate_curves(dict(kwargs['performance'].channels))
+                    local = candidate_curves(dict(kwargs['performance'].channels),kwargs['performance'].tick_clock_hz)
                     for curve, count in sorted(local.items()):
                         number = self.curves.get(curve, self.aliases.get(curve))
                         status = ('definition' if curve in self.curves else
@@ -120,9 +124,23 @@ def curve_prefix(short, long):
     return True
 
 
-def candidate_curves(notes):
-    return Counter(tuple(n.runs) for rows in notes.values() for n in rows
+def frame_curve(runs,clock_hz=60):
+    """Lower only software-envelope holds to the driver's real 60 Hz clock."""
+    if clock_hz==60:return tuple(runs)
+    result=[];cursor=previous=0
+    for volume,duration in runs:
+        cursor+=duration
+        end=round(Fraction(cursor*60,clock_hz));length=end-previous;previous=end
+        if length<=0:continue
+        if result and result[-1][0]==volume:result[-1]=(volume,result[-1][1]+length)
+        else:result.append((volume,length))
+    return tuple(result)
+
+
+def candidate_curves(notes,clock_hz=60):
+    return Counter(frame_curve(n.runs,clock_hz) for rows in notes.values() for n in rows
                    if not n.rest and len(n.runs) > 1
+                   and len(frame_curve(n.runs,clock_hz))>1
                    and not getattr(n.segment, 'envelope_enabled', False))
 
 
@@ -158,7 +176,7 @@ def length_tokens(pitch, ticks, raw_ticks, tie=False):
 
 
 def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, source_plans=None,
-           performance=None):
+           performance=None,score_timing=None):
     from melody_patterns import analyze
     from melody_loops import project, dump_projection
     from performed_patterns import Unit, project_notes, dump_units
@@ -173,8 +191,23 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
             from psg_scc_performance import dump
             dump(performance, str(dump_path).replace('.target_notes.csv', ''))
     notes = performance.to_notes(Note)
+    if score_timing and dump_path:
+        timing_path=Path(str(dump_path).replace('.target_notes.csv','.score_notes.csv'))
+        with timing_path.open('w',newline='',encoding='utf-8') as stream:
+            fields=('channel','note_index','kind','source_start_samples','source_end_samples',
+                    'score_start_step','score_end_step','discarded_duration_samples',
+                    'source_timebase_hz','source_volume_runs','driver_frame_runs','score_grid_applied')
+            writer=csv.writer(stream);writer.writerow(fields)
+            for channel,members in notes.items():
+                for index,note in enumerate(members):
+                    start,stop=score_timing.span(note.start,note.start+note.length,rest=note.rest)
+                    kept=Fraction((stop-start)*44100*60,score_timing.tempo*48)
+                    writer.writerow((channel,index,'rest' if note.rest else 'note',note.start,note.start+note.length,start,stop,
+                        str(Fraction(note.length)-kept),performance.tick_clock_hz,
+                        repr(note.runs),repr(frame_curve(note.runs,performance.tick_clock_hz)),score_timing.quantize))
     if not bank.prepared:
-        bank.select(candidate_curves(notes))
+        bank.select(candidate_curves(notes,performance.tick_clock_hz)
+                    if not score_timing or score_timing.tempo==225 else {})
     used = set()
     lines = []
     dump_rows = []
@@ -184,6 +217,7 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
         current = {}
         body = []
         cursor = 0
+        score_cursor=0
         boundaries = {}
         note_cuts = []
 
@@ -199,16 +233,30 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
             note_cuts.append(len(body))
             boundaries[note.segment_indices[0]] = len(body)
             seg = note.segment
-            if note.start > cursor:
+            score_start,score_end=(score_timing.span(note.start,note.start+note.length,rest=note.rest)
+                                   if score_timing else (0,0))
+            if score_timing and score_end<=score_start:
+                continue
+            if score_timing and score_start<score_cursor:
+                raise ValueError('Score projection overlaps a previously emitted note or rest')
+            if score_timing and score_start>score_cursor:
+                body.append(length_tokens('r',score_start-score_cursor,True))
+            elif not score_timing and note.start > cursor:
                 body.append(length_tokens('r', note.start - cursor, raw_ticks))
             cursor = note.start + note.length
+            if score_timing:
+                score_cursor=score_end
+            def duration(pitch,tie=False):
+                return length_tokens(pitch,score_end-score_start,True,tie) if score_timing else length_tokens(pitch,note.length,raw_ticks,tie)
             if note.rest:
-                body.append(length_tokens('r', note.length, raw_ticks))
+                body.append(duration('r'))
                 boundaries[note.segment_indices[-1] + 1] = len(body)
                 dump_rows.append((track, note.start, cursor, 'rest', '', '', '', '', ''))
                 continue
-            hw = chip == 'psg' and seg.envelope_enabled
-            env = bank.curves.get(tuple(note.runs), bank.aliases.get(tuple(note.runs))) if len(note.runs) > 1 and not hw else None
+            decision = accepted_note_decision(note, chip)
+            hw = decision.hardware_envelope
+            curve=frame_curve(note.runs,performance.tick_clock_hz)
+            env = bank.curves.get(curve, bank.aliases.get(curve)) if len(curve) > 1 and not hw else None
             note.envelope = env
             envelope_id = '' if hw else (env if env is not None else 0)
             envelope_kind = ('hardware' if hw else 'software' if env is not None
@@ -236,7 +284,7 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
                 body.append(f's{seg.envelope_shape}')
                 current['hw'] = True
                 current.pop('env', None)
-                body.append(length_tokens(seg.scale, note.length, raw_ticks))
+                body.append(duration(seg.scale))
             else:
                 if current.pop('hw', False):
                     current.pop('volume', None)
@@ -245,15 +293,24 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
                 set_value('env', chosen, f'@e{chosen}')
                 if env is not None:
                     set_value('volume', 15, 'v15')
-                    body.append(length_tokens(seg.scale, note.length, raw_ticks))
+                    body.append(duration(seg.scale))
                 else:
+                    run_sample=note.start;emitted=False;run_step=score_start
                     for index, (volume, duration) in enumerate(note.runs):
+                        if score_timing:
+                            run_end=min(score_end,max(run_step,score_timing.position(run_sample+duration)))
+                            run_sample+=duration
+                            if run_end<=run_step:continue
+                            set_value('volume', volume, f'v{volume}')
+                            body.append(length_tokens(seg.scale,run_end-run_step,True,tie=emitted))
+                            run_step=run_end;emitted=True
+                            continue
                         set_value('volume', volume, f'v{volume}')
                         body.append(length_tokens(seg.scale, duration, raw_ticks, tie=index > 0))
             boundaries[note.segment_indices[-1] + 1] = len(body)
             dump_rows.append((track, note.start, cursor, 'note', '' if env is None else env,
                               ';'.join(f'{v}:{n}' for v, n in note.runs),
-                              detune, rendered_period(seg), int(rendered_period(seg) == seg.tone_period)))
+                              detune, decision.period, int(decision.period_exact)))
         note_cuts.append(len(body))
         before_lines.append(f'{track} ' + ' '.join(body))
         if source_plans is not None:
@@ -287,7 +344,7 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
     header = [f'#alloc {ch + (1 if chip == "psg" else 4)}=0' for ch in notes]
     if not header:
         header = ['#alloc 0=0']
-    header.insert(0, '#tempo 75' if raw_ticks else '#tempo 225')
+    header.insert(0, f'#tempo {score_timing.tempo}' if score_timing else '#tempo 75' if raw_ticks else '#tempo 225')
     header.insert(0, TUNING_HEADER)
     header.extend(f'@s{i:02d} = {{{wave}}}' for i, wave in enumerate(waveforms))
     header.extend(bank.definitions(used))

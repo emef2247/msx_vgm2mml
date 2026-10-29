@@ -1,8 +1,11 @@
 # PSG/SCC sounding-unit and curve projection plan
 
-Status: milestone 1 has an experimental opt-in implementation as of 2026-10-24.
-See [Software volume curves](software_volume_curves.md) for its implemented scope
-and validation limits. Milestones 2 and 3 remain proposals.
+Status: exact curve grouping is implemented. A conservative opt-in prototype of
+milestone 2 and a shared source-score guide are available as of 2026-10-27.
+See [Score-guided target projection](score_guided_curves.md) for implemented
+options, normalization abstention and validation limits. Milestone 3 remains
+future work. See [Software volume curves](software_volume_curves.md) for the
+established exact path.
 
 ## Finding and scope
 

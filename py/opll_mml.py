@@ -678,7 +678,8 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
                      dump_passes: bool = False, debug: bool = True,
                      voice_csv_path: str | None = None,
                      raw_ticks: bool = False, *, source_loops: bool = True,
-                     source_strategy: str = 'structural', opll_mode: int | None = None) -> str:
+                     source_strategy: str = 'structural', opll_mode: int | None = None,
+                     score_guided: bool = False,decision_segments=None,score_timing=None) -> str:
     """Run the OPLL MML generation pipeline.
 
     Args:
@@ -722,6 +723,9 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
 
     # Build segments (tick-based final-state evaluation)
     segments,bpm = _build_segments(trace_path)
+    if decision_segments is not None:
+        from copy import copy
+        segments={ch:[copy(segment) for segment in rows] for ch,rows in decision_segments.items()}
 
     if dump_passes:
         from opll_segments import dump_segments
@@ -733,6 +737,18 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
 
     # Assign voice IDs using the voice CSV (user-patch tracking)
     voice_table, user_patches, warnings = _assign_voice_ids(segments, voice_csv_path)
+
+    if score_timing is not None:
+        from opll_target import render
+        from rhythm_mml import render as render_rhythm
+        target_dump=os.path.join(output_dir,f'{stem}.opll.target_notes.csv') if dump_passes else None
+        text=render(segments,voice_csv_path,dump_path=target_dump,source_loops=source_loops,
+                    source_strategy=source_strategy,num_channels=num_channels,
+                    score_guided=score_guided,score_timing=score_timing)
+        text+=render_rhythm(segments,score_timing=score_timing)
+        path=os.path.join(output_dir,f'{stem}.opll.target.mml')
+        with open(path,'w',encoding='utf-8') as stream:stream.write(text)
+        return path
 
     if dump_passes:
         # Emit a simple segment dump for debugging
@@ -766,7 +782,7 @@ def process_opll_csv(trace_path: str, output_dir: str, stem: str | None = None,
     target_dump = os.path.join(output_dir, f'{stem}.opll.target_notes.csv') if dump_passes else None
     target_text = render_melody(segments, voice_csv_path, raw_ticks, target_dump,
                                 source_loops=source_loops, source_strategy=source_strategy,
-                                num_channels=num_channels)
+                                num_channels=num_channels,score_guided=score_guided)
     # Rhythm Segments retain attacks only: the final key-off can be later.
     import csv
     with open(trace_path, newline='') as stream:

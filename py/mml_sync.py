@@ -11,7 +11,7 @@ import re
 
 _TRACK = re.compile(r'^([1-9a-hA-H])\s+(.*)$')
 _TOKEN = re.compile(
-    r'\s+|\[|\]\d*|\*\d+|@[a-z#\\]?[-+]?\d+|@f|'
+    r'\s+|\[|\]\d*|\*\d+|\^(?:%\d+|\d+)?\.*|@[a-z#\\]?[-+]?\d+|@f|'
     r'l(?:%\d+|\d+)\.*|h[ofi]|[sk][of]|'
     r'[a-gr][+#-]?(?:%\d+|\d+)?\.*|'
     r'[ovqktpmnsy/\\][-+]?\d+(?:,[-+]?\d+)*|[<>&]|[()]\d*', re.I)
@@ -111,11 +111,21 @@ def _time(nodes, state, macros, expanding=()):
         if node.lower().startswith('l'):
             match = re.fullmatch(r'l(%\d+|\d+)(\.*)', node, re.I)
             state['default'] = _duration(*match.groups(), state['default'])
+        elif node.startswith('^'):
+            if state.get('last_note') is None:
+                raise ValueError('Tie length has no preceding melodic note')
+            match=re.fullmatch(r'\^(%\d+|\d+)?(\.*)',node)
+            state['step']+=_duration(match[1],match[2],state['default'])
+            result.append(TimedToken(node,start,state['step'],(
+                TimedToken('&',start,start),TimedToken(state['last_note']+node[1:],start,state['step']))))
+            continue
         else:
             match = (_RHYTHM_NOTE if state.get('rhythm') else _NOTE).fullmatch(node)
             if match:
                 length, dots = match.groups()
                 state['step'] += _duration('' if length == ':' else length, dots, state['default'])
+                if not state.get('rhythm'):
+                    state['last_note']=re.match(r'[a-gr][+#-]?',node,re.I)[0]
         result.append(TimedToken(node, start, state['step']))
     return result
 

@@ -7,8 +7,8 @@ from mml_sync import analyze_mml, _leaves
 
 
 def expanded(text):
-    tracks, _, _ = analyze_mml(text)
-    return {ch: [(n.text, n.start, n.end) for n in _leaves(nodes)] for ch, nodes in tracks.items()}
+    from mml_relative_state import signature
+    return signature(text)
 
 
 class Macros(unittest.TestCase):

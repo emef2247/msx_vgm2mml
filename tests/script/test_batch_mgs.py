@@ -122,16 +122,16 @@ class BatchMgs(unittest.TestCase):
                 self.assertEqual(len(list(csv.DictReader(stream))),2)
 
     @patch('batch_vgm_to_mgs.shutil.which', return_value=None)
-    def test_setup_failure_stops_before_conversion(self, _which):
+    def test_setup_failure_still_attempts_conversion(self, _which):
         with tempfile.TemporaryDirectory() as tmp:
             source, out = Path(tmp)/'input', Path(tmp)/'out'
             source.mkdir(); (source/'a.vgm').write_bytes(b'fixture')
             with patch('batch_vgm_to_mgs.subprocess.run', return_value=
                        subprocess.CompletedProcess([],2,b'',b'MGSC setup error')) as run:
-                with self.assertRaisesRegex(RuntimeError, 'before conversion'):
-                    run_batch(source,out,keyon=False)
-                self.assertEqual(run.call_count,1)
-            self.assertFalse(out.exists())
+                rows = run_batch(source,out,keyon=False)
+                self.assertEqual(run.call_count,2)
+            self.assertEqual(rows[0]['status'], 'conversion_failed')
+            self.assertTrue((out/'_diagnostics/a/convert.log').is_file())
 
     @patch('batch_vgm_to_mgs.shutil.which', return_value='/usr/local/bin/mgsc')
     def test_keyon_counts_reuse_compiled_mgs_and_keep_failures_separate(self, _which):
@@ -192,7 +192,10 @@ class BatchMgs(unittest.TestCase):
             root = Path(tmp)
             source, mgs = root/'source.vgm', root/'source.mgs'
             header = bytearray(0x40); header[:4] = b'Vgm '
+            struct.pack_into('<I', header, 8, 0x100)
             struct.pack_into('<I', header, 0x18, 44100)
+            header.extend(b'\x61' + struct.pack('<H', 44100) + b'\x66')
+            struct.pack_into('<I', header, 4, len(header) - 4)
             source.write_bytes(header); mgs.write_bytes(b'original binary')
             def run(command, **kwargs):
                 if '--outdir' in command:
@@ -622,6 +625,32 @@ class AdjacentOutputTests(unittest.TestCase):
 
 class PackagePublicationTests(unittest.TestCase):
     converted = staticmethod(AdjacentOutputTests.converted)
+    def test_failed_rollback_preserves_the_only_intact_backup(self):
+        import errno
+        from batch_vgm_to_mgs import publish_bundle
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);workspace=root/'diagnostics';workspace.mkdir()
+            target=root/'tracks/a.mml';target.parent.mkdir();target.write_bytes(b'old intact')
+            source=root/'new.mml';source.write_bytes(b'new output')
+            manifest=root/'listening_manifest.json';manifest.write_text('{"old":true}')
+            real_copy=__import__('shutil').copyfile
+            def partial_copy(src,dst,*args,**kwargs):
+                if Path(dst)==target:
+                    target.write_bytes(b'partial')
+                    raise OSError(errno.EIO,'simulated partial write and locked rollback')
+                return real_copy(src,dst,*args,**kwargs)
+            with patch('batch_vgm_to_mgs.os.replace',side_effect=PermissionError(errno.EACCES,'locked')), \
+                 patch('batch_vgm_to_mgs.shutil.copyfile',side_effect=partial_copy):
+                with self.assertRaises(OSError) as raised:
+                    publish_bundle([(source,target)],manifest,dict(new=True),workspace)
+            context=raised.exception.publication_context
+            self.assertTrue(context['recovery_required'])
+            recovery=Path(context['recovery_directory'])
+            mapping=json.loads((recovery/'recovery.json').read_text())
+            backup=next(row for row in mapping['targets'] if row['target']==str(target))
+            self.assertEqual(Path(backup['backup']).read_bytes(),b'old intact')
+            self.assertEqual(manifest.read_text(),'{"old":true}')
+
     @patch('batch_vgm_to_mgs.shutil.which', return_value='/usr/local/bin/mgsc')
     def test_package_manifest_staging_and_partial_rerun(self, _which):
         import hashlib
@@ -732,7 +761,62 @@ class PackagePublicationTests(unittest.TestCase):
                 return real_replace(source_path, target_path)
             with patch('batch_vgm_to_mgs.subprocess.run', side_effect=self.converted), \
                  patch('batch_vgm_to_mgs.os.replace', side_effect=replace):
-                with self.assertRaisesRegex(OSError, 'simulated publication failure'):
-                    run_batch(source, out, keyon=False)
+                row=run_batch(source, out, keyon=False)[0]
+            self.assertEqual(row['status'],'publication_failed')
+            self.assertEqual(row['processing_status'],'success')
+            self.assertIn('simulated publication failure',row['detail'])
             self.assertEqual(before, {name: (out/name).read_bytes() for name in before})
             self.assertEqual(json.loads((out/'listening_manifest.json').read_text())['entries']['a.vgm']['published'], previous)
+
+    @patch('batch_vgm_to_mgs.shutil.which',return_value='/usr/local/bin/mgsc')
+    def test_drvfs_rename_failure_uses_verified_copy_for_products(self,_which):
+        import errno
+        import os
+        real_replace=os.replace
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);source=root/'a.vgm';source.write_bytes(b'original');out=root/'out'
+            def fail_move(source_path,target_path):
+                if Path(source_path).name=='new_1':
+                    raise FileNotFoundError(errno.ENOENT,'simulated DrvFS rename failure',str(target_path))
+                return real_replace(source_path,target_path)
+            with patch('batch_vgm_to_mgs.subprocess.run',side_effect=self.converted), \
+                 patch('batch_vgm_to_mgs.os.replace',side_effect=fail_move):
+                row=run_batch(source,out,keyon=False)[0]
+            self.assertEqual(row['status'],'success')
+            self.assertEqual((out/'tracks/a.mgs').read_bytes(),b'MGS')
+            report=json.loads((out/'_diagnostics/a/publication.json').read_text())
+            self.assertTrue(any(operation['method']=='verified_copy' for operation in report['operations']))
+
+    @patch('batch_vgm_to_mgs.shutil.which',return_value='/usr/local/bin/mgsc')
+    def test_publication_failure_preserves_compile_error_and_continues_next_input(self,_which):
+        import os
+        real_replace=os.replace
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);source=root/'input';source.mkdir();out=root/'out'
+            for name in ('a','b'):(source/(name+'.vgm')).write_bytes(name.encode())
+            def converted(command,**kwargs):
+                if '--outdir' in command:
+                    folder=Path(command[command.index('--outdir')+1]);stem=Path(command[2]).stem
+                    (folder/(stem+'.mml')).write_text('1 c4')
+                    tracks=folder/'tracks';tracks.mkdir(exist_ok=True)
+                    ref=tracks/(stem+'.vgm');ref.write_bytes(b'Vgm reference')
+                    (folder/(stem+'.conversion.json')).write_text(json.dumps(dict(
+                        direct_vgm=dict(status='success',vgm=str(ref),
+                            vgm_sha256=__import__('hashlib').sha256(ref.read_bytes()).hexdigest()))))
+                    return subprocess.CompletedProcess(command,0,b'',b'')
+                if Path(command[1]).stem=='a':
+                    return subprocess.CompletedProcess(command,1,b'Track buffer full',b'')
+                return self.converted(command,**kwargs)
+            def fail_move(source_path,target_path):
+                if Path(source_path).name=='new_1' and Path(target_path).name=='a.vgm':
+                    raise PermissionError('simulated locked tracks')
+                return real_replace(source_path,target_path)
+            with patch('batch_vgm_to_mgs.subprocess.run',side_effect=converted), \
+                 patch('batch_vgm_to_mgs.os.replace',side_effect=fail_move):
+                rows=run_batch(source,out,keyon=False)
+            self.assertEqual([row['status'] for row in rows],['publication_failed','success'])
+            self.assertEqual(rows[0]['processing_status'],'compilation_failed')
+            self.assertTrue((out/'_diagnostics/a/a.mml').is_file())
+            self.assertTrue((out/'_diagnostics/a/tracks/a.vgm').is_file())
+            self.assertTrue((out/'tracks/b.mgs').is_file())
+            self.assertTrue((out/'results.csv').is_file())

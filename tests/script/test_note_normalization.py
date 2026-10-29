@@ -149,6 +149,10 @@ class NoteNormalizationTests(unittest.TestCase):
             self.assertEqual(report['timing']['tempo'], 120)
             self.assertEqual(report['target_note_count'], 609)
             self.assertTrue(report['notation_preserves_effective_states'])
+            # Blueprint intentionally remains a native-source score on its own
+            # constrained clock; accepted MGS normalization does not retime it.
+            self.assertEqual((baseline/'blueprint/sample.mml').read_bytes(),
+                             (corrected/'blueprint/sample.mml').read_bytes())
             original = (baseline / 'sample.mml').read_text(encoding='utf-8')
             normalized = (corrected / 'sample.mml').read_text(encoding='utf-8')
             self.assertIn('#tempo 120', normalized)

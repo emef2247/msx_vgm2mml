@@ -177,180 +177,73 @@ def _gate(observed, available, default_gate, plan):
 
 
 def render_melody(segments, voice_path, plan, num_channels=6, source_loops=False, *,
-                  fm_state_ms=1, state_evidence=None):
-    from opll_target import target_note, decode_patch
+                  fm_state_ms=1, state_evidence=None, decision_plan=None,score_guided=False):
+    from opll_target import decode_patch
     from performed_patterns import Unit, compress
-    from mgs_conversion_config import sample_threshold
-    state_samples = sample_threshold(fm_state_ms, '--fm-state-ms')
-    updates = []
-    with open(voice_path, newline='') as stream:
-        for row in csv.DictReader(stream):
-            if row['#type'] == 'patch':
-                updates.append((int(row['vgmticks']), bytes.fromhex(row['patch_hex'])))
-    times = [sample for sample, patch in updates]
-    patches, tracks, expanded, evidence, loop_rows = {}, [], [], [], []
+    from musical_timing import plan_melody
+    if decision_plan is None:
+        accepted = plan_melody(segments, voice_path, plan, num_channels,
+                               fm_state_ms=fm_state_ms, state_evidence=state_evidence)
+    else:
+        accepted = decision_plan
+        if state_evidence is not None:
+            state_evidence.extend(accepted.state_evidence)
+    if any(voice > 255 for _, voice in accepted.patches):
+        raise ValueError('Normalized custom voices exceed the MGSDRV voice range')
+    if any(track.channel >= num_channels and track.notes for track in accepted.tracks):
+        raise ValueError('Accepted melodic voices exceed the selected MGSDRV OPLL layout')
+    tracks, expanded, loop_rows = [], [], []
     minimum = max(1, plan.tempo // 75)
-
-    def state(seg):
-        octave, note = target_note(seg.fnum, seg.block)
-        patch = None
-        if seg.inst:
-            voice = seg.inst - 1
-        else:
-            position = bisect_right(times, seg.vgmticks) - 1
-            patch = updates[position][1] if position >= 0 else bytes(8)
-            if patch not in patches:
-                if 16 + len(patches) > 255:
-                    raise ValueError('Normalized custom voices exceed the MGSDRV voice range')
-                patches[patch] = 16 + len(patches)
-            voice = patches[patch]
-        return octave, note, voice, 15 - seg.vol, seg.sus, patch.hex() if patch else ''
-
-    if num_channels == 6 and any(s.keyon and s.vgmticks_end > s.vgmticks for ch in (6, 7, 8)
-           for s in segments.get(ch, ())):
-        raise ValueError('Nine-channel melodic OPLL is outside the current target renderer')
-    for ch in range(num_channels):
-        notes = _notes(segments.get(ch, ()))
-        usable = [n for n in notes if n.members and (n.end is None or n.end > n.start)]
-        if not usable:
-            continue
-        runs_by_note = []
-        for note in usable:
-            runs = []
-            for index, seg in note.members:
-                stop = seg.vgmticks_end
-                if stop is None or stop <= seg.vgmticks:
-                    continue
-                value = state(seg)
-                if runs and runs[-1][2] == value and runs[-1][1] == seg.vgmticks:
-                    runs[-1] = (runs[-1][0], stop, value)
-                else:
-                    runs.append((seg.vgmticks, stop, value))
-            runs_by_note.append(runs)
-        # Estimate the prevalent gate from the final held state of complete notes.
-        gates = []
-        for n, runs in zip(usable, runs_by_note):
-            if n.end is None or not runs:
-                continue
-            observed = (n.end - runs[-1][0]) / plan.samples_per_step
-            options = [(abs(length * q / 8 - observed), -q, q) for length in (12, 24, 48, 96, 192)
-                       for q in range(1, 9) if abs(length * q / 8 - observed) * plan.samples_per_step <= plan.tolerance_samples]
-            if options:
-                gates.append(min(options)[-1])
-        default_gate = statistics.mode(gates) if gates else 8
-        all_states = [run[2] for runs in runs_by_note for run in runs]
-        if not all_states:
-            continue
-        constant_voice = len({s[2] for s in all_states}) == 1
-        default_volume = statistics.mode(s[3] for s in all_states)
-        closed_states = [run[2] for note, runs in zip(usable, runs_by_note)
-                         if note.end is not None for run in runs]
-        constant_volume = len({s[3] for s in closed_states or all_states}) == 1
+    for track_plan in accepted.tracks:
+        ch = track_plan.channel
+        default_gate = track_plan.default_gate
         prefix = [f'l16 q{default_gate}']
-        if constant_voice:
-            prefix.append(f'@{all_states[0][2]}')
-        prefix.append(f'v{default_volume}')
-        commands, units = [], []
-        cursor = 0
-        for ordinal, (note, runs) in enumerate(zip(usable, runs_by_note)):
-            if not runs:
-                continue
-            start = plan.onset(note.start)
-            if start < cursor:
-                raise ValueError(f'Normalization would overlap an attack on channel {ch}')
+        if track_plan.constant_voice:
+            prefix.append(f'@{track_plan.voice}')
+        prefix.append(f'v{track_plan.default_volume}')
+        commands, units, cursor = [], [], 0
+        score_keys=[]
+        for note in track_plan.notes:
+            start = note.start_step
             if start > cursor:
                 rest = length_token('r', start - cursor, minimum=minimum)
                 commands.append(rest)
                 units.append(Unit(len(units), len(units) + 1, 'rest', (start - cursor, rest)))
-            next_start = (plan.onset(usable[ordinal + 1].start) if ordinal + 1 < len(usable)
-                          else max(start + minimum, round(plan.position(runs[-1][1]))))
-            if next_start <= start:
-                raise ValueError(f'Normalization would merge attacks on channel {ch}')
-            # Intermediate writes remain in source CSVs; target states which
-            # have no representable duration are recorded, not silently deleted.
-            from fm_state_runs import select_state_runs
-            # A short final state determines the release; timbre and sustain
-            # transitions cannot be approximated as pitch/level transients.
-            protected = {len(runs) - 1}
-            for index in range(1, len(runs)):
-                previous, current = runs[index - 1][2], runs[index][2]
-                if (previous[2], previous[4], previous[5]) != (current[2], current[4], current[5]):
-                    protected.update((index - 1, index))
-            retained_indices, dropped_indices = select_state_runs(runs, state_samples, protected)
-            dropped = list(dropped_indices)
-            if state_evidence is not None:
-                for index, (a, b, value) in enumerate(runs):
-                    state_evidence.append(dict(ch=ch, note_index=ordinal, run_index=index,
-                        source_start_samples=a, source_end_samples=b, duration_samples=b-a,
-                        source_segment_indices=';'.join(str(i) for i, seg in note.members
-                            if seg.vgmticks < b and seg.vgmticks_end > a),
-                        state=json.dumps(value), action='omit_internal_state' if index in dropped else 'retain',
-                        protected=index in protected, threshold_samples=state_samples))
-            retained = [runs[i] for i in retained_indices]
-            if not retained:
-                raise ValueError('An attack contains only unrepresentable intermediate states')
-            positions = [start]
-            for a, b, value in retained[1:]:
-                positions.append(max(positions[-1] + minimum, round(plan.position(a))))
-            body, kept, gate_end, nominal_end = [], [], start, start
+                score_keys.append(('rest',start-cursor))
+            body, kept = [], []
             current_gate = default_gate
-            current_volume = default_volume if constant_volume and note.end is not None else None
-            for i, (a, b, value) in enumerate(retained):
-                at = positions[i]
-                end = positions[i + 1] if i + 1 < len(retained) else None
-                if end is not None and end <= at:
-                    raise ValueError('Distinct state intervals would collapse')
-                if at >= next_start:
-                    raise ValueError('Distinct state intervals would exceed the next attack')
-                if end is not None:
-                    length, gate, fitted = min(end, next_start) - at, 0, False
-                else:
-                    observed = (b - a) / plan.samples_per_step
-                    length, gate, fitted = _gate(observed, next_start - at, default_gate, plan)
-                if length < minimum or nominal_end > at:
-                    raise ValueError('Distinct state intervals have no MGSC-representable length')
-                if abs(at - plan.position(a)) * plan.samples_per_step > plan.tolerance_samples:
-                    raise ValueError('A state boundary would exceed the correction tolerance')
-                octave, pitch, voice, volume, sustain, patch = value
-                if pitch == 'r':
-                    raise ValueError('Keyed zero-frequency material requires unchanged target projection')
+            current_volume = (track_plan.default_volume if track_plan.constant_volume
+                              and note.source_end is not None else None)
+            for item in note.states:
+                octave, pitch, voice, volume, sustain, patch = item.value
                 if kept:
                     body.append('&')
-                if not constant_voice and (not kept or kept[-1][2][2] != voice):
+                if not track_plan.constant_voice and (not kept or kept[-1][2][2] != voice):
                     body.append(f'@{voice}')
                 if current_volume != volume:
                     body.append(f'v{volume}')
                     current_volume = volume
-                # Absolute octave at note entry makes a phrase independent of
-                # the preceding phrase's octave; internal intervals use it too.
                 body.append(f'o{octave}')
-                if current_gate != gate:
-                    body.append(f'q{gate}')
-                    current_gate = gate
-                body.append(length_token(pitch, length, minimum=minimum))
-                gate_end = at + length * (gate / 8 if gate else 1)
-                nominal_end = at + length
-                kept.append((at - start, gate_end - start, value))
-            if not kept:
-                raise ValueError('A positive source attack became unrepresentable')
+                if current_gate != item.gate:
+                    body.append(f'q{item.gate}')
+                    current_gate = item.gate
+                body.append(length_token(pitch, item.end_step - item.start_step, minimum=minimum))
+                kept.append((item.start_step - start, item.gate_end_step - start, item.value))
             if current_gate != default_gate:
                 body.append(f'q{default_gate}')
-            command = ' '.join(body)
-            commands.append(command)
-            units.append(Unit(len(units), len(units) + 1, 'note', (nominal_end - start, tuple(kept))))
-            cursor = nominal_end
-            evidence.append(dict(ch=ch, note_index=ordinal, segment_indices=';'.join(str(i) for i, s in note.members),
-                source_start_samples=note.start, source_end_samples=note.end,
-                target_start_step=start, target_gate_end_step=gate_end, target_end_step=nominal_end,
-                onset_delta_samples=(start - plan.position(note.start)) * plan.samples_per_step,
-                gate_delta_samples='' if note.end is None else (gate_end - plan.position(note.end)) * plan.samples_per_step,
-                terminal_unclosed=note.end is None,
-                quantized_state_runs=json.dumps(dropped), target_state_runs=json.dumps(kept)))
-            if note.end is not None and abs(evidence[-1]['gate_delta_samples']) > plan.tolerance_samples:
-                raise ValueError('A gate boundary would exceed the correction tolerance')
+            commands.append(' '.join(body))
+            units.append(Unit(len(units), len(units) + 1, 'note', (note.end_step - start, tuple(kept))))
+            from score_structure import pitched_trajectory_key
+            score_keys.append(('note',note.end_step-start,pitched_trajectory_key(
+                (state.start_step-start,state.end_step-state.start_step,(state.value[0],state.value[1]))
+                for state in note.states)))
+            cursor = note.end_step
         if source_loops:
             from source_loop_plan import SourceLoopPlan
             structure = SourceLoopPlan.build(((u.kind, u.key) for u in units), strategy='structural')
+            if score_guided:
+                from score_structure import GuidedLoopPlan
+                structure=GuidedLoopPlan(SourceLoopPlan.build(score_keys,strategy='structural'),structure)
             text, report = structure.render(commands)
         else:
             text, report = compress(units, commands)
@@ -360,12 +253,12 @@ def render_melody(segments, voice_path, plan, num_channels=6, source_loops=False
         expanded.append(track + ' ' + lead + ' '.join(commands))
         loop_rows.extend(dict(ch=ch, **r) for r in report)
     header = [f'#tempo {plan.tempo}', '#alloc 9=0']
-    for patch, voice in patches.items():
+    for patch, voice in accepted.patches:
         values = decode_patch(patch)
         header.extend((f'@{voice} = {{', '; TL FB', f'{values[0]}, {values[1]},',
                        '; AR DR SL RR KL MT AM VB EG KR WF',
                        ', '.join(map(str, values[2:13])) + ',', ', '.join(map(str, values[13:])) + ' }'))
-    return '\n'.join(header + tracks) + '\n', '\n'.join(header + expanded) + '\n', evidence, loop_rows
+    return '\n'.join(header + tracks) + '\n', '\n'.join(header + expanded) + '\n', list(accepted.evidence), loop_rows
 
 
 def retime_controls(text, plan, segments=None):
@@ -390,10 +283,9 @@ def retime_controls(text, plan, segments=None):
                 pitch = token[:len(token) - len(length or '') - len(dots)]
                 ch = int(track) - 1 if track in '123' else int(track) - 4
                 sample = boundary_samples.get(ch, {}).get(node.end / 3, node.end / 3 * 735)
+                from musical_timing import control_boundary_step
                 minimum = max(1, plan.tempo // 75)
-                end = max(previous + minimum, round(plan.position(sample)))
-                if abs(end - plan.position(sample)) * plan.samples_per_step > plan.tolerance_samples:
-                    raise ValueError('A PSG/SCC boundary would exceed the correction tolerance')
+                end = control_boundary_step(node.end / 3, plan, previous, sample)
                 tokens.append(length_token(pitch, end - previous, minimum=minimum))
                 previous = end
             else:
@@ -505,7 +397,8 @@ def retime_rhythm(segments, plan):
 
 
 def normalize_outputs(opll_trace, voice_path, output_dir, stem, dump=False, controls=None, *,
-                      opll_mode=1, source_loops=False, normalization_ms=8, fm_state_ms=1):
+                      opll_mode=1, source_loops=False, normalization_ms=8, fm_state_ms=1,
+                      decision_mapper=None,score_guided=False):
     """Prepare all target projections before replacing files; abstain if unsafe."""
     from opll import _build_segments
     from rhythm_mml import render as render_rhythm
@@ -513,7 +406,8 @@ def normalize_outputs(opll_trace, voice_path, output_dir, stem, dump=False, cont
     from mml_sync import analyze_mml, _leaves
     from dataclasses import asdict
     segments, _ = _build_segments(opll_trace)
-    plan = infer_timing(segments, normalization_ms=normalization_ms)
+    plan = (decision_mapper.plan if decision_mapper is not None else
+            infer_timing(segments, normalization_ms=normalization_ms))
     root = Path(output_dir)
     for suffix in ('expanded.mml', 'notes.csv', 'loops.csv'):
         (root / f'{stem}.opll.normalized.{suffix}').unlink(missing_ok=True)
@@ -529,13 +423,20 @@ def normalize_outputs(opll_trace, voice_path, output_dir, stem, dump=False, cont
                   fm_state_ms=float(fm_state_ms), fm_state_samples=sample_threshold(fm_state_ms, '--fm-state-ms'),
                   whole_gate_omission=False, fm_state_scope='OPLL melody only',
                   psg_scc_curves_filtered=False)
+    if decision_mapper is not None:
+        report['shared_musical_decisions'] = True
+        report['shared_clock_applied'] = bool(decision_mapper.applied)
+        if not decision_mapper.applied:
+            report['reason'] = (decision_mapper.report or {}).get('reason', report['reason'])
     if plan:
         report['timing'] = asdict(plan)
         try:
             melody, expanded, evidence, loops = render_melody(segments, voice_path, plan,
                                                               num_channels=6 if opll_mode else 9,
                                                               source_loops=source_loops, fm_state_ms=fm_state_ms,
-                                                              state_evidence=state_rows)
+                                                              state_evidence=state_rows,
+                                                              decision_plan=decision_mapper.melody if decision_mapper else None,
+                                                              score_guided=score_guided)
             # Rhythm uses the same source clock, with a target-only proxy.
             proxies, maximum_rhythm_shift = retime_rhythm(segments, plan)
             end = max((round(plan.position(s.vgmticks_end)) for rows in segments.values() for s in rows
@@ -569,6 +470,8 @@ def normalize_outputs(opll_trace, voice_path, output_dir, stem, dump=False, cont
                                                           if r['gate_delta_samples'] != ''), default=0))
         except ValueError as error:
             report['reason'] = str(error)
+            if decision_mapper is not None and decision_mapper.applied:
+                report['backend_rejected_shared_clock'] = True
         else:
             for chip, text in replacements.items():
                 path = root / f'{stem}.{chip}.target.mml'
@@ -600,4 +503,6 @@ def normalize_outputs(opll_trace, voice_path, output_dir, stem, dump=False, cont
         omitted_states=report['omitted_states'], candidate_omitted_states=report['candidate_omitted_states'],
         state_decisions_csv=str(state_path) if state_rows else None), indent=2), encoding='utf-8')
     (root / f'{stem}.normalization.json').write_text(json.dumps(report, indent=2), encoding='utf-8', newline='\n')
+    if report.get('backend_rejected_shared_clock'):
+        raise ValueError('MML backend cannot lower the accepted shared clock: ' + report['reason'])
     return plan.tempo if report['status'] == 'applied' else None
