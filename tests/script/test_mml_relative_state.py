@@ -49,6 +49,20 @@ class RelativeMacros(unittest.TestCase):
         original='9 o3 v5 [c8 > d8\n9 [e8 f8]3 < g8]4 > > > a8\n'
         self.assertEqual(signature(original),signature(compact_callers(original)))
 
+    def test_volume_leaving_hardware_envelope_is_not_dropped(self):
+        # v15 after s9 only looks redundant numerically; it is the command
+        # that leaves hardware-envelope mode before the @e note.
+        original='1 v15 m416 s9 c8 r8 @e8 v15 c8 v15 d8\n'
+        result=normalize(original)
+        self.assertIn('@e8 v15 c8',result)
+        self.assertEqual(signature(original),signature(result))
+
+    def test_redundant_volume_still_dropped_in_fixed_volume_mode(self):
+        original='1 v15 c8 v15 d8\n'
+        result=normalize(original)
+        self.assertNotIn('v15 d8',result)
+        self.assertEqual(signature(original),signature(result))
+
     def test_enhanced_macro_audit_keeps_entry_and_relative_intermediates(self):
         original='9 o4 v8 c8 d8 e8 f8 g8 a8\na o6 v10 c8 d8 e8 f8 g8 a8\n'
         with tempfile.TemporaryDirectory() as temporary:

@@ -1,4 +1,4 @@
-"""HW-envelope pitch changes must not invent MGSDRV retriggers."""
+"""HW-envelope pitch partitions stay adjacent untied notes, never ties."""
 from pathlib import Path
 import shutil
 import subprocess
@@ -22,12 +22,12 @@ def source():
 
 
 class HardwareEnvelopePlaybackTests(unittest.TestCase):
-    def test_continuations_keep_real_same_shape_resets(self):
+    def test_pitch_partitions_are_not_tied_continuations(self):
         performance=analyze(source(),'psg')
-        self.assertEqual(continuation_starts(performance),{(0,1),(0,2),(0,4),(0,5)})
+        self.assertEqual(continuation_starts(performance),set())
 
     @unittest.skipUnless(shutil.which('mgsc') and shutil.which('node'),'requires MGSC and Node')
-    def test_actual_driver_keeps_two_resets_across_six_pitch_partitions(self):
+    def test_actual_driver_restarts_envelope_on_each_adjacent_partition(self):
         from pre_envelope_loops import LoopFirstEnvelopeBank,ScoreGuidedEnvelopeBank
         from production_v110.pre_envelope_loops import LoopFirstEnvelopeBank as HistoricalBank
         for kind in (LoopFirstEnvelopeBank,ScoreGuidedEnvelopeBank,HistoricalBank):
@@ -46,4 +46,4 @@ class HardwareEnvelopePlaybackTests(unittest.TestCase):
                 raw=read_vgm_bytes(vgm)
                 resets=[raw[e.address+2] for e in command_times(raw)
                         if e.command==0xa0 and raw[e.address+1]==13]
-                self.assertEqual(resets,[9,9])
+                self.assertEqual(resets,[9,9,9,9,9,9])

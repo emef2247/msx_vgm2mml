@@ -72,15 +72,19 @@ def normalize(text, audit=None):
     from structured_macros import parts_from, emit
     parts, rhythm = parts_from(text)
     states = {}
-    def walk(nodes, state, path):
+    hw_states = {}
+    def walk(nodes, state, path, hw):
         result = []
         for index, node in enumerate(nodes):
             location = path+(index,)
             if isinstance(node, tuple):
                 body, count = node
-                rewritten, _ = walk(body, dict(o=None, v=None), location)
+                rewritten, _, _ = walk(body, dict(o=None, v=None), location, None)
                 result.append((rewritten, count))
                 state = _end([node], state)
+                # The body's last shape/volume command decides the exit mode;
+                # without transfer tables for it, stay conservative.
+                hw = None
                 continue
             match = re.fullmatch(r'([ov])([-+]?\d+)', node, re.I)
             if match:
@@ -89,42 +93,65 @@ def normalize(text, audit=None):
                 emitted = node
                 if previous is not None and value in _domain(key)[1:]:
                     delta = value-previous
-                    emitted = (('>' if delta > 0 else '<') if key == 'o'
-                               else (')' if delta > 0 else '(')) * abs(delta)
+                    # A v command also leaves hardware-envelope mode, so a
+                    # numerically redundant v is still observable while that
+                    # mode is (or may be) active. Only drop it when the
+                    # channel is known to be in fixed-volume mode.
+                    if not (key == 'v' and delta == 0 and hw is not False):
+                        emitted = (('>' if delta > 0 else '<') if key == 'o'
+                                   else (')' if delta > 0 else '(')) * abs(delta)
                 if emitted:
                     # Separate tokens allow both state evaluation and macro matching.
                     result.extend(_parse(emitted))
                 if audit is not None:
                     audit.append(dict(location=str(location), parameter=key,
                                       previous=previous, absolute=value, emitted=emitted))
+                if key == 'v':
+                    hw = False
             else:
                 result.append(node)
+                if re.fullmatch(r's\d+', node, re.I):
+                    hw = True
+                elif re.fullmatch(r'[()]\d*', node):
+                    hw = False
             state = {key: _step(node, key, value) for key, value in state.items()}
-        return result, state
+        return result, state, hw
     for index, part in enumerate(parts):
         if not isinstance(part, list):
             continue
         channel, nodes = part
         if rhythm and channel == 'f':
             continue
-        part[1], states[channel] = walk(nodes, states.get(channel, dict(o=None, v=None)), (index,))
+        part[1], states[channel], hw_states[channel] = walk(
+            nodes, states.get(channel, dict(o=None, v=None)), (index,),
+            hw_states.get(channel, False))
     return emit(parts, [])
 
 
 def signature(text):
-    """Timed observable commands plus octave/volume state, not setter spelling."""
+    """Timed observable commands plus octave/volume/HW-envelope state.
+
+    Setter spelling is ignored, but a v command is not a pure volume
+    setter: it also leaves hardware-envelope mode, so that mode is part
+    of the observable state at every timed command.
+    """
     result = {}
     rhythm = bool(re.search(r'^#opll_mode\s+1\b', text, re.M))
     for channel, nodes in analyze_mml(text)[0].items():
         state = dict(o=None, v=None)
+        hw = False
         rows = []
         for token in _leaves(nodes):
             word = token.text
             if not (rhythm and channel == 'f') and re.fullmatch(r'[ov][-+]?\d+|[<>]|[()]\d*', word, re.I):
                 state = {key: _step(word, key, value) for key, value in state.items()}
+                if re.fullmatch(r'v[-+]?\d+|[()]\d*', word, re.I):
+                    hw = False
             else:
-                rows.append((word, token.start, token.end, state['o'], state['v']))
-        result[channel] = (tuple(rows), state['o'], state['v'])
+                if re.fullmatch(r's\d+', word, re.I):
+                    hw = True
+                rows.append((word, token.start, token.end, state['o'], state['v'], hw))
+        result[channel] = (tuple(rows), state['o'], state['v'], hw)
     return result
 
 

@@ -1,21 +1,27 @@
-"""Keep an observed PSG hardware envelope running across pitch partitions."""
+"""Emit PSG hardware-envelope notes as adjacent, untied notes.
+
+Target policy (owner decision, 2026-10-30): pitch partitions of one
+source envelope are NOT tied with '&'. A tie merges the attacks into a
+single sustained note, so the envelope stops restarting at each
+partition and drum-like articulation is lost; ties also lengthen the
+MML and consume MGSDRV track buffer. MGSDRV restarts the hardware
+envelope on every untied note, so gapless adjacent notes keep the
+source timing exactly while each note keeps its own attack. Loop and
+macro compression may still group the resulting adjacent notes; that
+grouping must not merge the notes themselves.
+"""
 import csv
 from pathlib import Path
 
 
 def continuation_starts(performance):
-    result = set()
-    if performance.chip != 'psg':return result
-    for channel, notes in performance.channels:
-        previous = None
-        for note in notes:
-            if (previous is not None and not previous.rest and not note.rest
-                    and previous.segment.envelope_enabled and note.segment.envelope_enabled
-                    and previous.start + previous.length == note.start
-                    and 'hardware_envelope_reset' not in note.boundary_reasons):
-                result.add((channel, note.start))
-            previous = note
-    return result
+    """No target continuations: see the module docstring.
+
+    Kept as the single policy point both envelope renderers consult.
+    The hardware-envelope notes themselves are still recorded per note
+    by dump_decisions.
+    """
+    return set()
 
 
 def dump_decisions(dump_path, rows):

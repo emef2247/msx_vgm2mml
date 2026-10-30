@@ -728,8 +728,10 @@ note maps. Initially retain existing boundaries and abstain from guide cuts
 requiring envelope-phase handling. Keep original and projected curves separate;
 post-clock clipping can invalidate a previously accepted approximation budget.
 
-PSG hardware-envelope pitch partitions must retain the running hardware envelope
-unless an observed shape/reset event restarts it. In MGSC, place the continuation
-`&` immediately after the preceding note and before subsequent pitch/control
-commands: controls before `&` can prevent attachment and retrigger the envelope.
-Source audibility/shape-reset evidence governs this decision, not note spelling.
+PSG hardware-envelope pitch partitions are emitted as adjacent untied notes,
+never tied with `&`. A tie merges the partitions into one sustained note: the
+envelope no longer restarts at each partition, drum-like attacks are lost, and
+the extra tokens consume MGSDRV track buffer. MGSDRV restarts the hardware
+envelope on every untied note, so gapless adjacency preserves both the source
+timing and each note's attack. Loop/macro compression may group the adjacent
+notes, but grouping must not merge them.
