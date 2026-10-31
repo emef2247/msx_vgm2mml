@@ -22,6 +22,8 @@ def build_parser():
                         help='Output root preserving input-relative parents (default: beside each source VGM)')
     parser.add_argument('--mgsc', help='Native MGSC executable (default: PATH)')
     parser.add_argument('--mgsc-module', type=Path)
+    parser.add_argument('--compiler', choices=('mgsc', 'mgsexc'), default='mgsexc',
+                        help='MML compiler: mgsexc avoids the MGSC buffer limit (default: mgsexc)')
     parser.add_argument('--node', default='node')
     parser.add_argument('--timeout', type=int, default=1200,
                         help='Timeout per conversion/compilation stage in seconds (default: 1200)')
@@ -74,6 +76,7 @@ def main(argv=None):
         sample_threshold(args.fm_state_ms, '--fm-state-ms')
         rows = run_batch(args.input, args.outdir, module=args.mgsc_module,
                          node=args.node, timeout=args.timeout, mgsc=args.mgsc,
+                         compiler=args.compiler,
                          alloc=args.alloc, keyon=not args.skip_keyon_counts,
                          libkss_module=args.libkss_module,
                          normalize_lengths=False,
