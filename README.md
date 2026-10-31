@@ -26,6 +26,8 @@ MMLの生成からMGSへのコンパイルまでを自動で行います。VGM�
 
 MGSの生成にはMGSCまたはmgsc-jsが必要です。また、生成結果のKey-On検証にはlibkss-jsを使用します。
 
+なお、バッファ制限回避のため、独自コンパイラMGSEXCも収録しています（`scripts/batch_vgm_to_mgs.py` の `--compiler mgsexc` で選択）。
+
 これらの環境構築については、[環境構築](docs/setup_mgs_tools.ja.md)を参照してください。
 
 外部ツールを自動でインストールしたい場合は、[scripts/setup_mgs_tools.py](scripts/setup_mgs_tools.py)を利用してください。
@@ -170,6 +172,8 @@ python scripts/export_mgs.py INDIR --outdir OUTDIR
 This script automatically generates MML files and compiles them into MGS files. It also produces VGM and Blueprint output.
 
 MGSC or mgsc-js is required to generate MGS files. libkss-js is used to verify Key-On events in the generated output.
+
+A bundled compiler, MGSEXC, is also included to avoid the buffer limit (select it with `--compiler mgsexc` in `scripts/batch_vgm_to_mgs.py`).
 
 For instructions on setting up these tools, see [Tool Setup](docs/setup_mgs_tools.md).
 
