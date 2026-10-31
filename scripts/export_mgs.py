@@ -22,8 +22,8 @@ def build_parser():
                         help='Output root preserving input-relative parents (default: beside each source VGM)')
     parser.add_argument('--mgsc', help='Native MGSC executable (default: PATH)')
     parser.add_argument('--mgsc-module', type=Path)
-    parser.add_argument('--compiler', choices=('mgsc', 'mgsexc'), default='mgsexc',
-                        help='MML compiler: mgsexc avoids the MGSC buffer limit (default: mgsexc)')
+    parser.add_argument('--compiler', choices=('mgsc', 'mgsexc'), default='mgsc',
+                        help='MML compiler: mgsexc avoids the MGSC buffer limit (default: mgsc)')
     parser.add_argument('--node', default='node')
     parser.add_argument('--timeout', type=int, default=1200,
                         help='Timeout per conversion/compilation stage in seconds (default: 1200)')
