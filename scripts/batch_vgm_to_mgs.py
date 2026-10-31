@@ -426,6 +426,7 @@ def discover_inputs(source, adjacent=False):
 
 
 def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=None, alloc=None,
+              compiler='mgsc',
               keyon=True, libkss_module=None, normalize_lengths=False, enhance_macros=True, legacy_loops=False,
               force=False, fm_state_ms=None, normalization_ms=None, dump_passes=False, enhance_drums=False, psg_part='all',
               software_volume_curves=False, score_guided_loops=False,
@@ -454,9 +455,12 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
     if not files:
         raise ValueError('No VGM files found')
     diagnostics, routes = publication_targets(files, source_root, output, psg_part)
-    native = shutil.which(str(mgsc)) if mgsc else (None if module else shutil.which('mgsc'))
-    compiler_setup_error = f'Native MGSC executable not found: {mgsc}' if mgsc and not native else ''
-    if native:
+    use_mgsexc = compiler == 'mgsexc'
+    native = None if use_mgsexc else (shutil.which(str(mgsc)) if mgsc else (None if module else shutil.which('mgsc')))
+    compiler_setup_error = f'Native MGSC executable not found: {mgsc}' if mgsc and not native and not use_mgsexc else ''
+    if use_mgsexc:
+        print('Compiler: MGSEXC (bundled, no 16 KB pool)', flush=True)
+    elif native:
         print(f'Compiler: {native}', flush=True)
     elif not compiler_setup_error:
         check = [node, str(ROOT/'scripts/compile_mgs.mjs'), '--check', '-'] + ([str(module.resolve())] if module else [])
@@ -545,7 +549,8 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
         row.update(dict.fromkeys(KEYON_FIELDS, ''))
         row.update(keyon_status='not_compiled' if keyon else 'disabled', keyon_error='')
         stages = [('convert', [sys.executable, str(ROOT/'vgm2mml.py'), str(staged), '--outdir', str(folder), '--output-format', 'both']),
-                  ('compile', [native, str(mml), str(mgs)] if native else [node, str(ROOT/'scripts/compile_mgs.mjs'), str(mml), str(mgs)] +
+                  ('compile', [sys.executable, str(ROOT/'scripts/mgsexc_compile.py'), str(mml), str(mgs)] if use_mgsexc else
+                   [native, str(mml), str(mgs)] if native else [node, str(ROOT/'scripts/compile_mgs.mjs'), str(mml), str(mgs)] +
                    ([str(module.resolve())] if module else []))]
         if alloc is not None:
             stages[0][1].extend(['--alloc', alloc])
@@ -787,6 +792,8 @@ def build_parser():
     parser.add_argument('--outdir', type=Path,
                         help='Output root preserving input-relative parents (default: beside each source VGM)')
     parser.add_argument('--mgsc', help='Native MGSC executable (default: PATH)')
+    parser.add_argument('--compiler', choices=('mgsc', 'mgsexc'), default='mgsc',
+                        help='MML compiler: mgsc (default) or mgsexc (bundled, no 16 KB track-buffer pool)')
     parser.add_argument('--mgsc-module', type=Path)
     parser.add_argument('--node', default='node')
     parser.add_argument('--timeout', type=int, default=1200)
@@ -827,6 +834,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     try:
         results = run_batch(args.input_dir, args.outdir, args.mgsc_module, args.node, args.timeout, args.mgsc, args.alloc,
+                            compiler=args.compiler,
                             keyon=not args.skip_keyon_counts, libkss_module=args.libkss_module,
                             normalize_lengths=args.normalize_lengths, enhance_macros=args.enhance_macros, legacy_loops=args.legacy_loops,
                             score_normalize=args.score_normalize,score_tempo=args.score_tempo,
