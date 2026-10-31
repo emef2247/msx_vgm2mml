@@ -53,16 +53,21 @@ def noise_pitch(clock, control):
     return period, source, TARGET_CLOCK / (16 * period)
 
 
-def opll_pitch(hz):
+def opll_best(hz):
     candidates = []
     for block in range(8):
         fnum = min(511, max(1, round(hz * 72 * 2 ** 19 / (OPLL_CLOCK * 2 ** block))))
         target = OPLL_CLOCK * fnum * 2 ** block / (72 * 2 ** 19)
         candidates.append((abs(math.log2(target / hz)), block, fnum, target))
     _, block, fnum, target = min(candidates)
-    if abs(1200 * math.log2(target / hz)) > 100:
-        raise ProjectionError(f'HuC6280 pitch {hz:.6f} Hz exceeds OPLL melodic range')
-    return (block << 9) | fnum, target
+    return (block << 9) | fnum, target, abs(1200 * math.log2(target / hz))
+
+
+def opll_pitch(hz):
+    # Out-of-range pitches clamp to the nearest representable OPLL pitch;
+    # the error stays visible in the controls CSV pitch_error_cents.
+    period, target, _ = opll_best(hz)
+    return period, target
 
 
 def _compatible_pair(trace, a, b):
@@ -79,7 +84,7 @@ def _compatible_pair(trace, a, b):
 
 
 def allocate(trace):
-    waves, noises = {}, set()
+    waves, noises, periods = {}, set(), {}
     for segment in trace.segments:
         if not segment.active:continue
         state = segment.state
@@ -89,6 +94,7 @@ def allocate(trace):
         if not state.waveform_complete:
             raise ProjectionError('HuC6280 audible waveform RAM is not fully observed')
         waves.setdefault(segment.channel, set()).add(state.waveform)
+        periods.setdefault(segment.channel, set()).add(state.period)
     # Even muted enabled oscillators advance their write cursor. The target
     # adapter cannot safely turn such writes into a disabled whole-RAM upload.
     for event in trace.states:
@@ -97,9 +103,22 @@ def allocate(trace):
             if state.enabled and not state.dda_mode:
                 raise ProjectionError('HuC6280 enabled waveform RAM writes require a phase-aware target projection')
     channels = sorted(waves)
+    # A voice OPLL can only reproduce with a large pitch error prefers an
+    # SCC/PSG home when that home's clamped error is smaller.
+    def scc_error(hz):
+        register = min(4095, max(9, round(2 * TARGET_CLOCK / (32 * hz)) - 1))
+        return abs(1200 * math.log2((2 * TARGET_CLOCK / (32 * (register + 1))) / hz))
+    prefer_analog = set()
+    for ch in channels:
+        for p in periods.get(ch, ()):
+            hz = trace.clock_hz / (32 * (p or 4096))
+            error = opll_best(hz)[2]
+            if error > 100 and scc_error(hz) < error:prefer_analog.add(ch)
     noise_routes = {(ch, 'noise'): ('psg', i) for i, ch in enumerate(sorted(noises))}
     for count in range(min(5, len(channels)), -1, -1):
-        for selected in itertools.combinations(channels, count):
+        combos = sorted(itertools.combinations(channels, count),
+                        key=lambda sel: (-sum(ch in prefer_analog for ch in sel), sel))
+        for selected in combos:
             ordered = list(selected)
             if count == 5:
                 pair = next(((a, b) for a, b in itertools.combinations(selected, 2)
@@ -107,7 +126,8 @@ def allocate(trace):
                 if pair is None:continue
                 ordered = [ch for ch in selected if ch not in pair] + list(pair)
             spill = [ch for ch in channels if ch not in selected]
-            square = [ch for ch in spill if all(square_wave(w) for w in waves[ch])][:3 - len(noises)]
+            square = sorted((ch for ch in spill if all(square_wave(w) for w in waves[ch])),
+                            key=lambda ch: (ch not in prefer_analog, ch))[:3 - len(noises)]
             fm = [ch for ch in spill if ch not in square]
             routes = {**noise_routes, **{(ch, 'wave'): ('scc', i) for i, ch in enumerate(ordered)},
                 **{(ch, 'wave'): ('psg', len(noises) + i) for i, ch in enumerate(square)},
