@@ -121,6 +121,26 @@ class ExtendedTests(unittest.TestCase):
         self.assertGreater(max(map(abs, rendered['chips']['opll']['left'])), 0)
         self.assertGreater(max(map(abs, rendered['chips']['scc']['left'])), 0)
 
+    def test_out_of_range_voice_prefers_scc_over_opll(self):
+        raw = make_vgm(write(1, 255) + b''.join(wave(ch,
+            tuple((i * (2 * ch + 1)) % 32 for i in range(32)),
+            period=8 if ch == 4 else 255) for ch in range(6)) + wait(735))
+        projection = project(raw)
+        route = next(a for a in projection.summary['allocation']
+                     if a['source_channel'] == 4 and a['source_mode'] == 'wave')
+        self.assertEqual(route['target_chip'], 'scc')
+        rows = [c for c in projection.controls if c['target_chip'] == 'opll' and c['enabled']]
+        self.assertTrue(rows)
+        self.assertTrue(all(abs(r['pitch_error_cents']) <= 100 for r in rows))
+
+    def test_opll_pitch_beyond_range_clamps_and_reports_error(self):
+        raw = make_vgm(write(1, 255) + b''.join(wave(ch,
+            tuple((i * (2 * ch + 1)) % 32 for i in range(32)),
+            period=255 if ch == 5 else 8) for ch in range(6)) + wait(735))
+        projection = project(raw)
+        rows = [c for c in projection.controls if c['target_chip'] == 'opll' and c['enabled']]
+        self.assertTrue(any(r['pitch_error_cents'] < -100 for r in rows))
+
     def test_wave_changes_remain_periodic_at_the_loop_seam(self):
         a, b = tuple(range(32)), tuple(reversed(range(32)))
         intro = write(1, 255)

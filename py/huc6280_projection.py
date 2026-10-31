@@ -90,14 +90,12 @@ def _allocate(trace):
 def _pitch(clock, period, target):
     source_hz = clock / (32 * (period or 4096))
     if target == 'scc':
-        register = round(2 * TARGET_CLOCK / (32 * source_hz)) - 1
-        if not 9 <= register <= 4095:
-            raise ProjectionError(f'HuC6280 pitch {source_hz:.6f} Hz exceeds SCC period range')
+        # Out-of-range pitches clamp to the nearest representable period;
+        # the error stays visible in the controls pitch_error_cents.
+        register = min(4095, max(9, round(2 * TARGET_CLOCK / (32 * source_hz)) - 1))
         output_hz = 2 * TARGET_CLOCK / (32 * (register + 1))
     else:
-        register = round(TARGET_CLOCK / (16 * source_hz))
-        if not 1 <= register <= 4095:
-            raise ProjectionError(f'HuC6280 pitch {source_hz:.6f} Hz exceeds PSG period range')
+        register = min(4095, max(1, round(TARGET_CLOCK / (16 * source_hz))))
         output_hz = TARGET_CLOCK / (16 * register)
     return register, source_hz, output_hz
 
