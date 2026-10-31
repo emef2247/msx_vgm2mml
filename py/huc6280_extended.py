@@ -148,6 +148,7 @@ def project_extended(raw, trace):
     loaded, cache, starts, opll_periods = {}, {}, {}, {}
     enable, mixer, loop_address, current_event = 0, 63, None, None
     noise_loaded, shared_restorations = None, 0
+    noise_since, noise_conflicts, open_conflict = {}, [], None
     fits = {}
 
     def emit(command, tick=0, source_id=None):
@@ -255,18 +256,37 @@ def project_extended(raw, trace):
                     opll_preset=preset, harmonic_error=error))
         elif command.wait_samples:
             if current_event:
-                noise_rates = {noise_pitch(trace.clock_hz, state.noise_control)[0]
-                    for state in current_event.channels[4:6] if state.mode == 'noise' and
+                # The AY noise generator is shared. The first audibly
+                # demanding channel owns its rate; a later channel with a
+                # different rate still sounds, at the owner's rate, and the
+                # conflict window is recorded instead of failing the song.
+                demands = {channel: noise_pitch(trace.clock_hz, state.noise_control)[0]
+                    for channel, state in enumerate(current_event.channels)
+                    if channel >= 4 and state.mode == 'noise' and
                     min(attenuation_levels(state.control, state.balance, current_event.global_balance)) < 31}
-                if len(noise_rates) > 1:
-                    raise ProjectionError(f'HuC6280 concurrent noise rates conflict on the shared PSG generator at {tick}')
-                # A zero-time owner may have touched a shared register/RAM and
-                # released it again. Reconcile the final positive-time demand,
-                # not only each route's unchanged cache key.
-                if noise_rates and noise_loaded not in noise_rates:
-                    noise_loaded = next(iter(noise_rates))
-                    emit(bytes((0xa0, 6, noise_loaded)), tick, current_event.write.source_event_id)
-                    shared_restorations += 1
+                for channel in demands:noise_since.setdefault(channel, tick)
+                for channel in list(noise_since):
+                    if channel not in demands:del noise_since[channel]
+                if demands:
+                    owner = min(demands, key=lambda ch: (noise_since[ch], ch))
+                    chosen = demands[owner]
+                    if len(set(demands.values())) > 1:
+                        if open_conflict is None:
+                            open_conflict = dict(start_vgmticks=tick, end_vgmticks=None,
+                                owner_channel=owner, demanded_periods=dict(demands),
+                                chosen_period=chosen)
+                            noise_conflicts.append(open_conflict)
+                    elif open_conflict is not None:
+                        open_conflict['end_vgmticks'] = tick;open_conflict = None
+                    # A zero-time owner may have touched a shared register/RAM
+                    # and released it again. Reconcile the final positive-time
+                    # demand, not only each route's unchanged cache key.
+                    if noise_loaded != chosen:
+                        if noise_loaded is not None:shared_restorations += 1
+                        noise_loaded = chosen
+                        emit(bytes((0xa0, 6, noise_loaded)), tick, current_event.write.source_event_id)
+                elif open_conflict is not None:
+                    open_conflict['end_vgmticks'] = tick;open_conflict = None
                 for (channel, mode), (chip, dest) in routes.items():
                     state = current_event.channels[channel]
                     if chip != 'scc' or state.mode != mode or not state.enabled or min(attenuation_levels(
@@ -281,6 +301,7 @@ def project_extended(raw, trace):
             while remaining:
                 length = min(remaining, 65535);body.extend(b'\x61' + struct.pack('<H', length));remaining -= length
         elif command.command == 0x66:body.append(0x66)
+    if open_conflict is not None:open_conflict['end_vgmticks'] = trace.source_end_vgmticks
     for (channel, mode), (start, source_id) in starts.items():
         gates.append(dict(source_channel=channel, source_mode=mode, start_vgmticks=start,
             end_vgmticks=trace.source_end_vgmticks, start_source_event_id=source_id, end_source_event_id=None))
@@ -310,7 +331,8 @@ def project_extended(raw, trace):
         source_end_vgmticks=trace.source_end_vgmticks, target_clock_hz=TARGET_CLOCK,
         source_channels=len({ch for ch, _ in routes}),
         **{chip + '_channels': sum(c == chip for c, _ in routes.values()) for chip in ('scc', 'psg', 'opll')},
-        waveform_fits=list(fits.values()), noise_rate_policy='nearest AY shift rate; shared generator; spectrum differs',
+        waveform_fits=list(fits.values()), noise_rate_policy='nearest AY shift rate; shared generator; first audible channel owns the rate during a conflict and the other channel sounds at that rate; conflict windows are recorded; spectrum differs',
+        noise_rate_conflicts=noise_conflicts,
         shared_resource_restorations=shared_restorations,
         gain_policy='SCC/PSG fixed gain; OPLL nearest 3dB attenuation using pinned reference RMS',
         loop_validation='source and target repeated traversal' if loop_address else 'no declared loop',

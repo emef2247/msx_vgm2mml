@@ -12,8 +12,10 @@ non-PCM blueprint are independent products, including when MGS lowering fails.
 The original static SCC/PSG adapter is retained for compatible inputs. The
 extended adapter allocates stable `(source channel, mode)` destinations. AY
 noise parts are reserved before tone spill; both HuC noise channels share the
-single AY noise generator. Distinct simultaneous projected noise periods fail
-explicitly. The pinned source noise shift rate is `clock/(64*(32-low5))`;
+single AY noise generator. When both noise channels demand different periods
+at once, the first audible channel owns the shared rate while the conflict
+lasts and the other channel sounds at that rate; each conflict window is
+recorded in the projection summary instead of failing the song. The pinned source noise shift rate is `clock/(64*(32-low5))`;
 the nearest AY rate is `clock/(16*period)`, limited to periods1..31. Period
 clipping, frequency error and gain quantization are visible in controls CSV.
 Noise sequences/spectra are not claimed equivalent.
