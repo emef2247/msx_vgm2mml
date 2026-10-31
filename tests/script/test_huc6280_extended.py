@@ -32,12 +32,36 @@ class ExtendedTests(unittest.TestCase):
         self.assertTrue(any(c['source_mode'] == 'noise' and c['source_hz'] == source
                             and c['target_hz'] == target for c in projection.controls))
 
-    def test_shared_noise_conflict_is_explicit_only_on_positive_intervals(self):
+    def test_shared_noise_conflict_prefers_first_audible_channel(self):
         base = write(1, 255) + noise(4, 0) + noise(5, 31)
-        with self.assertRaisesRegex(ProjectionError, 'shared PSG generator'):
-            project(make_vgm(base + wait(735)))
+        projection = project(make_vgm(base + wait(735)))
+        # Both channels sound; the shared generator carries the first
+        # channel's period, and the conflict window is recorded.
+        writes = [w['command_hex'] for w in projection.writes if w['vgmticks'] == 0]
+        self.assertEqual([w for w in writes if w.startswith('a006')][-1],
+                         bytes((0xa0, 6, noise_pitch(3579545, 0)[0])).hex())
+        self.assertEqual({c['source_channel'] for c in projection.controls
+                          if c['source_mode'] == 'noise'}, {4, 5})
+        conflicts = projection.summary['noise_rate_conflicts']
+        self.assertEqual(len(conflicts), 1)
+        self.assertEqual(conflicts[0]['owner_channel'], 4)
+        self.assertEqual(conflicts[0]['chosen_period'], noise_pitch(3579545, 0)[0])
+        self.assertEqual(conflicts[0]['end_vgmticks'], 735)
         # Both rates settle before the next sample. No audible conflict.
-        self.assertTrue(project(make_vgm(base + write(7, 128) + wait(735))).vgm)
+        settled = project(make_vgm(base + write(7, 128) + wait(735)))
+        self.assertTrue(settled.vgm)
+        self.assertEqual(settled.summary['noise_rate_conflicts'], [])
+
+    def test_shared_noise_rate_follows_surviving_channel(self):
+        raw = make_vgm(write(1, 255) + noise(4, 0) + noise(5, 31) + wait(735) +
+            write(0, 4) + write(4, 0) + wait(735))
+        projection = project(raw)
+        writes = [w['command_hex'] for w in projection.writes if w['vgmticks'] == 735]
+        self.assertEqual([w for w in writes if w.startswith('a006')][-1],
+                         bytes((0xa0, 6, noise_pitch(3579545, 31)[0])).hex())
+        conflicts = projection.summary['noise_rate_conflicts']
+        self.assertEqual(len(conflicts), 1)
+        self.assertEqual(conflicts[0]['end_vgmticks'], 735)
 
     def test_disabled_dynamic_wave_is_not_preloaded_from_the_future(self):
         first = tuple(range(32));second = tuple(reversed(first))
