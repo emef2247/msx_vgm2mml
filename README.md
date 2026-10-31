@@ -112,6 +112,21 @@ VGMとMMLでは表現方法や制約が異なるため、元の演奏を完全�
 
 Blueprintについても、音源固有の制御やPCMなど、楽譜として表現できない情報があります。
 
+## トラブルシューティング
+
+### コンパイルがバッファ上限（Track buffer full）で失敗する
+
+既定のコンパイラMGSCには、演奏データ全体で約16KBの作成上限があります。`--compiler mgsexc` を指定すると、上限のない同梱コンパイラMGSEXCでコンパイルできます（MGSCでコンパイル可能なデータでは、生成されるMGSはMGSCとバイト単位で一致します）。
+
+### 16KBを超えるMGSが実機で正しく再生されない
+
+MGSDRV本体は16KBを超える演奏データも処理できますが、プレーヤーによっては再生できるサイズに上限があります。実機で確認した例（2026-10-31）:
+
+- MGSEL 3.01v: 16,384バイトまで
+- MultiPlay-X V1.13: おそらく20,480バイト（0x5000）まで
+
+上限を超えると、途中で音がおかしくなったり、曲が終了しなくなったり、無言で再生されなかったりします。実機再生が前提の場合は、MGSが16,384バイト以下に収まるようMMLを編集または分割してください。
+
 ## 構成
 
 - `vgm2mml.py`：単体VGMの解析とMML・VGM生成
@@ -256,6 +271,22 @@ MGS files are also subject to MGSDRV buffer limitations. As a result, some gener
 In such cases, manually edit or split the generated MML files.
 
 Blueprint also has limitations: sound chip-specific controls, PCM data, and other information that cannot be represented as musical notation may not be included.
+
+
+## Troubleshooting
+
+### Compilation fails with a buffer limit (Track buffer full)
+
+The default compiler, MGSC, can create at most about 16 KB of performance data in total. Specifying `--compiler mgsexc` uses the bundled MGSEXC compiler, which has no such limit (for data MGSC can compile, its MGS output is byte-identical to MGSC's).
+
+### MGS data over 16 KB does not play correctly on real hardware
+
+MGSDRV itself handles performance data over 16 KB, but some players have their own size limits. Observed on real hardware (2026-10-31):
+
+- MGSEL 3.01v: up to 16,384 bytes
+- MultiPlay-X V1.13: probably up to 20,480 bytes (0x5000)
+
+Beyond a player's limit, playback may glitch partway through, never terminate, or silently refuse to play. If real-hardware playback matters, edit or split the MML so the MGS stays within 16,384 bytes.
 
 ## Project Structure
 
