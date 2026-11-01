@@ -258,8 +258,14 @@ class Projection:
             _csv(root / f'{stem}.nesapu.{name}.csv', rows, fields)
 
 
-def project(raw, trace=None, *, force=False, gains=None):
+def project(raw, trace=None, *, force=False, gains=None,
+            dpcm_external=False):
     trace = analyze(raw) if trace is None else trace
+    # An external PCM target (e.g. the X68000 ADPCM) can take the DPCM
+    # part over entirely: the slices then never claim the SCC waveform
+    # lane, and the FDS / slow-noise arbitration proceeds exactly as if
+    # no DPCM slices existed. The default keeps the slice rendering.
+    lane_slices = () if dpcm_external else trace.dpcm_slices
     commands = list(command_times(raw))
     # Data blocks are accounted, never emitted: NES RAM blocks carry the
     # DPCM sample data this revision omits (recorded in the summary);
@@ -334,7 +340,7 @@ def project(raw, trace=None, *, force=False, gains=None):
     for dest in range(3):
         for index, value in enumerate(waves[dest]):
             scc(0, 0, dest * 32 + index, value)
-    if trace.dpcm_slices:
+    if lane_slices:
         scc(0, 1, 6, SLICE_PERIOD & 255)
         scc(0, 1, 7, SLICE_PERIOD >> 8)
         scc(0, 2, 3, 0)
@@ -463,7 +469,7 @@ def project(raw, trace=None, *, force=False, gains=None):
         cents = (1200 * math.log2((TARGET_CLOCK / (16 * np_reg)) / rate)
                  if 1 <= np_reg <= 31 else math.inf)
         route = 'psg' if abs(cents) <= 50 else 'scc'
-        if route == 'scc' and (trace.dpcm_slices or fds_audible):
+        if route == 'scc' and (lane_slices or fds_audible):
             # Waveform lane 3 is claimed by DPCM slices or by the
             # melodic FDS voice; degrade to the clamped PSG rendering
             # (or omission under AY) and record.
@@ -529,12 +535,12 @@ def project(raw, trace=None, *, force=False, gains=None):
     close_noise_gate(trace.source_end_vgmticks, None)
 
     # DPCM slices on SCC channel 3.
-    if trace.dpcm_slices:
+    if lane_slices:
         loaded = (0,) * 32
         volume = 0
         previous_end = None
         gate = None
-        for slice_ in trace.dpcm_slices:
+        for slice_ in lane_slices:
             if gate is not None and slice_.event_index != gate[0]:
                 gates.append(dict(source_channel=4,
                     start_vgmticks=gate[1], end_vgmticks=previous_end,
@@ -570,7 +576,7 @@ def project(raw, trace=None, *, force=False, gains=None):
     fds_presets = {}
     fds_opll_channels = ()
     if any(s.state.audible for s in fds_segments):
-        if not trace.dpcm_slices and not noise_scc_segments:
+        if not lane_slices and not noise_scc_segments:
             fds_route = 'scc'
             lanes[6] = ('scc', 3)
         else:
@@ -894,7 +900,7 @@ def project(raw, trace=None, *, force=False, gains=None):
         mapping_gains=dict(gains) if gains else {},
         allocation=[dict(source_channel=ch, target_chip=chip, target_channel=dest)
                     for ch, (chip, dest) in sorted(lanes.items())
-                    if ch < 4 or (ch == 4 and trace.dpcm_slices)
+                    if ch < 4 or (ch == 4 and lane_slices)
                     or (ch == 5 and noise_scc_segments)
                     or (ch == 6 and fds_route == 'scc')
                     or (ch == 7 and fds_route == 'opll')],
@@ -904,13 +910,13 @@ def project(raw, trace=None, *, force=False, gains=None):
         target_clock_hz=TARGET_CLOCK,
         clamped_pitches=clamped_pitches,
         dpcm_events_rendered=len({s.event_index
-                                  for s in trace.dpcm_slices}),
+                                  for s in lane_slices}),
         dpcm_events_omitted=(len(trace.dpcm_events)
                              - len({s.event_index
-                                    for s in trace.dpcm_slices})),
-        dpcm_slices=len(trace.dpcm_slices),
+                                    for s in lane_slices})),
+        dpcm_slices=len(lane_slices),
         dpcm_distinct_states=len({(s.cells, s.volume)
-                                  for s in trace.dpcm_slices}),
+                                  for s in lane_slices}),
         noise_scc_segments=noise_scc_segments,
         noise_omitted_segments=noise_omitted_segments,
         noise_lane_deferred=noise_lane_deferred,
@@ -945,6 +951,15 @@ def project(raw, trace=None, *, force=False, gains=None):
             'scc period clamped to 9..4095 with the error recorded',
             'when a source ay part owns the psg, in-range noise is '
             'omitted (recorded); out-of-range noise still renders on scc'])
+    if dpcm_external:
+        summary['dpcm_external_pcm'] = dict(
+            events=len(trace.dpcm_events),
+            slices_diverted=len(trace.dpcm_slices))
+        summary['limits'] = [*summary['limits'],
+            'dpcm_external_pcm is set: the dpcm slice rendering '
+            'described above does not apply; an external pcm target '
+            'carries the dpcm part and the scc waveform lane was '
+            'arbitrated as if no dpcm slices existed']
     return Projection(bytes(result), allocation, controls, target_writes,
                       gates, summary)
 

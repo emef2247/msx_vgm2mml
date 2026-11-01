@@ -102,6 +102,27 @@ class NesApuProjectionTests(unittest.TestCase):
         projected = project(raw)
         self.assertEqual(projected.summary['dpcm_events_omitted'], 1)
 
+    def test_dpcm_external_diverts_slices_from_the_scc_lane(self):
+        import struct as st
+        block = (b'\x67\x66\xc2' + st.pack('<I', 2 + 129)
+                 + st.pack('<H', 0xc000) + b'\xff' * 129)
+        raw = make_vgm(block + write(18, 0x00) + write(19, 0x08)
+                       + write(16, 0x0f) + write(21, 16) + wait(44100))
+        projected = project(raw)
+        self.assertGreater(projected.summary['dpcm_slices'], 0)
+        self.assertEqual(projected.summary['dpcm_events_rendered'], 1)
+        self.assertNotIn('dpcm_external_pcm', projected.summary)
+        external = project(raw, dpcm_external=True)
+        self.assertEqual(external.summary['dpcm_slices'], 0)
+        self.assertEqual(external.summary['dpcm_events_rendered'], 0)
+        self.assertEqual(external.summary['dpcm_events_omitted'], 1)
+        self.assertEqual(external.summary['dpcm_external_pcm'],
+                         dict(events=1,
+                              slices_diverted=projected.summary[
+                                  'dpcm_slices']))
+        self.assertFalse(any(row['source_channel'] == 4
+                             for row in external.summary['allocation']))
+
     def test_nes_ram_block_is_recorded_not_emitted(self):
         import struct as st
         block = (b'\x67\x66\xc2' + st.pack('<I', 2 + 4)
