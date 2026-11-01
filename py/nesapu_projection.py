@@ -22,6 +22,9 @@ from vgm_loop import read_loop_metadata
 from vgm_timing import command_times
 
 TARGET_CLOCK = 1789773
+# RAM data block types owned by the NES APU route; mirrors
+# native_source_music.BLOCK_CHIPS entries mapped to 'nesapu'.
+NES_RAM_BLOCK_TYPES = {0xc0, 0xc1, 0xc2}
 DUTY_HIGH_STEPS = (4, 8, 16, 24)
 TRIANGLE_LEVELS = tuple(15 - i if i < 16 else i - 16 for i in range(32))
 
@@ -92,13 +95,36 @@ class Projection:
 def project(raw, trace=None, *, force=False):
     trace = analyze(raw) if trace is None else trace
     commands = list(command_times(raw))
+    # Data blocks are accounted, never emitted: NES RAM blocks carry the
+    # DPCM sample data this revision omits (recorded in the summary);
+    # any other chip's block still blocks the route.
+    blocks = []
+    for command in commands:
+        if command.command != 0x67:
+            continue
+        address = command.address
+        block_type = raw[address + 2]
+        block_size = struct.unpack_from('<I', raw, address + 3)[0]
+        start = (struct.unpack_from('<H', raw, address + 7)[0]
+                 if 0xc0 <= block_type <= 0xdf and block_size >= 2 else None)
+        blocks.append(dict(type=f'{block_type:#x}', address=address,
+                           size_bytes=block_size, start_address=start,
+                           data_bytes=block_size - 2 if start is not None
+                           else block_size))
+    foreign_block = next((b for b in blocks
+                          if int(b['type'], 16) not in NES_RAM_BLOCK_TYPES),
+                         None)
+    if foreign_block:
+        raise ProjectionError(
+            f'NES APU route cannot silently omit data block type '
+            f"{foreign_block['type']} at {foreign_block['address']:#x}")
     present = {command.command for command in commands}
     passthrough = present & {0x51, 0xa1}
     ay_present = 0xa0 in present
     if ay_present:
         passthrough.add(0xa0)
-    supported = {0xb4, 0x61, 0x62, 0x63, 0x64, 0x66, *range(0x70, 0x80),
-                 *passthrough}
+    supported = {0xb4, 0x61, 0x62, 0x63, 0x64, 0x66, 0x67,
+                 *range(0x70, 0x80), *passthrough}
     unknown = next((c for c in commands if c.command not in supported), None)
     if unknown:
         raise ProjectionError(
@@ -304,6 +330,7 @@ def project(raw, trace=None, *, force=False):
         target_clock_hz=TARGET_CLOCK,
         clamped_pitches=clamped_pitches,
         dpcm_events_omitted=len(trace.dpcm_events),
+        data_blocks_omitted=blocks,
         fds_omitted='fds_registers_present_not_analyzed' in trace.issues,
         noise_route=noise_route,
         passthrough_commands=sorted(hex(c) for c in passthrough),

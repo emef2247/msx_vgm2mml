@@ -6,7 +6,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT), str(ROOT / 'py'), str(Path(__file__).parent)]
 from test_nesapu import make_vgm, pulse_note, wait, write
-from nesapu_projection import has_nesapu, project
+from nesapu_projection import ProjectionError, has_nesapu, project
 from vgm_timing import command_times
 
 
@@ -59,6 +59,25 @@ class NesApuProjectionTests(unittest.TestCase):
                        write(21, 16) + wait(4410))
         projected = project(raw)
         self.assertEqual(projected.summary['dpcm_events_omitted'], 1)
+
+    def test_nes_ram_block_is_recorded_not_emitted(self):
+        import struct as st
+        block = (b'\x67\x66\xc2' + st.pack('<I', 2 + 4)
+                 + st.pack('<H', 0xc000) + b'\xaa' * 4)
+        projected = project(make_vgm(block + pulse_note()))
+        self.assertEqual(len(projected.summary['data_blocks_omitted']), 1)
+        entry = projected.summary['data_blocks_omitted'][0]
+        self.assertEqual(entry['type'], '0xc2')
+        self.assertEqual(entry['start_address'], 0xc000)
+        self.assertEqual(entry['data_bytes'], 4)
+        self.assertNotIn(b'\x67\x66\xc2', projected.vgm[256:])
+
+    def test_foreign_data_block_blocks(self):
+        import struct as st
+        block = (b'\x67\x66\x80' + st.pack('<I', 2 + 4)
+                 + st.pack('<H', 0) + b'\xaa' * 4)
+        with self.assertRaises(ProjectionError):
+            project(make_vgm(block + pulse_note()))
 
     def test_loop_from_start_stays_at_start(self):
         import struct
