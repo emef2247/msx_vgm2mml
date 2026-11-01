@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from fractions import Fraction
 from mml_utils import compact_state_token
-from psg_scc_target import TUNING_HEADER, period_detune, envelope_period_tokens, rendered_period
+from psg_scc_target import SCALES, TUNING_HEADER, period_detune, envelope_period_tokens, rendered_period
 from psg_scc_performance import analyze as build_performance, audible, settings
 from psg_scc_execution import accepted_note_decision
 
@@ -236,6 +236,10 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
             note_cuts.append(len(body))
             boundaries[note.segment_indices[0]] = len(body)
             seg = note.segment
+            # Unpitched notes (a dedicated noise channel) still need a
+            # note token to carry their duration; the tone is disabled
+            # by the emitted mode, so the pitch itself is a placeholder.
+            pitch = seg.scale if seg.scale in SCALES else 'c'
             score_start,score_end=(score_timing.span(note.start,note.start+note.length,rest=note.rest)
                                    if score_timing else (0,0))
             if score_timing and score_end<=score_start:
@@ -296,7 +300,7 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
                 current.pop('env', None)
                 hw_rows.append((ch, note.start, note.start + note.length, seg.envelope_shape,
                                 continuation, ';'.join(map(str, note.segment_indices))))
-                body.append(duration(seg.scale))
+                body.append(duration(pitch))
             else:
                 if current.pop('hw', False):
                     current.pop('volume', None)
@@ -305,7 +309,7 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
                 set_value('env', chosen, f'@e{chosen}')
                 if env is not None:
                     set_value('volume', 15, 'v15')
-                    body.append(duration(seg.scale))
+                    body.append(duration(pitch))
                 else:
                     run_sample=note.start;emitted=False;run_step=score_start
                     for index, (volume, duration) in enumerate(note.runs):
@@ -314,11 +318,11 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
                             run_sample+=duration
                             if run_end<=run_step:continue
                             set_value('volume', volume, f'v{volume}')
-                            body.append(length_tokens(seg.scale,run_end-run_step,True,tie=emitted))
+                            body.append(length_tokens(pitch,run_end-run_step,True,tie=emitted))
                             run_step=run_end;emitted=True
                             continue
                         set_value('volume', volume, f'v{volume}')
-                        body.append(length_tokens(seg.scale, duration, raw_ticks, tie=index > 0))
+                        body.append(length_tokens(pitch, duration, raw_ticks, tie=index > 0))
             boundaries[note.segment_indices[-1] + 1] = len(body)
             dump_rows.append((track, note.start, cursor, 'note', '' if env is None else env,
                               ';'.join(f'{v}:{n}' for v, n in note.runs),
