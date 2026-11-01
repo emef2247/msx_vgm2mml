@@ -228,5 +228,25 @@ class EnvelopeTests(unittest.TestCase):
                     self.assertRegex(text, r'@e0[1-9] =')
 
 
+class WavePoolCapTest(unittest.TestCase):
+    def _wave(self, amp):
+        return ''.join(f'{(amp if i % 2 == 0 else -amp) & 0xFF:02x}' for i in range(32))
+
+    def test_pool_is_capped_with_melody_priority(self):
+        waves = tuple([self._wave(120)] + [self._wave(4 + i) for i in range(39)])
+        def seg(ch, tick, wid):
+            return SccSegment('vCtrl', 0, ch, tick, 2, 400, 12, 4, 'c', 0, (), 400, 1, 1,
+                              wid, waves[wid], 1)
+        segments = {0: [seg(0, 0, 0)],
+                    3: [seg(3, 2 + 2 * i, i + 1) for i in range(39)]}
+        with self.assertWarns(UserWarning):
+            text = render(segments, 'scc', EnvelopeBank(), True, waveforms=waves)
+        definitions = re.findall(r'@s(\d+) = \{([0-9a-f]+)\}', text)
+        self.assertEqual(len(definitions), 32)
+        self.assertEqual(definitions[0][1], waves[0])
+        used = {int(n) for n in re.findall(r'@(\d+)', text)}
+        self.assertLessEqual(max(used), 31)
+
+
 if __name__ == '__main__':
     unittest.main()

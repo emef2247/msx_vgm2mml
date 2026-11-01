@@ -23,6 +23,55 @@ class Note:
     segment_indices: list = field(default_factory=list)
 
 
+WAVE_POOL_LIMIT = 32  # MGSDRV SCC waveform slots (@s0..@s31)
+
+
+def _signed_cells(wave):
+    return tuple(b - 256 if b > 127 else b for b in bytes.fromhex(wave))
+
+
+def cap_wave_pool(segments, waveforms, limit=WAVE_POOL_LIMIT):
+    """Limit the SCC waveform pool to the MGSDRV slot count.
+
+    Waves are pooled in channel-priority order (lowest channel first,
+    then first use), so melodic channels keep their exact waves. Waves
+    beyond the limit are remapped to the nearest pooled wave used by a
+    same-or-lower priority channel. Returns (waveforms, mapping,
+    remapped) with remapped rows (original_id, pooled_id, distance,
+    channels). Unused waveforms are dropped only when over the limit.
+    """
+    if len(waveforms) <= limit:
+        return waveforms, None, []
+    first_use = {}
+    channels = {}
+    for ch in sorted(segments):
+        for seg in segments[ch]:
+            wid = seg.waveform_id
+            if wid >= len(waveforms) or wid in first_use:
+                continue
+            first_use[wid] = len(first_use)
+            channels.setdefault(wid, set()).add(ch)
+    for ch in sorted(segments):
+        for seg in segments[ch]:
+            if seg.waveform_id in channels:
+                channels[seg.waveform_id].add(ch)
+    ordered = sorted(first_use, key=lambda wid: (min(channels[wid]), first_use[wid]))
+    pooled = ordered[:limit]
+    mapping = {old: new for new, old in enumerate(pooled)}
+    cells = {wid: _signed_cells(waveforms[wid]) for wid in ordered}
+    remapped = []
+    for wid in ordered[limit:]:
+        floor = min(channels[wid])
+        candidates = [p for p in pooled if min(channels[p]) >= floor] or pooled
+        best = min(candidates, key=lambda p: (
+            sum(abs(a - b) for a, b in zip(cells[wid], cells[p])), mapping[p]))
+        mapping[wid] = mapping[best]
+        remapped.append((wid, mapping[best],
+                         sum(abs(a - b) for a, b in zip(cells[wid], cells[best])),
+                         ';'.join(map(str, sorted(channels[wid])))))
+    return tuple(waveforms[old] for old in pooled), mapping, remapped
+
+
 class EnvelopeBank:
     def __init__(self, deferred=False):
         self.curves = {((15, 1),): 0}
@@ -173,6 +222,20 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
             from psg_scc_performance import dump
             dump(performance, str(dump_path).replace('.target_notes.csv', ''))
     notes = performance.to_notes(Note)
+    wave_map = None
+    if chip == 'scc' and len(waveforms) > WAVE_POOL_LIMIT:
+        waveforms, wave_map, remapped = cap_wave_pool(segments, waveforms)
+        if remapped:
+            import warnings
+            warnings.warn(f'scc: {len(remapped)} waveforms exceed the '
+                          f'{WAVE_POOL_LIMIT}-wave MGSDRV pool; nearest pooled '
+                          'waves are reused (see wave_pool.csv with --dump-passes)')
+        if dump_path:
+            pool_path = Path(str(dump_path).replace('.target_notes.csv', '.wave_pool.csv'))
+            with pool_path.open('w', newline='', encoding='utf-8') as fh:
+                writer = csv.writer(fh)
+                writer.writerow(('original_id', 'pooled_id', 'distance', 'channels'))
+                writer.writerows(remapped)
     from psg_hw_envelope_mml import continuation_starts, dump_decisions
     hw_continuations = continuation_starts(performance)
     hw_rows = []
@@ -228,8 +291,9 @@ def render(segments, chip, bank, raw_ticks=False, waveforms=(), dump_path=None, 
                 # break that attachment and retrigger the HW envelope.
                 body.append('&')
             if chip == 'scc':
-                if current.get('wave') != seg.waveform_id:
-                    set_value('wave', seg.waveform_id, f'@{seg.waveform_id}')
+                if current.get('wave') != (seg.waveform_id if wave_map is None else wave_map[seg.waveform_id]):
+                    wave_id = seg.waveform_id if wave_map is None else wave_map[seg.waveform_id]
+                    set_value('wave', wave_id, f'@{wave_id}')
                     current.pop('env', None)
             else:
                 if 'tone' not in current:
