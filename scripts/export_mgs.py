@@ -22,8 +22,9 @@ def build_parser():
                         help='Output root preserving input-relative parents (default: beside each source VGM)')
     parser.add_argument('--mgsc', help='Native MGSC executable (default: PATH)')
     parser.add_argument('--mgsc-module', type=Path)
-    parser.add_argument('--nes-balance', action='store_true',
-                        help='Apply the NES mapping balance gains (NES APU sources only)')
+    parser.add_argument('--nes-balance', action=argparse.BooleanOptionalAction, default=True,
+                        help='Apply the NES mapping balance gains (NES APU sources only; '
+                             'default: on, use --no-nes-balance to disable)')
     parser.add_argument('--nes-gain', action='append', default=[], metavar='KIND=FACTOR',
                         help='Override one NES mapping gain (pulse, triangle, noise, dpcm, fds)')
     parser.add_argument('--compiler', choices=('mgsc', 'mgsexc'), default='mgsc',
