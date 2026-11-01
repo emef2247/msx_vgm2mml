@@ -8,9 +8,46 @@ sys.path[:0] = [str(ROOT), str(ROOT / 'py'), str(Path(__file__).parent)]
 import struct
 
 from test_nesapu import make_vgm, pulse_note, wait, write
-from nesapu_projection import ProjectionError, has_nesapu, project
+from nesapu_projection import (BALANCE_GAINS, ProjectionError, has_nesapu,
+                               project)
 from vgm_loop import read_loop_metadata
 from vgm_timing import command_times
+
+
+class NesApuBalanceGainTests(unittest.TestCase):
+    def test_pulse_gain_scales_target_volume(self):
+        raw = make_vgm(pulse_note(control=0x98) + wait(44100))  # volume 8
+        plain = project(raw)
+        gained = project(raw, gains=BALANCE_GAINS)
+        plain_controls = [r for r in plain.controls
+                          if r['source_channel'] == 0]
+        gained_controls = [r for r in gained.controls
+                           if r['source_channel'] == 0]
+        self.assertEqual(plain_controls[0]['target_volume'], 8)
+        self.assertEqual(gained_controls[0]['target_volume'], 10)  # 8 * 1.3
+        self.assertEqual(plain.summary['mapping_gains'], {})
+        self.assertEqual(gained.summary['mapping_gains']['pulse'], 1.3)
+
+    def test_triangle_gain_lowers_target_volume(self):
+        note = (write(21, 4) + write(8, 0xff) + write(10, 0x7e) +
+                write(11, 0xf8))
+        raw = make_vgm(note + wait(7350))
+        gained = project(raw, gains=BALANCE_GAINS)
+        volumes = [gained.vgm[c.address + 3]
+                   for c in commands_by_type(gained.vgm)[0xd2]
+                   if gained.vgm[c.address + 1] == 2
+                   and gained.vgm[c.address + 2] == 2]
+        self.assertEqual(volumes, [11])  # 15 * 0.75
+
+    def test_noise_gain_scales_psg_volume(self):
+        raw = make_vgm(write(21, 8) + write(12, 0x1a) + write(14, 0x03) +
+                       write(15, 1 << 3) + wait(22050))  # noise volume 10
+        gained = project(raw, gains=BALANCE_GAINS)
+        amplitudes = [gained.vgm[c.address + 2]
+                      for c in commands_by_type(gained.vgm)[0xa0]
+                      if gained.vgm[c.address + 1] == 10]
+        self.assertIn(8, amplitudes)  # 10 * 0.8
+        self.assertNotIn(10, amplitudes)
 
 
 def commands_by_type(raw):

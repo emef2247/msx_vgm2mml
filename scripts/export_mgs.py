@@ -22,6 +22,10 @@ def build_parser():
                         help='Output root preserving input-relative parents (default: beside each source VGM)')
     parser.add_argument('--mgsc', help='Native MGSC executable (default: PATH)')
     parser.add_argument('--mgsc-module', type=Path)
+    parser.add_argument('--nes-balance', action='store_true',
+                        help='Apply the NES mapping balance gains (NES APU sources only)')
+    parser.add_argument('--nes-gain', action='append', default=[], metavar='KIND=FACTOR',
+                        help='Override one NES mapping gain (pulse, triangle, noise, dpcm, fds)')
     parser.add_argument('--compiler', choices=('mgsc', 'mgsexc'), default='mgsc',
                         help='MML compiler: mgsexc avoids the MGSC buffer limit (default: mgsc)')
     parser.add_argument('--macro-definition-budget', type=int, default=None,
@@ -97,6 +101,7 @@ def main(argv=None):
                          software_volume_curves=args.is_software_volume_curves,
                          score_guided_loops=args.score_guided_loops,
                          macro_definition_budget=macro_budget,
+                         nes_balance=args.nes_balance, nes_gain=args.nes_gain,
                          psg_state_ms=None, scc_state_ms=None,
                          curve_volume_error=None, curve_mean_error=None)
     except (RuntimeError, ValueError) as error:

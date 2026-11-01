@@ -29,6 +29,14 @@ NES_RAM_BLOCK_TYPES = {0xc0, 0xc1, 0xc2}
 # SCC period whose waveform cycle is one 1/60 s slice tick.
 SLICE_PERIOD = round(2 * TARGET_CLOCK / (32 * 60)) - 1
 DUTY_HIGH_STEPS = (4, 8, 16, 24)
+# Per-kind volume gains for the NES -> SCC/PSG mapping. The source
+# segments stay exact; these factors only restyle how the mapping
+# expresses them, compensating the NES mixer's relative channel gains
+# (pulses capped at 10 in much game data, triangle fixed full, noise
+# bursts near full) against the SCC/PSG mix. Selected with
+# --nes-balance; individual factors can be overridden.
+BALANCE_GAINS = {'pulse': 1.3, 'triangle': 0.75, 'noise': 0.8,
+                 'dpcm': 1.25, 'fds': 1.0}
 TRIANGLE_LEVELS = tuple(15 - i if i < 16 else i - 16 for i in range(32))
 
 
@@ -250,7 +258,7 @@ class Projection:
             _csv(root / f'{stem}.nesapu.{name}.csv', rows, fields)
 
 
-def project(raw, trace=None, *, force=False):
+def project(raw, trace=None, *, force=False, gains=None):
     trace = analyze(raw) if trace is None else trace
     commands = list(command_times(raw))
     # Data blocks are accounted, never emitted: NES RAM blocks carry the
@@ -310,6 +318,12 @@ def project(raw, trace=None, *, force=False):
 
     def scc(sample, port, register, value, event_id=None):
         emit(sample, (0xd2, port, register, value & 255), event_id)
+
+    def scaled(kind, volume):
+        gain = (gains or {}).get(kind, 1.0)
+        if gain == 1.0 or volume <= 0:
+            return volume
+        return max(1, min(15, round(volume * gain)))
 
     # Initial target state: PSG all disabled, SCC silent.
     emit(0, (0xa0, 7, 63))
@@ -371,14 +385,16 @@ def project(raw, trace=None, *, force=False):
                         scc(at, 0, dest * 32 + index, value,
                             segment.start_event_id)
                     loaded_wave = wave
-                key = (register, view.volume, True)
+                mapped = scaled('pulse' if channel < 2 else 'triangle',
+                                view.volume)
+                key = (register, mapped, True)
                 if cache.get('key') != key:
                     if cache.get('period') != register:
                         scc(at, 1, dest * 2, register & 255,
                             segment.start_event_id)
                         scc(at, 1, dest * 2 + 1, register >> 8,
                             segment.start_event_id)
-                    scc(at, 2, dest, view.volume, segment.start_event_id)
+                    scc(at, 2, dest, mapped, segment.start_event_id)
                     cache.update(key=key, period=register, sounding=True)
                 waveform = f'duty{view.duty}' if channel < 2 else 'triangle'
             else:  # channel 3 (noise) is handled in its own block below
@@ -391,7 +407,7 @@ def project(raw, trace=None, *, force=False):
                 target_period=register, source_hz=source_hz,
                 target_hz=target_hz,
                 pitch_error_cents=1200 * math.log2(target_hz / source_hz),
-                target_volume=view.volume, enabled=True, waveform=waveform))
+                target_volume=mapped, enabled=True, waveform=waveform))
         if gate_start is not None:
             gates.append(dict(source_channel=channel,
                 start_vgmticks=gate_start[0],
@@ -441,6 +457,7 @@ def project(raw, trace=None, *, force=False):
             close_noise_gate(at, segment.start_event_id)
             silence_noise(at, segment.start_event_id)
             continue
+        mapped = scaled('noise', view.volume)
         rate = trace.clock_hz / NOISE_PERIODS[view.noise_period_index]
         np_reg = round(TARGET_CLOCK / (16 * rate))
         cents = (1200 * math.log2((TARGET_CLOCK / (16 * np_reg)) / rate)
@@ -466,20 +483,20 @@ def project(raw, trace=None, *, force=False):
             continue
         if route == 'psg':
             register, target_hz = _noise_period(rate)
-            key = (register, view.volume, view.lfsr_mode, True)
+            key = (register, mapped, view.lfsr_mode, True)
             if psg_cache.get('key') != key:
                 if psg_cache.get('period') != register:
                     emit(at, (0xa0, 6, register), segment.start_event_id)
                 emit(at, (0xa0, 7, 63 & ~(1 << 5) | (1 << 2)),
                      segment.start_event_id)
-                emit(at, (0xa0, 8 + 2, view.volume), segment.start_event_id)
+                emit(at, (0xa0, 8 + 2, mapped), segment.start_event_id)
                 psg_cache.update(key=key, period=register, sounding=True)
             controls.append(dict(source_event_id=segment.start_event_id,
                 vgmticks=at, source_channel=3, target_chip='psg',
                 target_channel=2, source_period=view.noise_period_index,
                 target_period=register, source_hz=rate, target_hz=target_hz,
                 pitch_error_cents=1200 * math.log2(target_hz / rate),
-                target_volume=view.volume, enabled=True,
+                target_volume=mapped, enabled=True,
                 waveform=f'noise_mode{view.lfsr_mode}'))
         else:
             noise_scc_segments += 1
@@ -499,14 +516,14 @@ def project(raw, trace=None, *, force=False):
                         scc(t, 0, 96 + index, value,
                             segment.start_event_id)
                     scc_wave_loaded = cells
-                if scc_noise_volume != view.volume:
-                    scc(t, 2, 3, view.volume, segment.start_event_id)
-                    scc_noise_volume = view.volume
+                if scc_noise_volume != mapped:
+                    scc(t, 2, 3, mapped, segment.start_event_id)
+                    scc_noise_volume = mapped
             controls.append(dict(source_event_id=segment.start_event_id,
                 vgmticks=at, source_channel=3, target_chip='scc',
                 target_channel=3, source_period=view.noise_period_index,
                 target_period=SLICE_PERIOD, source_hz=rate, target_hz=rate,
-                pitch_error_cents=0.0, target_volume=view.volume,
+                pitch_error_cents=0.0, target_volume=mapped,
                 enabled=True,
                 waveform=f'lfsr_mode{view.lfsr_mode}_slice'))
     close_noise_gate(trace.source_end_vgmticks, None)
@@ -533,9 +550,10 @@ def project(raw, trace=None, *, force=False):
                 for index, value in enumerate(slice_.cells):
                     scc(slice_.start_vgmticks, 0, 96 + index, value)
                 loaded = slice_.cells
-            if slice_.volume != volume:
-                scc(slice_.start_vgmticks, 2, 3, slice_.volume)
-                volume = slice_.volume
+            slice_volume = scaled('dpcm', slice_.volume)
+            if slice_volume != volume:
+                scc(slice_.start_vgmticks, 2, 3, slice_volume)
+                volume = slice_volume
             previous_end = slice_.end_vgmticks
         if gate is not None:
             gates.append(dict(source_channel=4, start_vgmticks=gate[1],
@@ -612,12 +630,13 @@ def project(raw, trace=None, *, force=False):
             register, target_hz = _scc_period(source_hz)
             if register != round(2 * TARGET_CLOCK / (32 * source_hz)) - 1:
                 clamped_pitches += 1
-            key = (register, view.volume, True)
+            mapped = scaled('fds', view.volume)
+            key = (register, mapped, True)
             if current.get('key') != key:
                 if current.get('period') != register:
                     scc(at, 1, 6, register & 255, segment.start_event_id)
                     scc(at, 1, 7, register >> 8, segment.start_event_id)
-                scc(at, 2, 3, view.volume, segment.start_event_id)
+                scc(at, 2, 3, mapped, segment.start_event_id)
                 current.update(key=key, period=register)
             controls.append(dict(source_event_id=segment.start_event_id,
                 vgmticks=at, source_channel=4, target_chip='scc',
@@ -625,7 +644,7 @@ def project(raw, trace=None, *, force=False):
                 target_period=register, source_hz=source_hz,
                 target_hz=target_hz,
                 pitch_error_cents=1200 * math.log2(target_hz / source_hz),
-                target_volume=view.volume, enabled=True,
+                target_volume=mapped, enabled=True,
                 waveform=f'fds_wave{view.wave_id}'))
         if gate_start is not None:
             gates.append(dict(source_channel=6,
@@ -691,8 +710,8 @@ def project(raw, trace=None, *, force=False):
             primary, layer = fds_presets[view.wave_id]
             for depth, c in enumerate(fds_opll_channels):
                 inst = primary if depth == 0 else layer
-                level = view.volume if depth == 0 \
-                    else max(0, view.volume - 5)
+                base = scaled('fds', view.volume)
+                level = base if depth == 0 else max(0, base - 5)
                 slot = state[c]
                 if slot['inst'] != inst or slot['vol'] != level:
                     emit(at, (0x51, 0x30 + c, (inst << 4) | (15 - level)),
@@ -872,6 +891,7 @@ def project(raw, trace=None, *, force=False):
     target_loop_periodic = _validate_target_loop(bytes(result)) \
         if loop_address is not None else None
     summary = dict(source='nesapu', target='scc_plus_psg_noise',
+        mapping_gains=dict(gains) if gains else {},
         allocation=[dict(source_channel=ch, target_chip=chip, target_channel=dest)
                     for ch, (chip, dest) in sorted(lanes.items())
                     if ch < 4 or (ch == 4 and trace.dpcm_slices)
@@ -929,7 +949,7 @@ def project(raw, trace=None, *, force=False):
                       gates, summary)
 
 
-def prepare(source, outdir, stem, *, force=False):
+def prepare(source, outdir, stem, *, force=False, gains=None):
     """Save native evidence before checking target eligibility; never own inputs."""
     raw = read_vgm_bytes(source)
     if not has_nesapu(raw):
@@ -960,7 +980,7 @@ def prepare(source, outdir, stem, *, force=False):
             target_path.unlink()
         for name in ('allocation', 'controls', 'target_writes', 'gates'):
             (root / f'{stem}.nesapu.{name}.csv').unlink(missing_ok=True)
-        projected = project(raw, trace, force=force)
+        projected = project(raw, trace, force=force, gains=gains)
         projected.dump(root, stem)
         target_path.parent.mkdir(parents=True, exist_ok=True)
         target_path.write_bytes(projected.vgm)
