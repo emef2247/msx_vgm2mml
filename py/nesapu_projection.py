@@ -62,6 +62,16 @@ def _scc_period(source_hz):
     return clamped, output_hz
 
 
+def _opll_pitch(hz):
+    """Nearest YM2413 fnum/block for a frequency (49716 = 3579545/72)."""
+    for block in range(8):
+        fnum = round(hz * 2**19 / (49716 * 2**block))
+        if fnum <= 511:
+            fnum = max(1, fnum)
+            return fnum, block, 49716 * fnum * 2**block / 2**19
+    return 511, 7, 49716 * 511 * 2**7 / 2**19
+
+
 def _noise_period(source_rate_hz):
     register = round(TARGET_CLOCK / (16 * source_rate_hz))
     clamped = min(31, max(1, register))
@@ -380,6 +390,188 @@ def project(raw, trace=None, *, force=False):
         if volume:
             scc(previous_end, 2, 3, 0)
 
+    # FDS: SCC waveform lane when free (DPCM claims it first, then
+    # slow noise), else an OPLL preset approximation (two layered
+    # channels when available), else a recorded omission.
+    fds_segments = [s for s in trace.segments if s.channel == 4]
+    fds_route = 'none'
+    fds_presets = {}
+    fds_opll_channels = ()
+    if any(s.state.audible for s in fds_segments):
+        if not trace.dpcm_slices and not noise_scc_segments:
+            fds_route = 'scc'
+            lanes[6] = ('scc', 3)
+        else:
+            used = set()
+            for command in commands:
+                if command.command != 0x51:
+                    continue
+                register = raw[command.address + 1]
+                if register == 0x0e and raw[command.address + 2] & 0x20:
+                    used.update((6, 7, 8))
+                elif 0x10 <= register <= 0x38:
+                    used.add(register % 0x10 if register < 0x20
+                             else (register - 0x20) if register < 0x30
+                             else register - 0x30)
+            free = [c for c in range(9) if c not in used]
+            if free:
+                fds_route = 'opll'
+                fds_opll_channels = tuple(free[:2])
+                lanes[7] = ('opll', fds_opll_channels[0])
+            else:
+                fds_route = 'omitted'
+    if fds_route == 'scc':
+        wave_cells = {}
+        loaded = None
+        current = {}
+        gate_start = None
+        for segment in fds_segments:
+            view = segment.state
+            at = segment.start_vgmticks
+            if not view.audible:
+                if gate_start is not None:
+                    gates.append(dict(source_channel=6,
+                        start_vgmticks=gate_start[0],
+                        end_vgmticks=at,
+                        start_source_event_id=gate_start[1],
+                        end_source_event_id=segment.start_event_id))
+                    gate_start = None
+                    scc(at, 2, 3, 0, segment.start_event_id)
+                    current['volume'] = 0
+                continue
+            if gate_start is None:
+                gate_start = (at, segment.start_event_id)
+            if view.wave_id not in wave_cells:
+                wave = trace.fds_waves[view.wave_id]
+                mean = sum(wave) / 64
+                peak = max(abs(v - mean) for v in wave) or 1
+                wave_cells[view.wave_id] = tuple(
+                    round(((wave[2 * i] + wave[2 * i + 1]) / 2 - mean)
+                          * 124 / peak) for i in range(32))
+            cells = wave_cells[view.wave_id]
+            if cells != loaded:
+                for index, value in enumerate(cells):
+                    scc(at, 0, 96 + index, value, segment.start_event_id)
+                loaded = cells
+            source_hz = (trace.clock_hz * view.period * view.mod_ratio
+                         / 2**22)
+            register, target_hz = _scc_period(source_hz)
+            if register != round(2 * TARGET_CLOCK / (32 * source_hz)) - 1:
+                clamped_pitches += 1
+            key = (register, view.volume, True)
+            if current.get('key') != key:
+                if current.get('period') != register:
+                    scc(at, 1, 6, register & 255, segment.start_event_id)
+                    scc(at, 1, 7, register >> 8, segment.start_event_id)
+                scc(at, 2, 3, view.volume, segment.start_event_id)
+                current.update(key=key, period=register)
+            controls.append(dict(source_event_id=segment.start_event_id,
+                vgmticks=at, source_channel=4, target_chip='scc',
+                target_channel=3, source_period=view.period,
+                target_period=register, source_hz=source_hz,
+                target_hz=target_hz,
+                pitch_error_cents=1200 * math.log2(target_hz / source_hz),
+                target_volume=view.volume, enabled=True,
+                waveform=f'fds_wave{view.wave_id}'))
+        if gate_start is not None:
+            gates.append(dict(source_channel=6,
+                start_vgmticks=gate_start[0],
+                end_vgmticks=trace.source_end_vgmticks,
+                start_source_event_id=gate_start[1],
+                end_source_event_id=None))
+    elif fds_route == 'opll':
+        def classify(wave):
+            mean = sum(wave) / 64
+            centered = [v - mean for v in wave]
+            if max(centered) - min(centered) < 2:
+                return (8, 4)
+            mags = []
+            for k in range(1, 7):
+                re = sum(centered[t] * math.cos(2 * math.pi * k * t / 64)
+                         for t in range(64))
+                im = -sum(centered[t] * math.sin(2 * math.pi * k * t / 64)
+                          for t in range(64))
+                mags.append(math.hypot(re, im))
+            h1 = mags[0] or 1e-9
+            ratios = [m / h1 for m in mags]
+            if len(set(wave)) <= 3:
+                return (5, 10)
+            if ratios[1] < 0.15 and ratios[2] < 0.15 and sum(ratios[3:]) < 0.2:
+                return (4, 8)
+            if ratios[2] > 0.4 and ratios[1] < 0.3:
+                return (5, 10)
+            if ratios[1] > 0.5:
+                return (8, 4)
+            return (10, 1)
+
+        for wave_id, wave in enumerate(trace.fds_waves):
+            fds_presets[wave_id] = classify(wave)
+        state = {c: dict(key=False, fnum=None, block=None, inst=None,
+                         vol=None) for c in fds_opll_channels}
+        gate_start = None
+        for segment in fds_segments:
+            view = segment.state
+            at = segment.start_vgmticks
+            if not view.audible:
+                if gate_start is not None:
+                    gates.append(dict(source_channel=7,
+                        start_vgmticks=gate_start[0], end_vgmticks=at,
+                        start_source_event_id=gate_start[1],
+                        end_source_event_id=segment.start_event_id))
+                    gate_start = None
+                for c in fds_opll_channels:
+                    if state[c]['key']:
+                        emit(at, (0x51, 0x10 + c, state[c]['fnum'] & 255),
+                             segment.start_event_id)
+                        emit(at, (0x51, 0x20 + c,
+                                  (state[c]['fnum'] >> 8 & 1)
+                                  | (state[c]['block'] << 1)),
+                             segment.start_event_id)
+                        state[c]['key'] = False
+                continue
+            if gate_start is None:
+                gate_start = (at, segment.start_event_id)
+            source_hz = (trace.clock_hz * view.period * view.mod_ratio
+                         / 2**22)
+            fnum, block, target_hz = _opll_pitch(source_hz)
+            primary, layer = fds_presets[view.wave_id]
+            for depth, c in enumerate(fds_opll_channels):
+                inst = primary if depth == 0 else layer
+                level = view.volume if depth == 0 \
+                    else max(0, view.volume - 5)
+                slot = state[c]
+                if slot['inst'] != inst or slot['vol'] != level:
+                    emit(at, (0x51, 0x30 + c, (inst << 4) | (15 - level)),
+                         segment.start_event_id)
+                    slot.update(inst=inst, vol=level)
+                if (slot['fnum'], slot['block']) != (fnum, block) \
+                        or not slot['key']:
+                    emit(at, (0x51, 0x10 + c, fnum & 255),
+                         segment.start_event_id)
+                    emit(at, (0x51, 0x20 + c, (fnum >> 8 & 1)
+                              | (block << 1) | 0x10),
+                         segment.start_event_id)
+                    slot.update(fnum=fnum, block=block, key=True)
+            controls.append(dict(source_event_id=segment.start_event_id,
+                vgmticks=at, source_channel=4, target_chip='opll',
+                target_channel=fds_opll_channels[0],
+                source_period=view.period, target_period=fnum,
+                source_hz=source_hz, target_hz=target_hz,
+                pitch_error_cents=1200 * math.log2(target_hz / source_hz),
+                target_volume=view.volume, enabled=True,
+                waveform=f'fds_wave{view.wave_id}_preset{primary}'))
+        if gate_start is not None:
+            gates.append(dict(source_channel=7,
+                start_vgmticks=gate_start[0],
+                end_vgmticks=trace.source_end_vgmticks,
+                start_source_event_id=gate_start[1],
+                end_source_event_id=None))
+        for c in fds_opll_channels:
+            if state[c]['key']:
+                emit(trace.source_end_vgmticks,
+                     (0x51, 0x20 + c, (state[c]['fnum'] >> 8 & 1)
+                      | (state[c]['block'] << 1)))
+
     # SCC enable mask follows the union of the SCC gates.
     mask_events = []
     for gate in gates:
@@ -446,6 +638,8 @@ def project(raw, trace=None, *, force=False):
     header[:4] = b'Vgm '
     opll_clock = int.from_bytes(raw[0x10:0x14], 'little') & 0x3fffffff \
         if passthrough & {0x51, 0xa1} else 0
+    if fds_route == 'opll' and not opll_clock:
+        opll_clock = 3579545
     for offset, value in ((8, 0x171), (0x34, 256 - 0x34),
                           (0x18, trace.source_end_vgmticks),
                           (0x74, TARGET_CLOCK), (0x9c, TARGET_CLOCK),
@@ -471,7 +665,9 @@ def project(raw, trace=None, *, force=False):
         allocation=[dict(source_channel=ch, target_chip=chip, target_channel=dest)
                     for ch, (chip, dest) in sorted(lanes.items())
                     if ch < 4 or (ch == 4 and trace.dpcm_slices)
-                    or (ch == 5 and noise_scc_segments)],
+                    or (ch == 5 and noise_scc_segments)
+                    or (ch == 6 and fds_route == 'scc')
+                    or (ch == 7 and fds_route == 'opll')],
         source_sha256=hashlib.sha256(raw).hexdigest(),
         target_sha256=hashlib.sha256(result).hexdigest(),
         source_end_vgmticks=trace.source_end_vgmticks,
@@ -489,7 +685,9 @@ def project(raw, trace=None, *, force=False):
         noise_omitted_segments=noise_omitted_segments,
         noise_lane_deferred=noise_lane_deferred,
         data_blocks_omitted=blocks,
-        fds_omitted='fds_registers_present_not_analyzed' in trace.issues,
+        fds_omitted=fds_route == 'omitted',
+        fds_route=fds_route,
+        fds_presets={str(k): v for k, v in fds_presets.items()},
         noise_route=noise_route,
         passthrough_commands=sorted(hex(c) for c in passthrough),
         loop_validation='positional only in this revision; loop-entry '
@@ -497,7 +695,9 @@ def project(raw, trace=None, *, force=False):
         limits=['dpcm samples render as 1/60 s scc waveform slices '
             '(effective 1.92 khz resample) on scc channel 3; triggers '
             'without sample data stay omitted and are recorded',
-            'fds voices omitted (recorded in summary)',
+            'fds renders on the scc waveform lane when free, else as '
+            'a layered opll preset approximation chosen from the '
+            'waveform spectrum; omitted only when neither is free',
             'psg noise covers apu lfsr rates within 50 cents; slower '
             'rates render as scc lfsr waveform slices (lfsr phase '
             'restarts per segment) on the spare scc waveform lane, '

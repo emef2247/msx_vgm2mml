@@ -4,13 +4,16 @@ import json
 from nesapu import NOISE_PERIODS, analyze
 from native_music import NativeUnit
 
-SECTIONS = ('pulse', 'pulse', 'triangle', 'noise')
+SECTIONS = ('pulse', 'pulse', 'triangle', 'noise', 'fds')
 
 
 def _pitch_hz(trace, view):
     if view.kind == 'noise':
         cycles = NOISE_PERIODS[view.noise_period_index]
         return trace.clock_hz / cycles if trace.clock_hz else None
+    if view.kind == 'fds':
+        return (trace.clock_hz * view.period * view.mod_ratio / 2**22
+                if trace.clock_hz else None)
     divisor = 16 if view.kind == 'pulse' else 32
     return trace.clock_hz / (divisor * (view.period + 1)) if trace.clock_hz else None
 
@@ -48,6 +51,7 @@ def add_units(builder, root, stem):
                 append(volume, at, view.volume)
                 parameters = (('duty', view.duty),) if view.kind == 'pulse' else \
                     (('lfsr_mode', view.lfsr_mode),) if view.kind == 'noise' else \
+                    (('wave_id', view.wave_id),) if view.kind == 'fds' else \
                     (('waveform', 'triangle'),)
                 append(voices, at, builder.voice(device, section, parameters))
             builder.units.append(NativeUnit(
@@ -61,7 +65,8 @@ def add_units(builder, root, stem):
                 (('boundary_origin', 'source_audibility_or_counter_transition'),
                  ('volume_domain', 'native_apu_level_0_15' if section != 'triangle'
                   else 'triangle_fixed_level_no_volume_register'),
-                 ('dpcm_events_retained_in_trace', bool(trace.dpcm_events)))))
+                 ('dpcm_events_retained_in_trace', bool(trace.dpcm_events)),
+                 ('fds_waves_retained_in_trace', bool(trace.fds_waves)))))
             number += 1
             active.clear()
 

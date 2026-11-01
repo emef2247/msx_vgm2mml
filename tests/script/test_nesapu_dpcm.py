@@ -73,6 +73,57 @@ class DpcmSliceTests(unittest.TestCase):
         self.assertIn('dpcm_trigger_without_sample_data', trace.issues)
 
 
+def fds_note(freq=1000, gain=32):
+    stream = write(0x29, 0x80)
+    for i in range(64):
+        stream += write(0x40 + i, 63 if i < 32 else 0)
+    return (stream + write(0x29, 0) + write(0x22, freq & 255)
+            + write(0x23, (freq >> 8) & 15) + write(0x20, 0x80 | gain))
+
+
+class FdsTests(unittest.TestCase):
+    def test_fixed_gain_note_is_audible_with_wave(self):
+        trace = analyze(make_vgm(fds_note() + wait(44100)))
+        audible = [s for s in trace.segments
+                   if s.channel == 4 and s.state.audible]
+        self.assertEqual(len(audible), 1)
+        self.assertEqual(audible[0].state.period, 1000)
+        self.assertEqual(audible[0].state.volume, 15)
+        self.assertEqual(len(trace.fds_waves), 1)
+
+    def test_envelope_ramps_gain(self):
+        stream = write(0x2a, 255) + write(0x29, 0x80)
+        for i in range(64):
+            stream += write(0x40 + i, 32)
+        stream += (write(0x29, 0) + write(0x22, 232) + write(0x23, 3)
+                   + write(0x20, 0x40 | 63))
+        trace = analyze(make_vgm(stream + wait(44100)))
+        volumes = [s.state.volume for s in trace.segments
+                   if s.channel == 4]
+        self.assertEqual(volumes, sorted(volumes))
+        self.assertGreater(volumes[-1], volumes[0])
+
+    def test_fds_renders_on_scc_lane_when_free(self):
+        projected = project(make_vgm(fds_note() + wait(44100)))
+        self.assertEqual(projected.summary['fds_route'], 'scc')
+        controls = [c for c in projected.controls
+                    if c['source_channel'] == 4]
+        self.assertEqual(controls[0]['target_chip'], 'scc')
+
+    def test_fds_falls_back_to_layered_opll_when_lane_busy(self):
+        raw = make_vgm(dpcm_setup(bytes([0xff]) * 512) + fds_note()
+                       + wait(44100))
+        projected = project(raw)
+        self.assertEqual(projected.summary['fds_route'], 'opll')
+        self.assertTrue(projected.summary['fds_presets'])
+        opll = [c for c in command_times(projected.vgm)
+                if c.command == 0x51]
+        self.assertTrue(opll)
+        import struct as st
+        clock = st.unpack_from('<I', projected.vgm, 0x10)[0] & 0x3fffffff
+        self.assertEqual(clock, 3579545)
+
+
 class LfsrSliceTests(unittest.TestCase):
     def test_cells_are_32_bipolar_and_mode_dependent(self):
         slow = list(lfsr_tick_cells(1789773, 12, 0, 10))

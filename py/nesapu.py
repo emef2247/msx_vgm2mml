@@ -6,7 +6,7 @@ and sweep units are re-executed on the source clock; the emitted segments
 retain the derived pitch/volume state, not target notes. DPCM sample
 playback and FDS registers are recorded as evidence, not analyzed.
 """
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, replace
 from pathlib import Path
 import csv
 import json
@@ -45,6 +45,20 @@ class Write:
     value: int
 
 
+MOD_TABLE_STEPS = {0: 0, 1: 1, 2: 2, 3: 4, 4: None, 5: -4, 6: -2, 7: -1}
+FDS_MASTER_VOLUMES = (1.0, 2 / 3, 2 / 4, 2 / 5)
+
+
+def fds_pitch_ratio(counter, gain):
+    """Modulated pitch multiplier from the NESdev FDS formula."""
+    temp = counter * gain
+    if (temp & 0x0f) and not (temp & 0x800):
+        temp += 0x20
+    temp += 0x400
+    temp = (temp >> 4) & 0xff
+    return temp / 64
+
+
 @dataclass(frozen=True)
 class ChannelView:
     """One channel's state over a segment: derived audibility plus the raw
@@ -59,6 +73,8 @@ class ChannelView:
     noise_period_index: int
     control: int = 0
     sweep: int = 0
+    wave_id: int = -1
+    mod_ratio: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -194,6 +210,38 @@ class _Pulse:
         return self.envelope.decay
 
 
+class _Fds:
+    """FDS (2C33) audio state: envelopes and modulator re-executed."""
+
+    __slots__ = ('vol_control', 'mod_control', 'vol_gain', 'mod_gain',
+                 'vol_next', 'mod_next', 'freq', 'freq_high', 'mod_freq',
+                 'mod_high', 'mod_counter', 'mod_acc', 'mod_base',
+                 'carry_next', 'mod_table', 'wave', 'master_volume',
+                 'wave_write_enable', 'env_master', 'seen')
+
+    def __init__(self):
+        self.vol_control = 0x80  # BIOS reset state: fixed gain 0
+        self.mod_control = 0x80
+        self.vol_gain = 0
+        self.mod_gain = 0
+        self.vol_next = math.inf
+        self.mod_next = math.inf
+        self.freq = 0
+        self.freq_high = 0
+        self.mod_freq = 0
+        self.mod_high = 0
+        self.mod_counter = 0
+        self.mod_acc = 0
+        self.mod_base = 0.0
+        self.carry_next = math.inf
+        self.mod_table = [0] * 32
+        self.wave = [0] * 64
+        self.master_volume = 0
+        self.wave_write_enable = False
+        self.env_master = 0
+        self.seen = False
+
+
 class Runtime:
     """Mutable NES APU model; derived views are immutable snapshots."""
 
@@ -217,6 +265,9 @@ class Runtime:
         self.frame_start = 0.0
         self.frame_step = 0
         self.dpcm_events = []
+        self.fds = _Fds()
+        self.fds_waves = []
+        self._fds_wave_ids = {}
 
     # -- frame sequencer -------------------------------------------------
     def _next_step_cycle(self):
@@ -230,8 +281,19 @@ class Runtime:
         after that step's clocks, while the derived state matches the step.
         """
         fired = []
-        while self.clock_hz and self._next_step_cycle() <= cycle:
-            at = self._next_step_cycle()
+        while self.clock_hz:
+            frame_at = self._next_step_cycle()
+            fds_at = self._fds_next_at()
+            if min(frame_at, fds_at) > cycle:
+                break
+            if fds_at <= frame_at:
+                self._fds_process(fds_at)
+                sample = round(fds_at * 44100 / self.clock_hz)
+                fired.append(sample)
+                if on_step is not None:
+                    on_step(sample)
+                continue
+            at = frame_at
             _, quarter, half = FRAME_STEPS[self.frame_mode][self.frame_step]
             if quarter:
                 self._clock_quarter()
@@ -345,6 +407,147 @@ class Runtime:
     def _cycle(self, vgmticks):
         return vgmticks * self.clock_hz / 44100 if self.clock_hz else 0.0
 
+    # -- FDS (2C33) ---------------------------------------------------------
+    def _fds_env_period(self, control):
+        fds = self.fds
+        if control & 0x80 or fds.env_master == 0 or fds.freq_high & 0x40:
+            return None
+        period = 8 * ((control & 0x3f) + 1) * (fds.env_master + 1)
+        if fds.freq_high & 0x80:
+            period = max(1, period // 4)
+        return period
+
+    def _fds_schedule_env(self, which, from_cycle):
+        fds = self.fds
+        control = fds.vol_control if which == 'vol' else fds.mod_control
+        period = self._fds_env_period(control)
+        setattr(fds, f'{which}_next',
+                math.inf if period is None else from_cycle + period)
+
+    def _fds_schedule_carry(self, from_cycle):
+        fds = self.fds
+        if (not fds.mod_freq or fds.mod_high & 0x80 or fds.freq_high & 0x80):
+            fds.carry_next = math.inf
+            return
+        if fds.mod_high & 0x40:
+            ticks = 1
+        else:
+            ticks = -(-(4096 - fds.mod_acc % 4096) // fds.mod_freq)
+        fds.mod_base = from_cycle
+        fds.carry_next = from_cycle + ticks * 16
+
+    def _fds_tick_env(self, which):
+        fds = self.fds
+        control = fds.vol_control if which == 'vol' else fds.mod_control
+        gain = fds.vol_gain if which == 'vol' else fds.mod_gain
+        if control & 0x40:
+            gain = gain + 1 if gain < 32 else gain
+        else:
+            gain = gain - 1 if gain > 0 else gain
+        if which == 'vol':
+            fds.vol_gain = gain
+        else:
+            fds.mod_gain = gain
+        period = self._fds_env_period(control)
+        setattr(fds, f'{which}_next',
+                math.inf if period is None
+                else getattr(fds, f'{which}_next') + period)
+
+    def _fds_carry(self):
+        fds = self.fds
+        ticks = round((fds.carry_next - fds.mod_base) / 16)
+        fds.mod_acc = (fds.mod_acc + fds.mod_freq * ticks) & 0x3ffff
+        entry = fds.mod_table[(fds.mod_acc >> 13) & 31]
+        step = MOD_TABLE_STEPS[entry]
+        if step is None:
+            fds.mod_counter = 0
+        else:
+            fds.mod_counter = ((fds.mod_counter + step + 64) % 128) - 64
+        self._fds_schedule_carry(fds.carry_next)
+
+    def _fds_next_at(self):
+        fds = self.fds
+        if not fds.seen:
+            return math.inf
+        return min(fds.vol_next, fds.mod_next, fds.carry_next)
+
+    def _fds_process(self, at_cycle):
+        fds = self.fds
+        if fds.vol_next <= at_cycle:
+            self._fds_tick_env('vol')
+        if fds.mod_next <= at_cycle:
+            self._fds_tick_env('mod')
+        if fds.carry_next <= at_cycle:
+            self._fds_carry()
+
+    def write_fds(self, register, value, vgmticks):
+        fds = self.fds
+        fds.seen = True
+        cycle = self._cycle(vgmticks)
+        if 0x40 <= register <= 0x7f:
+            if fds.wave_write_enable:
+                fds.wave[register - 0x40] = value & 63
+            return
+        if register == 0x20:
+            fds.vol_control = value
+            if value & 0x80:
+                fds.vol_gain = value & 0x3f
+            self._fds_schedule_env('vol', cycle)
+        elif register == 0x22:
+            fds.freq = (fds.freq & 0xf00) | value
+        elif register == 0x23:
+            fds.freq = (fds.freq & 0xff) | ((value & 0x0f) << 8)
+            fds.freq_high = value
+            self._fds_schedule_env('vol', cycle)
+            self._fds_schedule_env('mod', cycle)
+            self._fds_schedule_carry(cycle)
+        elif register == 0x24:
+            fds.mod_control = value
+            if value & 0x80:
+                fds.mod_gain = value & 0x3f
+            self._fds_schedule_env('mod', cycle)
+        elif register == 0x25:
+            counter = value & 0x7f
+            fds.mod_counter = counter - 128 if counter >= 64 else counter
+        elif register == 0x26:
+            fds.mod_freq = (fds.mod_freq & 0xf00) | value
+            self._fds_schedule_carry(cycle)
+        elif register == 0x27:
+            fds.mod_freq = (fds.mod_freq & 0xff) | ((value & 0x0f) << 8)
+            fds.mod_high = value
+            if value & 0x80:
+                fds.mod_acc &= 0x3e000
+            self._fds_schedule_carry(cycle)
+        elif register == 0x28:
+            if fds.mod_high & 0x80:
+                fds.mod_table[(fds.mod_acc >> 13) & 31] = value & 7
+                fds.mod_acc = (fds.mod_acc + 8192) & 0x3ffff
+        elif register == 0x29:
+            fds.wave_write_enable = bool(value & 0x80)
+            fds.master_volume = value & 3
+        elif register == 0x2a:
+            fds.env_master = value
+            self._fds_schedule_env('vol', cycle)
+            self._fds_schedule_env('mod', cycle)
+
+    def _fds_wave_id(self):
+        key = tuple(self.fds.wave)
+        if key not in self._fds_wave_ids:
+            self._fds_wave_ids[key] = len(self.fds_waves)
+            self.fds_waves.append(key)
+        return self._fds_wave_ids[key]
+
+    def _fds_view(self):
+        fds = self.fds
+        gain = min(fds.vol_gain, 32)
+        volume = round(15 * (gain / 32) * FDS_MASTER_VOLUMES[fds.master_volume])
+        halted = bool(fds.freq_high & 0x80) or fds.wave_write_enable
+        return ChannelView(4, 'fds',
+            volume > 0 and fds.freq > 0 and not halted,
+            fds.freq, 0, volume, 0, 0, fds.vol_control, fds.mod_control,
+            self._fds_wave_id(),
+            fds_pitch_ratio(fds.mod_counter, fds.mod_gain))
+
     # -- derived views -----------------------------------------------------
     def views(self):
         result = []
@@ -364,6 +567,8 @@ class Runtime:
             1 if self.noise_mode_period & 128 else 0,
             self.noise_mode_period & 15, self.noise_control,
             self.noise_mode_period))
+        if self.fds.seen:
+            result.append(self._fds_view())
         return tuple(result)
 
 
@@ -378,6 +583,7 @@ class Trace:
     dpcm_events: tuple[DpcmEvent, ...]
     issues: tuple[str, ...]
     dpcm_slices: tuple[DpcmSlice, ...] = ()
+    fds_waves: tuple = ()
 
     def dump(self, outdir, stem):
         root = Path(outdir)
@@ -398,18 +604,26 @@ class Trace:
                         event_index=s.event_index,
                         cells=' '.join(str(c) for c in s.cells))
                    for s in self.dpcm_slices], 'start_vgmticks')
+        _dump_csv(root / f'{stem}.nesapu.fds_waves.csv',
+                  [dict(wave_id=index,
+                        values=' '.join(str(v) for v in wave))
+                   for index, wave in enumerate(self.fds_waves)],
+                  'wave_id')
         report = dict(clock_raw=self.clock_raw, clock_hz=self.clock_hz,
             tick_clock_hz=44100, source_end_vgmticks=self.source_end_vgmticks,
             write_count=len(self.writes), segment_count=len(self.segments),
             dpcm_event_count=len(self.dpcm_events),
             dpcm_slice_count=len(self.dpcm_slices),
+            fds_wave_count=len(self.fds_waves),
             semantics='ordered native writes replayed through the frame '
                       'sequencer; intervals of derived channel state, not '
                       'target notes',
             limitations=['frame sequencer write delay after $4017 is ignored',
                 'dpcm playback is sliced into 1/60 s waveform cells; dma '
                 'cycle stealing is not modeled',
-                'fds registers are retained as controls but not analyzed',
+                'fds volume gain changes are applied at segment '
+                'resolution, not latched to wave position 0; the fds '
+                'output lowpass (~2 khz) is not modeled',
                 'initial sequencer phase assumes a reset at the first sample'],
             issues=self.issues)
         (root / f'{stem}.nesapu.source.json').write_text(
@@ -567,9 +781,15 @@ def analyze(raw):
                             command.address, command.vgmticks, register, value))
         if register >= 0x80 and 'nes_apu_high_register_bit_observed' not in issues:
             issues.append('nes_apu_high_register_bit_observed')
-        if 0x20 <= register <= 0x2f or 0x40 <= register <= 0x7f:
-            if 'fds_registers_present_not_analyzed' not in issues:
-                issues.append('fds_registers_present_not_analyzed')
+        if 0x20 <= register <= 0x2a or 0x40 <= register <= 0x7f:
+            if 'fds_registers_present' not in issues:
+                issues.append('fds_registers_present')
+            runtime.write_fds(register, value, command.vgmticks)
+            checkpoint(command.vgmticks, event_id)
+            continue
+        if 0x2b <= register <= 0x2f:
+            if 'fds_unknown_register_observed' not in issues:
+                issues.append('fds_unknown_register_observed')
             continue
         if register in LENGTH_LOAD_REGS:
             retriggers.append((register // 4, command.vgmticks, event_id))
@@ -595,6 +815,23 @@ def analyze(raw):
         issues.append('dpcm_sample_playback_observed')
     slices = _dpcm_slices(raw, runtime.dpcm_events, writes, clock_hz, end,
                           issues)
+    # Compact FDS wave ids to the waves segments actually reference
+    # (wave-RAM loading passes through many transient waveforms).
+    remap = {}
+    waves = []
+    rebuilt = []
+    for segment in segments:
+        if segment.channel == 4 and segment.state.wave_id >= 0:
+            old = segment.state.wave_id
+            if old not in remap:
+                remap[old] = len(waves)
+                waves.append(runtime.fds_waves[old])
+            if remap[old] != old:
+                segment = replace(segment,
+                                  state=replace(segment.state,
+                                                wave_id=remap[old]))
+        rebuilt.append(segment)
+    segments = rebuilt
     return Trace(end, clock_raw, clock_hz, tuple(writes), tuple(segments),
                  tuple(retriggers), tuple(runtime.dpcm_events), tuple(issues),
-                 slices)
+                 slices, tuple(waves))
