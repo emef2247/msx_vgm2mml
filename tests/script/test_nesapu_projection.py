@@ -60,6 +60,17 @@ class NesApuProjectionTests(unittest.TestCase):
         projected = project(raw)
         self.assertEqual(projected.summary['dpcm_events_omitted'], 1)
 
+    def test_loop_from_start_stays_at_start(self):
+        import struct
+        raw = bytearray(make_vgm(pulse_note() + wait(44100)))
+        struct.pack_into('<I', raw, 0x1c, 256 - 0x1c)
+        struct.pack_into('<I', raw, 0x20, 44100)
+        projected = project(bytes(raw))
+        from vgm_loop import read_loop_metadata
+        loop = read_loop_metadata(projected.vgm)
+        self.assertEqual(loop['loop_start_samples'], 0)
+        self.assertEqual(loop['decoded_loop_samples'], 44100)
+
     def test_has_nesapu(self):
         self.assertTrue(has_nesapu(make_vgm(pulse_note() + wait(735))))
         self.assertFalse(has_nesapu(make_vgm(wait(735))))

@@ -235,7 +235,7 @@ def project(raw, trace=None, *, force=False):
     body = bytearray()
     target_writes = []
     cursor = 0
-    loop_address = None
+    loop_address = 256 if loop_start == 0 else None
     for sample, _, command, event_id in events:
         while cursor < sample:
             step = min(sample - cursor, 65535)
