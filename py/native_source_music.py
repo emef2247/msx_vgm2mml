@@ -18,12 +18,13 @@ from native_registers import decode_control
 
 COMMAND_CHIPS = {0x54:'opm',0xa4:'opm',0x56:'opna',0x57:'opna',0xa6:'opna',0xa7:'opna',
     0x50:'dcsg',0x30:'dcsg',0x4f:'dcsg',0x3f:'dcsg',0xb7:'msm6258',0xb8:'msm6295',
-    0xc0:'segapcm',0xd4:'c140',0xa0:'psg',0xd2:'scc',0x51:'opll',0xa1:'opll',0xb9:'huc6280'}
-BLOCK_CHIPS = {4:'msm6258',0x44:'msm6258',0x7f:'pcm',0x80:'segapcm',0x81:'opna',0x8b:'msm6295',0x8d:'c140'}
+    0xc0:'segapcm',0xd4:'c140',0xa0:'psg',0xd2:'scc',0x51:'opll',0xa1:'opll',0xb9:'huc6280',0xb4:'nesapu'}
+BLOCK_CHIPS = {4:'msm6258',0x44:'msm6258',0x7f:'pcm',0x80:'segapcm',0x81:'opna',0x8b:'msm6295',0x8d:'c140',
+               0xc0:'nesapu',0xc1:'nesapu',0xc2:'nesapu'}
 STREAM_CHIPS = {0:'dcsg',1:'opll',3:'opm',4:'segapcm',7:'opna',0x12:'psg',
                 0x17:'msm6258',0x18:'msm6295',0x19:'scc',0x1c:'c140'}
 HEADER_OFFSETS = {'opm':0x30,'opna':0x48,'dcsg':0x0c,'msm6258':0x90,'msm6295':0x98,
-                  'segapcm':0x38,'c140':0xa8,'psg':0x74,'scc':0x9c,'opll':0x10,'huc6280':0xa4}
+                  'segapcm':0x38,'c140':0xa8,'psg':0x74,'scc':0x9c,'opll':0x10,'huc6280':0xa4,'nesapu':0x84}
 CARRIERS = (8,8,8,8,12,14,14,15)  # Source register-bank order M1,M2,C1,C2.
 
 
@@ -446,6 +447,9 @@ def build_native_performance(source,outdir,stem=None,legacy_performances=(),lega
     builder=_Builder(bundle);builder.commands()
     if any(e.command==0xb9 for e in bundle['events']):
         from native_huc6280 import add_units
+        add_units(builder,root,stem)
+    if any(e.command==0xb4 for e in bundle['events']):
+        from native_nesapu import add_units
         add_units(builder,root,stem)
     for chip in ('opm','opna'):builder.fm(chip)
     builder.dcsg()

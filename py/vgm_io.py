@@ -27,4 +27,5 @@ def read_vgm_header(raw):
                 ay_clock_raw=field(0x74, 4, 0x151),
                 ay_type=field(0x78, 1, 0x151), ay_flags=field(0x79, 1, 0x151),
                 scc_clock_raw=field(0x9c, 4, 0x161),
-                huc6280_clock_raw=field(0xa4, 4, 0x161))
+                huc6280_clock_raw=field(0xa4, 4, 0x161),
+                nes_apu_clock_raw=field(0x84, 4, 0x161))

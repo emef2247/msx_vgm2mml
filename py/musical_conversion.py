@@ -273,6 +273,9 @@ def _build_native_plan(source, outdir, stem=None, **options):
         guide.dump(root,stem)
     try:
         conversion_input,projection=prepare(source,root,stem,force=options.get('force',False))
+        if projection is None:
+            from nesapu_projection import prepare as prepare_nesapu
+            conversion_input,projection=prepare_nesapu(source,root,stem,force=options.get('force',False))
         plan,report=_build_accepted_plan(source,root,stem,**options,
             source_performance=performance,prepared_input=conversion_input,prepared_projection=projection,
             source_score_guide=guide)
