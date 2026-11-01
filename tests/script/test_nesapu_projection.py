@@ -39,7 +39,7 @@ class NesApuProjectionTests(unittest.TestCase):
         registers = {projected.vgm[c.address + 1] for c in by_type[0xa0]}
         self.assertIn(6, registers)   # AY noise period
         self.assertIn(10, registers)  # AY channel C amplitude
-        self.assertEqual(projected.summary['noise_route'], 'psg')
+        self.assertEqual(projected.summary['noise_route'], 'psg+scc')
 
     def test_noise_is_omitted_not_silent_when_ay_is_present(self):
         raw = make_vgm(write(21, 8) + write(12, 0x1f) + write(14, 0x03) +
@@ -51,8 +51,10 @@ class NesApuProjectionTests(unittest.TestCase):
         import struct
         struct.pack_into('<I', raw, 4, len(raw) - 4)
         projected = project(bytes(raw))
-        self.assertEqual(projected.summary['noise_route'], 'omitted_ay_present')
-        self.assertEqual(projected.allocation[3], ('omitted', None))
+        self.assertEqual(projected.summary['noise_route'],
+                         'scc_only_ay_present')
+        self.assertEqual(projected.summary['noise_omitted_segments'], 1)
+        self.assertEqual(projected.summary['noise_scc_segments'], 0)
 
     def test_dpcm_omission_is_recorded(self):
         raw = make_vgm(write(18, 0x10) + write(19, 0x08) + write(16, 0x0f) +

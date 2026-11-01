@@ -77,6 +77,29 @@ def add_units(builder, root, stem):
                 finish()
             active.append((index, segment))
         finish()
+    runs = {}
+    for slice_ in trace.dpcm_slices:
+        runs.setdefault(slice_.event_index, []).append(slice_)
+    for number, (event_index, run) in enumerate(sorted(runs.items())):
+        volume = []
+
+        def append_volume(at, value):
+            if not volume or volume[-1][1] != value:
+                volume.append((at, value))
+
+        for slice_ in run:
+            append_volume(slice_.start_vgmticks, slice_.volume)
+        builder.units.append(NativeUnit(
+            f'nesapu:0:4:gate:{number}', device.device_id,
+            'dpcm', 4, run[0].start_vgmticks, run[-1].end_vgmticks,
+            ((run[0].start_vgmticks, None),), tuple(volume),
+            (builder.voice(device, 'dpcm', (('rendering', 'scc_slice'),)),),
+            builder.control_ids(device, 'dpcm', 4,
+                                run[0].start_vgmticks, run[-1].end_vgmticks),
+            (), 'unpitched',
+            (('boundary_origin', 'dpcm_trigger_playback_interval'),
+             ('volume_domain', 'native_apu_level_0_15'),
+             ('source_event_index', str(event_index)))))
     report = builder.bundle['report']
     report['active_chips'] = tuple(dict.fromkeys(
         (*report['active_chips'], 'nesapu')))

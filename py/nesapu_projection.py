@@ -16,7 +16,7 @@ import json
 import math
 import struct
 
-from nesapu import NOISE_PERIODS, analyze
+from nesapu import NOISE_PERIODS, SLICE_SAMPLES, analyze, lfsr_tick_cells
 from vgm_io import read_vgm_bytes
 from vgm_loop import read_loop_metadata
 from vgm_timing import command_times
@@ -25,6 +25,8 @@ TARGET_CLOCK = 1789773
 # RAM data block types owned by the NES APU route; mirrors
 # native_source_music.BLOCK_CHIPS entries mapped to 'nesapu'.
 NES_RAM_BLOCK_TYPES = {0xc0, 0xc1, 0xc2}
+# SCC period whose waveform cycle is one 1/60 s slice tick.
+SLICE_PERIOD = round(2 * TARGET_CLOCK / (32 * 60)) - 1
 DUTY_HIGH_STEPS = (4, 8, 16, 24)
 TRIANGLE_LEVELS = tuple(15 - i if i < 16 else i - 16 for i in range(32))
 
@@ -131,9 +133,14 @@ def project(raw, trace=None, *, force=False):
             f'NES APU route cannot silently omit mixed/unsupported command '
             f'{unknown.command:#x} at {unknown.address:#x}')
 
-    noise_route = 'omitted_ay_present' if ay_present else 'psg'
+    noise_route = 'scc_only_ay_present' if ay_present else 'psg+scc'
     allocation = {0: ('scc', 0), 1: ('scc', 1), 2: ('scc', 2),
-                  3: ('psg', 2) if noise_route == 'psg' else ('omitted', None)}
+                  3: ('psg', 2)}
+    # Complementary lanes share the one spare SCC waveform (channel 3;
+    # the MGSDRV decoder range covers four waveforms, as on the
+    # original SCC where channels 4/5 share): 4 = DPCM slices take
+    # priority, 5 = slow-LFSR noise slices when no DPCM is present.
+    lanes = {**allocation, 4: ('scc', 3), 5: ('scc', 3)}
     events = []  # (sample, sequence, command bytes, source_event_id)
     sequence = 0
 
@@ -154,10 +161,16 @@ def project(raw, trace=None, *, force=False):
     for dest in range(3):
         for index, value in enumerate(waves[dest]):
             scc(0, 0, dest * 32 + index, value)
+    if trace.dpcm_slices:
+        scc(0, 1, 6, SLICE_PERIOD & 255)
+        scc(0, 1, 7, SLICE_PERIOD >> 8)
+        scc(0, 2, 3, 0)
+        for index in range(32):
+            scc(0, 0, 96 + index, 0)
 
     controls, gates = [], []
     clamped_pitches = 0
-    for channel in range(4):
+    for channel in range(3):
         chip, dest = allocation[channel]
         segments = [s for s in trace.segments if s.channel == channel]
         cache = {}
@@ -205,20 +218,8 @@ def project(raw, trace=None, *, force=False):
                     scc(at, 2, dest, view.volume, segment.start_event_id)
                     cache.update(key=key, period=register, sounding=True)
                 waveform = f'duty{view.duty}' if channel < 2 else 'triangle'
-            else:
-                source_rate = trace.clock_hz / NOISE_PERIODS[view.noise_period_index]
-                register, target_hz = _noise_period(source_rate)
-                source_hz = source_rate
-                key = (register, view.volume, view.lfsr_mode, True)
-                if cache.get('key') != key:
-                    if cache.get('period') != register:
-                        emit(at, (0xa0, 6, register), segment.start_event_id)
-                    emit(at, (0xa0, 7, 63 & ~(1 << 5) | (1 << 2)),
-                         segment.start_event_id)
-                    emit(at, (0xa0, 8 + dest, view.volume),
-                         segment.start_event_id)
-                    cache.update(key=key, period=register, sounding=True)
-                waveform = f'noise_mode{view.lfsr_mode}'
+            else:  # channel 3 (noise) is handled in its own block below
+                continue
             controls.append(dict(source_event_id=segment.start_event_id,
                 vgmticks=at, source_channel=channel, target_chip=chip,
                 target_channel=dest,
@@ -234,10 +235,155 @@ def project(raw, trace=None, *, force=False):
                 end_vgmticks=trace.source_end_vgmticks,
                 start_source_event_id=gate_start[1], end_source_event_id=None))
 
-    # SCC enable mask follows the union of the three SCC gates.
+    # Noise, dually routed: the PSG noise generator covers APU rates
+    # within 50 cents; slower LFSR rates are rendered as SCC waveform
+    # slices on the spare waveform lane (SCC channel 3) when DPCM does
+    # not claim it. When an AY part owns the PSG, in-range segments
+    # are omitted (recorded) and out-of-range segments still render
+    # on SCC when the lane is free.
+    noise_scc_segments = 0
+    noise_omitted_segments = 0
+    noise_lane_deferred = 0
+    psg_cache = {}
+    scc_wave_loaded = None
+    scc_noise_volume = None
+    scc_noise_period_set = False
+    active_route = None
+    noise_gate = None
+
+    def close_noise_gate(at, event_id):
+        nonlocal noise_gate
+        if noise_gate is not None:
+            source_channel, start, start_id = noise_gate
+            gates.append(dict(source_channel=source_channel,
+                start_vgmticks=start, end_vgmticks=at,
+                start_source_event_id=start_id, end_source_event_id=event_id))
+            noise_gate = None
+
+    def silence_noise(at, event_id):
+        nonlocal active_route, scc_noise_volume
+        if active_route == 'psg':
+            emit(at, (0xa0, 8 + 2, 0), event_id)
+            psg_cache.clear()
+            psg_cache['sounding'] = False
+        elif active_route == 'scc':
+            scc(at, 2, 3, 0, event_id)
+            scc_noise_volume = 0
+        active_route = None
+
+    for segment in [s for s in trace.segments if s.channel == 3]:
+        view = segment.state
+        at = segment.start_vgmticks
+        if not view.audible:
+            close_noise_gate(at, segment.start_event_id)
+            silence_noise(at, segment.start_event_id)
+            continue
+        rate = trace.clock_hz / NOISE_PERIODS[view.noise_period_index]
+        np_reg = round(TARGET_CLOCK / (16 * rate))
+        cents = (1200 * math.log2((TARGET_CLOCK / (16 * np_reg)) / rate)
+                 if 1 <= np_reg <= 31 else math.inf)
+        route = 'psg' if abs(cents) <= 50 else 'scc'
+        if route == 'scc' and trace.dpcm_slices:
+            # Waveform lane 3 is taken by DPCM slices; degrade to the
+            # clamped PSG rendering (or omission under AY) and record.
+            route = 'psg'
+            noise_lane_deferred += 1
+        if ay_present and route == 'psg':
+            route = 'omitted'
+        if route != active_route:
+            close_noise_gate(at, segment.start_event_id)
+            silence_noise(at, segment.start_event_id)
+            active_route = route
+            if route != 'omitted':
+                noise_gate = (3 if route == 'psg' else 5, at,
+                              segment.start_event_id)
+        if route == 'omitted':
+            noise_omitted_segments += 1
+            continue
+        if route == 'psg':
+            register, target_hz = _noise_period(rate)
+            key = (register, view.volume, view.lfsr_mode, True)
+            if psg_cache.get('key') != key:
+                if psg_cache.get('period') != register:
+                    emit(at, (0xa0, 6, register), segment.start_event_id)
+                emit(at, (0xa0, 7, 63 & ~(1 << 5) | (1 << 2)),
+                     segment.start_event_id)
+                emit(at, (0xa0, 8 + 2, view.volume), segment.start_event_id)
+                psg_cache.update(key=key, period=register, sounding=True)
+            controls.append(dict(source_event_id=segment.start_event_id,
+                vgmticks=at, source_channel=3, target_chip='psg',
+                target_channel=2, source_period=view.noise_period_index,
+                target_period=register, source_hz=rate, target_hz=target_hz,
+                pitch_error_cents=1200 * math.log2(target_hz / rate),
+                target_volume=view.volume, enabled=True,
+                waveform=f'noise_mode{view.lfsr_mode}'))
+        else:
+            noise_scc_segments += 1
+            if not scc_noise_period_set:
+                scc(at, 1, 6, SLICE_PERIOD & 255, segment.start_event_id)
+                scc(at, 1, 7, SLICE_PERIOD >> 8, segment.start_event_id)
+                scc_noise_period_set = True
+            tick_count = -(-(segment.end_vgmticks - at) // SLICE_SAMPLES)
+            for k, cells in enumerate(lfsr_tick_cells(
+                    trace.clock_hz, view.noise_period_index, view.lfsr_mode,
+                    tick_count)):
+                t = at + k * SLICE_SAMPLES
+                if t >= segment.end_vgmticks:
+                    break
+                if cells != scc_wave_loaded:
+                    for index, value in enumerate(cells):
+                        scc(t, 0, 96 + index, value,
+                            segment.start_event_id)
+                    scc_wave_loaded = cells
+                if scc_noise_volume != view.volume:
+                    scc(t, 2, 3, view.volume, segment.start_event_id)
+                    scc_noise_volume = view.volume
+            controls.append(dict(source_event_id=segment.start_event_id,
+                vgmticks=at, source_channel=3, target_chip='scc',
+                target_channel=3, source_period=view.noise_period_index,
+                target_period=SLICE_PERIOD, source_hz=rate, target_hz=rate,
+                pitch_error_cents=0.0, target_volume=view.volume,
+                enabled=True,
+                waveform=f'lfsr_mode{view.lfsr_mode}_slice'))
+    close_noise_gate(trace.source_end_vgmticks, None)
+
+    # DPCM slices on SCC channel 3.
+    if trace.dpcm_slices:
+        loaded = (0,) * 32
+        volume = 0
+        previous_end = None
+        gate = None
+        for slice_ in trace.dpcm_slices:
+            if gate is not None and slice_.event_index != gate[0]:
+                gates.append(dict(source_channel=4,
+                    start_vgmticks=gate[1], end_vgmticks=previous_end,
+                    start_source_event_id=None, end_source_event_id=None))
+                gate = None
+            if (previous_end is not None
+                    and slice_.start_vgmticks > previous_end and volume):
+                scc(previous_end, 2, 3, 0)
+                volume = 0
+            if gate is None:
+                gate = (slice_.event_index, slice_.start_vgmticks)
+            if slice_.cells != loaded:
+                for index, value in enumerate(slice_.cells):
+                    scc(slice_.start_vgmticks, 0, 96 + index, value)
+                loaded = slice_.cells
+            if slice_.volume != volume:
+                scc(slice_.start_vgmticks, 2, 3, slice_.volume)
+                volume = slice_.volume
+            previous_end = slice_.end_vgmticks
+        if gate is not None:
+            gates.append(dict(source_channel=4, start_vgmticks=gate[1],
+                end_vgmticks=previous_end, start_source_event_id=None,
+                end_source_event_id=None))
+        if volume:
+            scc(previous_end, 2, 3, 0)
+
+    # SCC enable mask follows the union of the SCC gates.
     mask_events = []
     for gate in gates:
-        chip, dest = allocation[gate['source_channel']]
+        chip, dest = lanes[gate['source_channel']]
         if chip != 'scc':
             continue
         mask_events.append((gate['start_vgmticks'], 1, dest))
@@ -323,25 +469,43 @@ def project(raw, trace=None, *, force=False):
     struct.pack_into('<I', result, 4, len(result) - 4)
     summary = dict(source='nesapu', target='scc_plus_psg_noise',
         allocation=[dict(source_channel=ch, target_chip=chip, target_channel=dest)
-                    for ch, (chip, dest) in sorted(allocation.items())],
+                    for ch, (chip, dest) in sorted(lanes.items())
+                    if ch < 4 or (ch == 4 and trace.dpcm_slices)
+                    or (ch == 5 and noise_scc_segments)],
         source_sha256=hashlib.sha256(raw).hexdigest(),
         target_sha256=hashlib.sha256(result).hexdigest(),
         source_end_vgmticks=trace.source_end_vgmticks,
         target_clock_hz=TARGET_CLOCK,
         clamped_pitches=clamped_pitches,
-        dpcm_events_omitted=len(trace.dpcm_events),
+        dpcm_events_rendered=len({s.event_index
+                                  for s in trace.dpcm_slices}),
+        dpcm_events_omitted=(len(trace.dpcm_events)
+                             - len({s.event_index
+                                    for s in trace.dpcm_slices})),
+        dpcm_slices=len(trace.dpcm_slices),
+        dpcm_distinct_states=len({(s.cells, s.volume)
+                                  for s in trace.dpcm_slices}),
+        noise_scc_segments=noise_scc_segments,
+        noise_omitted_segments=noise_omitted_segments,
+        noise_lane_deferred=noise_lane_deferred,
         data_blocks_omitted=blocks,
         fds_omitted='fds_registers_present_not_analyzed' in trace.issues,
         noise_route=noise_route,
         passthrough_commands=sorted(hex(c) for c in passthrough),
         loop_validation='positional only in this revision; loop-entry '
                           'register state is not yet traversal-validated',
-        limits=['dpcm sample playback omitted (recorded in summary)',
+        limits=['dpcm samples render as 1/60 s scc waveform slices '
+            '(effective 1.92 khz resample) on scc channel 3; triggers '
+            'without sample data stay omitted and are recorded',
             'fds voices omitted (recorded in summary)',
-            'ay noise period range is narrower than the apu lfsr range; '
-            'rate error is recorded per control row',
+            'psg noise covers apu lfsr rates within 50 cents; slower '
+            'rates render as scc lfsr waveform slices (lfsr phase '
+            'restarts per segment) on the spare scc waveform lane, '
+            'which dpcm slices claim first; deferred slow noise falls '
+            'back to the clamped psg rendering and is counted',
             'scc period clamped to 9..4095 with the error recorded',
-            'noise is omitted when a source ay part already owns the psg'])
+            'when a source ay part owns the psg, in-range noise is '
+            'omitted (recorded); out-of-range noise still renders on scc'])
     return Projection(bytes(result), allocation, controls, target_writes,
                       gates, summary)
 
