@@ -5,8 +5,11 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT), str(ROOT / 'py'), str(Path(__file__).parent)]
+import struct
+
 from test_nesapu import make_vgm, pulse_note, wait, write
 from nesapu_projection import ProjectionError, has_nesapu, project
+from vgm_loop import read_loop_metadata
 from vgm_timing import command_times
 
 
@@ -95,6 +98,58 @@ class NesApuProjectionTests(unittest.TestCase):
     def test_has_nesapu(self):
         self.assertTrue(has_nesapu(make_vgm(pulse_note() + wait(735))))
         self.assertFalse(has_nesapu(make_vgm(wait(735))))
+
+
+def make_looped_vgm(intro, body, loop_samples):
+    raw = bytearray(make_vgm(intro + body))
+    struct.pack_into('<I', raw, 0x1c, 256 + len(intro) - 0x1c)
+    struct.pack_into('<I', raw, 0x20, loop_samples)
+    return bytes(raw)
+
+
+class LoopValidationTests(unittest.TestCase):
+    def test_changed_waveform_is_restored_at_loop_point(self):
+        intro = pulse_note(control=0x3f) + wait(4410)  # duty 0
+        body = write(0, 0xbf) + wait(4410)             # duty 2
+        projected = project(make_looped_vgm(intro, body, 4410))
+        self.assertGreater(projected.summary['loop_restored_registers'], 0)
+        self.assertTrue(projected.summary['target_loop_periodic'])
+        loop = read_loop_metadata(projected.vgm)
+        at_point = [c for c in command_times(projected.vgm)
+                    if c.address == loop['loop_address']
+                    and c.command == 0xd2]
+        self.assertTrue(at_point)
+        # Waveform restoration uploads the whole waveform in
+        # ascending register order (the SCC segment builder's
+        # wavetable assembler requires block-aligned uploads).
+        registers = [projected.vgm[c.address + 2] for c in
+                     command_times(projected.vgm)
+                     if c.address >= loop['loop_address']
+                     and c.command == 0xd2
+                     and projected.vgm[c.address + 1] == 0][:32]
+        self.assertEqual(registers, list(range(32)))
+
+    def test_periodic_loop_restores_nothing(self):
+        # Envelope-decay notes (control 0x80: duty 2, fastest decay)
+        # end inside both the intro and the body, so every register
+        # returns to its loop-point value by the end.
+        intro = pulse_note(control=0x80) + wait(4410)
+        body = pulse_note(control=0x80) + wait(4410)
+        projected = project(make_looped_vgm(intro, body, 4410))
+        self.assertEqual(projected.summary['loop_restored_registers'], 0)
+        self.assertTrue(projected.summary['target_loop_periodic'])
+        self.assertEqual(
+            projected.summary['loop_second_traversal_differences'], [])
+
+    def test_envelope_history_difference_is_recorded(self):
+        # The envelope starts in the intro and decays through the
+        # loop body without retriggering: the second traversal
+        # starts from a lower gain, which the summary must name.
+        intro = pulse_note(control=0x0f, length_index=1) + wait(4410)
+        body = wait(44100)
+        projected = project(make_looped_vgm(intro, body, 44100))
+        self.assertIn(0, projected.summary[
+            'loop_second_traversal_differences'])
 
 
 if __name__ == '__main__':

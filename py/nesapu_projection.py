@@ -3,10 +3,11 @@
 Native evidence is never retimed or rewritten. The generated VGM is a target
 adapter into the ordinary sounding-unit, loop, macro and envelope pipeline:
 pulse and triangle voices become SCC waveforms (duty and the 32-step
-triangle transfer directly), noise becomes the AY noise generator, and
-non-APU commands already expressed in target chips (YM2413/VRC7, AY) are
-passed through unchanged. DPCM sample playback and FDS voices have no
-target in this revision and are omitted with explicit summary records.
+triangle transfer directly), noise becomes the AY noise generator, DPCM
+playback and slow LFSR noise render as SCC waveform slices, FDS takes the
+SCC waveform lane or a layered OPLL preset, and non-APU commands already
+expressed in target chips (YM2413/VRC7, AY) are passed through unchanged.
+Every loss is an explicit summary record.
 """
 from dataclasses import dataclass
 from pathlib import Path
@@ -70,6 +71,151 @@ def _opll_pitch(hz):
             fnum = max(1, fnum)
             return fnum, block, 49716 * fnum * 2**block / 2**19
     return 511, 7, 49716 * 511 * 2**7 / 2**19
+
+
+def _loop_intervals(trace, begin, end):
+    """State rows per channel plus DPCM slice rows inside [begin, end),
+    times relativized to begin, adjacent equal states merged."""
+    channels = {}
+    for channel in range(5):
+        rows = []
+        for segment in trace.segments:
+            if segment.channel != channel \
+                    or segment.end_vgmticks <= begin \
+                    or segment.start_vgmticks >= end:
+                continue
+            state = segment.state
+            # Only audible dependencies are compared (the HuC6280
+            # convention): a silent channel's held period or control
+            # registers do not change what the next traversal sounds
+            # like, but an envelope or counter that evolved through
+            # the loop point does.
+            values = (state.kind, state.period, state.duty,
+                      state.volume, state.lfsr_mode,
+                      state.noise_period_index, state.control, state.sweep,
+                      state.wave_id, state.mod_ratio) if state.audible \
+                else None
+            lo = max(begin, segment.start_vgmticks) - begin
+            hi = min(end, segment.end_vgmticks) - begin
+            if rows and rows[-1][1] == lo and rows[-1][2] == values:
+                rows[-1] = (rows[-1][0], hi, values)
+            else:
+                rows.append((lo, hi, values))
+        channels[channel] = rows
+    slices = []
+    for item in trace.dpcm_slices:
+        if item.end_vgmticks <= begin or item.start_vgmticks >= end:
+            continue
+        lo = max(begin, item.start_vgmticks) - begin
+        hi = min(end, item.end_vgmticks) - begin
+        values = (item.cells, item.volume)
+        if slices and slices[-1][1] == lo and slices[-1][2] == values:
+            slices[-1] = (slices[-1][0], hi, values)
+        else:
+            slices.append((lo, hi, values))
+    return channels, slices
+
+
+def _rows_match(first, second, tolerance):
+    """Same states in the same order, durations within one frame step.
+
+    Envelope, length and linear counters are clocked by the free-
+    running frame sequencer, whose phase the VGM loop does not reset;
+    on hardware their step boundaries jitter by up to a quarter frame
+    between iterations, so exact boundary equality is below the
+    machine's own noise floor. State sequences and durations beyond
+    that jitter remain meaningful differences.
+    """
+    if len(first) != len(second):
+        return False
+    return all(a[2] == b[2]
+               and abs((a[1] - a[0]) - (b[1] - b[0])) <= tolerance
+               for a, b in zip(first, second))
+
+
+def _validate_loop(raw, trace, loop):
+    """Compare the loop body's analyzed state across two traversals.
+
+    The source stream is expanded to intro + body + body and re-analyzed;
+    envelope, counter, DPCM and modulator history can make the second
+    traversal differ from the first. Returns the differing channel
+    labels (empty when the loop is state-periodic); oscillator and
+    envelope phase inside an unchanged state row are out of scope.
+    """
+    start = loop['loop_start_samples']
+    end = trace.source_end_vgmticks
+    if end - start <= 0:
+        raise ProjectionError('NES APU loop has no positive duration')
+    commands = list(command_times(raw))
+    end_address = commands[-1].address
+    expanded = bytearray(raw[:end_address]
+                         + raw[loop['loop_address']:end_address] + b'\x66')
+    struct.pack_into('<I', expanded, 4, len(expanded) - 4)
+    struct.pack_into('<I', expanded, 0x14, 0)
+    struct.pack_into('<I', expanded, 0x1c, 0)
+    repeated = analyze(bytes(expanded))
+    tolerance = math.ceil(7457 * 44100 / trace.clock_hz) \
+        if trace.clock_hz else 184
+    first = _loop_intervals(repeated, start, end)
+    second = _loop_intervals(repeated, end, end + (end - start))
+    differing = [channel for channel in range(5)
+                 if not _rows_match(first[0][channel],
+                                    second[0][channel], tolerance)]
+    if not _rows_match(first[1], second[1], tolerance):
+        differing.append('dpcm')
+    return differing
+
+
+def _validate_target_loop(raw):
+    """Check projected register dependencies across two loop traversals.
+
+    Snapshots hold only audible dependencies (periods, volumes,
+    waveforms, keyed voices); phase is outside the comparison, as in
+    the HuC6280 target check.
+    """
+    loop = read_loop_metadata(raw)
+    if loop['loop_address'] is None:
+        return True
+    commands = list(command_times(raw))
+    ay, opll, scc = [0] * 16, [0] * 64, {}
+
+    def snapshot():
+        psg = tuple(
+            (ay[ch * 2] + 256 * ay[ch * 2 + 1], ay[ch + 8],
+             ay[6] if not ay[7] & (1 << (ch + 3)) else None)
+            if ay[ch + 8] and (ay[7] & (9 << ch)) != (9 << ch) else None
+            for ch in range(3))
+        voices = tuple(
+            (scc.get((1, ch * 2), 0) + 256 * scc.get((1, ch * 2 + 1), 0),
+             scc.get((2, ch), 0),
+             tuple(scc.get((0, min(ch, 3) * 32 + n), 0) for n in range(32)))
+            if scc.get((3, 0), 0) & (1 << ch) and scc.get((2, ch), 0)
+            else None for ch in range(5))
+        fm = tuple(
+            (opll[0x10 + ch], opll[0x20 + ch], opll[0x30 + ch],
+             tuple(opll[:8]) if not opll[0x30 + ch] >> 4 else ())
+            if opll[0x20 + ch] & 16 else None for ch in range(9))
+        return psg, voices, fm
+
+    def traverse(items):
+        result = []
+        for command in items:
+            pos = command.address
+            if command.command == 0xa0:
+                ay[raw[pos + 1]] = raw[pos + 2]
+            elif command.command == 0x51:
+                opll[raw[pos + 1]] = raw[pos + 2]
+            elif command.command == 0xd2:
+                scc[(raw[pos + 1], raw[pos + 2])] = raw[pos + 3]
+            if command.wait_samples \
+                    and command.address >= loop['loop_address']:
+                result.append((command.wait_samples, snapshot()))
+        return result
+
+    first = traverse(commands)
+    second = traverse([c for c in commands
+                       if c.address >= loop['loop_address']])
+    return first == second
 
 
 def _noise_period(source_rate_hz):
@@ -148,9 +294,12 @@ def project(raw, trace=None, *, force=False):
                   3: ('psg', 2)}
     # Complementary lanes share the one spare SCC waveform (channel 3;
     # the MGSDRV decoder range covers four waveforms, as on the
-    # original SCC where channels 4/5 share): 4 = DPCM slices take
-    # priority, 5 = slow-LFSR noise slices when no DPCM is present.
+    # original SCC where channels 4/5 share). Claim priority:
+    # 4 = DPCM slices, then 6/7 = the melodic FDS voice, then
+    # 5 = slow-LFSR noise slices; the loser degrades and is counted.
     lanes = {**allocation, 4: ('scc', 3), 5: ('scc', 3)}
+    fds_audible = any(s.state.audible for s in trace.segments
+                      if s.channel == 4)
     events = []  # (sample, sequence, command bytes, source_event_id)
     sequence = 0
 
@@ -293,9 +442,10 @@ def project(raw, trace=None, *, force=False):
         cents = (1200 * math.log2((TARGET_CLOCK / (16 * np_reg)) / rate)
                  if 1 <= np_reg <= 31 else math.inf)
         route = 'psg' if abs(cents) <= 50 else 'scc'
-        if route == 'scc' and trace.dpcm_slices:
-            # Waveform lane 3 is taken by DPCM slices; degrade to the
-            # clamped PSG rendering (or omission under AY) and record.
+        if route == 'scc' and (trace.dpcm_slices or fds_audible):
+            # Waveform lane 3 is claimed by DPCM slices or by the
+            # melodic FDS voice; degrade to the clamped PSG rendering
+            # (or omission under AY) and record.
             route = 'psg'
             noise_lane_deferred += 1
         if ay_present and route == 'psg':
@@ -595,7 +745,61 @@ def project(raw, trace=None, *, force=False):
     loop = read_loop_metadata(raw)
     if loop['loop_address'] is not None and loop['status'] != 'valid':
         raise ProjectionError('NES APU source loop is not a valid command boundary')
+    loop_differences = _validate_loop(raw, trace, loop) \
+        if loop['loop_address'] is not None else None
     loop_start = loop['loop_start_samples'] if loop['loop_address'] is not None else None
+    # Loop-point restoration: a register whose end-of-song value differs
+    # from its value at the loop point is rewritten at the loop point,
+    # so the projected loop repeats with the register state of the
+    # first traversal. Periodic songs restore nothing.
+    loop_restored = 0
+    if loop_start is not None:
+        def register_write(command):
+            if command[0] == 0xd2:
+                return ('scc', command[1], command[2]), command[3]
+            if command[0] in (0x51, 0xa1, 0xa0):
+                return (command[0], command[1]), command[2]
+            return None, None
+
+        at_loop, at_end = {}, {}
+        for sample, _, command, _ in events:
+            key, value = register_write(command)
+            if key is None:
+                continue
+            if sample < loop_start:
+                at_loop[key] = value
+            at_end[key] = value
+        differing = [key for key in at_end
+                     if at_end[key] != at_loop.get(key, 0)]
+        # SCC waveform RAM is restored as whole 32-cell waveforms:
+        # the downstream SCC segment builder assembles wavetables
+        # from block-aligned uploads only, so a partial-cell restore
+        # would corrupt its offsets.
+        wave_slots = {key[2] // 32 for key in differing
+                      if key[0] == 'scc' and key[1] == 0}
+        payloads = []
+        for slot in sorted(wave_slots):
+            for index in range(32):
+                register = slot * 32 + index
+                payloads.append(bytes((0xd2, 0, register,
+                    at_loop.get(('scc', 0, register), 0))))
+        for key in sorted(differing, key=str):
+            if key[0] == 'scc' and key[1] == 0:
+                continue
+            value = at_loop.get(key, 0)
+            payloads.append(bytes((0xd2, key[1], key[2], value))
+                            if key[0] == 'scc'
+                            else bytes((key[0], key[1], value)))
+        # Negative sequences sort the block before the body's own
+        # loop-point events while preserving payload order (ascending
+        # -count..-1 in emission order; the SCC wavetable assembler
+        # requires ascending registers within a waveform upload).
+        for index, payload in enumerate(payloads):
+            events.append((loop_start, index - len(payloads), payload,
+                           None))
+        loop_restored += len(payloads)
+        if loop_restored:
+            events.sort(key=lambda row: (row[0], row[1]))
     body = bytearray()
     target_writes = []
     cursor = 0
@@ -661,6 +865,8 @@ def project(raw, trace=None, *, force=False):
             struct.pack_into('<I', result, 0x14, len(result) - 0x14)
             result.extend(raw[start:start + 12 + length])
     struct.pack_into('<I', result, 4, len(result) - 4)
+    target_loop_periodic = _validate_target_loop(bytes(result)) \
+        if loop_address is not None else None
     summary = dict(source='nesapu', target='scc_plus_psg_noise',
         allocation=[dict(source_channel=ch, target_chip=chip, target_channel=dest)
                     for ch, (chip, dest) in sorted(lanes.items())
@@ -690,9 +896,17 @@ def project(raw, trace=None, *, force=False):
         fds_presets={str(k): v for k, v in fds_presets.items()},
         noise_route=noise_route,
         passthrough_commands=sorted(hex(c) for c in passthrough),
-        loop_validation='positional only in this revision; loop-entry '
-                          'register state is not yet traversal-validated',
-        limits=['dpcm samples render as 1/60 s scc waveform slices '
+        loop_validation='two-traversal comparison of analyzed source '
+                          'state and projected register state',
+        loop_second_traversal_differences=loop_differences,
+        loop_restored_registers=loop_restored,
+        target_loop_periodic=target_loop_periodic,
+        limits=['a source loop whose analyzed state differs on the '
+            'second traversal is recorded in '
+            'loop_second_traversal_differences; the target loop '
+            'repeats the first traversal, with register state restored '
+            'at the loop point (loop_restored_registers)',
+            'dpcm samples render as 1/60 s scc waveform slices '
             '(effective 1.92 khz resample) on scc channel 3; triggers '
             'without sample data stay omitted and are recorded',
             'fds renders on the scc waveform lane when free, else as '
@@ -701,7 +915,8 @@ def project(raw, trace=None, *, force=False):
             'psg noise covers apu lfsr rates within 50 cents; slower '
             'rates render as scc lfsr waveform slices (lfsr phase '
             'restarts per segment) on the spare scc waveform lane, '
-            'which dpcm slices claim first; deferred slow noise falls '
+            'which dpcm slices and the fds voice claim first; '
+            'deferred slow noise falls '
             'back to the clamped psg rendering and is counted',
             'scc period clamped to 9..4095 with the error recorded',
             'when a source ay part owns the psg, in-range noise is '

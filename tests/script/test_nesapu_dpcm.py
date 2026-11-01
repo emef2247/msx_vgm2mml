@@ -110,6 +110,14 @@ class FdsTests(unittest.TestCase):
                     if c['source_channel'] == 4]
         self.assertEqual(controls[0]['target_chip'], 'scc')
 
+    def test_fds_outranks_slow_noise_for_the_lane(self):
+        raw = make_vgm(fds_note() + write(21, 8) + write(12, 0x1f)
+                       + write(14, 15) + write(15, 1 << 3) + wait(22050))
+        projected = project(raw)
+        self.assertEqual(projected.summary['fds_route'], 'scc')
+        self.assertEqual(projected.summary['noise_scc_segments'], 0)
+        self.assertEqual(projected.summary['noise_lane_deferred'], 1)
+
     def test_fds_falls_back_to_layered_opll_when_lane_busy(self):
         raw = make_vgm(dpcm_setup(bytes([0xff]) * 512) + fds_note()
                        + wait(44100))
