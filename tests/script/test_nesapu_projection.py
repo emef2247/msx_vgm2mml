@@ -84,6 +84,30 @@ class NesApuProjectionTests(unittest.TestCase):
         with self.assertRaises(ProjectionError):
             project(make_vgm(block + pulse_note()))
 
+    def test_repeated_triangle_note_after_rest_reemits_volume(self):
+        # The gate-close write sets SCC volume 0; a later note with the
+        # same pitch and volume must still emit its volume write.
+        note = (write(21, 4) + write(8, 0xff) + write(10, 0x7e) +
+                write(11, 0xf8))
+        raw = make_vgm(note + wait(7350) + write(21, 0) + wait(7350) +
+                       note + wait(7350))
+        projected = project(raw)
+        volumes = [projected.vgm[c.address + 3]
+                   for c in commands_by_type(projected.vgm)[0xd2]
+                   if projected.vgm[c.address + 1] == 2
+                   and projected.vgm[c.address + 2] == 2]
+        self.assertEqual(volumes[-3:], [15, 0, 15])
+
+    def test_repeated_pulse_note_after_rest_reemits_volume(self):
+        raw = make_vgm(pulse_note() + wait(7350) + write(21, 0) +
+                       wait(7350) + pulse_note() + wait(7350))
+        projected = project(raw)
+        volumes = [projected.vgm[c.address + 3]
+                   for c in commands_by_type(projected.vgm)[0xd2]
+                   if projected.vgm[c.address + 1] == 2
+                   and projected.vgm[c.address + 2] == 0]
+        self.assertEqual(volumes[-3:], [15, 0, 15])
+
     def test_loop_from_start_stays_at_start(self):
         import struct
         raw = bytearray(make_vgm(pulse_note() + wait(44100)))

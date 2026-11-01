@@ -352,6 +352,10 @@ def project(raw, trace=None, *, force=False):
                     else:
                         emit(at, (0xa0, 8 + dest, 0), segment.start_event_id)
                     cache['sounding'] = False
+                    # The gate-close write changed the chip's volume, so
+                    # the cached key must not suppress the next gate's
+                    # volume write when the same note returns.
+                    cache.pop('key', None)
                 continue
             if gate_start is None:
                 gate_start = (at, segment.start_event_id)
@@ -587,7 +591,7 @@ def project(raw, trace=None, *, force=False):
                         end_source_event_id=segment.start_event_id))
                     gate_start = None
                     scc(at, 2, 3, 0, segment.start_event_id)
-                    current['volume'] = 0
+                    current.pop('key', None)
                 continue
             if gate_start is None:
                 gate_start = (at, segment.start_event_id)
