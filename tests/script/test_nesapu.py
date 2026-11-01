@@ -61,10 +61,19 @@ class NesApuSourceTests(unittest.TestCase):
         self.assertFalse(any(s.channel == 0 and s.active for s in trace.segments))
 
     def test_disabled_channel_loads_no_length(self):
+        raw = make_vgm(write(21, 0) + write(0, 0xbf) + write(2, 253) +
+                       write(3, 1 << 3) + wait(4410))
+        trace = analyze(raw)
+        self.assertFalse(any(s.channel == 0 and s.active for s in trace.segments))
+
+    def test_no_status_write_assumes_channels_enabled(self):
+        # Rips that never write $4015 (the enable write predates the
+        # log) still intend sound: players start with channels enabled.
         raw = make_vgm(write(0, 0xbf) + write(2, 253) + write(3, 1 << 3) +
                        wait(4410))
         trace = analyze(raw)
-        self.assertFalse(any(s.channel == 0 and s.active for s in trace.segments))
+        self.assertTrue(any(s.channel == 0 and s.active for s in trace.segments))
+        self.assertIn('no_4015_writes_channels_assumed_enabled', trace.issues)
 
     def test_triangle_uses_linear_counter_gate(self):
         raw = make_vgm(write(21, 4) + write(8, 0xff) + write(10, 253) +

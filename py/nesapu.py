@@ -753,6 +753,16 @@ def analyze(raw):
     clock_hz = clock_raw & 0x3fffffff
     runtime = Runtime(clock_hz)
     writes, segments, retriggers, issues = [], [], [], []
+    # Some rips never write $4015 at all (the Metroid FDS pack is one):
+    # the enable write happened before logging started, and players
+    # start with the APU channels enabled. Length loads in such a
+    # stream only make sense with the channels on, so mirror the
+    # players: assume the four tone channels enabled from the start
+    # and record the assumption instead of rendering the song silent.
+    if not any(command.command == 0xb4 and raw[command.address + 1] == 21
+               for command in command_times(raw)):
+        runtime.status = 0x0f
+        issues.append('no_4015_writes_channels_assumed_enabled')
     end = 0
     pending = {}
 
