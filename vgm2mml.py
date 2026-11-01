@@ -230,6 +230,9 @@ def main():
                            help='Solo conservatively classified native PSG rhythm intervals')
     parser.add_argument('--macro-mode', choices=('v110', 'current', 'greedy'), default='current',
                         help='Production macro policy; independent of blueprint')
+    parser.add_argument('--macro-definition-budget', type=int, default=None,
+                        help='Expand macros so the definition prefix fits this many bytes '
+                             '(the original MGSC accepts about 5.5 KB)')
     parser.add_argument('--loop-mode', choices=('v110', 'current', 'envelope-first', 'score-guided'),
                         default='current', help='Production loop/envelope policy')
     parser.add_argument('--legacy-macros', dest='enhance_macros', action='store_false',
@@ -839,6 +842,13 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
     if args.macro_mode != 'v110':
         from mml_notation import compact as compact_notation
         merged_text=compact_notation(merged_text)
+    if getattr(args, 'macro_definition_budget', None):
+        from macro_budget import enforce_macro_budget
+        merged_text, expanded_macros = enforce_macro_budget(
+            merged_text, args.macro_definition_budget)
+        if expanded_macros:
+            print(f"Macro definition budget {args.macro_definition_budget}: "
+                  f"expanded macros {expanded_macros}")
     macro_mode.reset(macro_token)
     merged_path = os.path.join(song_dir, f'{base_name}.mml')
     with open(merged_path, 'w', encoding='cp932', errors='replace', newline='\n') as fh:

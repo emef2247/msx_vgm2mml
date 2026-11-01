@@ -432,14 +432,15 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
               software_volume_curves=False, score_guided_loops=False,
               psg_state_ms=None, scc_state_ms=None, curve_volume_error=None, curve_mean_error=None,
               score_normalize=False, score_tempo=225, blueprint_score_normalize=False,
-              macro_mode=None, loop_mode=None):
+              macro_mode=None, loop_mode=None, macro_definition_budget=None):
     options = MgsOptions(normalize_lengths=normalize_lengths, normalization_ms=normalization_ms,
                          fm_state_ms=fm_state_ms, force=force, dump_passes=dump_passes, enhance_drums=enhance_drums, psg_part=psg_part,
                          software_volume_curves=software_volume_curves, score_guided_loops=score_guided_loops,
                          psg_state_ms=psg_state_ms, scc_state_ms=scc_state_ms,
                          curve_volume_error=curve_volume_error, curve_mean_error=curve_mean_error,
                          score_normalize=score_normalize,score_tempo=score_tempo,
-                         blueprint_score_normalize=blueprint_score_normalize)
+                         blueprint_score_normalize=blueprint_score_normalize,
+                         macro_definition_budget=macro_definition_budget)
     option_args = options.cli_args()
     effective_options = options.as_dict()
     effective_options.update(macro_mode=macro_mode or 'current', loop_mode=loop_mode or 'current')
