@@ -86,6 +86,8 @@ NES APUは、パルス波と三角波をSCC、ノイズをPSGへ割り当てて�
 
 MGS変換の対象ではないOPMやOPNAなどについても、演奏情報を抽出してBlueprintを生成できます。
 
+Blueprintには、なると氏のMSX用PSGドライバ「NDP」形式のMMLページ（`blueprint/ndp/`）も含まれます。
+
 Blueprintは楽曲構造を編集するための下書きであり、元の音源の音色や音量変化を忠実に再現するものではありません。
 
 PCMなど、音符として扱えない情報は楽譜化の対象外です。
@@ -249,6 +251,8 @@ The NES APU is converted by assigning its pulse and triangle channels to SCC and
 ### Blueprint
 
 Blueprint generation is also available for sound chips not supported by MGS conversion, including OPM and OPNA.
+
+The Blueprint also includes an MML page in the format of NDP, naruto's PSG driver for MSX (under `blueprint/ndp/`).
 
 Blueprint is intended as an editable musical sketch rather than a faithful reproduction of the original timbres and volume changes.
 
