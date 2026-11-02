@@ -13,10 +13,14 @@ from pathlib import Path
 
 
 def audible(segment, chip):
+    if chip == 'psg':
+        if not (segment.mode and (segment.volume or segment.envelope_enabled)):
+            return False
+        # Noise has no pitch: sounding noise segments carry scale 'r',
+        # so the rest test applies only to pitched modes.
+        return bool(segment.mode & 2 or segment.scale != 'r')
     if segment.scale == 'r':
         return False
-    if chip == 'psg':
-        return bool(segment.mode and (segment.volume or segment.envelope_enabled))
     return bool(segment.enabled and segment.volume)
 
 

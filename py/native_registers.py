@@ -68,6 +68,20 @@ RECIPES = {
     'opll_instrument_level': (('attenuation',15,0),('instrument',240,4)),
     'opll_patch': (('patch_byte',255,0),),
     'opll_rhythm': (('instrument_mask',31,0),('mode',32,5)),
+    'nes_envelope': (('duty',192,6),('length_halt',32,5),('constant_volume',16,4),('volume_period',15,0)),
+    'nes_sweep': (('enabled',128,7),('divider_period',112,4),('negate',8,3),('shift',7,0)),
+    'nes_period_low': (('period_low',255,0),),
+    'nes_period_high_length': (('period_high',7,0),('length_index',248,3)),
+    'nes_triangle_control': (('length_halt',128,7),('linear_reload',127,0)),
+    'nes_noise_mode': (('lfsr_mode',128,7),('period_index',15,0)),
+    'nes_noise_length': (('length_index',248,3),('unused_low',7,0)),
+    'nes_dmc_control': (('irq_enabled',128,7),('loop',64,6),('rate_index',15,0)),
+    'nes_dmc_level': (('level',127,0),),
+    'nes_dmc_address': (('sample_address',255,0),),
+    'nes_dmc_length': (('sample_length',255,0),),
+    'nes_status': (('dmc_enabled',16,4),('noise_enabled',8,3),('triangle_enabled',4,2),('pulse2_enabled',2,1),('pulse1_enabled',1,0)),
+    'nes_frame_counter': (('sequence_mode',128,7),('irq_inhibit',64,6)),
+    'nes_oam_dma': (('page',255,0),),
     'scc_wave': (('sample_byte',255,0),),
     'scc_period_low': (('period_low',255,0),),
     'scc_period_high': (('period_high',15,0),),
@@ -202,6 +216,25 @@ def decode_control(device, event, raw, *, order=None, latches=None):
             elif register<=7:kind='opll_patch';section='shared'
             elif register==14:kind='opll_rhythm';section='rhythm'
             else:kind='opll_shared_parameter';section='shared'
+        elif chip=='nesapu':
+            if register<=7:
+                section='pulse';channel=register//4
+                kind=('nes_envelope','nes_sweep','nes_period_low','nes_period_high_length')[register&3]
+            elif register<=11:
+                section='triangle';channel=2
+                kind={8:'nes_triangle_control',10:'nes_period_low',11:'nes_period_high_length'}.get(register,'nes_unused')
+            elif register<=15:
+                section='noise';channel=3
+                kind={12:'nes_envelope',14:'nes_noise_mode',15:'nes_noise_length'}.get(register,'nes_unused')
+            elif register<=19:
+                section='dpcm';channel=4
+                kind=('nes_dmc_control','nes_dmc_level','nes_dmc_address','nes_dmc_length')[register-16]
+            elif register==20:kind='nes_oam_dma'
+            elif register==21:kind='nes_status'
+            elif register==23:kind='nes_frame_counter'
+            elif 0x20<=register<=0x2f:section='fds';kind='nes_fds_parameter'
+            elif 0x40<=register<=0x7f:section='fds';kind='nes_fds_wave'
+            else:kind='nes_unmapped'
         else:
             raise ValueError(f'No native parameter decoder for {chip}')
     parameters=(('register',register),('port',port))+_recipe(kind,data)
@@ -226,4 +259,5 @@ def encode_control(control, device):
     if chip=='psg':return bytes((0xa0,register|(device.instance<<7),value))
     if chip=='scc':return bytes((0xd2,p['port']|(device.instance<<7),register,value))
     if chip=='huc6280':return bytes((0xb9,register|(device.instance<<7),value))
+    if chip=='nesapu':return bytes((0xb4,register,value))
     raise ValueError(f'No native register codec for {chip}')

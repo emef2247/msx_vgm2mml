@@ -265,6 +265,7 @@ def _build_native_plan(source, outdir, stem=None, **options):
     except ValueError as error:
         performance=None
         source_error=dict(status='failed',error_type=type(error).__name__,detail=str(error))
+    nes_gains=options.pop('nes_gains',None)
     sink=options.get('decision_sink')
     guide=None
     if performance is not None:
@@ -273,6 +274,10 @@ def _build_native_plan(source, outdir, stem=None, **options):
         guide.dump(root,stem)
     try:
         conversion_input,projection=prepare(source,root,stem,force=options.get('force',False))
+        if projection is None:
+            from nesapu_projection import prepare as prepare_nesapu
+            conversion_input,projection=prepare_nesapu(source,root,stem,force=options.get('force',False),
+                gains=nes_gains)
         plan,report=_build_accepted_plan(source,root,stem,**options,
             source_performance=performance,prepared_input=conversion_input,prepared_projection=projection,
             source_score_guide=guide)

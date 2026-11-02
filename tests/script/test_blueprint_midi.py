@@ -184,7 +184,8 @@ class MidiPublicationTests(unittest.TestCase):
             root=Path(temporary);diag=root/'diag';package=root/'package';package.mkdir()
             report=dict(blueprint=write_blueprint(holder(source()),diag,'score'))
             pubs,deletes,products,status,_,targets=batch.prepare_blueprints(report,diag,'score',package,{})
-            self.assertEqual(status,'success');self.assertEqual(len(targets),2)
+            self.assertEqual(status,'success');self.assertEqual(len(targets),3)
+            self.assertIn(package/'blueprint'/'ndp'/'score.mml',targets)
             manifest=package/'listening_manifest.json'
             state=dict(schema_version=1,entries={'score.vgm':dict(published=products)})
             batch.publish_bundle(pubs,manifest,state,diag,deletions=deletes)

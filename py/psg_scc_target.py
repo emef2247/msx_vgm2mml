@@ -5,6 +5,10 @@ TUNING_HEADER = '#psg_tune { ' + ', '.join(map(str, BASE_PERIODS)) + ' }'
 
 
 def period_detune(segment):
+    if segment.scale not in SCALES:
+        # Unpitched segments (a dedicated noise channel) have no
+        # period-table entry to detune from.
+        return 0
     base = BASE_PERIODS[SCALES.index(segment.scale)] >> (segment.octave - 1)
     # MGSDRV subtracts signed detune from the tone-period table entry.
     return max(-127, min(127, base - segment.tone_period))
@@ -18,5 +22,8 @@ def envelope_period_tokens(period):
 
 
 def rendered_period(segment):
+    if segment.scale not in SCALES:
+        # Unpitched segments pass their native period through unchanged.
+        return segment.tone_period
     base = BASE_PERIODS[SCALES.index(segment.scale)] >> (segment.octave - 1)
     return base - period_detune(segment)

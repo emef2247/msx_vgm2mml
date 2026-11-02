@@ -94,6 +94,20 @@ class PerformanceTests(unittest.TestCase):
                 self.assertEqual(legacy_partition(rows, chip), actual)
                 self.assertTrue(performance.validate({0: rows}))
 
+    def test_noise_only_psg_channel_forms_gates(self):
+        # A dedicated noise channel has no pitch: its sounding segments
+        # carry scale 'r' with mode 2 and must still count as audible,
+        # or the whole noise part silently produces no gates or units.
+        rows = [psg(0, ch=2, scale='r', tone_period=0, mode=2, volume=14),
+                psg(2, ch=2, scale='r', tone_period=0, mode=2, volume=0),
+                psg(4, ch=2, scale='r', tone_period=0, mode=2, volume=14)]
+        self.assertTrue(audible(rows[0], 'psg'))
+        self.assertFalse(audible(rows[1], 'psg'))
+        performance = analyze({2: rows}, 'psg')
+        self.assertEqual(len(performance.gates), 2)
+        notes = [n for _, ns in performance.channels for n in ns]
+        self.assertTrue(any(not n.rest for n in notes))
+
     def test_volume_curve_falls_inside_gate_and_rise_partitions_score(self):
         performance = analyze({0: [psg(), psg(2, volume=8), psg(4, volume=10)]}, 'psg')
         notes = dict(performance.channels)[0]

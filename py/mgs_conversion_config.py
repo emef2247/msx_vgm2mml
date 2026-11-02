@@ -65,6 +65,7 @@ class MgsOptions:
     score_normalize: bool = False
     score_tempo: int = 225
     blueprint_score_normalize: bool = False
+    macro_definition_budget: int | None = None
 
     def __post_init__(self):
         from score_normalization import score_tempo
@@ -125,6 +126,8 @@ class MgsOptions:
         result.extend(self.curve_cli_args())
         if self.score_normalize:result+=['--score-normalize','--score-tempo',str(self.score_tempo)]
         elif self.blueprint_score_normalize:result+=['--blueprint-score-normalize','--score-tempo',str(self.score_tempo)]
+        if self.macro_definition_budget is not None:
+            result += ['--macro-definition-budget', str(self.macro_definition_budget)]
         return result
 
     def curve_cli_args(self):

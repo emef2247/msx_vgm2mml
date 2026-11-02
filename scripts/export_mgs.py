@@ -22,8 +22,16 @@ def build_parser():
                         help='Output root preserving input-relative parents (default: beside each source VGM)')
     parser.add_argument('--mgsc', help='Native MGSC executable (default: PATH)')
     parser.add_argument('--mgsc-module', type=Path)
+    parser.add_argument('--nes-balance', action=argparse.BooleanOptionalAction, default=True,
+                        help='Apply the NES mapping balance gains (NES APU sources only; '
+                             'default: on, use --no-nes-balance to disable)')
+    parser.add_argument('--nes-gain', action='append', default=[], metavar='KIND=FACTOR',
+                        help='Override one NES mapping gain (pulse, triangle, noise, dpcm, fds)')
     parser.add_argument('--compiler', choices=('mgsc', 'mgsexc'), default='mgsc',
                         help='MML compiler: mgsexc avoids the MGSC buffer limit (default: mgsc)')
+    parser.add_argument('--macro-definition-budget', type=int, default=None,
+                        help='Macro definition budget in bytes for MGSC output '
+                             '(default: 5500 with mgsc, none with mgsexc)')
     parser.add_argument('--node', default='node')
     parser.add_argument('--timeout', type=int, default=1200,
                         help='Timeout per conversion/compilation stage in seconds (default: 1200)')
@@ -74,6 +82,10 @@ def main(argv=None):
         parser.error('--score-guided-loops cannot be combined with --envelope-first-loops')
     try:
         sample_threshold(args.fm_state_ms, '--fm-state-ms')
+        macro_budget = args.macro_definition_budget
+        if macro_budget is None and args.compiler == 'mgsc':
+            from macro_budget import MGSC_MACRO_DEFINITION_BUDGET
+            macro_budget = MGSC_MACRO_DEFINITION_BUDGET
         rows = run_batch(args.input, args.outdir, module=args.mgsc_module,
                          node=args.node, timeout=args.timeout, mgsc=args.mgsc,
                          compiler=args.compiler,
@@ -89,6 +101,8 @@ def main(argv=None):
                          enhance_drums=False, psg_part='all',
                          software_volume_curves=args.is_software_volume_curves,
                          score_guided_loops=args.score_guided_loops,
+                         macro_definition_budget=macro_budget,
+                         nes_balance=args.nes_balance, nes_gain=args.nes_gain,
                          psg_state_ms=None, scc_state_ms=None,
                          curve_volume_error=None, curve_mean_error=None)
     except (RuntimeError, ValueError) as error:

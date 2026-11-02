@@ -45,6 +45,13 @@ class ExportMgsTests(unittest.TestCase):
         self.assertFalse(run.call_args.kwargs['keyon'])
         self.assertTrue(run.call_args.kwargs['software_volume_curves'])
 
+    @patch('export_mgs.run_batch', return_value=[dict(status='success', keyon_status='disabled')])
+    def test_nes_balance_defaults_on_and_can_be_disabled(self, run):
+        export_mgs.main(['input', '--skip-keyon-counts'])
+        self.assertTrue(run.call_args.kwargs['nes_balance'])
+        export_mgs.main(['input', '--skip-keyon-counts', '--no-nes-balance'])
+        self.assertFalse(run.call_args.kwargs['nes_balance'])
+
     @patch('export_mgs.run_batch', return_value=[dict(status='success', keyon_status='compared')])
     def test_explicit_thresholds_and_existing_options_are_forwarded(self, run):
         result = export_mgs.main(['input.vgm', '--outdir', 'output', '--fm-state-ms', '4',

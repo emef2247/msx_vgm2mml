@@ -230,6 +230,16 @@ def main():
                            help='Solo conservatively classified native PSG rhythm intervals')
     parser.add_argument('--macro-mode', choices=('v110', 'current', 'greedy'), default='current',
                         help='Production macro policy; independent of blueprint')
+    parser.add_argument('--nes-balance', action='store_true',
+                        help='Apply the NES mapping balance gains in the NES APU projection '
+                             '(pulse up, triangle and noise down, DPCM up)')
+    parser.add_argument('--nes-gain', action='append', default=[], metavar='KIND=FACTOR',
+                        help='Override one NES mapping gain (kinds: pulse, triangle, noise, '
+                             'dpcm, fds), e.g. --nes-gain pulse=1.2. Repeatable; uses the '
+                             'balance preset as its base.')
+    parser.add_argument('--macro-definition-budget', type=int, default=None,
+                        help='Expand macros so the definition prefix fits this many bytes '
+                             '(the original MGSC accepts about 5.5 KB)')
     parser.add_argument('--loop-mode', choices=('v110', 'current', 'envelope-first', 'score-guided'),
                         default='current', help='Production loop/envelope policy')
     parser.add_argument('--legacy-macros', dest='enhance_macros', action='store_false',
@@ -369,7 +379,21 @@ def main():
     try:
         from musical_conversion import build_plan
         decisions = {}
+        nes_gains = None
+        if args.nes_balance or args.nes_gain:
+            from nesapu_projection import BALANCE_GAINS
+            nes_gains = dict(BALANCE_GAINS)
+            for item in args.nes_gain:
+                kind, _, factor = item.partition('=')
+                kind = kind.strip().lower()
+                if kind not in nes_gains:
+                    parser.error(f'--nes-gain kind must be one of {sorted(nes_gains)}: {item!r}')
+                try:
+                    nes_gains[kind] = float(factor)
+                except ValueError:
+                    parser.error(f'--nes-gain factor must be a number: {item!r}')
         shared_plan, execution = build_plan(vgm_path, song_dir, base_name,
+            nes_gains=nes_gains,
             normalization_ms=options.effective_normalization_ms,
             fm_state_ms=options.effective_fm_state_ms, normalize_lengths=args.normalize_lengths,
             software_volume_curves=args.software_volume_curves, force=args.force,
@@ -839,6 +863,13 @@ def _convert_mgs(args, options, vgm_path, song_dir, base_name, *, decision_conte
     if args.macro_mode != 'v110':
         from mml_notation import compact as compact_notation
         merged_text=compact_notation(merged_text)
+    if getattr(args, 'macro_definition_budget', None):
+        from macro_budget import enforce_macro_budget
+        merged_text, expanded_macros = enforce_macro_budget(
+            merged_text, args.macro_definition_budget)
+        if expanded_macros:
+            print(f"Macro definition budget {args.macro_definition_budget}: "
+                  f"expanded macros {expanded_macros}")
     macro_mode.reset(macro_token)
     merged_path = os.path.join(song_dir, f'{base_name}.mml')
     with open(merged_path, 'w', encoding='cp932', errors='replace', newline='\n') as fh:
