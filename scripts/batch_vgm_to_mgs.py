@@ -164,9 +164,27 @@ def prepare_blueprints(report, folder, stem, package, products):
         except (OSError,ValueError,KeyError,TypeError):
             return [], [], dict(products), 'blocked', 'Blueprint report has missing or invalid MIDI pages', []
         generated=(*generated,*midi)
-    old_names = {name for name in products if Path(name).parent.as_posix() == 'blueprint'
+    # The optional NDP page (at most one) publishes beside the score bundle
+    # under blueprint/ndp/, with the same ownership protection.
+    ndp = []
+    if 'ndp_files' in value:
+        records=value['ndp_files']
+        try:
+            if not isinstance(records,list) or len(records)>1:raise ValueError()
+            for record in records:
+                path=Path(record['path'])
+                expected = folder / 'blueprint' / 'ndp' / path.name
+                if (not blueprint_name(path.name, stem) or path.resolve() != expected.resolve()
+                        or path.is_symlink() or not path.is_file()
+                        or file_digest(path) != record.get('sha256')):
+                    raise ValueError()
+                ndp.append(path)
+        except (OSError,ValueError,KeyError,TypeError):
+            return [], [], dict(products), 'blocked', 'Blueprint report has missing or invalid NDP pages', []
+    old_names = {name for name in products if Path(name).parent.as_posix() in ('blueprint', 'blueprint/ndp')
                  and blueprint_artifact_name(Path(name).name, stem)}
     new_names = {('blueprint/'+path.name) for path in generated}
+    new_names |= {('blueprint/ndp/'+path.name) for path in ndp}
     for name in old_names | new_names:
         target = package/name
         if not target.resolve().is_relative_to(package.resolve()) or target.is_symlink():
@@ -178,6 +196,7 @@ def prepare_blueprints(report, folder, stem, package, products):
     for name in old_names-new_names:
         updated.pop(name, None)
     publications = [(path, package/'blueprint'/path.name) for path in generated]
+    publications += [(path, package/'blueprint'/'ndp'/path.name) for path in ndp]
     for source, target in publications:
         updated[target.relative_to(package).as_posix()] = file_digest(source)
     return publications, deletions, updated, status, detail, [target for _, target in publications]

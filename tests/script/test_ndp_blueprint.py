@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / 'py'), str(ROOT / 'scripts')]
 from musical_plan import MusicalPlan, MusicalUnit, MusicalControl
 from musical_blueprint import write_blueprint
+import batch_vgm_to_mgs as batch
 
 
 def tone(chip, channel, start, length, uid, period=426):
@@ -95,6 +96,30 @@ class NdpBlueprintTests(unittest.TestCase):
         # Four OPLL lanes: three fold in, so a page still exists.
         self.assertTrue(page.is_file())
         self.assertEqual(len(report['ndp']['omitted_lanes']), 1)
+
+    def test_batch_publishes_ndp_page_beside_score_bundle(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); diag = root / 'diag'; package = root / 'package'
+            package.mkdir()
+            p = plan(tone('psg', 0, 0, 44100, 'a'))
+            report = dict(blueprint=write_blueprint(p, diag, 'score'))
+            pubs, deletes, products, status, _, _ = batch.prepare_blueprints(
+                report, diag, 'score', package, {})
+            self.assertEqual(status, 'success')
+            self.assertIn('blueprint/ndp/score.mml', products)
+            manifest = package / 'listening_manifest.json'
+            state = dict(schema_version=1, entries={'score.vgm': dict(published=products)})
+            batch.publish_bundle(pubs, manifest, state, diag, deletions=deletes)
+            published = package / 'blueprint' / 'ndp' / 'score.mml'
+            self.assertTrue(published.is_file())
+            self.assertEqual(published.read_bytes(),
+                             (diag / 'blueprint' / 'ndp' / 'score.mml').read_bytes())
+            published.write_text(published.read_text(encoding='utf-8') + '; edit\n',
+                                 encoding='utf-8')
+            pubs, deletes, _, status, _, _ = batch.prepare_blueprints(
+                report, diag, 'score', package, products)
+            self.assertEqual(status, 'blocked')
+            self.assertEqual((pubs, deletes), ([], []))
 
 
 if __name__ == '__main__':
