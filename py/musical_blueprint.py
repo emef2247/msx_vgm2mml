@@ -195,7 +195,8 @@ def score_timing_view(plan, *, tempo=225, output_root=None, stem=None):
         metadata=plan.metadata + (('score_normalization', normalized.report),))
 
 
-def render_blueprints(plan):
+def blueprint_performance(plan):
+    """Resolve the performance the score pages render, with source provenance."""
     source = getattr(plan,'score_performance',None) or getattr(plan, 'source_performance', None)
     if source is not None and _origins(plan):
         # HuC currently reaches the legacy engine through a documented native
@@ -215,9 +216,14 @@ def render_blueprints(plan):
             else:
                 units.append(unit)
         source = replace(source, devices=source.devices+tuple(remapped_devices.values()), units=tuple(units))
+    return source if source is not None else _legacy_performance(plan)
+
+
+def render_blueprints(plan, performance=None):
+    source = performance if performance is not None else blueprint_performance(plan)
     timing=dict(plan.metadata).get('score_normalization',{})
     tempo=timing.get('reference_tempo') if timing.get('enabled') else None
-    return render_native_blueprints(source if source is not None else _legacy_performance(plan),tempo=tempo,
+    return render_native_blueprints(source,tempo=tempo,
                                     note_values=bool(timing.get('enabled')),sync_report=timing,
                                     score_guide=getattr(plan,'score_guide',None))
 
@@ -289,12 +295,29 @@ def write_blueprint(plan, output_root, stem):
                 or not re.fullmatch(r'[0-9a-f]{64}', item['sha256'])):
             invalid_ownership = True
             break
+    previous_ndp_files = previous.get('ndp_files', [])
+    if not isinstance(previous_ndp_files, list):
+        previous_ndp_files = []
+        invalid_ownership = True
+    for item in previous_ndp_files:
+        if not isinstance(item, dict) or not isinstance(item.get('path'), str) or not isinstance(item.get('sha256'), str):
+            invalid_ownership = True
+            break
+        path = Path(item['path'])
+        if (not path.is_absolute() or path.parent.resolve() != (root/'blueprint'/'ndp').resolve()
+                or path.name != stem+'.mml'
+                or not re.fullmatch(r'[0-9a-f]{64}', item['sha256'])):
+            invalid_ownership = True
+            break
     if invalid_ownership:
         previous_files = []
         previous_midi_files = []
-    owned = {str(Path(item['path']).resolve()): item['sha256'] for item in previous_files+previous_midi_files}
+        previous_ndp_files = []
+    owned = {str(Path(item['path']).resolve()): item['sha256']
+             for item in previous_files+previous_midi_files+previous_ndp_files}
     if previous.get('sha256'):
         report.update(sha256=previous['sha256'], files=previous_files,midi_files=previous_midi_files,
+                      ndp_files=previous_ndp_files,
                       previous_artifact_retained=any(Path(item['path']).exists() for item in previous_files+previous_midi_files))
     retained_report = dict(report)
     try:
@@ -302,9 +325,12 @@ def write_blueprint(plan, output_root, stem):
             raise BlueprintError('Invalid blueprint ownership record; keeping existing files')
         if (root/'blueprint').is_symlink():
             raise BlueprintError('Blueprint output directory is a symbolic link')
+        if (root/'blueprint'/'ndp').exists() and (root/'blueprint'/'ndp').is_symlink():
+            raise BlueprintError('Blueprint NDP output directory is a symbolic link')
         if any(path.is_symlink() or path.exists() and not path.is_file() for path in (csv_path,notes_path)):
             raise BlueprintError('Blueprint diagnostic path is a symbolic link')
-        rendered = render_blueprints(plan)
+        performance = blueprint_performance(plan)
+        rendered = render_blueprints(plan, performance)
         if not rendered:
             report.update(status='not_applicable', detail='No non-PCM sounding parts for blueprint')
             report_path.write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
@@ -314,7 +340,18 @@ def write_blueprint(plan, output_root, stem):
         midi_targets = [target.with_suffix('.midi') for target in targets]
         from blueprint_midi import render as render_midi
         midis = [render_midi(data, target.stem) for (_,data),target in zip(rendered,targets)]
+        ndp_text, ndp_report = None, None
+        try:
+            from ndp_blueprint import render_ndp_page
+            ndp = render_ndp_page(rendered, performance)
+            if ndp is not None:
+                ndp_text, ndp_report = ndp
+        except Exception as error:  # an extra page must not block the score bundle
+            ndp_report = dict(status='failed', detail=str(error), error_type=type(error).__name__)
+        ndp_target = root/'blueprint'/'ndp'/f'{stem}.mml' if ndp_text is not None else None
         candidates = {Path(name) for name in owned} | set(targets+midi_targets)
+        if ndp_target is not None:
+            candidates.add(ndp_target)
         initial = {}
         for target in candidates:
             if not target.resolve().is_relative_to(root) or target.is_symlink():
@@ -335,13 +372,20 @@ def write_blueprint(plan, output_root, stem):
             midi_files.append(dict(path=str(midi_targets[i]),name=midi_targets[i].name,
                 sha256=hashlib.sha256(midi).hexdigest(),summary=midi_report))
             score_notes.extend(dict(note,file_name=midi_targets[i].name) for note in data['score_notes'])
+        ndp_files = []
+        if ndp_target is not None:
+            ndp_files.append(dict(path=str(ndp_target), name=ndp_target.name,
+                                  sha256=hashlib.sha256(ndp_text.encode('utf-8')).hexdigest()))
         report = dict(rendered[0][1], source_sha256=source_hash, path=str(targets[0]),
             sha256=files[0]['sha256'], files=files, file_count=len(files),midi_files=midi_files,
             midi_status='success',midi_note_count=len(score_notes),
             sounding_units=sum(data['sounding_units'] for _, data in rendered),
-            allocations=allocations, per_file_reports=[data for _, data in rendered])
+            allocations=allocations, per_file_reports=[data for _, data in rendered],
+            ndp_files=ndp_files, ndp=ndp_report)
         target_root = root/'blueprint'
         target_root.mkdir(parents=True, exist_ok=True)
+        if ndp_target is not None:
+            (target_root/'ndp').mkdir(parents=True, exist_ok=True)
         # Prepare the complete score/diagnostic bundle before changing owned files.
         with _staging(root) as temporary:
             prepared = {}
@@ -353,6 +397,10 @@ def write_blueprint(plan, output_root, stem):
                 stage = temporary/f'midi{i}'
                 stage.write_bytes(data)
                 prepared[target] = stage
+            if ndp_target is not None:
+                stage = temporary/'ndp.mml'
+                stage.write_text(ndp_text, encoding='utf-8')
+                prepared[ndp_target] = stage
             stage = temporary/'units.csv'
             with stage.open('w', encoding='utf-8', newline='') as stream:
                 fields = list(allocations[0]) if allocations else ['unit_id','source_chip','source_channel','file_name']
@@ -382,7 +430,10 @@ def write_blueprint(plan, output_root, stem):
             try:
                 for target, stage in prepared.items():
                     stage.replace(target)
-                for target in candidates-set(targets+midi_targets):
+                keep = set(targets+midi_targets)
+                if ndp_target is not None:
+                    keep.add(ndp_target)
+                for target in candidates-keep:
                     target.unlink(missing_ok=True)
             except OSError as error:
                 rollback_errors=[]
