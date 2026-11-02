@@ -342,7 +342,8 @@ def render_ndp_page(pages, performance):
                                                         ensure_ascii=True, sort_keys=True)
         lines.extend('; ' + line for line in textwrap.wrap(description, width=106,
                                                            break_long_words=True, break_on_hyphens=False))
-    lines.append(f'#TEMPO {tempo}')
+    # No #TEMPO: in NDP the timebase alone determines the tempo, and
+    # emitting both is a compile error (verified in NDP Online).
     lines.append(f'#TIMEBASE {timebase}')
     for (period, volume, duration), letter in sorted(voices.items(), key=lambda item: item[1]):
         lines.append(f'@R:{letter}=*2 N{period} V{volume}' + ' /' * (duration - 1))

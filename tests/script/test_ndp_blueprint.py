@@ -58,8 +58,8 @@ class NdpBlueprintTests(unittest.TestCase):
         self.assertEqual(report['ndp']['status'], 'success')
         text = page.read_text(encoding='utf-8')
         lines = music_lines(text)
-        self.assertIn('#TEMPO 75', lines)
         self.assertIn('#TIMEBASE 48', lines)
+        self.assertFalse(any(line.startswith('#TEMPO') for line in lines))
         tracks = {line.split(' ', 1)[0]: line for line in lines if re.match(r'^[123R] ', line)}
         self.assertEqual(set(tracks), {'1', '2', 'R'})
         self.assertIn('o4 c', tracks['1'])
