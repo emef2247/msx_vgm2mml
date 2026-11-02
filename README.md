@@ -36,9 +36,9 @@ MGSの生成にはMGSCまたはmgsc-jsが必要です。また、生成結果の
 
 通常のMML/MGSとは別に、演奏情報を編集用のMMLおよびMIDI（SMF）として出力するBlueprint機能を搭載しています。
 
-Blueprintでは、音色や音量の再現よりも、音符・音価・休符・繰り返しといった楽曲の構造を抽出することを重視しています。
+またndpサブフォルダ（`blueprint/ndp/`）には、MSX用PSGドライバ「NDP」形式のMMLが生成されます。
 
-PSG、OPLL、SCC、HuC6280に加え、OPM（YM2151）やOPNA（YM2608）など、MGSへの変換対象ではない音源のVGMからもBlueprintを生成できます。
+Blueprintでは、音色や音量の再現よりも、音符・音価・休符・繰り返しといった楽曲の構造を抽出することを重視しています。
 
 生成したデータは、MMLの編集やDAWでのアレンジなどに利用できます。
 
@@ -81,18 +81,6 @@ PSG／SCCでは、音量変化からソフトウェアエンベロープを抽�
 HuC6280は、SCCを中心にPSGやOPLLを併用して近似変換します。波形や音源の使用状況によっては、再現できない演奏情報があります。
 
 NES APUは、パルス波と三角波をSCC、ノイズをPSGへ割り当てて変換します。DPCMとFDSは、SCCの空きチャンネルでの波形スライス再生やOPLLへの割り当てで再現します。
-
-### Blueprint
-
-MGS変換の対象ではないOPMやOPNAなどについても、演奏情報を抽出してBlueprintを生成できます。
-
-Blueprintには、なると氏のMSX用PSGドライバ「NDP」形式のMMLページ（`blueprint/ndp/`）も含まれます。
-
-Blueprintは楽曲構造を編集するための下書きであり、元の音源の音色や音量変化を忠実に再現するものではありません。
-
-PCMなど、音符として扱えない情報は楽譜化の対象外です。
-
-対応できる内容は、音源の組み合わせやVGM内で使用されている制御方法によって異なります。
 
 ## VGM出力
 
@@ -204,9 +192,9 @@ To install the external tools automatically, use [scripts/setup_mgs_tools.py](sc
 
 In addition to the standard MML/MGS output, the Blueprint feature generates editable MML and MIDI (SMF) files from the extracted musical information.
 
-Blueprint focuses on extracting musical structure, such as notes, durations, rests, and repetitions, rather than reproducing the original timbres and volume characteristics.
+The ndp subfolder (`blueprint/ndp/`) also receives MML in the format of "NDP," a PSG driver for MSX.
 
-In addition to PSG, OPLL, SCC, and HuC6280, Blueprint can be generated from VGM files containing sound chips not supported by MGS conversion, including OPM (YM2151) and OPNA (YM2608).
+Blueprint focuses on extracting musical structure, such as notes, durations, rests, and repetitions, rather than reproducing the original timbres and volume characteristics.
 
 The generated files can be used for MML editing, arrangement, and further processing in DAWs.
 
@@ -247,18 +235,6 @@ For PSG and SCC, the tool extracts software envelopes from volume changes and ap
 HuC6280 is approximately mapped to SCC, with PSG and OPLL used where applicable. Some musical information may not be reproduced accurately, depending on waveform characteristics and sound chip usage.
 
 The NES APU is converted by assigning its pulse and triangle channels to SCC and its noise channel to PSG. DPCM and FDS are reproduced with waveform slices on a free SCC channel or by assignment to OPLL.
-
-### Blueprint
-
-Blueprint generation is also available for sound chips not supported by MGS conversion, including OPM and OPNA.
-
-The Blueprint also includes an MML page in the format of NDP, naruto's PSG driver for MSX (under `blueprint/ndp/`).
-
-Blueprint is intended as an editable musical sketch rather than a faithful reproduction of the original timbres and volume changes.
-
-PCM and other information that cannot be represented as musical notes are excluded from score generation.
-
-The extent of supported functionality depends on the combination of sound chips and the control methods used in the source VGM.
 
 ## VGM Output
 
