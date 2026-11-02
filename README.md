@@ -65,6 +65,8 @@ Blueprintは通常のMML/MGS生成とは独立しており、MGSへの変換が�
 | OPLL（YM2413） | ○ | ○ |
 | SCC | ○ | ○ |
 | HuC6280 | △ | ○ |
+| NES APU | ○ | ○ |
+| FDS | ○ | ○ |
 | OPM（YM2151） | ― | ○ |
 | OPNA（YM2608） | ― | ○ |
 
@@ -77,6 +79,8 @@ PSG／SSG、OPLL、SCCの演奏情報をMGSDRV用MMLに変換します。
 PSG／SCCでは、音量変化からソフトウェアエンベロープを抽出し、反復部分のループ化やマクロ化も行います。
 
 HuC6280は、SCCを中心にPSGやOPLLを併用して近似変換します。波形や音源の使用状況によっては、再現できない演奏情報があります。
+
+NES APUは、パルス波と三角波をSCC、ノイズをPSGへ割り当てて変換します。DPCMとFDSは、SCCの空きチャンネルでの波形スライス再生やOPLLへの割り当てで再現します。
 
 ### Blueprint
 
@@ -227,6 +231,8 @@ The `--force` option does not guarantee successful conversion of every input. It
 | OPLL (YM2413) | Yes | Yes |
 | SCC | Yes | Yes |
 | HuC6280 | Approximate | Yes |
+| NES APU | Yes | Yes |
+| FDS | Yes | Yes |
 | OPM (YM2151) | No | Yes |
 | OPNA (YM2608) | No | Yes |
 
@@ -237,6 +243,8 @@ Musical information from PSG/SSG, OPLL, and SCC is converted into MGSDRV-compati
 For PSG and SCC, the tool extracts software envelopes from volume changes and applies loop and macro optimizations to repeated passages.
 
 HuC6280 is approximately mapped to SCC, with PSG and OPLL used where applicable. Some musical information may not be reproduced accurately, depending on waveform characteristics and sound chip usage.
+
+The NES APU is converted by assigning its pulse and triangle channels to SCC and its noise channel to PSG. DPCM and FDS are reproduced with waveform slices on a free SCC channel or by assignment to OPLL.
 
 ### Blueprint
 
