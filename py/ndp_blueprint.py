@@ -165,6 +165,23 @@ def _render_tone_lane(lane, tempo, timebase, total_frames, loop_frame):
     return tokens, loop_pending
 
 
+def _fold_tokens(tokens):
+    """Fold verbatim phrase repeats into [ ... ]n, the score pages' way.
+
+    Keys are the emitted tokens themselves, so a fold can only join text
+    that is already identical; octave and slur state therefore carry
+    across a fold boundary exactly as they did in the flat stream. The
+    plan's own expansion check guarantees the folded text expands back
+    to the same token stream. Returns (display atoms, applied folds).
+    """
+    if len(tokens) < 2:
+        return list(tokens), 0
+    from source_loop_plan import SourceLoopPlan
+    plan = SourceLoopPlan.build(tokens, strategy='structural')
+    text, rows = plan.render(tokens)
+    return text.split(' '), sum(1 for row in rows if row['status'] == 'applied')
+
+
 def _track_section(label, setup, tokens, total_frames):
     """Structure one track like a blueprint score page section: start and
     end frame markers, the setup on the first body line, and the token
@@ -329,12 +346,18 @@ def render_ndp_page(pages, performance):
     lines.append(f'#TIMEBASE {timebase}')
     for (period, volume, duration), letter in sorted(voices.items(), key=lambda item: item[1]):
         lines.append(f'@R:{letter}=*2 N{period} V{volume}' + ' /' * (duration - 1))
+    phrase_folds = 0
     for number, (_, tokens) in tracks.items():
-        lines.extend(_track_section(str(number), 'v15', tokens, total_frames))
+        atoms, folds = _fold_tokens(tokens)
+        phrase_folds += folds
+        lines.extend(_track_section(str(number), 'v15', atoms, total_frames))
     if rhythm_tokens_out is not None:
-        lines.extend(_track_section('R', '', rhythm_tokens_out, total_frames))
+        atoms, folds = _fold_tokens(rhythm_tokens_out)
+        phrase_folds += folds
+        lines.extend(_track_section('R', '', atoms, total_frames))
     report = dict(status='success', tempo=tempo, timebase_frames=timebase, total_frames=total_frames,
                   loop_frame=loop_frame, loop_unplaced_tracks=loop_unplaced,
+                  phrase_repeat_folds=phrase_folds,
                   tracks={str(number): dict(source_chip=lane['key'][0], source_instance=lane['key'][1],
                                             source_section=lane['key'][2], source_channel=lane['key'][3],
                                             chunk=lane['chunk'], folded=not lane['primary'])

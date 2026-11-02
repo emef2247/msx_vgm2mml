@@ -98,7 +98,8 @@ class NdpBlueprintTests(unittest.TestCase):
         self.assertEqual(len(report['ndp']['omitted_lanes']), 1)
 
     def test_track_sections_wrap_like_score_pages(self):
-        notes = [tone('psg', 0, i * 4410, 4410, f'u{i}') for i in range(30)]
+        notes = [tone('psg', 0, i * 4410, 4410, f'u{i}', period=200 + 37 * i)
+                 for i in range(30)]
         report, page = self.convert(plan(*notes))
         self.assertEqual(report['status'], 'success')
         text = page.read_text(encoding='utf-8')
@@ -110,8 +111,22 @@ class NdpBlueprintTests(unittest.TestCase):
         self.assertGreater(len(body), 1)
         tokens = ' '.join(line[2:] for line in body).split()
         self.assertEqual(tokens[0], 'v15')
-        self.assertEqual(sum(1 for token in tokens if token.lstrip('o0123456789 ').startswith('c')),
-                         30)
+        self.assertEqual(report['ndp']['total_frames'], 180)
+
+    def test_phrase_repeats_fold_and_expand_back(self):
+        from source_loop_plan import expanded_tokens
+        phrase = [tone('psg', 0, i * 4410, 4410, f'p{i}') for i in range(4)]
+        notes = phrase + [tone('psg', 0, 17640 + i * 4410, 4410, f'q{i}') for i in range(4)]
+        report, page = self.convert(plan(*notes))
+        self.assertEqual(report['status'], 'success')
+        self.assertGreaterEqual(report['ndp']['phrase_repeat_folds'], 1)
+        text = page.read_text(encoding='utf-8')
+        body = [line for line in text.splitlines() if line.startswith('1 ')]
+        atoms = ' '.join(line[2:] for line in body).split(' ', 1)[1]
+        self.assertIn('[', atoms)
+        self.assertRegex(atoms, r'\]\d')
+        expanded = expanded_tokens(atoms)
+        self.assertEqual(len([t for t in expanded if re.match(r'^&?[a-g]\+?[\d%]', t)]), 8)
 
     def test_batch_publishes_ndp_page_beside_score_bundle(self):
         with tempfile.TemporaryDirectory() as temporary:
