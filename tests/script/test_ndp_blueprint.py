@@ -97,6 +97,22 @@ class NdpBlueprintTests(unittest.TestCase):
         self.assertTrue(page.is_file())
         self.assertEqual(len(report['ndp']['omitted_lanes']), 1)
 
+    def test_track_sections_wrap_like_score_pages(self):
+        notes = [tone('psg', 0, i * 4410, 4410, f'u{i}') for i in range(30)]
+        report, page = self.convert(plan(*notes))
+        self.assertEqual(report['status'], 'success')
+        text = page.read_text(encoding='utf-8')
+        lines = text.splitlines()
+        self.assertTrue(all(len(line) <= 96 for line in lines))
+        self.assertIn('; ch1 --- frame 0 : start ---', lines)
+        self.assertIn(f'; ch1 --- frame {report["ndp"]["total_frames"]} : end ---', lines)
+        body = [line for line in lines if line.startswith('1 ')]
+        self.assertGreater(len(body), 1)
+        tokens = ' '.join(line[2:] for line in body).split()
+        self.assertEqual(tokens[0], 'v15')
+        self.assertEqual(sum(1 for token in tokens if token.lstrip('o0123456789 ').startswith('c')),
+                         30)
+
     def test_batch_publishes_ndp_page_beside_score_bundle(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary); diag = root / 'diag'; package = root / 'package'

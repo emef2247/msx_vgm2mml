@@ -162,7 +162,25 @@ def _render_tone_lane(lane, tempo, timebase, total_frames, loop_frame):
         prefix = '@L ' if loop_pending and cursor == loop_frame else ''
         tokens.append(prefix + 'r' + _spell(total_frames - cursor, timebase))
         loop_pending = False
-    return ' '.join(tokens), loop_pending
+    return tokens, loop_pending
+
+
+def _track_section(label, setup, tokens, total_frames):
+    """Structure one track like a blueprint score page section: start and
+    end frame markers, the setup on the first body line, and the token
+    stream wrapped at token boundaries to the score pages' line width."""
+    lines = ['', f'; ch{label} --- frame 0 : start ---']
+    current = f'{label} {setup}' if setup else label
+    for token in tokens:
+        candidate = current + ' ' + token
+        if len(candidate) > 96 and current not in (label, f'{label} {setup}'):
+            lines.append(current)
+            current = f'{label} {token}'
+        else:
+            current = candidate
+    lines.append(current)
+    lines.append(f'; ch{label} --- frame {total_frames} : end ---')
+    return lines
 
 
 def render_ndp_page(pages, performance):
@@ -252,7 +270,7 @@ def render_ndp_page(pages, performance):
             else:
                 voices[key] = RHYTHM_LETTERS[len(voices)]
         rhythm_tokens.append((start, stop, voices[key]))
-    rhythm_body = None
+    rhythm_tokens_out = None
     if rhythm_tokens:
         tokens, cursor = [], 0
         for start, stop, letter in rhythm_tokens:
@@ -262,7 +280,7 @@ def render_ndp_page(pages, performance):
             cursor = stop
         if cursor < total_frames:
             tokens.append('r' + _spell(total_frames - cursor, timebase))
-        rhythm_body = ' '.join(tokens)
+        rhythm_tokens_out = tokens
     # Documentary header, mirroring the blueprint pages' conventions.
     lines = ['; Editable NDP blueprint: dynamics and synthesis controls are omitted.',
              '; NDP (PSG Driver for MSX) and its MML format are by naruto; see https://ndp.squares.net/',
@@ -311,10 +329,10 @@ def render_ndp_page(pages, performance):
     lines.append(f'#TIMEBASE {timebase}')
     for (period, volume, duration), letter in sorted(voices.items(), key=lambda item: item[1]):
         lines.append(f'@R:{letter}=*2 N{period} V{volume}' + ' /' * (duration - 1))
-    for number, (_, body) in tracks.items():
-        lines.append(f'{number} v15 ' + body)
-    if rhythm_body is not None:
-        lines.append('R ' + rhythm_body)
+    for number, (_, tokens) in tracks.items():
+        lines.extend(_track_section(str(number), 'v15', tokens, total_frames))
+    if rhythm_tokens_out is not None:
+        lines.extend(_track_section('R', '', rhythm_tokens_out, total_frames))
     report = dict(status='success', tempo=tempo, timebase_frames=timebase, total_frames=total_frames,
                   loop_frame=loop_frame, loop_unplaced_tracks=loop_unplaced,
                   tracks={str(number): dict(source_chip=lane['key'][0], source_instance=lane['key'][1],
