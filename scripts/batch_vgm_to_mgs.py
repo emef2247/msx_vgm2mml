@@ -433,7 +433,7 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
               psg_state_ms=None, scc_state_ms=None, curve_volume_error=None, curve_mean_error=None,
               score_normalize=False, score_tempo=225, blueprint_score_normalize=False,
               macro_mode=None, loop_mode=None, macro_definition_budget=None,
-              nes_balance=False, nes_gain=(), song_loop=False):
+              nes_balance=False, nes_gain=()):
     options = MgsOptions(normalize_lengths=normalize_lengths, normalization_ms=normalization_ms,
                          fm_state_ms=fm_state_ms, force=force, dump_passes=dump_passes, enhance_drums=enhance_drums, psg_part=psg_part,
                          software_volume_curves=software_volume_curves, score_guided_loops=score_guided_loops,
@@ -561,7 +561,6 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
         if loop_mode is not None:stages[0][1].extend(['--loop-mode',loop_mode])
         if nes_balance:stages[0][1].append('--nes-balance')
         for gain_item in nes_gain:stages[0][1].extend(['--nes-gain',gain_item])
-        if song_loop:stages[0][1].extend(['--song-loop','source'])
         if not enhance_macros:
             stages[0][1].append('--legacy-macros')
         if legacy_loops:

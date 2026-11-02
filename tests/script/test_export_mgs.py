@@ -52,17 +52,6 @@ class ExportMgsTests(unittest.TestCase):
         export_mgs.main(['input', '--skip-keyon-counts', '--no-nes-balance'])
         self.assertFalse(run.call_args.kwargs['nes_balance'])
 
-    @patch('export_mgs.run_batch', return_value=[dict(status='success', keyon_status='disabled')])
-    def test_song_loop_defaults_off_and_can_be_enabled(self, run):
-        export_mgs.main(['input', '--skip-keyon-counts'])
-        self.assertFalse(run.call_args.kwargs['song_loop'])
-        export_mgs.main(['input', '--skip-keyon-counts', '--vgm-song-loop'])
-        self.assertTrue(run.call_args.kwargs['song_loop'])
-        export_mgs.main(['input', '--skip-keyon-counts', '--no-song-loop'])
-        self.assertFalse(run.call_args.kwargs['song_loop'])
-        with self.assertRaises(SystemExit):
-            export_mgs.main(['input', '--vgm-song-loop', '--no-song-loop'])
-
     @patch('export_mgs.run_batch', return_value=[dict(status='success', keyon_status='compared')])
     def test_explicit_thresholds_and_existing_options_are_forwarded(self, run):
         result = export_mgs.main(['input.vgm', '--outdir', 'output', '--fm-state-ms', '4',

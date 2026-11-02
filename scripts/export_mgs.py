@@ -29,12 +29,6 @@ def build_parser():
                         help='Override one NES mapping gain (pulse, triangle, noise, dpcm, fds)')
     parser.add_argument('--compiler', choices=('mgsc', 'mgsexc'), default='mgsc',
                         help='MML compiler: mgsexc avoids the MGSC buffer limit (default: mgsc)')
-    song_loop_group = parser.add_mutually_exclusive_group()
-    song_loop_group.add_argument('--vgm-song-loop', dest='song_loop', action='store_true',
-                        help='Export the declared VGM song loop (default: finite one pass)')
-    song_loop_group.add_argument('--no-song-loop', dest='song_loop', action='store_false',
-                        help='Export a finite one pass without the song loop (default)')
-    parser.set_defaults(song_loop=False)
     parser.add_argument('--macro-definition-budget', type=int, default=None,
                         help='Macro definition budget in bytes for MGSC output '
                              '(default: 5500 with mgsc, none with mgsexc)')
@@ -109,7 +103,6 @@ def main(argv=None):
                          score_guided_loops=args.score_guided_loops,
                          macro_definition_budget=macro_budget,
                          nes_balance=args.nes_balance, nes_gain=args.nes_gain,
-                         song_loop=args.song_loop,
                          psg_state_ms=None, scc_state_ms=None,
                          curve_volume_error=None, curve_mean_error=None)
     except (RuntimeError, ValueError) as error:
