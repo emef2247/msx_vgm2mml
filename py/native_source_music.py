@@ -215,7 +215,12 @@ def _fm_pitch(chip,state,clock):
         q=(kc-(kc>>2))*64+((state.kf_raw or 0)>>2)
         return 440*clock/3579545*2**((q/64-56)/12)
     if state.fnum is None or state.block is None:return None
-    return state.fnum*clock*(6/state.fm_prescale_divisor)/(144*2**(20-state.block))
+    # Hardware FNUM scaling is 2**(block-1) (YM2608/YM3438 manual
+    # formula; ymfm agrees): Hz = fnum*clock/(144*2**(21-block)) at
+    # prescale 6. The 2**(20-block) form used here before reported
+    # every OPN-family pitch one octave high (same error as the
+    # x68k projections, fixed there in ecc442e).
+    return state.fnum*clock*(6/state.fm_prescale_divisor)/(144*2**(21-state.block))
 
 
 def _fm_level(state):
