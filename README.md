@@ -69,6 +69,7 @@ Blueprintは通常のMML/MGS生成とは独立しており、MGSへの変換が�
 | FDS | ○ | ○ |
 | OPM（YM2151） | ― | ○ |
 | OPNA（YM2608） | ― | ○ |
+| OPN2（YM2612） | ― | ○ |
 
 ○：対応　△：近似変換　―：非対応
 
@@ -225,6 +226,7 @@ The `--force` option does not guarantee successful conversion of every input. It
 | FDS | Yes | Yes |
 | OPM (YM2151) | No | Yes |
 | OPNA (YM2608) | No | Yes |
+| OPN2 (YM2612) | No | Yes |
 
 ### MGS Conversion
 
