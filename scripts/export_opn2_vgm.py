@@ -44,7 +44,8 @@ def main():
             summary = convert(source, folder, force=args.force)
             summary['status'] = 'success'
             print(f"{source.name}: {summary['target_writes']} target writes "
-                  f"(OPM {summary['opm_writes']} + DCSG {summary['dcsg_writes']}), "
+                  f"(OPM {summary['opm_writes']} + DCSG {summary['dcsg_writes']} "
+                  f"+ DAC {summary['dac_writes']}), "
                   f"losses={summary['losses']}, deferred={list(summary['deferred'])}")
         except Exception as error:
             summary = dict(source=str(source), status='conversion_failed',

@@ -3,9 +3,9 @@
 The target is the dual-cartridge MSX playback route: the FM part of a
 Mega Drive VGM plays on the pseudo-OPM cartridge (YM2151 at
 3.579545 MHz), the two SN76489 (DCSG) chips play on the MSX PSG
-(AY8910 family) and the OPNA Sound Cartridge's SSG section, and the
-DAC is staged for the OPNA ADPCM-B re-encode (S4), reported as
-deferred here.
+(AY8910 family) and the OPNA Sound Cartridge's SSG section, and
+the DAC plays on the OPNA ADPCM-B channel after a YM delta
+re-encode (S4).
 
 The FM projection body is ported from x68k_vgm2mml py/opn2_opm.py (the
 register-layout mapping derived from the project's ymfm-based audit)
@@ -17,21 +17,26 @@ with three target adaptations:
 - The channel map is the identity 0..5 -> 0..5: no OPM channel is
   reserved on this target, because the PCM lanes live on the OPNA
   chip rather than on OPM channels.
-- The DAC is not bridged to a PCM stream here; live DAC writes are
-  counted as deferred to the OPNA ADPCM-B stage (S4).
+- The DAC is bridged to the OPNA ADPCM-B channel (S4), not to a
+  PCM stream on the OPM side: samples are YM delta-encoded into
+  the cartridge DRAM image and triggered per run.
 
 Losses are counted, never silent. CSM, CH3 special mode and unknown
 register effects refuse the projection unless --force is given.
 """
 import csv
+import hashlib
 import json
 import struct
+from array import array
 from collections import Counter
+from fractions import Fraction
 from pathlib import Path
 
 from psg_scc_opm import opm_pitch
 from native_imports.opn2 import Opn2UnmodeledWrite  # noqa: F401  (re-exported type)
 from native_imports.source import analyze_source
+from native_imports.vgm_io import read_vgm_bytes
 
 
 TARGET_CLOCK = 3579545
@@ -519,18 +524,522 @@ def project_dcsg(analysis, *, loop_start=None, loop_event_id=None):
     return rows, dict(losses), stats
 
 
-def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None):
+# --- S4: DAC -> OPNA ADPCM-B --------------------------------------
+# The OPNA Sound Cartridge carries up to 256 KB of DRAM for the
+# YM2608 ADPCM-B channel. Encoded samples are preloaded with one
+# VGM data block (type 0x81: total size, destination, content -
+# the layout real OPNA rips use, 221 blocks across the Grounseed
+# pack) and each run is triggered with port-1 writes (command
+# 0x57): control 2 = 0xC2 (L+R output, x8 DRAM - the value real
+# rips write), start/end addresses count in 32-byte units, the
+# playback rate is clock * delta-N / (144 * 65536) at the power-on
+# prescaler, and the level is fixed at 0xFF because the source
+# waveform itself carries the dynamics (a listening calibration
+# point, like the mucom88 NES DPCM level before it).
+ADPCM_B_DRAM_BUDGET = 262144
+ADPCM_B_LEVEL = 0xFF
+_DAC_RUN_GAP_TICKS = 441  # the x68k DAC bridge's run split
+_ADPCM_B_STEP_MULTIPLIERS = (57, 57, 57, 57, 77, 102, 128, 153)
+
+
+def _encode_adpcm_b(wave):
+    """Greedy YM delta-ADPCM encode of signed 16-bit samples.
+
+    The predictor/step state machine is the decoder's (step starts
+    at 127 and clamps to [127, 24576]); each nibble minimises the
+    decoded error against the desired sample. High nibble first.
+    """
+    predictor, step = 0, 127
+    nibbles = []
+    for desired in wave:
+        best_nibble, best_value, best_error = 0, predictor, None
+        for nibble in range(16):
+            delta = ((2 * (nibble & 7) + 1) * step) // 8
+            value = predictor - delta if nibble & 8 else predictor + delta
+            value = max(-32768, min(32767, value))
+            error = abs(value - desired)
+            if best_error is None or error < best_error:
+                best_nibble, best_value, best_error = nibble, value, error
+        nibbles.append(best_nibble)
+        predictor = best_value
+        step = max(127, min(24576,
+                            step * _ADPCM_B_STEP_MULTIPLIERS[best_nibble & 7] // 64))
+    encoded = bytearray()
+    for index in range(0, len(nibbles), 2):
+        low = nibbles[index + 1] if index + 1 < len(nibbles) else 0
+        encoded.append(nibbles[index] << 4 | low)
+    return bytes(encoded)
+
+
+_STREAM_ONE = 1 << 32
+
+
+def _decode_dac_stream(raw, events):
+    """Expand DAC stream commands into byte supplies.
+
+    Ported from x68k_vgm2mml py/opn2_pcm.py (_decode_stream_bytes),
+    with supplies carrying their bank offset and step so the
+    caller can split runs where the driver seeked - the driver's
+    own phrase marks. Returns (supplies, issues, stats); supplies
+    are (vgmticks, byte, source_event_id, bank_offset, step) from
+    autonomous stream starts (0x93/0x95, libvgm phase model) and
+    manual plays (0x80-0x8F positioned by 0xE0 seeks). Rips that
+    drive seeks/plays with no stream setup bind to an implicit
+    context over the concatenated type-0 bank.
+    """
+    bank = bytearray()
+    blocks = []
+    streams = {}
+    quick = None
+    implicit = None
+    supplies = []
+    issues = Counter()
+    stats = dict(stream_setup_commands=0, stream_starts=0,
+                 stream_fast_starts=0, seek_commands=0, play_commands=0,
+                 autonomous_bytes=0, manual_bytes=0, data_blocks=0,
+                 data_block_bytes=0, implicit_stream=False)
+    cursor = 0
+
+    def issue(code):
+        issues[code] += 1
+
+    def bind_quick():
+        nonlocal quick, implicit
+        if quick is not None:
+            return quick
+        candidates = [s for s in streams.values() if s.get('valid')]
+        if len(candidates) == 1:
+            quick = candidates[0]
+            return quick
+        if implicit is None:
+            implicit = dict(offset=None, index=0, step=1)
+            stats['implicit_stream'] = True
+            issue('opn2_dac_implicit_stream_context')
+        quick = implicit
+        return quick
+
+    def advance(end):
+        nonlocal cursor
+        ready = []
+        for order, (sid, stream) in enumerate(streams.items()):
+            if not stream.get('running'):
+                continue
+            frequency = stream['frequency']
+            increment = (frequency * _STREAM_ONE + 22050) // 44100
+            local = cursor
+            while local < end and stream['running']:
+                steps = max(1, (_STREAM_ONE - stream['phase']
+                                + increment - 1) // increment)
+                if steps > end - local:
+                    stream['phase'] += (end - local) * increment
+                    break
+                stream['phase'] += steps * increment - _STREAM_ONE
+                tick = local + steps - 1
+                bank_offset = stream['offset'] + stream['index'] * stream['step']
+                if not 0 <= bank_offset < len(bank):
+                    issue('opn2_dac_stream_out_of_bank')
+                    stream['running'] = False
+                    break
+                ready.append((tick, order, stream['start_event'],
+                              bank[bank_offset], bank_offset, stream['step']))
+                stream['index'] += 1
+                if stream['index'] == stream['count']:
+                    stream['running'] = False
+                local += steps
+        ready.sort(key=lambda item: item[:2])
+        supplies.extend((tick, byte, event_id, offset, step)
+                        for tick, _, event_id, byte, offset, step in ready)
+        stats['autonomous_bytes'] += len(ready)
+        cursor = end
+
+    for event_id, event in enumerate(events):
+        advance(event.vgmticks)
+        cmd, pos, tick = event.command, event.address, event.vgmticks
+        if cmd == 0x67:
+            if event.loop_iteration:
+                continue
+            kind = raw[pos + 2]
+            size = int.from_bytes(raw[pos + 3:pos + 7], 'little') & 0x7fffffff
+            if kind == 0:
+                blocks.append((len(bank), size))
+                bank.extend(raw[pos + 7:pos + 7 + size])
+                stats['data_blocks'] += 1
+                stats['data_block_bytes'] += size
+            continue
+        if cmd in (0x52, 0x53, 0xa2, 0xa3):
+            continue
+        if 0x90 <= cmd <= 0x95:
+            sid = raw[pos + 1]
+            if sid == 255:
+                if cmd == 0x94:
+                    for stream in streams.values():
+                        stream['running'] = False
+                continue
+            if cmd == 0x90:
+                target, port, reg = raw[pos + 2:pos + 5]
+                stream = streams.setdefault(sid, dict(
+                    bank=None, step=None, base=None, frequency=None,
+                    offset=None, count=None, phase=0, index=0, running=False))
+                stream.update(valid=(target & 0x7f) == 2 and reg == 0x2a,
+                              instance=bool(target & 0x80))
+                stats['stream_setup_commands'] += 1
+                if not stream['valid']:
+                    issue('opn2_dac_stream_unsupported_target')
+                continue
+            stream = streams.get(sid)
+            if stream is None:
+                issue('opn2_dac_stream_configuration_incomplete')
+                continue
+            if cmd == 0x91:
+                bank_id, step, base = raw[pos + 2:pos + 5]
+                stream.update(bank=bank_id, step=step or 1, base=base)
+                if bank_id != 0:
+                    issue('opn2_dac_stream_unsupported_bank')
+                    stream['usable'] = False
+                else:
+                    stream['usable'] = True
+            elif cmd == 0x92:
+                stream['frequency'] = int.from_bytes(raw[pos + 2:pos + 6], 'little')
+            elif cmd == 0x94:
+                stream['running'] = False
+            elif cmd in (0x93, 0x95):
+                stream['running'] = False
+                if not stream.get('valid') or not stream.get('usable', True):
+                    continue
+                if cmd == 0x95:
+                    block_index = int.from_bytes(raw[pos + 2:pos + 4], 'little')
+                    flags = raw[pos + 4]
+                    stats['stream_fast_starts'] += 1
+                    if flags:
+                        issue('opn2_dac_stream_flags_unsupported')
+                    if block_index >= len(blocks):
+                        issue('opn2_dac_stream_out_of_bank')
+                        continue
+                    offset, _length = blocks[block_index]
+                    stream.update(offset=offset + (stream['base'] or 0), index=0)
+                    quick = stream
+                else:
+                    stats['stream_starts'] += 1
+                    if any(stream[key] is None for key in ('bank', 'frequency')):
+                        issue('opn2_dac_stream_configuration_incomplete')
+                        continue
+                    if not stream['frequency'] or stream['frequency'] > 44100:
+                        issue('opn2_dac_stream_frequency_unsupported')
+                        continue
+                    offset = int.from_bytes(raw[pos + 2:pos + 6], 'little')
+                    mode = raw[pos + 6]
+                    length = int.from_bytes(raw[pos + 7:pos + 11], 'little')
+                    if offset == 0xffffffff:
+                        if stream['offset'] is None:
+                            issue('opn2_dac_stream_configuration_incomplete')
+                            continue
+                        offset = stream['offset']
+                    step = stream['step'] or 1
+                    if mode == 1:
+                        count = length
+                    elif mode == 3:
+                        count = max(0, (len(bank) - offset
+                                        - (stream['base'] or 0)) // step)
+                    else:
+                        issue('opn2_dac_stream_length_mode_unsupported')
+                        continue
+                    start = offset + (stream['base'] or 0)
+                    if count <= 0 or not 0 <= start < len(bank):
+                        issue('opn2_dac_stream_out_of_bank')
+                        continue
+                    increment = (stream['frequency'] * _STREAM_ONE + 22050) // 44100
+                    stream.update(offset=start, count=count, index=0, running=True,
+                                  phase=_STREAM_ONE - increment,
+                                  start_event=event_id, step=step)
+            continue
+        if cmd == 0xe0:
+            stats['seek_commands'] += 1
+            context = bind_quick()
+            context['offset'] = int.from_bytes(raw[pos + 1:pos + 5], 'little')
+            context['index'] = 0
+            continue
+        if 0x80 <= cmd <= 0x8f:
+            stats['play_commands'] += 1
+            context = bind_quick()
+            if context.get('offset') is None:
+                issue('opn2_dac_play_without_stream')
+                continue
+            quick = context
+            bank_offset = quick['offset'] + quick['index'] * (quick['step'] or 1)
+            if not 0 <= bank_offset < len(bank):
+                issue('opn2_dac_stream_out_of_bank')
+                continue
+            supplies.append((tick, bank[bank_offset], event_id,
+                             bank_offset, quick['step'] or 1))
+            stats['manual_bytes'] += 1
+            quick['index'] += 1
+            continue
+    advance(1 << 62)
+    return supplies, issues, stats
+
+
+def project_dac(analysis, *, source_end, raw, events):
+    """Project the YM2612 DAC byte timeline onto OPNA ADPCM-B.
+
+    Returns (rows, data_block, losses, stats, run_rows). The
+    timeline merges register writes (0x2A inside DAC-enabled
+    spans) with stream supplies (ungated - the stream mechanism
+    carries its own playback intent). Runs split at tick gaps
+    over _DAC_RUN_GAP_TICKS and at stream seeks, the driver's
+    own phrase marks; each run's waveform is resampled to the
+    run's own delta-N rate and YM delta-encoded. A run containing
+    stream supplies takes its samples from the byte sequence
+    itself (the tick gaps are the stream clock quantised to the
+    44.1 kHz grid, and baking that jitter in would defeat
+    deduplication); a register-only run uses the sample-and-hold
+    tick grid. Identical waveforms are stored once. Sample starts
+    align to the 32-byte address unit and the nibble count is
+    padded with the held final value up to a whole unit, so the
+    unit-granular end address plays exactly the stored bytes.
+    Samples that exceed the DRAM budget are dropped together
+    with their playbacks and counted.
+    """
+    from bisect import bisect_right
+    rows, run_rows = [], []
+    losses = Counter()
+    spans = [(segment.vgmticks, segment.vgmticks_end)
+             for segment in analysis.segments
+             if segment.ch == 5 and segment.state.dac_enabled == 1]
+    span_starts = [start for start, _ in spans]
+
+    def audible(tick):
+        index = bisect_right(span_starts, tick) - 1
+        return index >= 0 and tick < spans[index][1]
+
+    timeline = []
+    dropped_disabled = collapsed = 0
+    for write in analysis.unmodeled_writes:
+        if write.domain != 'dac_data' or write.chip_instance != 0:
+            continue
+        if not audible(write.vgmticks):
+            dropped_disabled += 1
+            continue
+        timeline.append((write.vgmticks, write.data,
+                         write.source_event_id, None, None))
+    supplies, stream_issues, stream_stats = _decode_dac_stream(raw, events)
+    for code, count in stream_issues.items():
+        if code != 'opn2_dac_implicit_stream_context':
+            losses['dac_' + code.removeprefix('opn2_dac_')] += count
+    timeline.extend(supplies)
+    timeline.sort(key=lambda row: (row[0], row[2]))
+    merged_timeline = []
+    for row in timeline:
+        if merged_timeline and merged_timeline[-1][0] == row[0]:
+            merged_timeline[-1] = row
+            collapsed += 1
+        else:
+            merged_timeline.append(row)
+    timeline = merged_timeline
+    stats = dict(timeline_writes=len(timeline),
+                 dropped_disabled_writes=dropped_disabled,
+                 collapsed_same_tick_writes=collapsed,
+                 stream_supplies=len(supplies),
+                 stream_implicit_context=stream_stats['implicit_stream'],
+                 stream_data_block_bytes=stream_stats['data_block_bytes'],
+                 runs=0, playbacks=0, unique_samples=0, dram_bytes=0)
+    if not timeline:
+        return rows, b'', losses, stats, run_rows
+    runs = [[timeline[0]]]
+    for row in timeline[1:]:
+        previous = runs[-1][-1]
+        offset_break = (row[3] is not None and previous[3] is not None
+                        and row[3] != previous[3] + (previous[4] or 1))
+        if row[0] - previous[0] <= _DAC_RUN_GAP_TICKS and not offset_break:
+            runs[-1].append(row)
+        else:
+            runs.append([row])
+    stats['runs'] = len(runs)
+
+    sample_list = []
+    waveform_ids = {}
+    stream_groups = {}
+    image = bytearray()
+    prepared = [None] * len(runs)
+    run_rows = [None] * len(runs)
+
+    def add_sample(encoded, delta_n, rate, count):
+        if len(image) + len(encoded) > ADPCM_B_DRAM_BUDGET:
+            return None
+        sample = dict(sample_id=len(sample_list), address=len(image),
+                      encoded=encoded, delta_n=delta_n,
+                      rate_hz=float(rate), samples=count)
+        sample_list.append(sample)
+        image.extend(encoded)
+        return sample
+
+    for run_index, run in enumerate(runs):
+        gaps = sorted(b[0] - a[0] for a, b in zip(run, run[1:]) if b[0] > a[0])
+        hold = gaps[len(gaps) // 2] if gaps else 1
+        start = run[0][0]
+        stop = min(run[-1][0] + hold, source_end)
+        if run_index + 1 < len(runs):
+            stop = min(stop, runs[run_index + 1][0][0])
+        base = dict(run_index=run_index, start_vgmticks=start, end_vgmticks=stop,
+                    source_bytes=len(run), first_source_event_id=run[0][2],
+                    last_source_event_id=run[-1][2], sample_id='',
+                    rate_hz='', delta_n='', samples_emitted='',
+                    dram_address='', termination='', stream_based='',
+                    natural_rate_hz='')
+        if stop - start < 2:
+            losses['dac_subsample_runs_dropped'] += 1
+            base['termination'] = 'subsample_dropped'
+            run_rows[run_index] = base
+            continue
+        stream_based = any(row[3] is not None for row in run)
+        base['stream_based'] = stream_based
+        if stream_based:
+            # Stream supplies are samples of the stream's own
+            # clock; their tick gaps are that clock quantised to
+            # the 44.1 kHz grid (a steady ~16.5 kHz stream shows
+            # gaps of 2/3/4 ticks), so an occurrence's exact tick
+            # span is jitter, not content. The chunk is therefore
+            # identified by its byte sequence and stored once per
+            # rate cluster (second pass below) at the cluster's
+            # canonical rate, its samples the bytes themselves.
+            natural = Fraction(len(run) * 44100, stop - start)
+            base['natural_rate_hz'] = float(natural)
+            stream_groups.setdefault(bytes(row[1] for row in run), []).append(
+                dict(run_index=run_index, base=base, natural=natural, stop=stop,
+                     amplitudes=[(row[1] - 128) * 256 for row in run]))
+            continue
+        wave = array('h', bytes(2 * (stop - start)))
+        for (tick, byte, _event, *_rest), (next_tick, *_tail) in zip(
+                run, run[1:] + [(stop, 0, 0, None, None)]):
+            wave[tick - start:next_tick - start] = (
+                array('h', [(byte - 128) * 256]) * (next_tick - tick))
+        natural = Fraction(44100, hold)
+        base['natural_rate_hz'] = float(natural)
+        delta_n = max(1, min(65535, round(natural * 144 * 65536 / OPNA_CLOCK)))
+        rate = Fraction(OPNA_CLOCK * delta_n, 144 * 65536)
+        count = max(2, 2 * round(Fraction(stop - start) * rate / 44100 / 2))
+        if count % 64:
+            count += 64 - count % 64
+        ratio = Fraction(44100) / rate
+        resampled = array('h')
+        for index in range(count):
+            position = max(Fraction(0),
+                           Fraction(2 * index + 1, 2) * ratio - Fraction(1, 2))
+            low = min(len(wave) - 1, position.numerator // position.denominator)
+            high = min(len(wave) - 1, low + 1)
+            fraction = position - position.numerator // position.denominator
+            resampled.append(round(wave[low] * (1 - fraction)
+                                   + wave[high] * fraction))
+        key = hashlib.sha256(resampled.tobytes()).digest()
+        sample = waveform_ids.get(key)
+        if sample is None:
+            sample = add_sample(_encode_adpcm_b(resampled), delta_n, rate, count)
+            if sample is None:
+                losses['dac_dram_budget_samples_dropped'] += 1
+                base['termination'] = 'dram_budget_dropped'
+                run_rows[run_index] = base
+                continue
+            waveform_ids[key] = sample
+        base.update(sample_id=sample['sample_id'], rate_hz=sample['rate_hz'],
+                    delta_n=sample['delta_n'], samples_emitted=sample['samples'],
+                    dram_address=sample['address'],
+                    termination='song_end' if stop >= source_end else 'gap')
+        run_rows[run_index] = base
+        prepared[run_index] = base | {'sample': sample}
+    for group in stream_groups.values():
+        group.sort(key=lambda descriptor: descriptor['natural'])
+        clusters = [[group[0]]]
+        for descriptor in group[1:]:
+            if descriptor['natural'] * 100 <= clusters[-1][0]['natural'] * 103:
+                clusters[-1].append(descriptor)
+            else:
+                clusters.append([descriptor])
+        for cluster in clusters:
+            median = cluster[len(cluster) // 2]['natural']
+            delta_n = max(1, min(65535, round(
+                median * 144 * 65536 / OPNA_CLOCK)))
+            rate = Fraction(OPNA_CLOCK * delta_n, 144 * 65536)
+            amplitudes = cluster[0]['amplitudes']
+            count = len(amplitudes)
+            if count % 64:
+                amplitudes = amplitudes + [amplitudes[-1]] * (64 - count % 64)
+                count = len(amplitudes)
+            sample = add_sample(_encode_adpcm_b(amplitudes), delta_n, rate, count)
+            if sample is None:
+                losses['dac_dram_budget_samples_dropped'] += 1
+            for descriptor in cluster:
+                base = descriptor['base']
+                if sample is None:
+                    base['termination'] = 'dram_budget_dropped'
+                else:
+                    base.update(
+                        sample_id=sample['sample_id'],
+                        rate_hz=sample['rate_hz'], delta_n=sample['delta_n'],
+                        samples_emitted=sample['samples'],
+                        dram_address=sample['address'],
+                        termination='song_end' if descriptor['stop'] >= source_end
+                        else 'gap')
+                    prepared[descriptor['run_index']] = base | {'sample': sample}
+                run_rows[descriptor['run_index']] = base
+    stats.update(playbacks=sum(1 for entry in prepared if entry),
+                 unique_samples=len(sample_list), dram_bytes=len(image))
+    if not sample_list:
+        return rows, b'', losses, stats, run_rows
+
+    def emit(tick, event_id, register, data, reason, rank=1):
+        rows.append(dict(
+            write_id=len(rows), state_origin='projected_dac', source_chip='opn2',
+            target_device='opna_adpcm_b', target_command=0x57,
+            source_event_id=event_id, source_segment_id=None,
+            original_event_id=None, loop_iteration=0,
+            source_vgmticks=tick, source_ch=6, source_period=None,
+            source_attenuation=None, source_noise_control=None,
+            target_register=register, target_data=data, reason=reason,
+            source_frequency_hz=None, target_frequency_hz=None,
+            target_ch=None, source_row=None, inferred_key=False,
+            synthetic_phase=None, sort_rank=rank))
+
+    emit(0, None, 0x00, 0x01, 'adpcm_b reset', rank=0)
+    emit(0, None, 0x00, 0x00, 'adpcm_b reset release', rank=0)
+    for entry in prepared:
+        if entry is None:
+            continue
+        sample = entry['sample']
+        start_unit = sample['address'] >> 5
+        end_unit = (sample['address'] + len(sample['encoded'])) >> 5
+        tick, event_id = entry['start_vgmticks'], entry['first_source_event_id']
+        for register, data, reason in (
+                (0x01, 0xC2, 'adpcm_b control 2 (L+R, DRAM x8)'),
+                (0x02, start_unit & 0xFF, 'adpcm_b start address low'),
+                (0x03, start_unit >> 8, 'adpcm_b start address high'),
+                (0x04, (end_unit - 1) & 0xFF, 'adpcm_b end address low'),
+                (0x05, (end_unit - 1) >> 8, 'adpcm_b end address high'),
+                (0x09, sample['delta_n'] & 0xFF, 'adpcm_b delta-N low'),
+                (0x0A, sample['delta_n'] >> 8, 'adpcm_b delta-N high'),
+                (0x0B, ADPCM_B_LEVEL, 'adpcm_b level'),
+                (0x0C, 0xFF, 'adpcm_b limit low'),
+                (0x0D, 0xFF, 'adpcm_b limit high'),
+                (0x00, 0xA0, 'adpcm_b start (external DRAM)')):
+            emit(tick, event_id, register, data, reason)
+    payload = struct.pack('<II', len(image), 0) + bytes(image)
+    data_block = b'\x67\x66\x81' + struct.pack('<I', len(payload)) + payload
+    return rows, data_block, losses, stats, run_rows
+
+
+def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None, prefix=b''):
     """Serialize merged projection rows at exact source samples.
 
     Rows carry their own target command (0x54 YM2151, 0xA0 AY,
-    0x56 YM2608 port 0) and must already be in non-decreasing
-    source sample order. The header is the full 256-byte form so
-    the YM2608 (0x48) and AY (0x74/0x78) fields fit; each clock is
-    stamped only when its command actually appears. A valid source
-    loop is carried into the header without expanding the timeline.
+    0x56/0x57 YM2608 ports 0/1) and must already be in
+    non-decreasing source sample order. ``prefix`` bytes (the
+    ADPCM-B data block) lead the command stream; they sit before
+    any loop point, so the loop offset accounts for them. The
+    header is the full 256-byte form so the YM2608 (0x48) and AY
+    (0x74/0x78) fields fit; each clock is stamped only when its
+    command actually appears. A valid source loop is carried into
+    the header without expanding the timeline.
     """
     from native_imports.vgm_timing import command_times
-    commands, cursor, loop_address = bytearray(), 0, None
+    commands, cursor, loop_address = bytearray(prefix), 0, None
     if not 0 <= end <= 0xffffffff or (loop_start is not None and not 0 <= loop_start < end):
         raise ValueError('Projected OPN2 duration/loop is outside the VGM field range')
     def wait(gap):
@@ -562,7 +1071,7 @@ def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None):
     present = {row.get('target_command', 0x54) for row in rows}
     stamps = [(4, len(raw) - 4), (8, 0x171), (0x18, end), (0x30, TARGET_CLOCK),
               (0x34, 0x100 - 0x34)]
-    if 0x56 in present:
+    if present & {0x56, 0x57}:
         stamps.append((0x48, OPNA_CLOCK))
     if 0xA0 in present:
         stamps.append((0x74, AY_CLOCK))
@@ -574,7 +1083,7 @@ def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None):
         struct.pack_into('<I', raw, 0x1c, loop_address - 0x1c)
         struct.pack_into('<I', raw, 0x20, end - loop_start)
     identities = {e.address: i for i, e in enumerate(command_times(raw))
-                  if e.command in (0x54, 0xA0, 0x56)}
+                  if e.command in (0x54, 0xA0, 0x56, 0x57)}
     for row in rows:
         row['target_source_event_id'] = identities[row['target_command_address']]
     Path(path).write_bytes(raw)
@@ -586,8 +1095,10 @@ def convert(source, outdir, *, force=False):
     Native evidence (registers/states/segments CSVs and the source
     report) lands in ``outdir`` next to ``<stem>.target.vgm``, the
     per-lane projected-writes CSVs and the summary JSON. FM goes to
-    the OPM cartridge, DCSG to the MSX PSG + OPNA SSG; the DAC is
-    inventoried and reported as a deferred stage, never dropped.
+    the OPM cartridge, DCSG to the MSX PSG + OPNA SSG, and the DAC
+    (register writes and stream supplies alike) is re-encoded to
+    OPNA ADPCM-B: samples are preloaded by data block and runs are
+    triggered per song position.
     """
     source, outdir = Path(source), Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
@@ -606,9 +1117,7 @@ def convert(source, outdir, *, force=False):
         loop_event_id = next((e.source_event_id for e in bundle['events']
                               if e.address == loop.get('loop_address')), None)
     rows, losses = project(analysis, clock_raw=clock_raw, force=force, dac_external=True)
-    if 'dac_data_writes_projected_to_pcm' in losses:
-        losses['dac_data_writes_deferred_to_opna_adpcm_b'] = losses.pop(
-            'dac_data_writes_projected_to_pcm')
+    losses.pop('dac_data_writes_projected_to_pcm', None)
     dcsg_rows, dcsg_stats = [], {}
     dcsg_analysis = bundle['analyses'].get('dcsg')
     if dcsg_analysis is not None:
@@ -616,11 +1125,17 @@ def convert(source, outdir, *, force=False):
             dcsg_analysis, loop_start=loop_start, loop_event_id=loop_event_id)
         for key, value in dcsg_losses.items():
             losses[key] = losses.get(key, 0) + value
-    merged = sorted(rows + dcsg_rows,
+    dac_rows, dac_block, dac_losses, dac_stats, dac_runs = project_dac(
+        analysis, source_end=bundle['source_end_sample'],
+        raw=read_vgm_bytes(str(source)), events=bundle['events'])
+    for key, value in dac_losses.items():
+        losses[key] = losses.get(key, 0) + value
+    merged = sorted(rows + dcsg_rows + dac_rows,
                     key=lambda r: (r['source_vgmticks'], r.get('sort_rank', 1)))
     target = outdir / f'{stem}.target.vgm'
     write_vgm(merged, target, end=bundle['source_end_sample'],
-              loop_start=loop_start, loop_event_id=loop_event_id)
+              loop_start=loop_start, loop_event_id=loop_event_id,
+              prefix=dac_block)
     writes_csv = outdir / f'{stem}.opn2_opm.writes.csv'
     with writes_csv.open('w', encoding='utf-8', newline='') as stream:
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]) if rows else ['write_id'])
@@ -632,15 +1147,20 @@ def convert(source, outdir, *, force=False):
             writer = csv.DictWriter(stream, fieldnames=list(dcsg_rows[0]))
             writer.writeheader()
             writer.writerows(dcsg_rows)
+    if dac_runs:
+        dac_csv = outdir / f'{stem}.opn2_dac.csv'
+        with dac_csv.open('w', encoding='utf-8', newline='') as stream:
+            writer = csv.DictWriter(stream, fieldnames=list(dac_runs[0]))
+            writer.writeheader()
+            writer.writerows(dac_runs)
     deferred = {}
-    if losses.get('dac_data_writes_deferred_to_opna_adpcm_b'):
-        deferred['dac'] = 'S4: OPNA ADPCM-B re-encode not yet emitted'
     summary = dict(source=str(source), source_sha256=bundle['source_sha256'],
                    active_chips=list(bundle['active_chips']),
                    opn2_clock_hz=clock_raw & 0x3fffffff,
                    target_clock_hz=TARGET_CLOCK, target_vgm=target.name,
                    target_writes=len(merged), opm_writes=len(rows),
                    dcsg_writes=len(dcsg_rows), dcsg=dcsg_stats,
+                   dac_writes=len(dac_rows), dac=dac_stats,
                    losses=losses, deferred=deferred,
                    loop=dict(status=loop.get('status'), start_sample=loop_start))
     (outdir / f'{stem}.opn2_opm.json').write_text(
