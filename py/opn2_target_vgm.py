@@ -1,0 +1,380 @@
+"""Native YM2612 (OPN2) FM Segments -> projected YM2151 (OPM) target VGM.
+
+The target is the dual-cartridge MSX playback route: the FM part of a
+Mega Drive VGM plays on the pseudo-OPM cartridge (YM2151 at
+3.579545 MHz), while the companion DCSG and the DAC are staged for the
+OPNA Sound Cartridge (S3/S4) and are reported as deferred here.
+
+The projection body is ported from x68k_vgm2mml py/opn2_opm.py (the
+register-layout mapping derived from the project's ymfm-based audit)
+with three target adaptations:
+
+- TARGET_CLOCK is the MSX OPM clock 3.579545 MHz, not the X68000's
+  4 MHz, so KC/KF are committed through the same pitch helper at the
+  cartridge clock.
+- The channel map is the identity 0..5 -> 0..5: no OPM channel is
+  reserved on this target, because the PCM lanes live on the OPNA
+  chip rather than on OPM channels.
+- The DAC is not bridged to a PCM stream here; live DAC writes are
+  counted as deferred to the OPNA ADPCM-B stage (S4).
+
+Losses are counted, never silent. CSM, CH3 special mode and unknown
+register effects refuse the projection unless --force is given.
+"""
+import csv
+import json
+import struct
+from collections import Counter
+from pathlib import Path
+
+from psg_scc_opm import opm_pitch
+from native_imports.opn2 import Opn2UnmodeledWrite  # noqa: F401  (re-exported type)
+from native_imports.source import analyze_source
+
+
+TARGET_CLOCK = 3579545
+
+# LFO rate mapping, derived from the chip models in ymfm (and
+# corroborated by Nuked-OPN2's die-derived divider counts): the OPN
+# LFO advances its 7-bit value when the counter's low byte reaches
+# {109, 78, 72, 68, 63, 45, 9, 6}[rate] at the FM sample clock
+# (OPN2 7,670,454/144 = 53.3 kHz), while the OPM rate byte is a 4.4
+# float step giving Hz = 62,500 * ((0x10 | (b & 0xf)) << (b >> 4))
+# / 2**30. Each entry is the OPM byte nearest in Hz to the source
+# rate (3.85/5.40/5.86/6.21/6.71/9.46/51.9/83.0 Hz). Source rate 7
+# exceeds the OPM maximum of 59.1 Hz and saturates at 0xff.
+# Derivation script: opna_opm_voice study, lfo_rate_map.py.
+_LFO_RATE_TO_OPM = (0xc0, 0xc7, 0xc9, 0xca, 0xcc, 0xd4, 0xfb, 0xff)
+
+
+def _unmapped_operator_slot(write):
+    # Operator registers with channel bits 3 select no channel on the
+    # hardware; drivers that upload padded voice rows write them anyway.
+    return (write.domain == 'uninterpreted' and write.chip_instance == 0
+            and write.port in (0, 1)
+            and 0x30 <= write.register <= 0x9f and write.register & 3 == 3)
+
+
+def _unassigned_register(write):
+    # The YM2612 register map has holes the analysis leaves
+    # uninterpreted: nothing is implemented at 0x00-0x20 (the chip has
+    # no SSG section), in the gaps beside the common registers (0x23,
+    # 0x29, 0x2c-0x2f), or past the FM block end at 0xb6. Writes there
+    # select no functional register and are inert on the hardware;
+    # drivers emit them as workspace or padded sweeps anyway. The
+    # 0x21 test register is deliberately not exempted: it can affect
+    # the chip.
+    if not (write.domain == 'uninterpreted' and write.chip_instance == 0
+            and write.port in (0, 1)):
+        return False
+    reg = write.register
+    return (reg <= 0x20 or reg == 0x23 or reg == 0x29
+            or 0x2c <= reg <= 0x2f or reg >= 0xb7)
+
+
+def project(analysis, *, clock_raw, pitch_policy='clamp', channel_map=None, force=False,
+            dac_external=False):
+    """Return target write rows plus explicit losses, retaining source identities."""
+    clock_hz = clock_raw & 0x3fffffff
+    if not 0 < clock_hz < 0x40000000:
+        raise ValueError('OPN2 FM projection requires one positive-clock YM2612')
+    if pitch_policy not in ('clamp', 'error'):
+        raise ValueError('OPM pitch policy must be clamp or error')
+    channel_map = ({ch: ch for ch in range(6)}
+                   if channel_map is None else dict(channel_map))
+    if (any(type(ch) is not int or not 0 <= ch < 6 for ch in channel_map)
+            or any(type(ch) is not int or not 0 <= ch < 8 for ch in channel_map.values())
+            or len(set(channel_map.values())) != len(channel_map)):
+        raise ValueError('OPN2 FM channel mapping must use distinct OPM channels')
+    if analysis.csm_observed and not force:
+        raise ValueError('OPN2 CSM timer-generated key events cannot project to ordinary OPM FM')
+    # DAC data written while the DAC is disabled makes no sound; only
+    # writes inside an enabled span are sample playback.
+    enabled_spans = [(s.vgmticks, s.vgmticks_end) for s in analysis.segments
+                     if s.ch == 5 and s.state.dac_enabled == 1]
+    dac_live = sum(1 for w in analysis.unmodeled_writes if w.domain == 'dac_data'
+                   and any(start <= w.vgmticks < end for start, end in enabled_spans))
+    dac_inert = sum(1 for w in analysis.unmodeled_writes if w.domain == 'dac_data') - dac_live
+    if dac_live and not force and not dac_external:
+        raise ValueError('YM2612 DAC sample playback requires the DAC stage '
+                         'or --force to omit the DAC channel')
+    slots = [w for w in analysis.unmodeled_writes if _unmapped_operator_slot(w)]
+    # Key writes whose channel field names no channel (3 or 7) decode
+    # to nothing on the hardware; drivers emit them from table sweeps.
+    invalid_keys = [w for w in analysis.unmodeled_writes
+                    if w.domain == 'invalid_key_channel']
+    # Writes past the end of the register map select no register and
+    # are inert on the hardware, like the slot and key cases above.
+    dead = [w for w in analysis.unmodeled_writes if _unassigned_register(w)]
+    unknown = [w for w in analysis.unmodeled_writes
+               if w.domain != 'dac_data' and not _unmapped_operator_slot(w)
+               and w.domain != 'invalid_key_channel'
+               and not _unassigned_register(w)]
+    if unknown and not force:
+        raise ValueError('OPN2 FM projection encountered an unknown register effect')
+    losses = Counter()
+    if dac_inert:
+        losses['dac_data_writes_while_disabled_ignored'] = dac_inert
+    if slots:
+        losses['unmapped_operator_slot_writes_ignored'] = len(slots)
+    if invalid_keys:
+        losses['invalid_key_channel_writes_ignored'] = len(invalid_keys)
+    if dead:
+        losses['unassigned_register_writes_ignored'] = len(dead)
+    if dac_external and dac_live:
+        losses['dac_data_writes_projected_to_pcm'] = dac_live
+    elif force and dac_live:
+        losses['dac_data_writes_omitted'] = dac_live
+    if force and unknown:
+        losses['forced_unmodeled_register_writes'] = len(unknown)
+    rows, cache, groups = [], {}, {}
+    for s in analysis.segments:
+        if s.chip_instance or s.clock_raw != clock_raw:
+            raise ValueError('OPN2 FM projection requires one unflagged YM2612 clock')
+        if s.state.channel3_special_enabled and not force:
+            raise ValueError('OPN2 CH3 special operator frequencies are not supported by OPM projection')
+        if s.state.channel3_special_enabled:
+            losses['ch3_special_frequencies_not_projected'] += 1
+        if s.ch == 5 and s.state.dac_enabled == 1 and s.state.key_mask:
+            losses['dac_enabled_ch6_fm_output_gated'] += 1
+        if s.source_event_id is not None:
+            groups.setdefault(s.source_event_id, []).append(s)
+
+    def emit(s, register, data, reason, *, frequency=None, actual=None):
+        # Preserve every Key request and repeated operator edge ordering.
+        if register != 8 and cache.get(register) == data:
+            return
+        cache[register] = data
+        rows.append(dict(write_id=len(rows), state_origin='projected_opm', source_chip='opn2_fm',
+            source_event_id=s.source_event_id if s else None,
+            source_segment_id=s.segment_id if s else None,
+            original_event_id=s.original_event_id if s else None,
+            loop_iteration=s.loop_iteration if s else 0,
+            source_vgmticks=s.vgmticks if s else 0,
+            source_ch=s.ch if s else None, source_register=s.register if s else None,
+            source_data=s.data if s else None, target_register=register, target_data=data,
+            reason=reason, source_frequency_hz=frequency, target_frequency_hz=actual,
+            target_ch=channel_map.get(s.ch) if s and register != 0x18 else None,
+            source_row=None, inferred_key=False, synthetic_phase=None))
+
+    emit(None, 0x18, _LFO_RATE_TO_OPM[0], 'initial LFO frequency')
+
+    # Hardware LFO bridge: same law as the OPNA route. The source
+    # LFO waveform is a fixed triangle and its depths live in the
+    # per-channel PMS/AMS steps, while OPM scales those steps by
+    # the global PMD/AMD latches. PMD 86 makes the OPM PMS steps
+    # 3.4 * 2^k cents (the OPN series) for PMS 1..3 and keeps 4..7
+    # within +25%/-38%; AMD 16 makes the OPM AMS steps
+    # 0/3.0/6.0/12.0 dB against the source 0/1.4/5.9/11.8 dB. The
+    # depths are emitted once per span in which the source LFO is
+    # enabled and some channel has nonzero sensitivity, and zeroed
+    # when that span ends; rate and sensitivities already flow as
+    # 0x18/0x38 writes.
+    lfo = {'enabled': False, 'on': False, 'sensitivities': {}}
+
+    def lfo_bridge(s):
+        active = lfo['enabled'] and any(
+            pms or ams for pms, ams in lfo['sensitivities'].values())
+        if active and not lfo['on']:
+            emit(s, 0x1b, 0x02, 'OPN fixed triangle as OPM LFO waveform')
+            emit(s, 0x19, 0x80 | 86, 'OPM PMD scaled to OPN PMS depth steps')
+            emit(s, 0x19, 16, 'OPM AMD scaled to OPN AMS depth steps')
+            losses['lfo_depths_bridged'] += 1
+            lfo['on'] = True
+        elif not active and lfo['on']:
+            emit(s, 0x19, 0x80, 'LFO bridge span ended: PM depth zero')
+            emit(s, 0x19, 0, 'LFO bridge span ended: AM depth zero')
+            lfo['on'] = False
+
+    def target_channel(s):
+        return channel_map.get(s.ch)
+
+    def channel_control(s):
+        state = s.state
+        pan = (state.left_enabled or 0) << 6 | (state.right_enabled or 0) << 7
+        if s.ch == 5 and state.dac_enabled == 1:
+            pan = 0  # The DAC owns channel 6 output while enabled.
+        return pan | (state.feedback or 0) << 3 | (state.algorithm or 0)
+
+    def pitch(s):
+        state, ch = s.state, target_channel(s)
+        if ch is None:
+            return
+        if state.fnum is None or state.block is None:
+            losses['unknown_pitch_target_reset_zero_assumption'] += 1
+            fnum = state.fnum_low_raw or 0
+            block = 0
+        else:
+            fnum, block = state.fnum, state.block
+        # Hardware pitch: the OPN phase counter is 20 bits and the block
+        # scales FNUM by 2**(block-1), so Hz = fnum * clock / (144 *
+        # 2**(21-block)) at prescale 6 (YM3438 manual formula; ymfm's
+        # Nuked-verified phase generator agrees). The 2**(20-block)
+        # form used here before played every note one octave high.
+        frequency = fnum * clock_hz * (6 / state.fm_prescale_divisor) / (144 * 2 ** (21 - block))
+        if frequency:
+            try:
+                kc, kf, actual = opm_pitch(frequency, TARGET_CLOCK)
+            except ValueError:
+                if pitch_policy == 'error':
+                    raise
+                kc, kf, actual = opm_pitch(frequency, TARGET_CLOCK, clamp=True)
+                losses['pitch_range_clamped'] += 1
+        else:
+            kc = kf = 0
+            actual = None
+            losses['zero_frequency_target_minimum_pitch'] += 1
+        emit(s, 0x28 + ch, kc, 'committed native FNUM/BLOCK to 3.579545MHz KC', frequency=frequency, actual=actual)
+        emit(s, 0x30 + ch, kf, 'committed native FNUM/BLOCK to KF', frequency=frequency, actual=actual)
+
+    for _, segments in sorted(groups.items()):
+        s = segments[0]
+        state, reg, ch = s.state, s.register, target_channel(s)
+        if ch is None and not (s.port == 0 and reg in (0x22, 0x24, 0x25, 0x26, 0x27, 0x2b)):
+            continue
+        if 0x30 <= reg <= 0x8f:
+            bank = (reg >> 2) & 3
+            op = state.operators[bank]
+            data = {0x30: lambda: op.dt << 4 | op.mul,
+                    0x40: lambda: op.tl,
+                    0x50: lambda: op.ks << 6 | op.ar,
+                    0x60: lambda: op.am_enabled << 7 | op.d1r,
+                    0x70: lambda: op.d2r, 0x80: lambda: op.sl << 4 | op.rr}[reg & 0xf0]()
+            emit(s, 0x40 + ((reg & 0xf0) - 0x30) * 2 + bank * 8 + ch,
+                 data, 'operator bank mapping; DT2 reset zero')
+        elif 0x90 <= reg <= 0x9f:
+            if state.operators[(reg >> 2) & 3].ssg_eg_enabled:
+                losses['ssg_eg_not_available_on_opm'] += 1
+            if force:
+                emit(s, 0x20 + ch, channel_control(s), 'forced FM SSG-EG output gate')
+        elif 0xb0 <= reg <= 0xb2 or 0xb4 <= reg <= 0xb6:
+            # Target-only reset assumptions for unwritten counterpart controls.
+            emit(s, 0x20 + ch, channel_control(s),
+                 'RL swap and FB/algorithm')
+            if reg >= 0xb4:
+                emit(s, 0x38 + ch, state.pms << 4 | state.ams, 'PMS/AMS mapping')
+                lfo['sensitivities'][s.ch] = (state.pms or 0, state.ams or 0)
+                lfo_bridge(s)
+        elif 0xa0 <= reg <= 0xa2:
+            pitch(s)
+        elif s.port == 0 and reg == 0x28:
+            emit(s, 8, state.key_mask << 3 | ch, 'operator key mask')
+        elif s.port == 0 and reg == 0x2b:
+            for item in segments:
+                if target_channel(item) is not None:
+                    emit(item, 0x20 + target_channel(item), channel_control(item),
+                         'DAC enable as channel-6 output gate; FM state retained')
+        elif s.port == 0 and reg == 0x22:
+            emit(s, 0x18, _LFO_RATE_TO_OPM[state.lfo_rate],
+                 'approximate LFO frequency (derived rate table)')
+            lfo['enabled'] = bool(state.lfo_enabled)
+            lfo_bridge(s)
+        elif s.port == 0 and reg in (0x24, 0x25, 0x26, 0x27):
+            losses['source_timer_controls_not_projected'] += 1
+            if force and reg == 0x27:
+                for item in segments:
+                    if item.ch == 2 and target_channel(item) is not None:
+                        emit(item, 0x20 + target_channel(item), channel_control(item),
+                             'forced CH3/CSM output gate; ordinary keys retained')
+        # High FNUM writes affect source latches; forced CH3 modes stay output-gated.
+    return rows, dict(losses)
+
+
+def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None):
+    """Serialize projected OPM writes at exact source samples.
+
+    The header declares only the YM2151 at the cartridge clock; the
+    OPNA (S3/S4) and AY lanes join this writer's row stream in their
+    own stages. A valid source loop is carried into the header
+    without expanding the timeline.
+    """
+    from native_imports.vgm_timing import command_times
+    commands, cursor, loop_address = bytearray(), 0, None
+    if not 0 <= end <= 0xffffffff or (loop_start is not None and not 0 <= loop_start < end):
+        raise ValueError('Projected OPN2 duration/loop is outside the VGM field range')
+    def wait(gap):
+        while gap:
+            count = min(gap, 65535)
+            commands.extend(b'\x61' + struct.pack('<H', count))
+            gap -= count
+    def advance(sample, source_event_id=None, *, final=False):
+        nonlocal cursor, loop_address
+        if sample < cursor:
+            raise ValueError('OPN2 projection writes are not in source sample order')
+        at_loop = (loop_event_id is None or final or sample > (loop_start or 0)
+                   or source_event_id is not None and source_event_id >= loop_event_id)
+        if loop_start is not None and loop_address is None and cursor <= loop_start <= sample and at_loop:
+            wait(loop_start - cursor)
+            cursor = loop_start
+            loop_address = 0x40 + len(commands)
+        wait(sample - cursor)
+        cursor = sample
+    for row in rows:
+        advance(row['source_vgmticks'], row['source_event_id'])
+        row['target_command_address'] = 0x40 + len(commands)
+        commands.extend((0x54, row['target_register'], row['target_data']))
+    advance(end, final=True)
+    commands.append(0x66)
+    raw = bytearray(0x40) + commands
+    raw[:4] = b'Vgm '
+    for offset, value in ((4, len(raw) - 4), (8, 0x171), (0x18, end), (0x30, TARGET_CLOCK)):
+        struct.pack_into('<I', raw, offset, value)
+    if loop_address is not None:
+        struct.pack_into('<I', raw, 0x1c, loop_address - 0x1c)
+        struct.pack_into('<I', raw, 0x20, end - loop_start)
+    identities = {e.address: i for i, e in enumerate(command_times(raw)) if e.command == 0x54}
+    for row in rows:
+        row['target_source_event_id'] = identities[row['target_command_address']]
+    Path(path).write_bytes(raw)
+
+
+def convert(source, outdir, *, force=False):
+    """Analyze one OPN2 VGM and emit its FM-only dual-cartridge target VGM.
+
+    Native evidence (registers/states/segments CSVs and the source
+    report) lands in ``outdir`` next to ``<stem>.target.vgm``, the
+    projected-writes CSV and the summary JSON. DCSG and DAC are
+    inventoried and reported as deferred stages, never dropped.
+    """
+    source, outdir = Path(source), Path(outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
+    stem = source.stem
+    bundle = analyze_source(source, outdir, stem)
+    if 'opn2' not in bundle['active_chips']:
+        raise ValueError('Input has no OPN2 (YM2612) writes')
+    analysis = bundle['analyses']['opn2']
+    if analysis is None:
+        raise ValueError(f"OPN2 analysis failed: {bundle['errors'].get('opn2')}")
+    clock_raw = bundle['header']['opn2_clock_raw']
+    rows, losses = project(analysis, clock_raw=clock_raw, force=force, dac_external=True)
+    if 'dac_data_writes_projected_to_pcm' in losses:
+        losses['dac_data_writes_deferred_to_opna_adpcm_b'] = losses.pop(
+            'dac_data_writes_projected_to_pcm')
+    loop = bundle['loop']
+    loop_start = loop_event_id = None
+    if loop.get('status') == 'valid':
+        loop_start = loop['loop_start_samples']
+        loop_event_id = next((e.source_event_id for e in bundle['events']
+                              if e.address == loop.get('loop_address')), None)
+    target = outdir / f'{stem}.target.vgm'
+    write_vgm(rows, target, end=bundle['source_end_sample'],
+              loop_start=loop_start, loop_event_id=loop_event_id)
+    writes_csv = outdir / f'{stem}.opn2_opm.writes.csv'
+    with writes_csv.open('w', encoding='utf-8', newline='') as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(rows[0]) if rows else ['write_id'])
+        writer.writeheader()
+        writer.writerows(rows)
+    deferred = {}
+    if 'dcsg' in bundle['active_chips']:
+        deferred['dcsg'] = 'S3: MSX PSG + OPNA SSG projection not yet emitted'
+    if losses.get('dac_data_writes_deferred_to_opna_adpcm_b'):
+        deferred['dac'] = 'S4: OPNA ADPCM-B re-encode not yet emitted'
+    summary = dict(source=str(source), source_sha256=bundle['source_sha256'],
+                   active_chips=list(bundle['active_chips']),
+                   opn2_clock_hz=clock_raw & 0x3fffffff,
+                   target_clock_hz=TARGET_CLOCK, target_vgm=target.name,
+                   target_writes=len(rows), losses=losses, deferred=deferred,
+                   loop=dict(status=loop.get('status'), start_sample=loop_start))
+    (outdir / f'{stem}.opn2_opm.json').write_text(
+        json.dumps(summary, indent=2) + '\n', encoding='utf-8')
+    return summary

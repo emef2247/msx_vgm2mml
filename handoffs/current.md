@@ -4054,3 +4054,31 @@ should gain an optional musical clock fitter. MUCOM work remains paused.
 - Next: S2 FM -> OPM target VGM (dual-cartridge design in the study doc kept
   outside this repo). Do not add OPN2 to the native VGM packet lane: verbatim
   FM packets would be mislabeled as preserved PCM.
+
+# Checkpoint: OPN2 S2 FM -> OPM target VGM (2026-11-04, claude/opn2-target-vgm)
+
+- py/opn2_target_vgm.py: project() ported from x68k opn2_opm with the
+  MSX adaptations (TARGET_CLOCK 3579545, identity channel map 0..5,
+  DAC counted as deferred to the OPNA ADPCM-B stage). write_vgm()
+  emits a YM2151-only VGM 1.71 and carries a valid source loop into
+  the header without expanding the timeline. convert() runs
+  analyze_source into the song folder (native evidence retained),
+  writes <stem>.target.vgm, <stem>.opn2_opm.writes.csv and the
+  summary JSON with losses and deferred lanes (dcsg -> S3, dac -> S4).
+- scripts/export_opn2_vgm.py: file/directory batch front end with
+  report.json; --force passes the projection gates (CSM, CH3 special,
+  unknown register effects).
+- Verification: ASOLDR01 rows agree with the x68k projection
+  event-for-event after the documented channel remap, except KC/KF
+  (same source Hz; quantization differs by target clock, including
+  +-1-step dedup boundary cases). Alien Soldier pack: 24/24 FM
+  projections succeed without force; DAC deferrals counted per song.
+- Tests: tests/script/test_opn2_target_vgm.py (4, synthetic). Fixture
+  trap recorded in the S2 field note: OPN FNUM commits on the low
+  register write, so fixtures must write 0xA4 before 0xA0.
+- Playback check route (user): MAmidiMEmo VGM player + VSIF dongle
+  driving the pseudo-OPM and OPNA cartridges; no driver needed.
+- Next: S3 DCSG -> MSX PSG + OPNA SSG (split designed for this pair:
+  tones 3+3, noises paired one-to-one), extending write_vgm's row
+  stream with AY (0xA0) and YM2608 (0x55/0x56) commands and the
+  YM2608/AY header clocks.
