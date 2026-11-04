@@ -114,7 +114,7 @@ class MgsForceTests(unittest.TestCase):
     def test_pcm_commands_and_uninventoried_writes_cannot_be_forced(self):
         for command in (b'\x67\x66\x00\x00\x00\x00\x00',
                         b'\xe0\x00\x00\x00\x00', b'\x90\x00\x00\x00\x00',
-                        b'\x80', b'\x52\x20\x00'):
+                        b'\x80', b'\xc1\x00\x40'):
             for force in (False, True):
                 with self.subTest(command=command, force=force):
                     with self.assertRaises(MgsProjectionError):
@@ -123,10 +123,11 @@ class MgsForceTests(unittest.TestCase):
     def test_all_whitelisted_write_layouts(self):
         commands = (b'\xa0\x08\x00\x54\x20\x01\xa4\x21\x02'
                     b'\x56\x22\x03\x57\x23\x04\xa6\x24\x05\xa7\x25\x06'
+                    b'\x52\x26\x07\x53\x27\x08\xa2\x28\x09\xa3\x29\x0a'
                     b'\x50\x80\x30\x81\x4f\xff\x3f\xfe\xb7\x82\x03'
                     b'\xc0\x34\x92\x07\xa1\x20\x10\x66')
         result = self.inspect(source(commands), True)
-        self.assertEqual(result['omission_count'], 13)
+        self.assertEqual(result['omission_count'], 17)
         msm = next(r for r in result['omissions'] if r['chip'] == 'MSM6258')
         sega = next(r for r in result['omissions'] if r['chip'] == 'SegaPCM')
         self.assertEqual((msm['instance'], msm['register']), (1, 2))

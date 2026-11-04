@@ -4027,3 +4027,30 @@ before and after; do not claim the capacity problem solved. The original input
 and published product remain untouched. No full private VGM regression or new
 listening claim. Next: user regression and a separate decision if blueprint
 should gain an optional musical clock fitter. MUCOM work remains paused.
+
+# Checkpoint: OPN2 S1 source domain (2026-11-04, claude/opn2-target-vgm)
+
+- New native source domain 'opn2' (YM2612): py/native_imports/opn2.py ported
+  verbatim from x68k_vgm2mml py/opn2.py (incl. its DAC-enable state adaptation);
+  opn2_music.py shim adapted to this package's opna_music API. Provenance in
+  docs/native_import_provenance.json.
+- native_imports/source.py: WRITE_CHIPS 0x52/0x53/0xa2/0xa3, STREAM_CHIPS 2,
+  opn2_clock_raw (0x2C, VGM >= 1.50), _fm_trace + analyze dispatch. DAC data
+  (0x2A) stays a retained unmodeled write with an explicit issue; DAC enable
+  (0x2B bit 7) is ch6 state.
+- native_source_music.py: OPN2 commands classified (clock offset 0x2C,
+  dual-instance commands); writes stay out of the musical plan with one
+  ('opn2_projection_not_implemented', device) decision per device. Previously
+  any OPN2 file crashed build_plan with an unhandled ValueError before the
+  MGS gate was reached.
+- mgs_force.py: OPN2 writes added to _OMIT_WRITES, so the MGS gate inventories
+  them per register under --force instead of the anonymous unsupported bucket.
+- Tests: tests/script/test_opn2_native.py (6, synthetic fixtures only);
+  seven->eight domains test extended; mgs_force uninventoried example swapped
+  (0x52 -> 0xC1) and whitelist enumeration extended (13 -> 17 omissions).
+  Full suite: 942 tests, failure multiset identical to main (128F+5E, this VM).
+- Real-file smoke (local only): ASOLDR01 -> 5021 OPN2 segments / 177 key-ons;
+  CLI blocks legibly (no_supported_source_writes + 2599 inventoried writes).
+- Next: S2 FM -> OPM target VGM (dual-cartridge design in the study doc kept
+  outside this repo). Do not add OPN2 to the native VGM packet lane: verbatim
+  FM packets would be mislabeled as preserved PCM.

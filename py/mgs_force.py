@@ -24,6 +24,8 @@ _OMIT_WRITES = {
     0x54: ('OPM', 0, 0), 0xa4: ('OPM', 1, 0),
     0x56: ('OPNA', 0, 0), 0x57: ('OPNA', 0, 1),
     0xa6: ('OPNA', 1, 0), 0xa7: ('OPNA', 1, 1),
+    0x52: ('OPN2', 0, 0), 0x53: ('OPN2', 0, 1),
+    0xa2: ('OPN2', 1, 0), 0xa3: ('OPN2', 1, 1),
     0x50: ('DCSG', 0, 0), 0x30: ('DCSG', 1, 0),
     0x4f: ('DCSG', 0, 'stereo'), 0x3f: ('DCSG', 1, 'stereo'),
     0xb7: ('MSM6258', None, 0), 0xc0: ('SegaPCM', None, 0),
