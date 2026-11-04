@@ -1,11 +1,11 @@
-"""Export OPN2 (YM2612) VGMs to dual-cartridge target VGMs (FM stage).
+"""Export OPN2 (YM2612) VGMs to dual-cartridge target VGMs.
 
-S2 scope: the FM part is projected to YM2151 (OPM) at the MSX
-cartridge clock 3.579545 MHz and written as ``<stem>.target.vgm``
-for playback on the pseudo-OPM cartridge (e.g. via MAmidiMEmo's
-VGM player and a VSIF dongle). The DCSG (S3: MSX PSG + OPNA SSG)
-and DAC (S4: OPNA ADPCM-B) lanes are inventoried in each song's
-summary JSON as deferred, not dropped.
+The FM part is projected to YM2151 (OPM) at the MSX cartridge clock
+3.579545 MHz and the two DCSG chips to the MSX PSG (AY) and the OPNA
+Sound Cartridge's SSG section, all in one ``<stem>.target.vgm`` for
+playback on the two cartridges (e.g. via MAmidiMEmo's VGM player and
+a VSIF dongle). The DAC lane (S4: OPNA ADPCM-B) is inventoried in
+each song's summary JSON as deferred, not dropped.
 """
 import argparse
 import json
@@ -43,7 +43,8 @@ def main():
         try:
             summary = convert(source, folder, force=args.force)
             summary['status'] = 'success'
-            print(f"{source.name}: {summary['target_writes']} OPM writes, "
+            print(f"{source.name}: {summary['target_writes']} target writes "
+                  f"(OPM {summary['opm_writes']} + DCSG {summary['dcsg_writes']}), "
                   f"losses={summary['losses']}, deferred={list(summary['deferred'])}")
         except Exception as error:
             summary = dict(source=str(source), status='conversion_failed',

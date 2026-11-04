@@ -2,10 +2,12 @@
 
 The target is the dual-cartridge MSX playback route: the FM part of a
 Mega Drive VGM plays on the pseudo-OPM cartridge (YM2151 at
-3.579545 MHz), while the companion DCSG and the DAC are staged for the
-OPNA Sound Cartridge (S3/S4) and are reported as deferred here.
+3.579545 MHz), the two SN76489 (DCSG) chips play on the MSX PSG
+(AY8910 family) and the OPNA Sound Cartridge's SSG section, and the
+DAC is staged for the OPNA ADPCM-B re-encode (S4), reported as
+deferred here.
 
-The projection body is ported from x68k_vgm2mml py/opn2_opm.py (the
+The FM projection body is ported from x68k_vgm2mml py/opn2_opm.py (the
 register-layout mapping derived from the project's ymfm-based audit)
 with three target adaptations:
 
@@ -33,6 +35,24 @@ from native_imports.source import analyze_source
 
 
 TARGET_CLOCK = 3579545
+
+# S3 target devices for the DCSG lanes. The MSX PSG is stamped with
+# the repo family's AY clock (3579545 / 2, rounded) and the YM2149
+# type byte musical_vgm uses. The YM2608 header clock is the
+# cartridge's fixed 8 MHz; its SSG section is clocked at master / 2
+# (the PC-98 OPNA convention), so SSG periods are computed against
+# an effective 4 MHz.
+AY_CLOCK = 1789773
+OPNA_CLOCK = 8000000
+SSG_CLOCK = 4000000
+
+# SN76489 attenuation steps are exactly 2 dB; AY-family volume steps
+# are ~3.19 dB (the uniform x1.444 DAC ladder). This table maps each
+# source attenuation to the AY volume nearest in dB (worst error
+# ~1.6 dB); attenuation 15 is the SN mute and maps to volume 0.
+_DCSG_VOLUME = (15, 14, 14, 13, 12, 12, 11, 11, 10, 9, 9, 8, 7, 7, 6, 0)
+
+_DCSG_DEVICES = {0: ('ay', 0xA0, AY_CLOCK), 1: ('ssg', 0x56, SSG_CLOCK)}
 
 # LFO rate mapping, derived from the chip models in ymfm (and
 # corroborated by Nuked-OPN2's die-derived divider counts): the OPN
@@ -280,13 +300,234 @@ def project(analysis, *, clock_raw, pitch_policy='clamp', channel_map=None, forc
     return rows, dict(losses)
 
 
-def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None):
-    """Serialize projected OPM writes at exact source samples.
+def project_dcsg(analysis, *, loop_start=None, loop_event_id=None):
+    """Project native DCSG Segments to AY (instance 0) + SSG (instance 1) rows.
 
-    The header declares only the YM2151 at the cartridge clock; the
-    OPNA (S3/S4) and AY lanes join this writer's row stream in their
-    own stages. A valid source loop is carried into the header
-    without expanding the timeline.
+    Split, designed for this pair: each DCSG chip keeps its three
+    tones on one target device (chip 0 -> MSX PSG, chip 1 -> OPNA
+    SSG) and its noise takes that device's noise generator, whose
+    period is independent of the other device's. An AY-family device
+    has only three channels, so the noise shares channel C with
+    tone 2: the mixer enables noise on C only while the noise
+    segment is audible, and C's volume belongs to the noise during
+    those spans and to tone 2 otherwise. Overlap spans (tone 2 and
+    noise both audible, output AND-gated on the hardware) are
+    measured into the losses.
+
+    Emission is per lane at its own Segment starts, with no
+    cross-segment suppression, plus a full-state restore group at
+    the loop point when a valid loop exists: a suppressed write is
+    not safe across a header loop, because on re-entry the register
+    holds the end-of-file state, not the first-pass state.
+    """
+    from bisect import bisect_right
+    losses, rows, stats = Counter(), [], {}
+
+    def emit(device, command, seg, register, data, reason, *, ch=None,
+             frequency=None, actual=None, sample=None, event_id='seg', rank=2):
+        rows.append(dict(
+            write_id=len(rows), state_origin='projected_dcsg', source_chip='dcsg',
+            target_device=device, target_command=command,
+            source_event_id=seg.source_event_id if seg and event_id == 'seg' else event_id,
+            source_segment_id=seg.segment_id if seg else None,
+            original_event_id=None, loop_iteration=0,
+            source_vgmticks=seg.start_sample if seg and sample is None else sample,
+            source_ch=seg.ch if seg else None,
+            source_period=seg.period if seg else None,
+            source_attenuation=seg.attenuation if seg else None,
+            source_noise_control=seg.noise_control if seg else None,
+            target_register=register, target_data=data, reason=reason,
+            source_frequency_hz=frequency, target_frequency_hz=actual,
+            target_ch=ch, source_row=None, inferred_key=False, synthetic_phase=None,
+            sort_rank=rank))
+
+    def tone_period(device, clock, seg, *, quiet=False):
+        # Diagnostics count only audible segments: an inaudible
+        # segment's unknown or clamped period changes nothing heard,
+        # and the noise lane is sliced by tone-2 activity even in
+        # songs that never use noise at all.
+        if seg.frequency_hz is None:
+            if not quiet and seg.audible:
+                losses[f'dcsg_tone_period_unknown_{device}'] += 1
+            return None
+        tp = round(clock / (16 * seg.frequency_hz))
+        if not 1 <= tp <= 4095:
+            if not quiet and seg.audible:
+                losses[f'dcsg_tone_period_clamped_{device}'] += 1
+            tp = min(4095, max(1, tp))
+        return tp, clock / (16 * tp)
+
+    def noise_period(device, clock, seg, *, quiet=False):
+        """Return (NP, target shift Hz, note) or None when inaudible."""
+        if seg.noise_shift_hz is None:
+            if not seg.audible:
+                return None
+            if seg.noise_control is None:
+                # The source never establishes the noise control, but
+                # the lane sounds: every player zero-initialises the
+                # chip, so the observed behaviour is the power-on
+                # control (rate 0, uncoupled). Emit that rate as an
+                # explicit assumption rather than leaving the target
+                # period at its own power-on value, a much faster buzz.
+                if not quiet:
+                    losses[f'dcsg_noise_rate_power_on_default_assumed_{device}'] += 1
+                assumed = analysis.config.clock_hz / (64 * analysis.config.clock_divider)
+                np_ = min(31, max(1, round(clock / (16 * assumed))))
+                return np_, clock / (16 * np_), 'power-on control assumed'
+            # The control couples the LFSR to tone 2, whose period is
+            # 0 or not established (Alien Soldier parks tone 2 at
+            # period 0 and rides only the noise attenuation): the
+            # shift rate is undefined in the source analysis, and no
+            # AY-family period comes close to the coupled rate
+            # anyway. The slowest target rate keeps the attenuation
+            # articulation, which is what the lane audibly does.
+            if not quiet:
+                losses[f'dcsg_noise_coupled_rate_undefined_{device}'] += 1
+            return 31, clock / (16 * 31), 'coupled rate undefined; slowest assumed'
+        np_ = round(clock / (16 * seg.noise_shift_hz))
+        if not 1 <= np_ <= 31:
+            if not quiet and seg.audible:
+                losses[f'dcsg_noise_period_clamped_{device}'] += 1
+            np_ = min(31, max(1, np_))
+        return np_, clock / (16 * np_), ''
+
+    def volume_of(seg):
+        return _DCSG_VOLUME[seg.attenuation] if seg.attenuation is not None else 0
+
+    for issue in analysis.issues:
+        losses[f"dcsg_issue_{issue['code']}"] += 1
+    if analysis.config.t6w28:
+        losses['dcsg_t6w28_cross_chip_routing_not_projected'] += 1
+    if analysis.config.stereo:
+        for seg in analysis.segments:
+            if seg.audible and seg.stereo_left != seg.stereo_right:
+                losses['dcsg_stereo_position_not_projected'] += 1
+
+    by_instance = {}
+    for seg in analysis.segments:
+        by_instance.setdefault(seg.chip_instance, {}).setdefault(seg.ch, []).append(seg)
+    for instance, lanes in sorted(by_instance.items()):
+        if instance not in _DCSG_DEVICES:
+            losses['dcsg_undeclared_instance_not_projected'] += sum(
+                len(v) for v in lanes.values())
+            continue
+        device, command, clock = _DCSG_DEVICES[instance]
+        device_stats = dict(tone_segments=0, noise_segments=0,
+                            noise_tone_overlap_samples=0, writes=0)
+        stats[device] = device_stats
+        before = len(rows)
+        lane_starts = {ch: [s.start_sample for s in lanes.get(ch, [])]
+                       for ch in (0, 1, 2, 3)}
+
+        def covering(ch, sample):
+            lane = lanes.get(ch, [])
+            index = bisect_right(lane_starts[ch], sample) - 1 if lane else -1
+            return lane[index] if index >= 0 else None
+
+        # Tone lanes: period on every segment start; volumes for
+        # channels A/B here, channel C in the shared walk below.
+        for ch in (0, 1, 2):
+            for seg in lanes.get(ch, ()):
+                device_stats['tone_segments'] += 1
+                if seg.attenuation is None:
+                    losses[f'dcsg_tone_attenuation_unknown_{device}'] += 1
+                result = tone_period(device, clock, seg)
+                if result is not None:
+                    tp, actual = result
+                    emit(device, command, seg, ch * 2, tp & 0xff, 'dcsg tone period (fine)',
+                         ch=ch, frequency=seg.frequency_hz, actual=actual)
+                    emit(device, command, seg, ch * 2 + 1, tp >> 8, 'dcsg tone period (coarse)',
+                         ch=ch, frequency=seg.frequency_hz, actual=actual)
+                if ch != 2:
+                    emit(device, command, seg, 8 + ch, volume_of(seg), 'dcsg tone volume',
+                         ch=ch, frequency=seg.frequency_hz)
+        # Shared walk over tone-2 and noise boundaries: noise period,
+        # mixer, and the arbitrated channel-C volume.
+        tone2, noise = lanes.get(2, []), lanes.get(3, [])
+        boundaries = sorted({0} | {s.start_sample for s in tone2}
+                            | {s.start_sample for s in noise})
+        for index, sample in enumerate(boundaries):
+            tseg = covering(2, sample)
+            nseg = covering(3, sample)
+            lead = None
+            for candidate in (tseg, nseg):
+                if candidate is not None and candidate.start_sample == sample:
+                    lead = candidate
+                    break
+            lead = lead or nseg or tseg
+            noise_audible = bool(nseg and nseg.audible)
+            if noise_audible and tseg is not None and tseg.audible:
+                following = (boundaries[index + 1] if index + 1 < len(boundaries)
+                             else analysis.end_sample)
+                device_stats['noise_tone_overlap_samples'] += following - sample
+            if nseg is not None and nseg.start_sample == sample:
+                device_stats['noise_segments'] += 1
+                result = noise_period(device, clock, nseg)
+                if result is not None:
+                    np_, actual, note = result
+                    emit(device, command, nseg, 6, np_,
+                         'dcsg noise period' + (f' ({note})' if note else ''),
+                         frequency=nseg.noise_shift_hz, actual=actual, sample=sample)
+            mixer = 0x18 if noise_audible else 0x38
+            emit(device, command, lead, 7, mixer,
+                 'dcsg mixer; noise on channel C only while audible',
+                 sample=sample)
+            emit(device, command, lead, 10,
+                 volume_of(nseg) if noise_audible else volume_of(tseg) if tseg else 0,
+                 'dcsg channel C volume (noise while audible, else tone 2)',
+                 ch=2, sample=sample)
+        # Loop-entry restore: re-emit the full desired state at the
+        # loop point so a second traversal starts from the same
+        # register state as the first.
+        if loop_start is not None:
+            tseg = covering(2, loop_start)
+            nseg = covering(3, loop_start)
+            noise_audible = bool(nseg and nseg.audible)
+            for ch in (0, 1, 2):
+                lane = lanes.get(ch, [])
+                seg = covering(ch, loop_start)
+                if seg is None:
+                    continue
+                result = tone_period(device, clock, seg, quiet=True)
+                if result is not None:
+                    tp, actual = result
+                    for register, data in ((ch * 2, tp & 0xff), (ch * 2 + 1, tp >> 8)):
+                        emit(device, command, seg, register, data,
+                             'dcsg loop entry state restore', ch=ch,
+                             frequency=seg.frequency_hz, actual=actual,
+                             sample=loop_start, event_id=loop_event_id, rank=0)
+                if ch != 2:
+                    emit(device, command, seg, 8 + ch, volume_of(seg),
+                         'dcsg loop entry state restore', ch=ch,
+                         sample=loop_start, event_id=loop_event_id, rank=0)
+            if nseg is not None:
+                result = noise_period(device, clock, nseg, quiet=True)
+                if result is not None:
+                    np_, actual, _note = result
+                    emit(device, command, nseg, 6, np_,
+                         'dcsg loop entry state restore',
+                         frequency=nseg.noise_shift_hz, actual=actual,
+                         sample=loop_start, event_id=loop_event_id, rank=0)
+            emit(device, command, nseg or tseg, 7, 0x18 if noise_audible else 0x38,
+                 'dcsg loop entry state restore',
+                 sample=loop_start, event_id=loop_event_id, rank=0)
+            emit(device, command, nseg or tseg, 10,
+                 volume_of(nseg) if noise_audible else volume_of(tseg) if tseg else 0,
+                 'dcsg loop entry state restore', ch=2,
+                 sample=loop_start, event_id=loop_event_id, rank=0)
+        device_stats['writes'] = len(rows) - before
+    return rows, dict(losses), stats
+
+
+def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None):
+    """Serialize merged projection rows at exact source samples.
+
+    Rows carry their own target command (0x54 YM2151, 0xA0 AY,
+    0x56 YM2608 port 0) and must already be in non-decreasing
+    source sample order. The header is the full 256-byte form so
+    the YM2608 (0x48) and AY (0x74/0x78) fields fit; each clock is
+    stamped only when its command actually appears. A valid source
+    loop is carried into the header without expanding the timeline.
     """
     from native_imports.vgm_timing import command_times
     commands, cursor, loop_address = bytearray(), 0, None
@@ -306,35 +547,47 @@ def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None):
         if loop_start is not None and loop_address is None and cursor <= loop_start <= sample and at_loop:
             wait(loop_start - cursor)
             cursor = loop_start
-            loop_address = 0x40 + len(commands)
+            loop_address = 0x100 + len(commands)
         wait(sample - cursor)
         cursor = sample
     for row in rows:
         advance(row['source_vgmticks'], row['source_event_id'])
-        row['target_command_address'] = 0x40 + len(commands)
-        commands.extend((0x54, row['target_register'], row['target_data']))
+        row['target_command_address'] = 0x100 + len(commands)
+        commands.extend((row.get('target_command', 0x54),
+                         row['target_register'], row['target_data']))
     advance(end, final=True)
     commands.append(0x66)
-    raw = bytearray(0x40) + commands
+    raw = bytearray(0x100) + commands
     raw[:4] = b'Vgm '
-    for offset, value in ((4, len(raw) - 4), (8, 0x171), (0x18, end), (0x30, TARGET_CLOCK)):
+    present = {row.get('target_command', 0x54) for row in rows}
+    stamps = [(4, len(raw) - 4), (8, 0x171), (0x18, end), (0x30, TARGET_CLOCK),
+              (0x34, 0x100 - 0x34)]
+    if 0x56 in present:
+        stamps.append((0x48, OPNA_CLOCK))
+    if 0xA0 in present:
+        stamps.append((0x74, AY_CLOCK))
+    for offset, value in stamps:
         struct.pack_into('<I', raw, offset, value)
+    if 0xA0 in present:
+        raw[0x78] = 0x10  # YM2149 type byte, the musical_vgm convention
     if loop_address is not None:
         struct.pack_into('<I', raw, 0x1c, loop_address - 0x1c)
         struct.pack_into('<I', raw, 0x20, end - loop_start)
-    identities = {e.address: i for i, e in enumerate(command_times(raw)) if e.command == 0x54}
+    identities = {e.address: i for i, e in enumerate(command_times(raw))
+                  if e.command in (0x54, 0xA0, 0x56)}
     for row in rows:
         row['target_source_event_id'] = identities[row['target_command_address']]
     Path(path).write_bytes(raw)
 
 
 def convert(source, outdir, *, force=False):
-    """Analyze one OPN2 VGM and emit its FM-only dual-cartridge target VGM.
+    """Analyze one OPN2 VGM and emit its dual-cartridge target VGM.
 
     Native evidence (registers/states/segments CSVs and the source
     report) lands in ``outdir`` next to ``<stem>.target.vgm``, the
-    projected-writes CSV and the summary JSON. DCSG and DAC are
-    inventoried and reported as deferred stages, never dropped.
+    per-lane projected-writes CSVs and the summary JSON. FM goes to
+    the OPM cartridge, DCSG to the MSX PSG + OPNA SSG; the DAC is
+    inventoried and reported as a deferred stage, never dropped.
     """
     source, outdir = Path(source), Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
@@ -346,34 +599,49 @@ def convert(source, outdir, *, force=False):
     if analysis is None:
         raise ValueError(f"OPN2 analysis failed: {bundle['errors'].get('opn2')}")
     clock_raw = bundle['header']['opn2_clock_raw']
-    rows, losses = project(analysis, clock_raw=clock_raw, force=force, dac_external=True)
-    if 'dac_data_writes_projected_to_pcm' in losses:
-        losses['dac_data_writes_deferred_to_opna_adpcm_b'] = losses.pop(
-            'dac_data_writes_projected_to_pcm')
     loop = bundle['loop']
     loop_start = loop_event_id = None
     if loop.get('status') == 'valid':
         loop_start = loop['loop_start_samples']
         loop_event_id = next((e.source_event_id for e in bundle['events']
                               if e.address == loop.get('loop_address')), None)
+    rows, losses = project(analysis, clock_raw=clock_raw, force=force, dac_external=True)
+    if 'dac_data_writes_projected_to_pcm' in losses:
+        losses['dac_data_writes_deferred_to_opna_adpcm_b'] = losses.pop(
+            'dac_data_writes_projected_to_pcm')
+    dcsg_rows, dcsg_stats = [], {}
+    dcsg_analysis = bundle['analyses'].get('dcsg')
+    if dcsg_analysis is not None:
+        dcsg_rows, dcsg_losses, dcsg_stats = project_dcsg(
+            dcsg_analysis, loop_start=loop_start, loop_event_id=loop_event_id)
+        for key, value in dcsg_losses.items():
+            losses[key] = losses.get(key, 0) + value
+    merged = sorted(rows + dcsg_rows,
+                    key=lambda r: (r['source_vgmticks'], r.get('sort_rank', 1)))
     target = outdir / f'{stem}.target.vgm'
-    write_vgm(rows, target, end=bundle['source_end_sample'],
+    write_vgm(merged, target, end=bundle['source_end_sample'],
               loop_start=loop_start, loop_event_id=loop_event_id)
     writes_csv = outdir / f'{stem}.opn2_opm.writes.csv'
     with writes_csv.open('w', encoding='utf-8', newline='') as stream:
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]) if rows else ['write_id'])
         writer.writeheader()
         writer.writerows(rows)
+    if dcsg_rows:
+        dcsg_csv = outdir / f'{stem}.opn2_dcsg.writes.csv'
+        with dcsg_csv.open('w', encoding='utf-8', newline='') as stream:
+            writer = csv.DictWriter(stream, fieldnames=list(dcsg_rows[0]))
+            writer.writeheader()
+            writer.writerows(dcsg_rows)
     deferred = {}
-    if 'dcsg' in bundle['active_chips']:
-        deferred['dcsg'] = 'S3: MSX PSG + OPNA SSG projection not yet emitted'
     if losses.get('dac_data_writes_deferred_to_opna_adpcm_b'):
         deferred['dac'] = 'S4: OPNA ADPCM-B re-encode not yet emitted'
     summary = dict(source=str(source), source_sha256=bundle['source_sha256'],
                    active_chips=list(bundle['active_chips']),
                    opn2_clock_hz=clock_raw & 0x3fffffff,
                    target_clock_hz=TARGET_CLOCK, target_vgm=target.name,
-                   target_writes=len(rows), losses=losses, deferred=deferred,
+                   target_writes=len(merged), opm_writes=len(rows),
+                   dcsg_writes=len(dcsg_rows), dcsg=dcsg_stats,
+                   losses=losses, deferred=deferred,
                    loop=dict(status=loop.get('status'), start_sample=loop_start))
     (outdir / f'{stem}.opn2_opm.json').write_text(
         json.dumps(summary, indent=2) + '\n', encoding='utf-8')

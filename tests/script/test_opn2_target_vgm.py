@@ -84,5 +84,89 @@ class Opn2TargetVgmTests(unittest.TestCase):
         self.assertEqual(losses['forced_unmodeled_register_writes'], 1)
 
 
+DCSG_PHRASE = bytes((
+    0x50, 0x80, 0x50, 0x10,        # chip 0 tone 0 period 256
+    0x50, 0x90,                    # chip 0 tone 0 attenuation 0
+    0x50, 0xE1,                    # chip 0 noise control: rate 1, periodic
+    0x50, 0xF2,                    # chip 0 noise attenuation 2
+    0x30, 0x80, 0x30, 0x08,        # chip 1 tone 0 period 128
+    0x30, 0x90,                    # chip 1 tone 0 attenuation 0
+    0x61, 0x00, 0x08,              # wait 2048
+    0x50, 0x95,                    # chip 0 tone 0 attenuation 5
+    0x61, 0x00, 0x08,              # wait 2048
+))
+
+
+def dual_vgm(commands):
+    raw = bytearray(256)
+    raw[:4] = b'Vgm '
+    struct.pack_into('<I', raw, 8, 0x171)
+    struct.pack_into('<I', raw, 0x0c, 3579545 | 0x40000000)  # dual SN76489
+    struct.pack_into('<I', raw, 0x2c, 7670454)
+    struct.pack_into('<I', raw, 0x34, 256 - 0x34)
+    raw.extend(commands)
+    raw.append(0x66)
+    struct.pack_into('<I', raw, 4, len(raw) - 4)
+    return bytes(raw)
+
+
+class Opn2DcsgTargetTests(unittest.TestCase):
+    def convert(self, raw):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        folder = Path(temporary.name)
+        source = folder / 'authored.vgm'
+        source.write_bytes(raw)
+        return convert(source, folder / 'out'), folder / 'out'
+
+    def test_dcsg_projects_to_ay_and_ssg(self):
+        summary, out = self.convert(dual_vgm(PHRASE + DCSG_PHRASE))
+        self.assertNotIn('dcsg', summary['deferred'])
+        self.assertGreater(summary['dcsg_writes'], 0)
+        raw = (out / 'authored.target.vgm').read_bytes()
+        self.assertEqual(struct.unpack_from('<I', raw, 0x48)[0], 8000000)
+        self.assertEqual(struct.unpack_from('<I', raw, 0x74)[0], 1789773)
+        self.assertEqual(raw[0x78], 0x10)
+        bundle = inspect_source(raw)
+        self.assertIn('opna', bundle['active_chips'])
+        # native_imports has no AY domain, so the PSG lane is checked
+        # on the raw command stream instead of via inspect_source.
+        from native_imports.vgm_timing import command_times
+        from collections import Counter
+        counts = Counter(e.command for e in command_times(raw))
+        self.assertEqual(counts[0xA0] + counts[0x56], summary['dcsg_writes'])
+        self.assertGreater(counts[0xA0], 0)
+        import csv as csv_module
+        with (out / 'authored.opn2_dcsg.writes.csv').open() as stream:
+            rows = list(csv_module.DictReader(stream))
+        ay_period = {(int(r['target_register']), int(r['target_data']))
+                     for r in rows if r['target_device'] == 'ay'
+                     and r['reason'].startswith('dcsg tone period')}
+        # period 256 at 3.579545 MHz -> 437 Hz -> AY TP 256 (fine 0, coarse 1)
+        self.assertIn((0, 0), ay_period)
+        self.assertIn((1, 1), ay_period)
+        ssg_period = {(int(r['target_register']), int(r['target_data']))
+                      for r in rows if r['target_device'] == 'ssg'
+                      and r['reason'].startswith('dcsg tone period')}
+        # period 128 -> 874 Hz -> SSG TP 286 (fine 30, coarse 1)
+        self.assertIn((0, 30), ssg_period)
+        self.assertIn((1, 1), ssg_period)
+        ay_volumes = [int(r['target_data']) for r in rows
+                      if r['target_device'] == 'ay' and int(r['target_register']) == 8]
+        self.assertEqual(ay_volumes, [0, 15, 12])
+        # leading 0: attenuation unknown until the first source write;
+        # then attenuation 0 -> 15 and 5 -> 12 on the dB-matched table
+        mixers = {int(r['target_data']) for r in rows
+                  if r['target_device'] == 'ay' and int(r['target_register']) == 7}
+        self.assertIn(0x18, mixers)  # noise audible on channel C
+        c_volumes = {int(r['target_data']) for r in rows
+                     if r['target_device'] == 'ay' and int(r['target_register']) == 10}
+        self.assertIn(14, c_volumes)  # noise attenuation 2 -> 14 while audible
+        # noise rate 1 = 3496 Hz shift -> AY NP 32 exceeds 31 and clamps
+        self.assertEqual(summary['losses']['dcsg_noise_period_clamped_ay'], 1)
+        self.assertEqual(summary['dcsg']['ay']['noise_segments'], 2)
+        # initial unknown segment + the segment from the control write
+
+
 if __name__ == '__main__':
     unittest.main()

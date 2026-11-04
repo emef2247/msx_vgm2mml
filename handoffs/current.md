@@ -4082,3 +4082,55 @@ should gain an optional musical clock fitter. MUCOM work remains paused.
   tones 3+3, noises paired one-to-one), extending write_vgm's row
   stream with AY (0xA0) and YM2608 (0x55/0x56) commands and the
   YM2608/AY header clocks.
+
+# Checkpoint: OPN2 S3 DCSG -> AY + OPNA SSG (2026-11-04, claude/opn2-target-vgm)
+
+- py/opn2_target_vgm.py: project_dcsg() ports the native DCSG
+  analysis into the target row stream. Instance 0 -> AY (0xA0),
+  instance 1 -> YM2608 SSG port 0 (0x56); tones land on each
+  device's own A/B/C. The noise lane shares channel C with
+  tone 2: mixer noise enable follows noise audibility, C volume
+  is owned by the sounding lane (AND-gate overlaps counted).
+  Periods convert by frequency (AY clock_eff 1789773, SSG
+  4000000 = master/2, a PC-98 convention still to be confirmed
+  on hardware in S5); noise periods clamp to 1..31 per device.
+  Volumes use a dB-nearest table (SN 2 dB/step -> AY ~3.19 dB/
+  step ladder, max error ~1.6 dB, att 15 -> 0), not the SMS
+  route's identity map. Every segment start emits
+  self-contained rows; a valid loop adds a state-restore group
+  at loop entry (the project rule: no suppression that the EOF
+  state may depend on). write_vgm() generalised to a 256-byte
+  header, stamping YM2608 8 MHz and AY 1789773 + type 0x10 only
+  when those commands appear. Diagnostics count only audible
+  segments: the noise lane is sliced by tone-2 activity even in
+  songs that never use noise, and raw counts cried wolf
+  (47k "unknown" before gating).
+- Alien Soldier's noise is control 7 (white, tone-2-coupled)
+  with tone 2 parked at period 0: the LFSR shift rate is
+  undefined in the source analysis. Audible segments take the
+  slowest target rate (NP 31) and are counted
+  (dcsg_noise_coupled_rate_undefined_ay, 38103 pack-wide);
+  what the lane audibly does - attenuation articulation - is
+  preserved. Unwritten-control noise takes the power-on rate
+  (control 0) as an explicit, counted assumption (0 cases in
+  this pack). An earlier draft lumped both cases under the
+  power-on assumption; that would have put a fabricated
+  7 kHz hiss on the coupled material.
+- scripts/export_opn2_vgm.py: reports DCSG writes and per-device
+  DCSG stats; deferred now lists only dac.
+- Verification: synthetic dual-chip tests in
+  tests/script/test_opn2_target_vgm.py (Opn2DcsgTargetTests).
+  Pack 24/24 without force; OPM command subsequence identical
+  to the S2 outputs for all 24 songs; ASOLDR07 AY tone-0
+  parse-back 1753/1753 segment starts (an early checker draft
+  read the two-write TP update mid-pair and reported phantom
+  mismatches - compare settled state per tick). Full suite:
+  947 tests, failure multiset identical to the main baseline
+  (128F+5E, skipped 106).
+- Known follow-up outside S3's scope: the OPM lane itself
+  merges through the x68k projection's dedup cache, so with a
+  header-only loop the FM side has the same EOF-state exposure
+  the DCSG restore group guards against. Recorded in the S3
+  field note.
+- Next: S4 DAC -> OPNA ADPCM-B (Delta re-encode, upload
+  sequence, 256 KB DRAM budget as recorded degradation).
