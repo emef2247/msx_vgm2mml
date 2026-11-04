@@ -4027,3 +4027,110 @@ before and after; do not claim the capacity problem solved. The original input
 and published product remain untouched. No full private VGM regression or new
 listening claim. Next: user regression and a separate decision if blueprint
 should gain an optional musical clock fitter. MUCOM work remains paused.
+
+# Checkpoint: OPN2 S1 source domain (2026-11-04, claude/opn2-target-vgm)
+
+- New native source domain 'opn2' (YM2612): py/native_imports/opn2.py ported
+  verbatim from x68k_vgm2mml py/opn2.py (incl. its DAC-enable state adaptation);
+  opn2_music.py shim adapted to this package's opna_music API. Provenance in
+  docs/native_import_provenance.json.
+- native_imports/source.py: WRITE_CHIPS 0x52/0x53/0xa2/0xa3, STREAM_CHIPS 2,
+  opn2_clock_raw (0x2C, VGM >= 1.50), _fm_trace + analyze dispatch. DAC data
+  (0x2A) stays a retained unmodeled write with an explicit issue; DAC enable
+  (0x2B bit 7) is ch6 state.
+- native_source_music.py: OPN2 commands classified (clock offset 0x2C,
+  dual-instance commands); writes stay out of the musical plan with one
+  ('opn2_projection_not_implemented', device) decision per device. Previously
+  any OPN2 file crashed build_plan with an unhandled ValueError before the
+  MGS gate was reached.
+- mgs_force.py: OPN2 writes added to _OMIT_WRITES, so the MGS gate inventories
+  them per register under --force instead of the anonymous unsupported bucket.
+- Tests: tests/script/test_opn2_native.py (6, synthetic fixtures only);
+  seven->eight domains test extended; mgs_force uninventoried example swapped
+  (0x52 -> 0xC1) and whitelist enumeration extended (13 -> 17 omissions).
+  Full suite: 942 tests, failure multiset identical to main (128F+5E, this VM).
+- Real-file smoke (local only): ASOLDR01 -> 5021 OPN2 segments / 177 key-ons;
+  CLI blocks legibly (no_supported_source_writes + 2599 inventoried writes).
+- Next: S2 FM -> OPM target VGM (dual-cartridge design in the study doc kept
+  outside this repo). Do not add OPN2 to the native VGM packet lane: verbatim
+  FM packets would be mislabeled as preserved PCM.
+
+# Checkpoint: OPN2 S2 FM -> OPM target VGM (2026-11-04, claude/opn2-target-vgm)
+
+- py/opn2_target_vgm.py: project() ported from x68k opn2_opm with the
+  MSX adaptations (TARGET_CLOCK 3579545, identity channel map 0..5,
+  DAC counted as deferred to the OPNA ADPCM-B stage). write_vgm()
+  emits a YM2151-only VGM 1.71 and carries a valid source loop into
+  the header without expanding the timeline. convert() runs
+  analyze_source into the song folder (native evidence retained),
+  writes <stem>.target.vgm, <stem>.opn2_opm.writes.csv and the
+  summary JSON with losses and deferred lanes (dcsg -> S3, dac -> S4).
+- scripts/export_opn2_vgm.py: file/directory batch front end with
+  report.json; --force passes the projection gates (CSM, CH3 special,
+  unknown register effects).
+- Verification: ASOLDR01 rows agree with the x68k projection
+  event-for-event after the documented channel remap, except KC/KF
+  (same source Hz; quantization differs by target clock, including
+  +-1-step dedup boundary cases). Alien Soldier pack: 24/24 FM
+  projections succeed without force; DAC deferrals counted per song.
+- Tests: tests/script/test_opn2_target_vgm.py (4, synthetic). Fixture
+  trap recorded in the S2 field note: OPN FNUM commits on the low
+  register write, so fixtures must write 0xA4 before 0xA0.
+- Playback check route (user): MAmidiMEmo VGM player + VSIF dongle
+  driving the pseudo-OPM and OPNA cartridges; no driver needed.
+- Next: S3 DCSG -> MSX PSG + OPNA SSG (split designed for this pair:
+  tones 3+3, noises paired one-to-one), extending write_vgm's row
+  stream with AY (0xA0) and YM2608 (0x55/0x56) commands and the
+  YM2608/AY header clocks.
+
+# Checkpoint: OPN2 S3 DCSG -> AY + OPNA SSG (2026-11-04, claude/opn2-target-vgm)
+
+- py/opn2_target_vgm.py: project_dcsg() ports the native DCSG
+  analysis into the target row stream. Instance 0 -> AY (0xA0),
+  instance 1 -> YM2608 SSG port 0 (0x56); tones land on each
+  device's own A/B/C. The noise lane shares channel C with
+  tone 2: mixer noise enable follows noise audibility, C volume
+  is owned by the sounding lane (AND-gate overlaps counted).
+  Periods convert by frequency (AY clock_eff 1789773, SSG
+  4000000 = master/2, a PC-98 convention still to be confirmed
+  on hardware in S5); noise periods clamp to 1..31 per device.
+  Volumes use a dB-nearest table (SN 2 dB/step -> AY ~3.19 dB/
+  step ladder, max error ~1.6 dB, att 15 -> 0), not the SMS
+  route's identity map. Every segment start emits
+  self-contained rows; a valid loop adds a state-restore group
+  at loop entry (the project rule: no suppression that the EOF
+  state may depend on). write_vgm() generalised to a 256-byte
+  header, stamping YM2608 8 MHz and AY 1789773 + type 0x10 only
+  when those commands appear. Diagnostics count only audible
+  segments: the noise lane is sliced by tone-2 activity even in
+  songs that never use noise, and raw counts cried wolf
+  (47k "unknown" before gating).
+- Alien Soldier's noise is control 7 (white, tone-2-coupled)
+  with tone 2 parked at period 0: the LFSR shift rate is
+  undefined in the source analysis. Audible segments take the
+  slowest target rate (NP 31) and are counted
+  (dcsg_noise_coupled_rate_undefined_ay, 38103 pack-wide);
+  what the lane audibly does - attenuation articulation - is
+  preserved. Unwritten-control noise takes the power-on rate
+  (control 0) as an explicit, counted assumption (0 cases in
+  this pack). An earlier draft lumped both cases under the
+  power-on assumption; that would have put a fabricated
+  7 kHz hiss on the coupled material.
+- scripts/export_opn2_vgm.py: reports DCSG writes and per-device
+  DCSG stats; deferred now lists only dac.
+- Verification: synthetic dual-chip tests in
+  tests/script/test_opn2_target_vgm.py (Opn2DcsgTargetTests).
+  Pack 24/24 without force; OPM command subsequence identical
+  to the S2 outputs for all 24 songs; ASOLDR07 AY tone-0
+  parse-back 1753/1753 segment starts (an early checker draft
+  read the two-write TP update mid-pair and reported phantom
+  mismatches - compare settled state per tick). Full suite:
+  947 tests, failure multiset identical to the main baseline
+  (128F+5E, skipped 106).
+- Known follow-up outside S3's scope: the OPM lane itself
+  merges through the x68k projection's dedup cache, so with a
+  header-only loop the FM side has the same EOF-state exposure
+  the DCSG restore group guards against. Recorded in the S3
+  field note.
+- Next: S4 DAC -> OPNA ADPCM-B (Delta re-encode, upload
+  sequence, 256 KB DRAM budget as recorded degradation).

@@ -120,6 +120,26 @@
       "source_sha256": "3df2fd59570d8c39e4fbeaae48c80a32dab681c7fca04256bcdd98845fc53f7e",
       "imported_sha256": "3df2fd59570d8c39e4fbeaae48c80a32dab681c7fca04256bcdd98845fc53f7e",
       "adaptation": "package-relative imports only"
+    },
+    {
+      "module": "opn2",
+      "source_project": "x68k_vgm2mml",
+      "source_path": "py/opn2.py",
+      "source_revision": "4f9c91a7c2d875a23e91a46b21fd91b54e428d40",
+      "source_worktree_status": "clean",
+      "source_sha256": "b4ddd9a403c115e9b3b6720d34f20777915ebbbbc1f09b837a47eadff9a82ab6",
+      "imported_sha256": "b4ddd9a403c115e9b3b6720d34f20777915ebbbbc1f09b837a47eadff9a82ab6",
+      "adaptation": "none; verbatim copy. The module itself records its earlier porting from mucom88_vgm2mml and the DAC-enable state adaptation."
+    },
+    {
+      "module": "opn2_music",
+      "source_project": "mucom88_vgm2mml",
+      "source_path": "py/musical_hal/native_imports/opn2_music.py",
+      "source_revision": "a02acf3b0c7f9a2be5b99b63e83fa8d9c2c9355b",
+      "source_worktree_status": "clean",
+      "source_sha256": "8516e6c1bdd924ace50d5f9ffeecc4dde3ef4c45efb8f0f4fc8ec6665b9666f8",
+      "imported_sha256": "82605c795a8057256e19f34854aa332d9c5a0ef7e7774690b5d867a9ab0abf64",
+      "adaptation": "call adapted to this package's opna_music API: its build_fm_gates already hardcodes the ABCHIJ part letters and takes no parts argument"
     }
   ]
 }

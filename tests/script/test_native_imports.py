@@ -45,22 +45,25 @@ class NativeImportTests(unittest.TestCase):
         self.assertTrue(all(analysis is None for analysis in result['analyses'].values()))
         self.assertEqual(result['source_end_sample'],735)
 
-    def test_all_seven_native_domains_share_exact_source_clock(self):
+    def test_all_eight_native_domains_share_exact_source_clock(self):
         commands=bytes.fromhex('54 20 c7 54 28 4a 54 08 78 56 b0 07 56 a0 a0 '
             '56 a4 22 56 28 f0 50 85 50 08 b7 00 01 b7 01 11 b8 00 80 '
-            'b8 00 10 c0 02 00 40 d4 00 05 80 77 7a 54 08 00 56 28 00')
+            'b8 00 10 c0 02 00 40 d4 00 05 80 77 7a 54 08 00 56 28 00 '
+            '52 a0 69 52 a4 22 52 28 f0 52 28 00')
         raw=vgm(commands,{0x30:4000000,0x48:8000000,0x0c:3579545,0x90:4000000,
-                          0x98:1000000,0x38:4000000,0xa8:8000000})
+                          0x98:1000000,0x38:4000000,0xa8:8000000,0x2c:7670454})
         result,folder=self.analyze(raw)
-        self.assertEqual(set(result['active_chips']),{'opm','opna','dcsg','msm6258','msm6295','segapcm','c140'})
+        self.assertEqual(set(result['active_chips']),{'opm','opna','dcsg','msm6258','msm6295','segapcm','c140','opn2'})
         self.assertEqual(result['errors'],{})
         self.assertTrue(all(result['analyses'].values()))
         self.assertEqual(result['source_end_sample'],19)
         self.assertEqual(result['opm'].source_end_vgmticks,19)
         self.assertEqual(result['opna'].source_end_vgmticks,19)
+        self.assertEqual(result['opn2'].source_end_vgmticks,19)
         self.assertEqual(result['raw'],raw)
         self.assertTrue((folder/'authored.native.opm.registers.csv').is_file())
         self.assertTrue((folder/'authored.native.opna.unmodeled.csv').is_file())
+        self.assertTrue((folder/'authored.native.opn2.unmodeled.csv').is_file())
         self.assertEqual(json.loads((folder/'authored.native.source.json').read_text())['source_end_sample'],19)
 
     def test_unwritten_opm_operator_state_is_unknown_not_filled(self):

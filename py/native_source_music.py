@@ -17,13 +17,14 @@ from native_registers import decode_control
 
 
 COMMAND_CHIPS = {0x54:'opm',0xa4:'opm',0x56:'opna',0x57:'opna',0xa6:'opna',0xa7:'opna',
+    0x52:'opn2',0x53:'opn2',0xa2:'opn2',0xa3:'opn2',
     0x50:'dcsg',0x30:'dcsg',0x4f:'dcsg',0x3f:'dcsg',0xb7:'msm6258',0xb8:'msm6295',
     0xc0:'segapcm',0xd4:'c140',0xa0:'psg',0xd2:'scc',0x51:'opll',0xa1:'opll',0xb9:'huc6280',0xb4:'nesapu'}
 BLOCK_CHIPS = {4:'msm6258',0x44:'msm6258',0x7f:'pcm',0x80:'segapcm',0x81:'opna',0x8b:'msm6295',0x8d:'c140',
                0xc0:'nesapu',0xc1:'nesapu',0xc2:'nesapu'}
 STREAM_CHIPS = {0:'dcsg',1:'opll',3:'opm',4:'segapcm',7:'opna',0x12:'psg',
                 0x17:'msm6258',0x18:'msm6295',0x19:'scc',0x1c:'c140'}
-HEADER_OFFSETS = {'opm':0x30,'opna':0x48,'dcsg':0x0c,'msm6258':0x90,'msm6295':0x98,
+HEADER_OFFSETS = {'opm':0x30,'opna':0x48,'opn2':0x2c,'dcsg':0x0c,'msm6258':0x90,'msm6295':0x98,
                   'segapcm':0x38,'c140':0xa8,'psg':0x74,'scc':0x9c,'opll':0x10,'huc6280':0xa4,'nesapu':0x84}
 CARRIERS = (8,8,8,8,12,14,14,15)  # Source register-bank order M1,M2,C1,C2.
 
@@ -35,7 +36,7 @@ def _clock(header, raw, chip):
 
 
 def _chip_instance(command, raw, pos):
-    if command in (0xa4,0xa6,0xa7,0xa1,0x30,0x3f):return 1
+    if command in (0xa4,0xa6,0xa7,0xa1,0x30,0x3f,0xa2,0xa3):return 1
     if command in (0xb7,0xb8,0xa0,0xb9):return raw[pos+1]>>7
     if command==0xc0:return int.from_bytes(raw[pos+1:pos+3],'little')>>15
     if command==0xd4:return raw[pos+1]>>7
@@ -134,6 +135,15 @@ class _Builder:
             chip=COMMAND_CHIPS.get(command)
             if chip is None:raise ValueError(f'Unsupported active native source command {command:#x} at {pos:#x}')
             instance=_chip_instance(command,self.raw,pos);device=self.device(chip,instance)
+            if chip=='opn2':
+                # Source analysis and register evidence exist (native_imports);
+                # no target projection consumes OPN2 yet, so the writes stay
+                # out of the musical plan and the omission is decided here,
+                # once per device, instead of crashing the command scan.
+                if not any(d[0]=='opn2_projection_not_implemented' and d[1]==device.device_id
+                           for d in self.decisions):
+                    self.decisions.append(('opn2_projection_not_implemented',device.device_id))
+                continue
             if chip in ('msm6258','msm6295','segapcm','c140'):
                 self.packet(event,order,chip,'native_pcm_register',4 if command in (0xc0,0xd4) else 3)
             elif chip=='opna' and command in (0x57,0xa7) and self.raw[pos+1]<0x11:
