@@ -59,16 +59,7 @@ def main():
                               layered=args.layered, target=args.target,
                               dac=args.dac)
             summary['status'] = 'success'
-            print(f"{source.name}: [{summary['target_cartridge']}] "
-                  f"{summary['target_writes']} target writes "
-                  f"(OPM {summary['opm_writes']} + OPNA FM {summary['opna_fm_writes']} "
-                  f"+ DCSG {summary['dcsg_writes']} + DAC {summary['dac_writes']} "
-                  f"-> {summary['dac_target']}), "
-                  f"losses={summary['losses']}, deferred={list(summary['deferred'])}")
-            if summary.get('layer_target_vgm'):
-                print(f"{source.name}: layered target {summary['layer_target_vgm']} "
-                      f"adds {summary['layer_writes']} FM layer writes "
-                      f"({summary['layer_target_writes']} total)")
+            print(f"{source.name}: success")
         except Exception as error:
             summary = dict(source=str(source), status='conversion_failed',
                            detail=str(error), error_type=type(error).__name__)
