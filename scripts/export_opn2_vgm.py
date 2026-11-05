@@ -1,11 +1,14 @@
-"""Export OPN2 (YM2612) VGMs to dual-cartridge target VGMs.
+"""Export OPN2 (YM2612) VGMs to MSX cartridge target VGMs.
 
-The FM part is projected to YM2151 (OPM) at the MSX cartridge clock
-3.579545 MHz and the two DCSG chips to the MSX PSG (AY) and the OPNA
-Sound Cartridge's SSG section, all in one ``<stem>.target.vgm`` for
-playback on the two cartridges (e.g. via MAmidiMEmo's VGM player and
-a VSIF dongle). The DAC lane (S4: OPNA ADPCM-B) is inventoried in
-each song's summary JSON as deferred, not dropped.
+``--target`` selects the cartridge composition: ``makoto``
+(default) plays everything on the OPNA Sound Cartridge (FM on
+its FM section, DCSG split between the MSX PSG and the OPNA SSG,
+DAC on OPNA ADPCM-B); ``sfg01`` projects the FM part to YM2151
+(OPM) at the MSX cartridge clock 3.579545 MHz and leaves SSG +
+ADPCM-B to the OPNA cartridge. ``--layered`` additionally emits
+a target whose FM part sounds on both FM sections at once.
+``--dac y8950`` reroutes the DAC lane to an MSX-AUDIO (Y8950)
+Delta-T unit instead of the OPNA's ADPCM-B.
 """
 import argparse
 import json
@@ -26,8 +29,15 @@ def parser():
                              'unknown register effects) with the losses recorded')
     result.add_argument('--layered', action='store_true',
                         help='Also emit <stem>.layer.target.vgm: the FM part layered '
-                             'onto the OPNA FM section as well as the OPM cartridge '
+                             'onto both FM sections (OPM and OPNA) at once '
                              '(FM only; the plain target is unchanged)')
+    result.add_argument('--target', choices=('makoto', 'sfg01'), default='makoto',
+                        help='Cartridge composition of the target VGM: makoto = OPNA '
+                             'Sound Cartridge alone (default), sfg01 = FM on the OPM '
+                             'cartridge with SSG + ADPCM-B on the OPNA cartridge')
+    result.add_argument('--dac', choices=('opna', 'y8950'), default='opna',
+                        help='DAC lane destination: opna = OPNA ADPCM-B (default), '
+                             'y8950 = MSX-AUDIO (Y8950) Delta-T unit')
     return result
 
 
@@ -45,15 +55,20 @@ def main():
     for source in _inputs(args.input):
         folder = root / source.stem
         try:
-            summary = convert(source, folder, force=args.force, layered=args.layered)
+            summary = convert(source, folder, force=args.force,
+                              layered=args.layered, target=args.target,
+                              dac=args.dac)
             summary['status'] = 'success'
-            print(f"{source.name}: {summary['target_writes']} target writes "
-                  f"(OPM {summary['opm_writes']} + DCSG {summary['dcsg_writes']} "
-                  f"+ DAC {summary['dac_writes']}), "
+            print(f"{source.name}: [{summary['target_cartridge']}] "
+                  f"{summary['target_writes']} target writes "
+                  f"(OPM {summary['opm_writes']} + OPNA FM {summary['opna_fm_writes']} "
+                  f"+ DCSG {summary['dcsg_writes']} + DAC {summary['dac_writes']} "
+                  f"-> {summary['dac_target']}), "
                   f"losses={summary['losses']}, deferred={list(summary['deferred'])}")
             if summary.get('layer_target_vgm'):
                 print(f"{source.name}: layered target {summary['layer_target_vgm']} "
-                      f"with {summary['layer_writes']} OPNA FM layer writes")
+                      f"adds {summary['layer_writes']} FM layer writes "
+                      f"({summary['layer_target_writes']} total)")
         except Exception as error:
             summary = dict(source=str(source), status='conversion_failed',
                            detail=str(error), error_type=type(error).__name__)

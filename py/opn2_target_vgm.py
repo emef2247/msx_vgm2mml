@@ -538,6 +538,16 @@ def project_dcsg(analysis, *, loop_start=None, loop_event_id=None):
 # point, like the mucom88 NES DPCM level before it).
 ADPCM_B_DRAM_BUDGET = 262144
 ADPCM_B_LEVEL = 0xFF
+# The --dac y8950 variant plays the same encoded samples through
+# the MSX-AUDIO (Y8950) Delta-T unit instead: the same codec, but
+# the playback rate is clock * delta-N / (72 * 65536) at the
+# 3.579545 MHz cartridge clock, start/stop addresses count in
+# 4-byte units in RAM 256K mode (R08 mode bits 0), triggers are
+# Y8950 writes (command 0x5C, registers 0x07-0x12), the preload
+# block is type 0x88, and the sample store is the MSX-AUDIO
+# cartridge's sample RAM (32 KB on the standard cartridges).
+Y8950_CLOCK = 3579545
+Y8950_RAM_BUDGET = 32768
 _DAC_RUN_GAP_TICKS = 441  # the x68k DAC bridge's run split
 _ADPCM_B_STEP_MULTIPLIERS = (57, 57, 57, 57, 77, 102, 128, 153)
 
@@ -778,8 +788,15 @@ def _decode_dac_stream(raw, events):
     return supplies, issues, stats
 
 
-def project_dac(analysis, *, source_end, raw, events):
-    """Project the YM2612 DAC byte timeline onto OPNA ADPCM-B.
+def project_dac(analysis, *, source_end, raw, events, dac_target='opna'):
+    """Project the YM2612 DAC byte timeline onto a Delta-T unit.
+
+    With ``dac_target='opna'`` (default) the destination is the
+    OPNA's ADPCM-B channel; with ``'y8950'`` it is the MSX-AUDIO
+    Y8950's ADPCM unit. The waveform inventory, run splitting,
+    encoding and deduplication are shared; only the rate law,
+    sample budget, preload block type and trigger registers
+    differ.
 
     Returns (rows, data_block, losses, stats, run_rows). The
     timeline merges register writes (0x2A inside DAC-enabled
@@ -800,6 +817,14 @@ def project_dac(analysis, *, source_end, raw, events):
     with their playbacks and counted.
     """
     from bisect import bisect_right
+    if dac_target not in ('opna', 'y8950'):
+        raise ValueError(f'Unknown DAC target: {dac_target!r}')
+    if dac_target == 'y8950':
+        rate_clock, rate_divisor = Y8950_CLOCK, 72 * 65536
+        sample_budget = Y8950_RAM_BUDGET
+    else:
+        rate_clock, rate_divisor = OPNA_CLOCK, 144 * 65536
+        sample_budget = ADPCM_B_DRAM_BUDGET
     rows, run_rows = [], []
     losses = Counter()
     spans = [(segment.vgmticks, segment.vgmticks_end)
@@ -863,7 +888,7 @@ def project_dac(analysis, *, source_end, raw, events):
     run_rows = [None] * len(runs)
 
     def add_sample(encoded, delta_n, rate, count):
-        if len(image) + len(encoded) > ADPCM_B_DRAM_BUDGET:
+        if len(image) + len(encoded) > sample_budget:
             return None
         sample = dict(sample_id=len(sample_list), address=len(image),
                       encoded=encoded, delta_n=delta_n,
@@ -914,8 +939,8 @@ def project_dac(analysis, *, source_end, raw, events):
                 array('h', [(byte - 128) * 256]) * (next_tick - tick))
         natural = Fraction(44100, hold)
         base['natural_rate_hz'] = float(natural)
-        delta_n = max(1, min(65535, round(natural * 144 * 65536 / OPNA_CLOCK)))
-        rate = Fraction(OPNA_CLOCK * delta_n, 144 * 65536)
+        delta_n = max(1, min(65535, round(natural * rate_divisor / rate_clock)))
+        rate = Fraction(rate_clock * delta_n, rate_divisor)
         count = max(2, 2 * round(Fraction(stop - start) * rate / 44100 / 2))
         if count % 64:
             count += 64 - count % 64
@@ -956,8 +981,8 @@ def project_dac(analysis, *, source_end, raw, events):
         for cluster in clusters:
             median = cluster[len(cluster) // 2]['natural']
             delta_n = max(1, min(65535, round(
-                median * 144 * 65536 / OPNA_CLOCK)))
-            rate = Fraction(OPNA_CLOCK * delta_n, 144 * 65536)
+                median * rate_divisor / rate_clock)))
+            rate = Fraction(rate_clock * delta_n, rate_divisor)
             amplitudes = cluster[0]['amplitudes']
             count = len(amplitudes)
             if count % 64:
@@ -988,7 +1013,9 @@ def project_dac(analysis, *, source_end, raw, events):
     def emit(tick, event_id, register, data, reason, rank=1):
         rows.append(dict(
             write_id=len(rows), state_origin='projected_dac', source_chip='opn2',
-            target_device='opna_adpcm_b', target_command=0x57,
+            target_device=('y8950_adpcm' if dac_target == 'y8950'
+                           else 'opna_adpcm_b'),
+            target_command=0x5C if dac_target == 'y8950' else 0x57,
             source_event_id=event_id, source_segment_id=None,
             original_event_id=None, loop_iteration=0,
             source_vgmticks=tick, source_ch=6, source_period=None,
@@ -998,30 +1025,57 @@ def project_dac(analysis, *, source_end, raw, events):
             target_ch=None, source_row=None, inferred_key=False,
             synthetic_phase=None, sort_rank=rank))
 
-    emit(0, None, 0x00, 0x01, 'adpcm_b reset', rank=0)
-    emit(0, None, 0x00, 0x00, 'adpcm_b reset release', rank=0)
-    for entry in prepared:
-        if entry is None:
-            continue
-        sample = entry['sample']
-        start_unit = sample['address'] >> 5
-        end_unit = (sample['address'] + len(sample['encoded'])) >> 5
-        tick, event_id = entry['start_vgmticks'], entry['first_source_event_id']
-        for register, data, reason in (
-                (0x01, 0xC2, 'adpcm_b control 2 (L+R, DRAM x8)'),
-                (0x02, start_unit & 0xFF, 'adpcm_b start address low'),
-                (0x03, start_unit >> 8, 'adpcm_b start address high'),
-                (0x04, (end_unit - 1) & 0xFF, 'adpcm_b end address low'),
-                (0x05, (end_unit - 1) >> 8, 'adpcm_b end address high'),
-                (0x09, sample['delta_n'] & 0xFF, 'adpcm_b delta-N low'),
-                (0x0A, sample['delta_n'] >> 8, 'adpcm_b delta-N high'),
-                (0x0B, ADPCM_B_LEVEL, 'adpcm_b level'),
-                (0x0C, 0xFF, 'adpcm_b limit low'),
-                (0x0D, 0xFF, 'adpcm_b limit high'),
-                (0x00, 0xA0, 'adpcm_b start (external DRAM)')):
-            emit(tick, event_id, register, data, reason)
+    if dac_target == 'y8950':
+        emit(0, None, 0x07, 0x01, 'y8950_adpcm reset', rank=0)
+        emit(0, None, 0x07, 0x00, 'y8950_adpcm reset release', rank=0)
+        for entry in prepared:
+            if entry is None:
+                continue
+            sample = entry['sample']
+            start_unit = sample['address'] >> 2
+            stop_unit = (sample['address'] + len(sample['encoded']) - 1) >> 2
+            tick, event_id = (entry['start_vgmticks'],
+                              entry['first_source_event_id'])
+            for register, data, reason in (
+                    (0x08, 0x00, 'y8950_adpcm memory select (RAM 256K)'),
+                    (0x09, start_unit & 0xFF, 'y8950_adpcm start address low'),
+                    (0x0A, start_unit >> 8, 'y8950_adpcm start address high'),
+                    (0x0B, stop_unit & 0xFF, 'y8950_adpcm stop address low'),
+                    (0x0C, stop_unit >> 8, 'y8950_adpcm stop address high'),
+                    (0x10, sample['delta_n'] & 0xFF, 'y8950_adpcm delta-N low'),
+                    (0x11, sample['delta_n'] >> 8, 'y8950_adpcm delta-N high'),
+                    (0x12, ADPCM_B_LEVEL, 'y8950_adpcm level'),
+                    (0x07, 0x80, 'y8950_adpcm start')):
+                emit(tick, event_id, register, data, reason)
+        block_type = 0x88
+    else:
+        emit(0, None, 0x00, 0x01, 'adpcm_b reset', rank=0)
+        emit(0, None, 0x00, 0x00, 'adpcm_b reset release', rank=0)
+        for entry in prepared:
+            if entry is None:
+                continue
+            sample = entry['sample']
+            start_unit = sample['address'] >> 5
+            end_unit = (sample['address'] + len(sample['encoded'])) >> 5
+            tick, event_id = (entry['start_vgmticks'],
+                              entry['first_source_event_id'])
+            for register, data, reason in (
+                    (0x01, 0xC2, 'adpcm_b control 2 (L+R, DRAM x8)'),
+                    (0x02, start_unit & 0xFF, 'adpcm_b start address low'),
+                    (0x03, start_unit >> 8, 'adpcm_b start address high'),
+                    (0x04, (end_unit - 1) & 0xFF, 'adpcm_b end address low'),
+                    (0x05, (end_unit - 1) >> 8, 'adpcm_b end address high'),
+                    (0x09, sample['delta_n'] & 0xFF, 'adpcm_b delta-N low'),
+                    (0x0A, sample['delta_n'] >> 8, 'adpcm_b delta-N high'),
+                    (0x0B, ADPCM_B_LEVEL, 'adpcm_b level'),
+                    (0x0C, 0xFF, 'adpcm_b limit low'),
+                    (0x0D, 0xFF, 'adpcm_b limit high'),
+                    (0x00, 0xA0, 'adpcm_b start (external DRAM)')):
+                emit(tick, event_id, register, data, reason)
+        block_type = 0x81
     payload = struct.pack('<II', len(image), 0) + bytes(image)
-    data_block = b'\x67\x66\x81' + struct.pack('<I', len(payload)) + payload
+    data_block = (bytes((0x67, 0x66, block_type))
+                  + struct.pack('<I', len(payload)) + payload)
     return rows, data_block, losses, stats, run_rows
 
 
@@ -1039,9 +1093,9 @@ _LAYER_SKIP = frozenset((0x24, 0x25, 0x26, 0x29, 0x2A, 0x2B))
 def project_fm_layer(events, raw, *, clock_raw):
     """Retarget the source YM2612 FM writes onto the OPNA FM section.
 
-    The layered target keeps the OPM projection as the primary FM
-    lane and adds this register-level copy on the YM2608 (commands
-    0x56/0x57), so the same FM part sounds on both cartridges. The
+    This register-level copy (commands 0x56/0x57) is the FM lane
+    of the makoto target composition and the added layer of the
+    layered file, where it sounds together with the OPM lane. The
     YM2608 FM register map is the YM2612's, so operator parameters,
     feedback/algorithm, pan/LFO sensitivity, key on/off and the CH3
     mode pass through verbatim; only the F-numbers are rescaled
@@ -1103,7 +1157,7 @@ def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None, prefix=b'
     """Serialize merged projection rows at exact source samples.
 
     Rows carry their own target command (0x54 YM2151, 0xA0 AY,
-    0x56/0x57 YM2608 ports 0/1) and must already be in
+    0x56/0x57 YM2608 ports 0/1, 0x5C Y8950) and must already be in
     non-decreasing source sample order. ``prefix`` bytes (the
     ADPCM-B data block) lead the command stream; they sit before
     any loop point, so the loop offset accounts for them. The
@@ -1143,10 +1197,14 @@ def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None, prefix=b'
     raw = bytearray(0x100) + commands
     raw[:4] = b'Vgm '
     present = {row.get('target_command', 0x54) for row in rows}
-    stamps = [(4, len(raw) - 4), (8, 0x171), (0x18, end), (0x30, TARGET_CLOCK),
+    stamps = [(4, len(raw) - 4), (8, 0x171), (0x18, end),
               (0x34, 0x100 - 0x34)]
+    if 0x54 in present:
+        stamps.append((0x30, TARGET_CLOCK))
     if present & {0x56, 0x57}:
         stamps.append((0x48, OPNA_CLOCK))
+    if 0x5C in present:
+        stamps.append((0x58, Y8950_CLOCK))
     if 0xA0 in present:
         stamps.append((0x74, AY_CLOCK))
     for offset, value in stamps:
@@ -1157,28 +1215,38 @@ def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None, prefix=b'
         struct.pack_into('<I', raw, 0x1c, loop_address - 0x1c)
         struct.pack_into('<I', raw, 0x20, end - loop_start)
     identities = {e.address: i for i, e in enumerate(command_times(raw))
-                  if e.command in (0x54, 0xA0, 0x56, 0x57)}
+                  if e.command in (0x54, 0xA0, 0x56, 0x57, 0x5C)}
     for row in rows:
         row['target_source_event_id'] = identities[row['target_command_address']]
     Path(path).write_bytes(raw)
 
 
-def convert(source, outdir, *, force=False, layered=False):
-    """Analyze one OPN2 VGM and emit its dual-cartridge target VGM.
+def convert(source, outdir, *, force=False, layered=False, target='makoto',
+            dac='opna'):
+    """Analyze one OPN2 VGM and emit its target VGM.
 
     Native evidence (registers/states/segments CSVs and the source
     report) lands in ``outdir`` next to ``<stem>.target.vgm``, the
-    per-lane projected-writes CSVs and the summary JSON. FM goes to
-    the OPM cartridge, DCSG to the MSX PSG + OPNA SSG, and the DAC
-    (register writes and stream supplies alike) is re-encoded to
-    OPNA ADPCM-B: samples are preloaded by data block and runs are
-    triggered per song position.
+    per-lane projected-writes CSVs and the summary JSON. The DCSG
+    lanes go to the MSX PSG + OPNA SSG and the DAC is re-encoded
+    to a Delta-T unit (see ``dac`` below).
 
-    With ``layered``, a second file ``<stem>.layer.target.vgm`` is
-    emitted alongside: the same target plus the FM part retargeted
-    onto the OPNA's own FM section (see project_fm_layer), so the
-    FM sounds on the OPM and OPNA cartridges together. Only the FM
-    lane is layered; the plain target is unchanged.
+    ``target`` selects the FM composition. ``makoto`` (default)
+    is the OPNA cartridge alone: the FM part is retargeted onto
+    the OPNA's own FM section (project_fm_layer) and no YM2151
+    writes are emitted. ``sfg01`` is the dual-cartridge
+    composition: the FM part is projected to the OPM cartridge
+    (YM2151) and the OPNA cartridge carries SSG + ADPCM-B.
+
+    ``dac`` selects the DAC lane's destination: ``opna``
+    (default) is the OPNA's ADPCM-B; ``y8950`` is an MSX-AUDIO
+    Y8950's Delta-T unit (e.g. alongside a Misato cartridge,
+    which has no ADPCM of its own).
+
+    With ``layered``, a second file ``<stem>.layer.target.vgm``
+    is emitted alongside: the target composition plus the other
+    FM lane, so the FM sounds on the OPM and OPNA cartridges
+    together. Only the FM lane is layered.
     """
     source, outdir = Path(source), Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
@@ -1208,13 +1276,20 @@ def convert(source, outdir, *, force=False, layered=False):
     raw = read_vgm_bytes(str(source))
     dac_rows, dac_block, dac_losses, dac_stats, dac_runs = project_dac(
         analysis, source_end=bundle['source_end_sample'],
-        raw=raw, events=bundle['events'])
+        raw=raw, events=bundle['events'], dac_target=dac)
     for key, value in dac_losses.items():
         losses[key] = losses.get(key, 0) + value
-    merged = sorted(rows + dcsg_rows + dac_rows,
+    if target not in ('makoto', 'sfg01'):
+        raise ValueError(f'Unknown OPN2 target cartridge: {target!r}')
+    opna_fm_rows, opna_fm_stats = [], {}
+    if target == 'makoto' or layered:
+        opna_fm_rows, opna_fm_stats = project_fm_layer(
+            bundle['events'], raw, clock_raw=clock_raw)
+    fm_rows = opna_fm_rows if target == 'makoto' else rows
+    merged = sorted(fm_rows + dcsg_rows + dac_rows,
                     key=lambda r: (r['source_vgmticks'], r.get('sort_rank', 1)))
-    target = outdir / f'{stem}.target.vgm'
-    write_vgm(merged, target, end=bundle['source_end_sample'],
+    target_file = outdir / f'{stem}.target.vgm'
+    write_vgm(merged, target_file, end=bundle['source_end_sample'],
               loop_start=loop_start, loop_event_id=loop_event_id,
               prefix=dac_block)
     writes_csv = outdir / f'{stem}.opn2_opm.writes.csv'
@@ -1222,6 +1297,12 @@ def convert(source, outdir, *, force=False, layered=False):
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]) if rows else ['write_id'])
         writer.writeheader()
         writer.writerows(rows)
+    if opna_fm_rows:
+        opna_csv = outdir / f'{stem}.opn2_opna_fm.writes.csv'
+        with opna_csv.open('w', encoding='utf-8', newline='') as stream:
+            writer = csv.DictWriter(stream, fieldnames=list(opna_fm_rows[0]))
+            writer.writeheader()
+            writer.writerows(opna_fm_rows)
     if dcsg_rows:
         dcsg_csv = outdir / f'{stem}.opn2_dcsg.writes.csv'
         with dcsg_csv.open('w', encoding='utf-8', newline='') as stream:
@@ -1234,12 +1315,17 @@ def convert(source, outdir, *, force=False, layered=False):
             writer = csv.DictWriter(stream, fieldnames=list(dac_runs[0]))
             writer.writeheader()
             writer.writerows(dac_runs)
-    layer_rows, layer_stats, layer_target = [], {}, None
+    added_rows, layer_target, layer_target_writes = [], None, 0
     if layered:
-        layer_rows, layer_stats = project_fm_layer(
-            bundle['events'], raw, clock_raw=clock_raw)
-        if layer_rows:
-            layer_merged = sorted(rows + dcsg_rows + dac_rows + layer_rows,
+        added_rows = rows if target == 'makoto' else opna_fm_rows
+        if added_rows:
+            # The layered composition is canonical - OPM lane,
+            # DCSG, DAC, then the OPNA FM lane - whichever target
+            # was picked as primary, so the layered file is the
+            # same dual-cartridge file the trial established (with
+            # stable sorting, same-tick same-rank rows keep this
+            # concatenation order).
+            layer_merged = sorted(rows + dcsg_rows + dac_rows + opna_fm_rows,
                                   key=lambda r: (r['source_vgmticks'],
                                                  r.get('sort_rank', 1)))
             layer_target = outdir / f'{stem}.layer.target.vgm'
@@ -1247,22 +1333,26 @@ def convert(source, outdir, *, force=False, layered=False):
                       end=bundle['source_end_sample'],
                       loop_start=loop_start, loop_event_id=loop_event_id,
                       prefix=dac_block)
-            layer_csv = outdir / f'{stem}.opn2_layer.writes.csv'
-            with layer_csv.open('w', encoding='utf-8', newline='') as stream:
-                writer = csv.DictWriter(stream, fieldnames=list(layer_rows[0]))
-                writer.writeheader()
-                writer.writerows(layer_rows)
+            layer_target_writes = len(layer_merged)
     deferred = {}
     summary = dict(source=str(source), source_sha256=bundle['source_sha256'],
                    active_chips=list(bundle['active_chips']),
                    opn2_clock_hz=clock_raw & 0x3fffffff,
-                   target_clock_hz=TARGET_CLOCK, target_vgm=target.name,
-                   target_writes=len(merged), opm_writes=len(rows),
+                   target_cartridge=target,
+                   target_clock_hz=(TARGET_CLOCK if target == 'sfg01'
+                                    else OPNA_CLOCK),
+                   target_vgm=target_file.name,
+                   target_writes=len(merged),
+                   opm_writes=len(rows) if target == 'sfg01' else 0,
+                   opna_fm_writes=(len(opna_fm_rows)
+                                   if target == 'makoto' else 0),
                    dcsg_writes=len(dcsg_rows), dcsg=dcsg_stats,
+                   dac_target=dac,
                    dac_writes=len(dac_rows), dac=dac_stats,
-                   layered=layered, layer_writes=len(layer_rows),
-                   layer=layer_stats,
+                   layered=layered, layer_writes=len(added_rows),
+                   layer=opna_fm_stats,
                    layer_target_vgm=(layer_target.name if layer_target else None),
+                   layer_target_writes=layer_target_writes,
                    losses=losses, deferred=deferred,
                    loop=dict(status=loop.get('status'), start_sample=loop_start))
     (outdir / f'{stem}.opn2_opm.json').write_text(

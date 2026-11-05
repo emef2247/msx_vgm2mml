@@ -36,16 +36,16 @@ PHRASE = bytes((
 
 
 class Opn2TargetVgmTests(unittest.TestCase):
-    def convert(self, raw):
+    def convert(self, raw, **kwargs):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         folder = Path(temporary.name)
         source = folder / 'authored.vgm'
         source.write_bytes(raw)
-        return convert(source, folder / 'out'), folder / 'out'
+        return convert(source, folder / 'out', **kwargs), folder / 'out'
 
     def test_phrase_projects_to_opm_vgm_at_cartridge_clock(self):
-        summary, out = self.convert(vgm(PHRASE))
+        summary, out = self.convert(vgm(PHRASE), target='sfg01')
         target = out / 'authored.target.vgm'
         self.assertTrue(target.is_file())
         raw = target.read_bytes()
@@ -92,6 +92,45 @@ class Opn2TargetVgmTests(unittest.TestCase):
                 triggers += 1
         self.assertEqual(triggers, 1)
         self.assertTrue((out / 'authored.opn2_dac.csv').is_file())
+
+    def test_dac_y8950_variant(self):
+        # Same DAC burst as the ADPCM-B test, rerouted to a Y8950.
+        burst = bytes((0x52, 0x2b, 0x80))
+        for value in (0x80, 0xA0, 0xC0, 0xE0, 0xC0, 0xA0, 0x80, 0x60):
+            burst += bytes((0x52, 0x2a, value, 0x61, 0x02, 0x00))
+        summary, out = self.convert(vgm(PHRASE + burst), dac='y8950')
+        self.assertEqual(summary['dac_target'], 'y8950')
+        self.assertEqual(summary['dac']['unique_samples'], 1)
+        self.assertEqual(summary['dac']['playbacks'], 1)
+        raw = (out / 'authored.target.vgm').read_bytes()
+        block = raw.find(b'\x67\x66\x88')
+        self.assertGreater(block, 0)
+        self.assertEqual(raw.find(b'\x67\x66\x81'), -1)
+        size = struct.unpack_from('<I', raw, block + 3)[0]
+        total = struct.unpack_from('<I', raw, block + 7)[0]
+        self.assertEqual(total, summary['dac']['dram_bytes'])
+        self.assertEqual(size, 8 + total)
+        self.assertEqual(struct.unpack_from('<I', raw, 0x58)[0], 3579545)
+        events = list(command_times(raw))
+        self.assertFalse(any(e.command == 0x57 for e in events))
+        starts = [e for e in events if e.command == 0x5C
+                  and raw[e.address + 1] == 0x07
+                  and raw[e.address + 2] == 0x80]
+        self.assertEqual(len(starts), 1)
+        # The burst's 2-tick hold is a 22050 Hz natural rate; the
+        # Y8950 rate law is clock * delta-N / (72 * 65536).
+        expected_delta_n = round(22050 * 72 * 65536 / 3579545)
+        delta_l = [e for e in events if e.command == 0x5C
+                   and raw[e.address + 1] == 0x10]
+        self.assertEqual(len(delta_l), 1)
+        self.assertEqual(raw[delta_l[0].address + 2], expected_delta_n & 0xFF)
+        delta_h = [e for e in events if e.command == 0x5C
+                   and raw[e.address + 1] == 0x11]
+        self.assertEqual(raw[delta_h[0].address + 2], expected_delta_n >> 8)
+        import csv as csv_module
+        with (out / 'authored.opn2_dac.csv').open() as stream:
+            rows = list(csv_module.DictReader(stream))
+        self.assertEqual(int(rows[0]['delta_n']), expected_delta_n)
 
     def test_dac_stream_supplies_project_to_adpcm_b(self):
         bank = bytes((0x80, 0x90, 0xB0, 0xD0, 0xB0, 0x90)) * 4
@@ -164,13 +203,13 @@ def dual_vgm(commands):
 
 
 class Opn2DcsgTargetTests(unittest.TestCase):
-    def convert(self, raw):
+    def convert(self, raw, **kwargs):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         folder = Path(temporary.name)
         source = folder / 'authored.vgm'
         source.write_bytes(raw)
-        return convert(source, folder / 'out'), folder / 'out'
+        return convert(source, folder / 'out', **kwargs), folder / 'out'
 
     def test_dcsg_projects_to_ay_and_ssg(self):
         summary, out = self.convert(dual_vgm(PHRASE + DCSG_PHRASE))
@@ -185,9 +224,14 @@ class Opn2DcsgTargetTests(unittest.TestCase):
         # native_imports has no AY domain, so the PSG lane is checked
         # on the raw command stream instead of via inspect_source.
         from native_imports.vgm_timing import command_times
+        events = list(command_times(raw))
         from collections import Counter
-        counts = Counter(e.command for e in command_times(raw))
-        self.assertEqual(counts[0xA0] + counts[0x56], summary['dcsg_writes'])
+        counts = Counter(e.command for e in events)
+        # Port 0 also carries the OPNA FM lane under the makoto
+        # target; only its SSG registers (0x00-0x0F) are DCSG rows.
+        ssg_writes = sum(1 for e in events if e.command == 0x56
+                         and raw[e.address + 1] < 0x10)
+        self.assertEqual(counts[0xA0] + ssg_writes, summary['dcsg_writes'])
         self.assertGreater(counts[0xA0], 0)
         import csv as csv_module
         with (out / 'authored.opn2_dcsg.writes.csv').open() as stream:
@@ -220,25 +264,25 @@ class Opn2DcsgTargetTests(unittest.TestCase):
         self.assertEqual(summary['dcsg']['ay']['noise_segments'], 2)
         # initial unknown segment + the segment from the control write
 
-    def convert_layered(self, raw):
+    def convert_layered(self, raw, **kwargs):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         folder = Path(temporary.name)
         source = folder / 'authored.vgm'
         source.write_bytes(raw)
-        return convert(source, folder / 'out', layered=True), folder / 'out'
+        return convert(source, folder / 'out', layered=True, **kwargs), folder / 'out'
 
     def test_layered_not_emitted_by_default(self):
         _summary, out = self.convert(vgm(PHRASE))
         self.assertFalse((out / 'authored.layer.target.vgm').exists())
 
-    def test_layered_adds_opna_fm_layer_and_keeps_plain_target(self):
+    def test_layered_combines_fm_lanes_and_keeps_plain_target(self):
         plain_summary, plain_out = self.convert(vgm(PHRASE))
         summary, out = self.convert_layered(vgm(PHRASE))
         self.assertTrue(summary['layered'])
         self.assertGreater(summary['layer_writes'], 0)
         self.assertEqual(summary['layer_target_vgm'], 'authored.layer.target.vgm')
-        self.assertTrue((out / 'authored.opn2_layer.writes.csv').is_file())
+        self.assertTrue((out / 'authored.opn2_opna_fm.writes.csv').is_file())
         # The plain target is byte-identical with and without --layered.
         self.assertEqual((out / 'authored.target.vgm').read_bytes(),
                          (plain_out / 'authored.target.vgm').read_bytes())
@@ -265,6 +309,47 @@ class Opn2DcsgTargetTests(unittest.TestCase):
         positions = [i for i in range(len(writes) - 1)
                      if writes[i:i + 2] == pair]
         self.assertEqual(len(positions), 1)
+
+    def test_default_target_is_makoto_opna_only(self):
+        summary, out = self.convert(vgm(PHRASE))
+        self.assertEqual(summary['target_cartridge'], 'makoto')
+        self.assertEqual(summary['opm_writes'], 0)
+        self.assertGreater(summary['opna_fm_writes'], 0)
+        raw = (out / 'authored.target.vgm').read_bytes()
+        commands = [e.command for e in command_times(raw)]
+        self.assertNotIn(0x54, commands)
+        self.assertIn(0x56, commands)
+        # No YM2151 clock is stamped when no OPM writes are present.
+        self.assertEqual(struct.unpack_from('<I', raw, 0x30)[0], 0)
+        self.assertEqual(struct.unpack_from('<I', raw, 0x48)[0], 8000000)
+        bundle = inspect_source(raw)
+        self.assertNotIn('opm', bundle['active_chips'])
+        self.assertIn('opna', bundle['active_chips'])
+        self.assertTrue((out / 'authored.opn2_opna_fm.writes.csv').is_file())
+
+    def test_sfg01_target_keeps_opm_composition(self):
+        summary, out = self.convert(vgm(PHRASE), target='sfg01')
+        self.assertEqual(summary['target_cartridge'], 'sfg01')
+        self.assertGreater(summary['opm_writes'], 0)
+        self.assertEqual(summary['opna_fm_writes'], 0)
+        self.assertFalse((out / 'authored.opn2_opna_fm.writes.csv').exists())
+        raw = (out / 'authored.target.vgm').read_bytes()
+        self.assertEqual(struct.unpack_from('<I', raw, 0x30)[0], TARGET_CLOCK)
+
+    def test_layered_under_makoto_adds_opm_lane(self):
+        summary, out = self.convert_layered(vgm(PHRASE))
+        raw = (out / 'authored.layer.target.vgm').read_bytes()
+        commands = [e.command for e in command_times(raw)]
+        self.assertIn(0x54, commands)
+        self.assertIn(0x56, commands)
+        self.assertGreater(summary['layer_writes'], 0)
+        # The plain makoto target still carries no OPM writes.
+        plain = (out / 'authored.target.vgm').read_bytes()
+        self.assertNotIn(0x54, [e.command for e in command_times(plain)])
+
+    def test_unknown_target_rejected(self):
+        with self.assertRaises(ValueError):
+            self.convert(vgm(PHRASE), target='bogus')
 
 
 if __name__ == '__main__':
