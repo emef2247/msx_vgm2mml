@@ -350,6 +350,8 @@ def publication_targets(files, source_root, output, psg_part):
         for name in owned:
             allowed_products = {target.relative_to(package).as_posix() for target in targets}
             allowed_products.add((package / 'tracks' / (path.stem + '.vgm')).relative_to(package).as_posix())
+            allowed_products.add((package / 'tracks' / (path.stem + '.target.vgm')).relative_to(package).as_posix())
+            allowed_products.add((package / 'tracks' / (path.stem + '.layer.target.vgm')).relative_to(package).as_posix())
             allowed_products.add(blueprint.relative_to(package).as_posix())
             if name not in allowed_products and not (Path(name).parent.as_posix() == 'blueprint'
                     and blueprint_artifact_name(Path(name).name, path.stem)):
