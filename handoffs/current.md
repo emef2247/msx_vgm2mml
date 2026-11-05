@@ -4134,3 +4134,25 @@ should gain an optional musical clock fitter. MUCOM work remains paused.
   field note.
 - Next: S4 DAC -> OPNA ADPCM-B (Delta re-encode, upload
   sequence, 256 KB DRAM budget as recorded degradation).
+
+## --layered for the OPN2 target VGM (2026-11-05, claude/layered-option)
+
+- py/opn2_target_vgm.py: project_fm_layer() retargets the source
+  YM2612 FM writes onto the YM2608 FM section (0x56/0x57) at
+  register level; F-numbers are rescaled from the source clock to
+  8 MHz, block preserved unless the scaled value overflows 11
+  bits. DAC, timer and test-register writes are not layered.
+  convert(layered=True) additionally emits
+  <stem>.layer.target.vgm and <stem>.opn2_layer.writes.csv; the
+  summary gains layered / layer_writes / layer /
+  layer_target_vgm. FM only, per the user's scope decision; a
+  general all-routes layered rendering belongs to the future
+  MAP-file / vgm_enhancer work, not to per-target CLI flags.
+- scripts/export_opn2_vgm.py: --layered flag.
+- Verification: ASOLDR07 layered output is byte-identical to
+  the trial file previously auditioned on real hardware, and
+  the plain target is byte-identical with and without the flag.
+  Full suite 953 tests (main 950 + 3 new); the FAIL/ERROR name
+  set is identical to main's (127F+6E, skipped 106).
+- Developed on the private dev repository (msx_vgm2mml-dev);
+  publication to the public repository stays with the user.
