@@ -4211,3 +4211,12 @@ should gain an optional musical clock fitter. MUCOM work remains paused.
   (220,512 bytes, 210 samples, 604 playbacks, no drops), and
   still renders in ymfm (94.0 s, RMS -10.95 dBFS).
   test_opn2_target_vgm remains 16/16.
+
+## Status-line presentation (2026-11-05, claude/layered-option)
+
+- At the user's request, export_opn2_vgm.py no longer prints
+  the per-song writes breakdown with the raw losses dict.
+  Success is one line, "<name>: success", matching the other
+  exporters; failures still print their error to stderr. The
+  full summary (composition, write counts, losses, deferred)
+  remains in the output root's report.json.
