@@ -4156,3 +4156,46 @@ should gain an optional musical clock fitter. MUCOM work remains paused.
   set is identical to main's (127F+6E, skipped 106).
 - Developed on the private dev repository (msx_vgm2mml-dev);
   publication to the public repository stays with the user.
+
+## --target / --dac for the OPN2 target VGM (2026-11-05, claude/layered-option)
+
+- User decision (2026-11-05): --target {sfg01, makoto} selects
+  the cartridge composition; makoto is the default because
+  Makoto is the currently produced doujin hardware and covers
+  the whole file alone. --dac {opna, y8950} selects the DAC
+  lane destination; the Delta-T codec/encoding is shared, only
+  the VGM commands/registers differ. Misato (OPN3-L, no ADPCM)
+  is covered by --target makoto --dac y8950 plus MSX-AUDIO.
+  No further per-route flags; general layering belongs to the
+  MAP-file / vgm_enhancer work.
+- py/opn2_target_vgm.py: convert(target=...) makes the OPNA
+  FM projection (project_fm_layer) the primary FM lane under
+  makoto: no YM2151 writes, and write_vgm stamps the YM2151
+  clock only when 0x54 writes exist, so sfg01 output is
+  unchanged byte-for-byte. The OPNA FM writes CSV is renamed
+  opn2_opna_fm.writes.csv. Layered composition uses the
+  canonical row order [OPM, DCSG, DAC, OPNA FM] under both
+  targets (a primary-relative ordering diverged at one byte).
+  project_dac(dac_target='y8950'): same waveform inventory,
+  stream runs and Delta-T encoding; the Y8950 differences are
+  the 0x88 data block, 0x5C register writes, start/stop
+  addresses in 4-byte units, delta-N at the 3.579545 MHz
+  clock, and a 32,768-byte sample budget (standard MSX-AUDIO
+  RAM); over-budget samples are dropped and counted.
+- scripts/export_opn2_vgm.py: --target / --dac flags; the
+  status line reports the composition and DAC destination.
+- Verification: tests 16/16 in test_opn2_target_vgm. ASOLDR07:
+  sfg01 plain target byte-identical to the shipped v2.4.0
+  file; layered byte-identical to the auditioned trial under
+  both targets; makoto plain has zero YM2151 writes and no
+  YM2151 clock stamp; the y8950 variant fills exactly
+  32,768 bytes (49 samples, 161 over-budget drops) and renders
+  in ymfm vgmrender with the ADPCM lane audibly active
+  (whole-file RMS about 4.5 dB hotter than the OPNA render in
+  ymfm; both destinations use full level, so real-hardware
+  balance is a listening matter). Full suite 958 tests
+  (main 950 + 8 new); the FAIL/ERROR name set is identical
+  to main's (127F+6E, skipped 106).
+- Open question for the user: keep the Y8950 sample budget at
+  32 KB (standard MSX-AUDIO RAM) or assume a 256 KB expansion.
+- Publication to the public repository stays with the user.
