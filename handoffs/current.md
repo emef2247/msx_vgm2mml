@@ -4220,3 +4220,20 @@ should gain an optional musical clock fitter. MUCOM work remains paused.
   exporters; failures still print their error to stderr. The
   full summary (composition, write counts, losses, deferred)
   remains in the output root's report.json.
+
+## Layered corrects the DAC destination to OPNA (2026-11-05, claude/layered-option)
+
+- At the user's request, convert() now corrects dac='y8950'
+  to 'opna' whenever layered is set: the layered composition
+  is the dual-cartridge one, so the OPNA cartridge (and its
+  ADPCM-B) is present by construction. The summary records
+  dac_corrected_from='y8950' when the correction fires; the
+  CLI help says the same. Without --layered, y8950 is
+  unaffected.
+- Verification: test_opn2_target_vgm 17/17 (new authored
+  case). On ASOLDR07 with --layered --dac y8950, both outputs
+  are byte-identical to the same run with --dac opna; without
+  --force the layered file also stays byte-identical to the
+  auditioned trial file. (Under --force the layered file
+  gains the OPM lane's force-projected writes, as in the
+  sfg01 plain target; unrelated to this correction.)
