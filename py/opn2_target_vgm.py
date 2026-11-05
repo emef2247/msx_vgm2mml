@@ -1248,8 +1248,15 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
     With ``layered``, a second file ``<stem>.layer.target.vgm``
     is emitted alongside: the target composition plus the other
     FM lane, so the FM sounds on the OPM and OPNA cartridges
-    together. Only the FM lane is layered.
+    together. Only the FM lane is layered. The layered
+    composition is the dual-cartridge one, so with ``layered``
+    a ``dac`` of ``y8950`` is corrected to ``opna`` (the OPNA
+    cartridge is present by construction); the summary then
+    carries ``dac_corrected_from``.
     """
+    dac_corrected = bool(layered and dac == 'y8950')
+    if dac_corrected:
+        dac = 'opna'
     source, outdir = Path(source), Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
     stem = source.stem
@@ -1357,6 +1364,8 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
                    layer_target_writes=layer_target_writes,
                    losses=losses, deferred=deferred,
                    loop=dict(status=loop.get('status'), start_sample=loop_start))
+    if dac_corrected:
+        summary['dac_corrected_from'] = 'y8950'
     (outdir / f'{stem}.opn2_opm.json').write_text(
         json.dumps(summary, indent=2) + '\n', encoding='utf-8')
     return summary

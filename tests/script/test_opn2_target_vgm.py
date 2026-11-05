@@ -132,6 +132,27 @@ class Opn2TargetVgmTests(unittest.TestCase):
             rows = list(csv_module.DictReader(stream))
         self.assertEqual(int(rows[0]['delta_n']), expected_delta_n)
 
+    def test_layered_corrects_y8950_dac_to_opna(self):
+        # The layered composition is the dual-cartridge one, so a
+        # y8950 DAC request is corrected to the OPNA's ADPCM-B.
+        burst = bytes((0x52, 0x2b, 0x80))
+        for value in (0x80, 0xA0, 0xC0, 0xE0, 0xC0, 0xA0, 0x80, 0x60):
+            burst += bytes((0x52, 0x2a, value, 0x61, 0x02, 0x00))
+        summary, out = self.convert(vgm(PHRASE + burst),
+                                    dac='y8950', layered=True)
+        self.assertEqual(summary['dac_target'], 'opna')
+        self.assertEqual(summary['dac_corrected_from'], 'y8950')
+        for name in ('authored.target.vgm', 'authored.layer.target.vgm'):
+            raw = (out / name).read_bytes()
+            self.assertGreater(raw.find(b'\x67\x66\x81'), 0)
+            self.assertEqual(raw.find(b'\x67\x66\x88'), -1)
+            self.assertEqual(struct.unpack_from('<I', raw, 0x58)[0], 0)
+            events = list(command_times(raw))
+            self.assertFalse(any(e.command == 0x5C for e in events))
+            self.assertTrue(any(e.command == 0x57 for e in events))
+        plain, _ = self.convert(vgm(PHRASE + burst), dac='y8950')
+        self.assertNotIn('dac_corrected_from', plain)
+
     def test_dac_stream_supplies_project_to_adpcm_b(self):
         bank = bytes((0x80, 0x90, 0xB0, 0xD0, 0xB0, 0x90)) * 4
         block = bytes((0x67, 0x66, 0x00)) + struct.pack('<I', len(bank)) + bank

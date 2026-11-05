@@ -37,7 +37,8 @@ def parser():
                              'cartridge with SSG + ADPCM-B on the OPNA cartridge')
     result.add_argument('--dac', choices=('opna', 'y8950'), default='opna',
                         help='DAC lane destination: opna = OPNA ADPCM-B (default), '
-                             'y8950 = MSX-AUDIO (Y8950) Delta-T unit')
+                             'y8950 = MSX-AUDIO (Y8950) Delta-T unit '
+                             '(with --layered the DAC lane always goes to the OPNA)')
     return result
 
 
