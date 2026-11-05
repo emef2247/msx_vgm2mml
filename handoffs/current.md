@@ -4237,3 +4237,48 @@ should gain an optional musical clock fitter. MUCOM work remains paused.
   auditioned trial file. (Under --force the layered file
   gains the OPM lane's force-projected writes, as in the
   sfg01 plain target; unrelated to this correction.)
+
+## export_opn2_vgm rebuilt on export_mgs (2026-11-06, claude/layered-option)
+
+- At the user's request, scripts/export_opn2_vgm.py is now
+  export_mgs.py plus one route, instead of its own flat
+  output: products publish to tracks/, all conversion
+  evidence (native and writes CSVs, the summary JSON) stays
+  in _diagnostics/<stem>/ with report.json/report.txt and
+  publication.json, sources stage into _source_inputs/, and
+  results.csv/results.json + listening_manifest.json follow
+  the batch runner's ownership rules (publish_bundle reuse;
+  a hand-edited target product is refused, exit 2). The old
+  flat <outdir>/<stem>/ layout and the root report.json are
+  gone. py/opn2_target_vgm.convert is unchanged and now runs
+  into the diagnostics folder as its staging area.
+- --target names the route: msx-music-scc (the user's name
+  for the standard route) is plain export_mgs behaviour;
+  makoto/sfg01 select the cartridge composition. Unset
+  --target resolves per source: OPN2 sources default to
+  makoto, everything else to msx-music-scc. Combinations
+  with no route yet (OPN2 + msx-music-scc, non-OPN2 +
+  makoto/sfg01) become per-song route_unavailable failure
+  rows instead of being silently ignored. The user is
+  considering giving NES/HuC6280 sources a makoto/sfg01
+  route via the x68k_vgm2mml path instead of SCC; that is
+  future work, not implemented here.
+- Non-OPN2-only runs make one run_batch call on the original
+  arguments (byte-identical behaviour to export_mgs.py).
+  Mixed directories call run_batch per non-OPN2 file and the
+  target route per OPN2 file, then write combined
+  _diagnostics/results.{csv,json}.
+- batch_vgm_to_mgs.publication_targets now also allows
+  tracks/<stem>.target.vgm and .layer.target.vgm as manifest
+  published products, so the two scripts can share a package.
+- Verification: ASOLDR07 through the new script publishes
+  tracks/ASOLDR07.target.vgm byte-identical to the
+  established file (md5 5d40ae3e...), with every CSV under
+  _diagnostics/ASOLDR07/. A public OPLL fixture through the
+  new script yields .mml/.mgs/blueprint byte-identical to
+  export_mgs.py itself. tests/script/test_export_opn2_vgm.py
+  is new (7 tests: layout, layered+dac correction, stale
+  layer removal, hand-edit refusal, both route_unavailable
+  directions, run_batch delegation). The export/batch test
+  subset shows the same 4 failures + 1 error with and
+  without these changes (pre-existing on this VM).
