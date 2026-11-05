@@ -4282,3 +4282,35 @@ should gain an optional musical clock fitter. MUCOM work remains paused.
   directions, run_batch delegation). The export/batch test
   subset shows the same 4 failures + 1 error with and
   without these changes (pre-existing on this VM).
+
+## --sd-layout: all cartridge variants in the SD-card tree (2026-11-06, claude/layered-option)
+
+- export_opn2_vgm.py --sd-layout (user's option choice)
+  additionally publishes all four cartridge variants per
+  OPN2 song in the user's SD-card tree, currently rooted at
+  the package: <stem>/makoto/<stem>.vgm,
+  <stem>/sfg01/dac_makoto/<stem>.vgm (sfg01 + DAC on the
+  OPNA), <stem>/sfg01/dac_y8950/<stem>.vgm and
+  <stem>/layered/<stem>.vgm, under the same manifest
+  ownership as the tracks products.Dropping the option
+  removes the owned variants again.
+- Implementation: convert passes per composition (the
+  selected route's pass runs in the diagnostics folder, the
+  others under _diagnostics/<stem>/sd_variants/), one
+  publish_bundle for tracks + SD products. A makoto pass
+  always runs layered in SD mode since it also supplies the
+  canonical layered variant. batch publication_targets
+  allows the four SD product names.
+- Verification: ASOLDR07 --sd-layout (no --force): makoto
+  variant = established file (5d40ae3e...), layered variant
+  = the auditioned trial file (2d7280b3...), sfg01
+  dac_makoto variant = the S4 share file (6c4ed90c...), all
+  byte-identical; dac_y8950 has no share counterpart.
+  Tests grow to 9 in test_export_opn2_vgm.py (SD publication
+  with structural clock/block checks, variant removal).
+- Open design thread (user, 2026-11-06, undecided): the
+  variant tree may move under a vgm_variants/ category
+  folder beside tracks/ and blueprint/, and the variants
+  may become a stage after the normal export_mgs processing
+  (analyze_source is the shared front half of both routes;
+  today each variant pass re-runs it). Not implemented.
