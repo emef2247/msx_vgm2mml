@@ -220,6 +220,52 @@ class Opn2DcsgTargetTests(unittest.TestCase):
         self.assertEqual(summary['dcsg']['ay']['noise_segments'], 2)
         # initial unknown segment + the segment from the control write
 
+    def convert_layered(self, raw):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        folder = Path(temporary.name)
+        source = folder / 'authored.vgm'
+        source.write_bytes(raw)
+        return convert(source, folder / 'out', layered=True), folder / 'out'
+
+    def test_layered_not_emitted_by_default(self):
+        _summary, out = self.convert(vgm(PHRASE))
+        self.assertFalse((out / 'authored.layer.target.vgm').exists())
+
+    def test_layered_adds_opna_fm_layer_and_keeps_plain_target(self):
+        plain_summary, plain_out = self.convert(vgm(PHRASE))
+        summary, out = self.convert_layered(vgm(PHRASE))
+        self.assertTrue(summary['layered'])
+        self.assertGreater(summary['layer_writes'], 0)
+        self.assertEqual(summary['layer_target_vgm'], 'authored.layer.target.vgm')
+        self.assertTrue((out / 'authored.opn2_layer.writes.csv').is_file())
+        # The plain target is byte-identical with and without --layered.
+        self.assertEqual((out / 'authored.target.vgm').read_bytes(),
+                         (plain_out / 'authored.target.vgm').read_bytes())
+        self.assertEqual(plain_summary['target_writes'], summary['target_writes'])
+        raw = (out / 'authored.layer.target.vgm').read_bytes()
+        bundle = inspect_source(raw)
+        self.assertIn('opm', bundle['active_chips'])
+        self.assertIn('opna', bundle['active_chips'])
+        # The YM2608 clock is stamped because its FM commands appear.
+        self.assertEqual(struct.unpack_from('<I', raw, 0x48)[0], 8000000)
+
+    def test_layered_fnum_rescaled_to_opna_clock(self):
+        _summary, out = self.convert_layered(vgm(PHRASE))
+        raw = (out / 'authored.layer.target.vgm').read_bytes()
+        writes = [(raw[e.address + 1], raw[e.address + 2])
+                  for e in command_times(raw) if e.command == 0x56]
+        # Operator parameters and key on/off pass through verbatim.
+        self.assertIn((0x30, 0x71), writes)
+        self.assertIn((0x28, 0xf0), writes)
+        # fnum 617 (block 4) at 7,670,454 Hz -> 592 at 8 MHz: the
+        # corrected high byte (block 4, fnum bits 8-10 = 2) precedes
+        # the low byte 592 & 0xff = 0x50 at the same position.
+        pair = [(0xa4, 0x22), (0xa0, 0x50)]
+        positions = [i for i in range(len(writes) - 1)
+                     if writes[i:i + 2] == pair]
+        self.assertEqual(len(positions), 1)
+
 
 if __name__ == '__main__':
     unittest.main()

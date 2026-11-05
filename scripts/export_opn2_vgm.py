@@ -24,6 +24,10 @@ def parser():
     result.add_argument('--force', action='store_true',
                         help='Project through gated source features (CSM, CH3 special, '
                              'unknown register effects) with the losses recorded')
+    result.add_argument('--layered', action='store_true',
+                        help='Also emit <stem>.layer.target.vgm: the FM part layered '
+                             'onto the OPNA FM section as well as the OPM cartridge '
+                             '(FM only; the plain target is unchanged)')
     return result
 
 
@@ -41,12 +45,15 @@ def main():
     for source in _inputs(args.input):
         folder = root / source.stem
         try:
-            summary = convert(source, folder, force=args.force)
+            summary = convert(source, folder, force=args.force, layered=args.layered)
             summary['status'] = 'success'
             print(f"{source.name}: {summary['target_writes']} target writes "
                   f"(OPM {summary['opm_writes']} + DCSG {summary['dcsg_writes']} "
                   f"+ DAC {summary['dac_writes']}), "
                   f"losses={summary['losses']}, deferred={list(summary['deferred'])}")
+            if summary.get('layer_target_vgm'):
+                print(f"{source.name}: layered target {summary['layer_target_vgm']} "
+                      f"with {summary['layer_writes']} OPNA FM layer writes")
         except Exception as error:
             summary = dict(source=str(source), status='conversion_failed',
                            detail=str(error), error_type=type(error).__name__)

@@ -1025,6 +1025,80 @@ def project_dac(analysis, *, source_end, raw, events):
     return rows, data_block, losses, stats, run_rows
 
 
+# (low register, high register) pairs per port-local offset group:
+# channels 1-3 and the CH3 special-mode operator frequencies.
+_FNUM_GROUPS = ((0xA0, 0xA4), (0xA8, 0xAC))
+
+# Source registers that are not part of the FM layer: the timer
+# periods (0x24-0x26), the key-on enable (0x29), the DAC data and
+# enable (0x2A/0x2B) and everything below the LFO frequency (0x22),
+# including the test register.
+_LAYER_SKIP = frozenset((0x24, 0x25, 0x26, 0x29, 0x2A, 0x2B))
+
+
+def project_fm_layer(events, raw, *, clock_raw):
+    """Retarget the source YM2612 FM writes onto the OPNA FM section.
+
+    The layered target keeps the OPM projection as the primary FM
+    lane and adds this register-level copy on the YM2608 (commands
+    0x56/0x57), so the same FM part sounds on both cartridges. The
+    YM2608 FM register map is the YM2612's, so operator parameters,
+    feedback/algorithm, pan/LFO sensitivity, key on/off and the CH3
+    mode pass through verbatim; only the F-numbers are rescaled
+    from the source clock to the OPNA's 8 MHz, block preserved
+    unless the scaled value overflows 11 bits. The pitch therefore
+    tracks the OPM lane within a cent or so, not exactly. DAC,
+    timer and test-register writes are not layered.
+    """
+    clock = clock_raw & 0x3fffffff
+    ratio = clock / OPNA_CLOCK
+    latch = {}   # (port, high register) -> last high byte
+    rows = []
+    corrections = 0
+    for event in events:
+        if event.command not in (0x52, 0x53):
+            continue
+        port = 0 if event.command == 0x52 else 1
+        register = raw[event.address + 1]
+        data = raw[event.address + 2]
+        if register in _LAYER_SKIP or register < 0x22:
+            continue
+        base = dict(source_vgmticks=event.vgmticks,
+                    source_event_id=event.source_event_id,
+                    source_register=register, source_data=data,
+                    target_command=0x56 if port == 0 else 0x57,
+                    sort_rank=2)
+        group = next(((lo, hi) for lo, hi in _FNUM_GROUPS
+                      if lo <= register <= lo + 2 or hi <= register <= hi + 2),
+                     None)
+        if group and group[0] <= register <= group[0] + 2:
+            lo, hi = group
+            high = latch.get((port, hi + (register - lo)), 0)
+            block = (high >> 3) & 7
+            fnum = ((high & 7) << 8) | data
+            scaled = round(fnum * ratio)
+            new_block = block
+            while scaled > 2047 and new_block < 7:
+                new_block += 1
+                scaled = (scaled + 1) >> 1
+            if fnum and not scaled:
+                scaled = 1
+            if (scaled, new_block) != (fnum, block):
+                corrections += 1
+            # The F-number commits on the low write against the high
+            # latch, so the corrected high byte is emitted first.
+            rows.append(dict(base, target_register=hi + (register - lo),
+                             target_data=(new_block << 3) | (scaled >> 8)))
+            rows.append(dict(base, target_register=register,
+                             target_data=scaled & 0xff))
+        elif group:
+            latch[(port, register)] = data
+            rows.append(dict(base, target_register=register, target_data=data))
+        else:
+            rows.append(dict(base, target_register=register, target_data=data))
+    return rows, dict(fnum_corrections=corrections)
+
+
 def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None, prefix=b''):
     """Serialize merged projection rows at exact source samples.
 
@@ -1089,7 +1163,7 @@ def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None, prefix=b'
     Path(path).write_bytes(raw)
 
 
-def convert(source, outdir, *, force=False):
+def convert(source, outdir, *, force=False, layered=False):
     """Analyze one OPN2 VGM and emit its dual-cartridge target VGM.
 
     Native evidence (registers/states/segments CSVs and the source
@@ -1099,6 +1173,12 @@ def convert(source, outdir, *, force=False):
     (register writes and stream supplies alike) is re-encoded to
     OPNA ADPCM-B: samples are preloaded by data block and runs are
     triggered per song position.
+
+    With ``layered``, a second file ``<stem>.layer.target.vgm`` is
+    emitted alongside: the same target plus the FM part retargeted
+    onto the OPNA's own FM section (see project_fm_layer), so the
+    FM sounds on the OPM and OPNA cartridges together. Only the FM
+    lane is layered; the plain target is unchanged.
     """
     source, outdir = Path(source), Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
@@ -1125,9 +1205,10 @@ def convert(source, outdir, *, force=False):
             dcsg_analysis, loop_start=loop_start, loop_event_id=loop_event_id)
         for key, value in dcsg_losses.items():
             losses[key] = losses.get(key, 0) + value
+    raw = read_vgm_bytes(str(source))
     dac_rows, dac_block, dac_losses, dac_stats, dac_runs = project_dac(
         analysis, source_end=bundle['source_end_sample'],
-        raw=read_vgm_bytes(str(source)), events=bundle['events'])
+        raw=raw, events=bundle['events'])
     for key, value in dac_losses.items():
         losses[key] = losses.get(key, 0) + value
     merged = sorted(rows + dcsg_rows + dac_rows,
@@ -1153,6 +1234,24 @@ def convert(source, outdir, *, force=False):
             writer = csv.DictWriter(stream, fieldnames=list(dac_runs[0]))
             writer.writeheader()
             writer.writerows(dac_runs)
+    layer_rows, layer_stats, layer_target = [], {}, None
+    if layered:
+        layer_rows, layer_stats = project_fm_layer(
+            bundle['events'], raw, clock_raw=clock_raw)
+        if layer_rows:
+            layer_merged = sorted(rows + dcsg_rows + dac_rows + layer_rows,
+                                  key=lambda r: (r['source_vgmticks'],
+                                                 r.get('sort_rank', 1)))
+            layer_target = outdir / f'{stem}.layer.target.vgm'
+            write_vgm(layer_merged, layer_target,
+                      end=bundle['source_end_sample'],
+                      loop_start=loop_start, loop_event_id=loop_event_id,
+                      prefix=dac_block)
+            layer_csv = outdir / f'{stem}.opn2_layer.writes.csv'
+            with layer_csv.open('w', encoding='utf-8', newline='') as stream:
+                writer = csv.DictWriter(stream, fieldnames=list(layer_rows[0]))
+                writer.writeheader()
+                writer.writerows(layer_rows)
     deferred = {}
     summary = dict(source=str(source), source_sha256=bundle['source_sha256'],
                    active_chips=list(bundle['active_chips']),
@@ -1161,6 +1260,9 @@ def convert(source, outdir, *, force=False):
                    target_writes=len(merged), opm_writes=len(rows),
                    dcsg_writes=len(dcsg_rows), dcsg=dcsg_stats,
                    dac_writes=len(dac_rows), dac=dac_stats,
+                   layered=layered, layer_writes=len(layer_rows),
+                   layer=layer_stats,
+                   layer_target_vgm=(layer_target.name if layer_target else None),
                    losses=losses, deferred=deferred,
                    loop=dict(status=loop.get('status'), start_sample=loop_start))
     (outdir / f'{stem}.opn2_opm.json').write_text(
