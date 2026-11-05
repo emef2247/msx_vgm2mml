@@ -352,6 +352,11 @@ def publication_targets(files, source_root, output, psg_part):
             allowed_products.add((package / 'tracks' / (path.stem + '.vgm')).relative_to(package).as_posix())
             allowed_products.add((package / 'tracks' / (path.stem + '.target.vgm')).relative_to(package).as_posix())
             allowed_products.add((package / 'tracks' / (path.stem + '.layer.target.vgm')).relative_to(package).as_posix())
+            for sd_name in (f'{path.stem}/makoto/{path.stem}.vgm',
+                            f'{path.stem}/sfg01/dac_makoto/{path.stem}.vgm',
+                            f'{path.stem}/sfg01/dac_y8950/{path.stem}.vgm',
+                            f'{path.stem}/layered/{path.stem}.vgm'):
+                allowed_products.add(sd_name)
             allowed_products.add(blueprint.relative_to(package).as_posix())
             if name not in allowed_products and not (Path(name).parent.as_posix() == 'blueprint'
                     and blueprint_artifact_name(Path(name).name, path.stem)):

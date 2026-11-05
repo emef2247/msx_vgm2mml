@@ -99,6 +99,55 @@ class ExportOpn2VgmTests(unittest.TestCase):
             published = manifest['entries']['song.vgm']['published']
             self.assertNotIn('tracks/song.layer.target.vgm', published)
 
+    def test_sd_layout_publishes_all_variants(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / 'song.vgm'
+            source.write_bytes(OPN2_SONG)
+            out = root / 'out'
+            self.assertEqual(self.run_main(source, '--outdir', out, '--sd-layout'), 0)
+            package = out
+            makoto = package / 'song' / 'makoto' / 'song.vgm'
+            dac_makoto = package / 'song' / 'sfg01' / 'dac_makoto' / 'song.vgm'
+            dac_y8950 = package / 'song' / 'sfg01' / 'dac_y8950' / 'song.vgm'
+            layered = package / 'song' / 'layered' / 'song.vgm'
+            for product in (makoto, dac_makoto, dac_y8950, layered):
+                self.assertTrue(product.is_file(), product)
+            # The SD makoto variant is the tracks product's own bytes.
+            self.assertEqual(makoto.read_bytes(),
+                             (package / 'tracks' / 'song.target.vgm').read_bytes())
+            makoto_raw = makoto.read_bytes()
+            self.assertEqual(struct.unpack_from('<I', makoto_raw, 0x30)[0], 0)
+            self.assertNotEqual(struct.unpack_from('<I', makoto_raw, 0x48)[0], 0)
+            self.assertGreater(dac_makoto.read_bytes().find(b'\x67\x66\x81'), 0)
+            y8950_raw = dac_y8950.read_bytes()
+            self.assertGreater(y8950_raw.find(b'\x67\x66\x88'), 0)
+            self.assertEqual(struct.unpack_from('<I', y8950_raw, 0x58)[0], 3579545)
+            layered_raw = layered.read_bytes()
+            self.assertNotEqual(struct.unpack_from('<I', layered_raw, 0x30)[0], 0)
+            self.assertNotEqual(struct.unpack_from('<I', layered_raw, 0x48)[0], 0)
+            manifest = json.loads((out / 'listening_manifest.json').read_text(encoding='utf-8'))
+            published = manifest['entries']['song.vgm']['published']
+            for name in ('song/makoto/song.vgm', 'song/sfg01/dac_makoto/song.vgm',
+                         'song/sfg01/dac_y8950/song.vgm', 'song/layered/song.vgm'):
+                self.assertIn(name, published)
+
+    def test_sd_layout_variants_removed_when_option_dropped(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / 'song.vgm'
+            source.write_bytes(OPN2_SONG)
+            out = root / 'out'
+            self.assertEqual(self.run_main(source, '--outdir', out, '--sd-layout'), 0)
+            self.assertTrue((out / 'song' / 'makoto' / 'song.vgm').is_file())
+            self.assertEqual(self.run_main(source, '--outdir', out), 0)
+            self.assertFalse((out / 'song' / 'makoto' / 'song.vgm').exists())
+            self.assertFalse((out / 'song' / 'layered' / 'song.vgm').exists())
+            manifest = json.loads((out / 'listening_manifest.json').read_text(encoding='utf-8'))
+            published = manifest['entries']['song.vgm']['published']
+            self.assertNotIn('song/makoto/song.vgm', published)
+            self.assertIn('tracks/song.target.vgm', published)
+
     def test_hand_edited_target_product_is_refused(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

@@ -34,6 +34,12 @@ from native_imports import inspect_source
 from opn2_target_vgm import convert as convert_target_vgm
 
 TARGET_PRODUCTS = ('{stem}.target.vgm', '{stem}.layer.target.vgm')
+SD_PRODUCTS = ('{stem}/makoto/{stem}.vgm', '{stem}/sfg01/dac_makoto/{stem}.vgm',
+               '{stem}/sfg01/dac_y8950/{stem}.vgm', '{stem}/layered/{stem}.vgm')
+
+
+def _sd_names(stem):
+    return [pattern.format(stem=stem) for pattern in SD_PRODUCTS]
 
 
 def build_parser():
@@ -57,6 +63,12 @@ def build_parser():
                         help='On the target VGM route, also publish '
                              '<stem>.layer.target.vgm: the FM part layered onto both FM '
                              'sections (OPM and OPNA) at once')
+    parser.add_argument('--sd-layout', action='store_true',
+                        help='On the target VGM route, additionally publish every '
+                             'cartridge variant in an SD-card tree: '
+                             '<stem>/makoto/<stem>.vgm, <stem>/sfg01/dac_makoto/<stem>.vgm, '
+                             '<stem>/sfg01/dac_y8950/<stem>.vgm and '
+                             '<stem>/layered/<stem>.vgm')
     return parser
 
 
@@ -101,6 +113,12 @@ def _check_target_ownership(path, package, state):
         target = package / 'tracks' / pattern.format(stem=path.stem)
         if target.exists():
             recorded = owned.get(target.relative_to(package).as_posix())
+            if not target.is_file() or recorded != file_digest(target):
+                raise ValueError(f'Final target is unowned or modified: {target}')
+    for name in _sd_names(path.stem):
+        target = package / name
+        if target.exists():
+            recorded = owned.get(name)
             if not target.is_file() or recorded != file_digest(target):
                 raise ValueError(f'Final target is unowned or modified: {target}')
     staged = package / '_source_inputs' / path.name
@@ -174,38 +192,99 @@ def _export_target(path, relative, output, adjacent, args):
     # Never let an earlier staged product look like this run's success.
     (folder / (path.stem + '.target.vgm')).unlink(missing_ok=True)
     (folder / (path.stem + '.layer.target.vgm')).unlink(missing_ok=True)
-    options = dict(route='target_vgm', target=args.target or 'makoto', dac=args.dac,
-                   layered=args.layered, force=args.force)
+    selected = args.target or 'makoto'
+    options = dict(route='target_vgm', target=selected, dac=args.dac,
+                   layered=args.layered, force=args.force, sd_layout=args.sd_layout)
     row = _blank_row(path, relative, folder, output, args)
     summary, publication = {}, dict(status='not_needed', operations=[])
-    try:
-        summary = convert_target_vgm(path, folder, force=args.force, layered=args.layered,
-                                     target=args.target or 'makoto', dac=args.dac)
-    except Exception as error:
+    # Conversion passes: the selected route runs in the diagnostics
+    # folder; --sd-layout adds the passes the selected route does not
+    # already cover, each with its own evidence folder. A makoto pass
+    # always runs layered in SD mode because it also supplies the
+    # layered variant (the layered composition is canonical).
+    passes = [dict(key='main', target=selected, dac=args.dac,
+                   layered=args.layered or (args.sd_layout and selected == 'makoto'),
+                   outdir=folder)]
+    if args.sd_layout:
+        variants = folder / 'sd_variants'
+        if selected != 'makoto':
+            passes.append(dict(key='makoto', target='makoto', dac='opna',
+                               layered=True, outdir=variants / 'makoto'))
+        if (selected, args.dac) != ('sfg01', 'opna'):
+            passes.append(dict(key='sfg01_opna', target='sfg01', dac='opna',
+                               layered=False, outdir=variants / 'sfg01_opna'))
+        if (selected, args.dac) != ('sfg01', 'y8950'):
+            passes.append(dict(key='sfg01_y8950', target='sfg01', dac='y8950',
+                               layered=False, outdir=variants / 'sfg01_y8950'))
+    staged_by_key = {}
+    failure = None
+    for spec in passes:
+        spec['outdir'].mkdir(parents=True, exist_ok=True)
+        (spec['outdir'] / (path.stem + '.target.vgm')).unlink(missing_ok=True)
+        (spec['outdir'] / (path.stem + '.layer.target.vgm')).unlink(missing_ok=True)
+        try:
+            result = convert_target_vgm(path, spec['outdir'], force=args.force,
+                                        layered=spec['layered'], target=spec['target'],
+                                        dac=spec['dac'])
+        except Exception as error:
+            failure = (spec, error)
+            break
+        staged_by_key[spec['key']] = (spec['outdir'], result)
+        if spec['key'] == 'main':
+            summary = result
+    if failure is not None:
+        spec, error = failure
+        where = 'conversion' if spec['key'] == 'main' else f"SD variant {spec['key']}"
         row.update(error_code=type(error).__name__, legacy_status='conversion_error',
-                   detail=str(error))
+                   detail=f'{where}: {error}')
     else:
         row.update(status='success', stage='complete')
         products = dict(previous.get('published', {}))
         publications, deletions = [], []
-        staged_plain = folder / (path.stem + '.target.vgm')
-        name = plain_target.relative_to(package).as_posix()
-        if plain_target.exists() and file_digest(plain_target) != products.get(name):
-            raise ValueError(f'Final target changed during conversion: {plain_target}')
-        products[name] = file_digest(staged_plain)
-        publications.append((staged_plain, plain_target))
+
+        def publish(staged_file, target_path):
+            name = target_path.relative_to(package).as_posix()
+            if target_path.exists() and file_digest(target_path) != products.get(name):
+                raise ValueError(f'Final target changed during conversion: {target_path}')
+            products[name] = file_digest(staged_file)
+            publications.append((staged_file, target_path))
+            return name
+
+        publish(staged_by_key['main'][0] / (path.stem + '.target.vgm'), plain_target)
         row['vgm'] = str(plain_target.relative_to(output))
         row['vgm_status'] = 'success'
         layer_name = layer_target.relative_to(package).as_posix()
         staged_layer = folder / (path.stem + '.layer.target.vgm')
         if args.layered and staged_layer.is_file():
-            if layer_target.exists() and file_digest(layer_target) != products.get(layer_name):
-                raise ValueError(f'Final target changed during conversion: {layer_target}')
-            products[layer_name] = file_digest(staged_layer)
-            publications.append((staged_layer, layer_target))
+            publish(staged_layer, layer_target)
         elif layer_target.exists():
             deletions.append(layer_target)
             products.pop(layer_name, None)
+        if args.sd_layout:
+            def variant_file(key, layer=False):
+                outdir = staged_by_key[key][0]
+                return outdir / (path.stem + ('.layer.target.vgm' if layer
+                                              else '.target.vgm'))
+
+            if selected == 'makoto':
+                makoto_file = variant_file('main')
+                layered_file = variant_file('main', layer=True)
+            else:
+                makoto_file = variant_file('makoto')
+                layered_file = variant_file('makoto', layer=True)
+            opna_file = (variant_file('main') if (selected, args.dac) == ('sfg01', 'opna')
+                         else variant_file('sfg01_opna'))
+            y8950_file = (variant_file('main') if (selected, args.dac) == ('sfg01', 'y8950')
+                          else variant_file('sfg01_y8950'))
+            sources = dict(zip(_sd_names(path.stem),
+                               (makoto_file, opna_file, y8950_file, layered_file)))
+            for name, staged_file in sources.items():
+                publish(staged_file, package / name)
+        else:
+            for name in _sd_names(path.stem):
+                if name in products:
+                    deletions.append(package / name)
+                    products.pop(name, None)
         entry.update(published=products, publication_status=row['status'],
                      source_sha256=current_source_hash)
     row['processing_status'] = row['status']
@@ -250,7 +329,7 @@ def _export_unavailable(path, relative, output, adjacent, args, detail):
     folder = package / '_diagnostics' / path.stem
     folder.mkdir(parents=True, exist_ok=True)
     options = dict(route=args.target, target=args.target, dac=args.dac,
-                   layered=args.layered, force=args.force)
+                   layered=args.layered, force=args.force, sd_layout=args.sd_layout)
     row = _blank_row(path, relative, folder, output, args)
     row.update(error_code='route_unavailable', legacy_status='conversion_error',
                detail=detail, processing_status='conversion_failed')
