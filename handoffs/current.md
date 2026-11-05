@@ -4199,3 +4199,15 @@ should gain an optional musical clock fitter. MUCOM work remains paused.
 - Open question for the user: keep the Y8950 sample budget at
   32 KB (standard MSX-AUDIO RAM) or assume a 256 KB expansion.
 - Publication to the public repository stays with the user.
+
+## Y8950 budget follow-up (2026-11-05, claude/layered-option)
+
+- The user chose the 256 KB expansion assumption:
+  Y8950_RAM_BUDGET is now 262,144 (the chip's RAM 256K space,
+  the mode the triggers already used). No code path change
+  beyond the constant and its comment.
+- ASOLDR07 re-check: the Y8950 variant now carries the full
+  DAC inventory, byte-count-identical to the OPNA variant
+  (220,512 bytes, 210 samples, 604 playbacks, no drops), and
+  still renders in ymfm (94.0 s, RMS -10.95 dBFS).
+  test_opn2_target_vgm remains 16/16.
