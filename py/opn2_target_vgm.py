@@ -545,9 +545,11 @@ ADPCM_B_LEVEL = 0xFF
 # 4-byte units in RAM 256K mode (R08 mode bits 0), triggers are
 # Y8950 writes (command 0x5C, registers 0x07-0x12), the preload
 # block is type 0x88, and the sample store is the MSX-AUDIO
-# cartridge's sample RAM (32 KB on the standard cartridges).
+# cartridge's sample RAM; the budget assumes the 256 KB
+# expansion (the chip's RAM 256K space), per the user's call
+# (2026-11-05), so no sample is dropped for space alone.
 Y8950_CLOCK = 3579545
-Y8950_RAM_BUDGET = 32768
+Y8950_RAM_BUDGET = 262144
 _DAC_RUN_GAP_TICKS = 441  # the x68k DAC bridge's run split
 _ADPCM_B_STEP_MULTIPLIERS = (57, 57, 57, 57, 77, 102, 128, 153)
 
