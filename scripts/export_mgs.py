@@ -3,14 +3,28 @@
 
 Conversion, compilation, diagnostics and optional key-on comparison are provided
 by the existing batch runner. Its own defaults remain unchanged.
+
+With --vgm-variants, each source additionally publishes cartridge
+variant VGMs under vgm_variants/<stem>/ (see _update_vgm_variants);
+in this stage only OPN2 (YM2612) sources have a variant route.
 """
 import argparse
+import csv
+import json
 from pathlib import Path
 
-from batch_vgm_to_mgs import run_batch
+from batch_vgm_to_mgs import (KEYON_FIELDS, discover_inputs, file_digest,
+                              package_manifest, publish_bundle, run_batch,
+                              save_json)
 from mgs_conversion_config import sample_threshold
 
 DEFAULT_FM_STATE_MS = 24.0
+
+VARIANT_PRODUCTS = ('vgm_variants/{stem}/makoto/{stem}.vgm',
+                    'vgm_variants/{stem}/sfg01/dac_makoto/{stem}.vgm',
+                    'vgm_variants/{stem}/sfg01/dac_y8950/{stem}.vgm',
+                    'vgm_variants/{stem}/layered/{stem}.vgm',
+                    'vgm_variants/{stem}/opm4mhz/{stem}.vgm')
 
 
 def build_parser():
@@ -52,6 +66,11 @@ def build_parser():
         action='store_true',help=argparse.SUPPRESS)
     parser.add_argument('--force', action='store_true',
                         help='Apply only documented target omission rules')
+    parser.add_argument('--vgm-variants', action='store_true',
+                        help='Also publish cartridge variant VGMs under '
+                             'vgm_variants/<stem>/ (OPN2 sources only in this stage; '
+                             'other sources record a route_unavailable row). '
+                             'Rerunning without this flag removes the variants')
     parser.add_argument('--dump-passes', action='store_true',
                         help='Retain inspectable conversion passes')
     macros=parser.add_mutually_exclusive_group()
@@ -73,6 +92,204 @@ def build_parser():
     parser.add_argument('--libkss-module', type=Path,
                         help='Explicit libkss-js entry point for MGS export')
     return parser
+
+
+def _variant_names(stem):
+    return [pattern.format(stem=stem) for pattern in VARIANT_PRODUCTS]
+
+
+def _variant_row(relative, folder, output, args):
+    row = dict(input=str(relative), status='conversion_failed', mml='',
+               publication_status='not_attempted', publication_error='', processing_status='',
+               mgs='', vgm='', vgm_status='unavailable', vgm_detail='', blueprint='',
+               blueprint_files=[], blueprint_midi_files=[], blueprint_status='not_needed',
+               blueprint_detail='', log='', detail='', stage='variants', error_code='',
+               legacy_status='',
+               report=str((folder / 'report.txt').relative_to(output)),
+               diagnostics=str((folder / 'vgm_variants.json').relative_to(output)),
+               force_summary='', normalization_status='unavailable', normalization_reason='',
+               normalization_ms=args.normalization_ms, fm_state_ms=args.fm_state_ms,
+               keyon_status='disabled', keyon_error='', route='vgm_variants')
+    row.update(dict.fromkeys(KEYON_FIELDS, ''))
+    return row
+
+
+def _save_variant_evidence(folder, evidence):
+    folder.mkdir(parents=True, exist_ok=True)
+    save_json(folder / 'vgm_variants.json', evidence)
+
+
+def _remove_variants(package, folder, manifest, state, key, entry, products, names):
+    """Drop owned variant products and their manifest entries as one bundle."""
+    deletions = [package / name for name in names if (package / name).is_file()]
+    for name in names:
+        products.pop(name, None)
+    entry['published'] = products
+    state['entries'][key] = entry
+    folder.mkdir(parents=True, exist_ok=True)
+    return publish_bundle([], manifest, state, folder, deletions=deletions)
+
+
+def _update_song_variants(path, relative, package, output, args):
+    """Publish, refresh or remove one song's variant VGMs.
+
+    Variant products are owned through the package listening manifest
+    like every other product: an existing variant file whose digest is
+    not the recorded one (or that is not recorded at all) refuses the
+    run, and dropping --vgm-variants removes the products again.
+    """
+    stem = path.stem
+    names = _variant_names(stem)
+    manifest = package / 'listening_manifest.json'
+    state = package_manifest(package)
+    previous_state = json.loads(json.dumps(state))
+    entry = state['entries'].get(path.name)
+    products = dict(entry.get('published', {})) if entry else {}
+    owned_names = [name for name in names if name in products]
+    for name in names:
+        target = package / name
+        if target.exists() and (not target.is_file()
+                                or file_digest(target) != products.get(name)):
+            raise ValueError(f'Final target is unowned or modified: {target}')
+    folder = package / '_diagnostics' / stem
+    if not args.vgm_variants:
+        if entry is None or not owned_names:
+            return []
+        try:
+            _remove_variants(package, folder, manifest, state, path.name, entry,
+                             products, owned_names)
+        except OSError as error:
+            raise ValueError(f'Variant removal failed: {error}') from error
+        return []
+    row = _variant_row(relative, folder, output, args)
+    evidence = dict(route='vgm_variants', force=args.force, status='unavailable',
+                    published=[], summaries={},
+                    publication=dict(status='not_needed', operations=[]))
+    from native_imports import inspect_source
+    if 'opn2' not in inspect_source(path)['active_chips']:
+        if owned_names:
+            try:
+                evidence['publication'] = _remove_variants(
+                    package, folder, manifest, state, path.name, entry, products,
+                    owned_names)
+            except OSError as error:
+                raise ValueError(f'Variant removal failed: {error}') from error
+        row.update(error_code='route_unavailable', legacy_status='conversion_error',
+                   processing_status='conversion_failed',
+                   detail='VGM variants are not available for this source yet; '
+                          'only OPN2 (YM2612) sources produce variant VGMs')
+        evidence['status'] = 'route_unavailable'
+        _save_variant_evidence(folder, evidence)
+        print(f"{relative}: vgm variants unavailable (route_unavailable)", flush=True)
+        return [row]
+    # The same conversion passes export_opn2_vgm.py --sd-layout runs:
+    # the makoto pass runs layered because the layered composition is
+    # canonical and supplies both the makoto and the layered variant.
+    from opn2_target_vgm import convert as convert_target_vgm
+    stage_root = folder / 'vgm_variants'
+    passes = [dict(key='makoto', target='makoto', dac='opna', layered=True,
+                   outdir=stage_root),
+              dict(key='sfg01_opna', target='sfg01', dac='opna', layered=False,
+                   outdir=stage_root / 'sfg01_opna'),
+              dict(key='sfg01_y8950', target='sfg01', dac='y8950', layered=False,
+                   outdir=stage_root / 'sfg01_y8950'),
+              dict(key='opm4mhz', target='opm4mhz', dac='opna', layered=False,
+                   outdir=stage_root / 'opm4mhz')]
+    summaries = {}
+    try:
+        for spec in passes:
+            spec['outdir'].mkdir(parents=True, exist_ok=True)
+            (spec['outdir'] / (stem + '.target.vgm')).unlink(missing_ok=True)
+            (spec['outdir'] / (stem + '.layer.target.vgm')).unlink(missing_ok=True)
+            summaries[spec['key']] = convert_target_vgm(
+                path, spec['outdir'], force=args.force, layered=spec['layered'],
+                target=spec['target'], dac=spec['dac'])
+    except Exception as error:
+        row.update(error_code=type(error).__name__, legacy_status='conversion_error',
+                   processing_status='conversion_failed',
+                   detail=f'VGM variant conversion failed: {error}')
+        evidence['status'] = 'conversion_failed'
+        _save_variant_evidence(folder, evidence)
+        print(f"{relative}: vgm variants failed: {error}", flush=True)
+        return [row]
+    evidence['summaries'] = summaries
+    sources = dict(zip(names, (stage_root / (stem + '.target.vgm'),
+                               stage_root / 'sfg01_opna' / (stem + '.target.vgm'),
+                               stage_root / 'sfg01_y8950' / (stem + '.target.vgm'),
+                               stage_root / (stem + '.layer.target.vgm'),
+                               stage_root / 'opm4mhz' / (stem + '.target.vgm'))))
+    publications = []
+    for name, staged_file in sources.items():
+        products[name] = file_digest(staged_file)
+        publications.append((staged_file, package / name))
+    deletions = [package / name for name in owned_names if name not in sources]
+    if entry is None:
+        entry = dict(input=path.name)
+    entry['published'] = products
+    state['entries'][path.name] = entry
+    try:
+        publication = publish_bundle(publications, manifest, state, folder,
+                                     deletions=deletions)
+    except OSError as error:
+        publication = dict(status='failed', error=str(error),
+                           context=getattr(error, 'publication_context', {}),
+                           processing_status='success')
+        row.update(status='publication_failed', stage='publish',
+                   error_code='publication_error', publication_status='failed',
+                   publication_error=str(error), processing_status='success',
+                   detail=f'Variant publication failed after conversion: {error}')
+        try:
+            save_json(manifest, previous_state)
+        except OSError as manifest_error:
+            publication['manifest_error'] = str(manifest_error)
+        evidence.update(status='publication_failed', publication=publication)
+        _save_variant_evidence(folder, evidence)
+        print(f"{relative}: vgm variants publication failed: {error}", flush=True)
+        return [row]
+    row.update(status='success', stage='complete', processing_status='success',
+               publication_status='success', vgm_status='success',
+               vgm=str((package / names[0]).relative_to(output)))
+    evidence.update(status='success', published=names, publication=publication)
+    _save_variant_evidence(folder, evidence)
+    print(f"{relative}: vgm variants published", flush=True)
+    return [row]
+
+
+def _update_vgm_variants(args):
+    """Variant pass over every input, after the normal MGS export.
+
+    Runs whether or not --vgm-variants was given: with the flag the
+    variants are (re)published, without it previously published
+    variants are removed again. The batch exit status stays with the
+    MGS rows; variant outcomes are recorded as extra result rows.
+    """
+    source = args.input.resolve()
+    if not source.exists():
+        return []
+    source_root = source.parent if source.is_file() else source
+    adjacent = args.outdir is None
+    output = source_root if adjacent else args.outdir.resolve()
+    rows = []
+    for path in discover_inputs(source, adjacent=adjacent):
+        relative = path.relative_to(source_root)
+        rows.extend(_update_song_variants(path, relative, output / relative.parent,
+                                          output, args))
+    return rows
+
+
+def _write_combined_results(args, rows):
+    source = args.input.resolve()
+    source_root = source.parent if source.is_file() else source
+    output = source_root if args.outdir is None else args.outdir.resolve()
+    diagnostics = output / '_diagnostics'
+    diagnostics.mkdir(parents=True, exist_ok=True)
+    fields = list(dict.fromkeys(key for row in rows for key in row))
+    with (diagnostics / 'results.csv').open('w', encoding='utf-8', newline='') as stream:
+        writer = csv.DictWriter(stream, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(rows)
+    (diagnostics / 'results.json').write_text(json.dumps(rows, indent=2) + '\n',
+                                              encoding='utf-8')
 
 
 def main(argv=None):
@@ -105,8 +322,11 @@ def main(argv=None):
                          nes_balance=args.nes_balance, nes_gain=args.nes_gain,
                          psg_state_ms=None, scc_state_ms=None,
                          curve_volume_error=None, curve_mean_error=None)
+        variant_rows = _update_vgm_variants(args)
     except (RuntimeError, ValueError) as error:
         parser.exit(2, str(error) + '\n')
+    if variant_rows:
+        _write_combined_results(args, rows + variant_rows)
     return 0 if all(row['status'] == 'success' and row.get('vgm_status') not in ('failed', 'blocked')
                     and row['keyon_status'] in ('compared', 'disabled', 'selection_only', 'projected_source')
                     for row in rows) else 1

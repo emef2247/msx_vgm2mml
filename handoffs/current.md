@@ -4336,3 +4336,44 @@ should gain an optional musical clock fitter. MUCOM work remains paused.
 - Not done: ASOLDR07 real-song check (no local fixture in
   this VM); real-hardware listening of the 4 MHz variant is
   the user's call.
+
+## export_mgs --vgm-variants (S1) (2026-11-06, claude/vgm-variants)
+
+- export_mgs.py gains --vgm-variants: after the normal batch export, a
+  per-song variant pass publishes the five cartridge variants under
+  vgm_variants/<stem>/{makoto, sfg01/dac_makoto, sfg01/dac_y8950,
+  layered, opm4mhz}/<stem>.vgm. Only OPN2 sources have the route in
+  this stage; the passes are export_opn2_vgm.py --sd-layout's own
+  (the makoto pass runs layered) against py/opn2_target_vgm.convert,
+  staged in _diagnostics/<stem>/vgm_variants/ with a vgm_variants.json
+  evidence file per song.
+- Ownership follows the package listening manifest / publish_bundle:
+  hand-edited or unowned variant products refuse the run (exit 2);
+  rerunning without the flag removes the products and their manifest
+  entries. batch_vgm_to_mgs' publication allowlist and reserved
+  route/discovery names learned the vgm_variants/ products, so either
+  export script can rerun a shared package and adjacent discovery
+  never re-ingests variant VGMs.
+- Non-OPN2 sources record a route_unavailable row (route field
+  'vgm_variants') appended to the combined _diagnostics results; the
+  batch exit status stays with the MGS rows. Variant conversion or
+  publication failures are recorded in the variant row likewise.
+- export_opn2_vgm.py is unchanged: its --sd-layout remains the
+  SD-card publisher (S1 decision: coexist, not merge).
+- Verification: ASOLDR07 (no --force) -- all five variants are
+  byte-identical to a fresh export_opn2_vgm --sd-layout run
+  (makoto 5d40ae3e..., sfg01/dac_makoto 6c4ed90c..., layered
+  2d7280b3..., sfg01/dac_y8950 edb1bdb8..., opm4mhz 0fdb9c69...).
+  Note the established ASOLDR07.makoto.y8950.target.vgm (d0cf53e4...)
+  is the makoto+y8950 composition, not the sfg01/dac_y8950 variant;
+  they are different products. ASOLDR07's MGS row itself fails in
+  vgm2mml's native analysis (unsupported source data block) --
+  the route's own result on this source, independent of the
+  variant pass, which still publishes.
+- Tests: 5 new in tests/script/test_export_mgs_variants.py
+  (synthetic byte-built OPN2 song + the public PSG fixture).
+  Full suite on this VM: before 969 tests / 128F+5E / skipped 106,
+  after 974 / 128F+5E / skipped 106; the failing-test sets are
+  identical.
+- Not done: variant routes for the other sources (plan stages
+  S2/S3); real-hardware listening remains the user's call.
