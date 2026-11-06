@@ -27,6 +27,7 @@ register effects refuse the projection unless --force is given.
 import csv
 import hashlib
 import json
+import math
 import struct
 from array import array
 from collections import Counter
@@ -56,7 +57,29 @@ SSG_CLOCK = 4000000
 # are ~3.19 dB (the uniform x1.444 DAC ladder). This table maps each
 # source attenuation to the AY volume nearest in dB (worst error
 # ~1.6 dB); attenuation 15 is the SN mute and maps to volume 0.
-_DCSG_VOLUME = (15, 14, 14, 13, 12, 12, 11, 11, 10, 9, 9, 8, 7, 7, 6, 0)
+_DCSG_VOLUME_BASE = (15, 14, 14, 13, 12, 12, 11, 11, 10, 9, 9, 8, 7, 7, 6, 0)
+
+# The lanes additionally take x68k_vgm2mml's listening-calibrated
+# DCSG default gain (0.036, v1.3.0) as a level shift: at a
+# dB-faithful level the DCSG lanes sit far too forward against the
+# FM lanes on these devices. The shift is applied to the source
+# level before the nearest-step pick, so quiet source levels fall
+# off the bottom of the AY ladder to mute instead of being
+# re-normalized upward.
+_DCSG_LANE_GAIN = 0.036
+_AY_STEP_DB = 3.19
+
+
+def _dcsg_volume_for(attenuation):
+    if attenuation >= 15:
+        return 0
+    level_db = (-2.0 * attenuation
+                + 20.0 * math.log10(_DCSG_LANE_GAIN))
+    volume = 15 - round(-level_db / _AY_STEP_DB)
+    return volume if volume > 0 else 0
+
+
+_DCSG_VOLUME = tuple(_dcsg_volume_for(a) for a in range(16))
 
 _DCSG_DEVICES = {0: ('ay', 0xA0, AY_CLOCK), 1: ('ssg', 0x56, SSG_CLOCK)}
 

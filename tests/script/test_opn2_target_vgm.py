@@ -281,15 +281,16 @@ class Opn2DcsgTargetTests(unittest.TestCase):
         self.assertIn((1, 1), ssg_period)
         ay_volumes = [int(r['target_data']) for r in rows
                       if r['target_device'] == 'ay' and int(r['target_register']) == 8]
-        self.assertEqual(ay_volumes, [0, 15, 12])
+        self.assertEqual(ay_volumes, [0, 6, 3])
         # leading 0: attenuation unknown until the first source write;
-        # then attenuation 0 -> 15 and 5 -> 12 on the dB-matched table
+        # then attenuation 0 -> 6 and 5 -> 3 on the dB-matched table
+        # shifted by the x68k DCSG lane gain (0.036)
         mixers = {int(r['target_data']) for r in rows
                   if r['target_device'] == 'ay' and int(r['target_register']) == 7}
         self.assertIn(0x18, mixers)  # noise audible on channel C
         c_volumes = {int(r['target_data']) for r in rows
                      if r['target_device'] == 'ay' and int(r['target_register']) == 10}
-        self.assertIn(14, c_volumes)  # noise attenuation 2 -> 14 while audible
+        self.assertIn(5, c_volumes)  # noise attenuation 2 -> 5 while audible
         # noise rate 1 = 3496 Hz shift -> AY NP 32 exceeds 31 and clamps
         self.assertEqual(summary['losses']['dcsg_noise_period_clamped_ay'], 1)
         self.assertEqual(summary['dcsg']['ay']['noise_segments'], 2)
