@@ -4524,3 +4524,34 @@ exactly 5,147 volume-write bytes and nothing else (old volumes
 Gained variants for the listening check are in the share repo
 under msx/dcsg_gain_test/ASOLDR07/. Awaiting the user's verdict;
 the shift may need softening for these devices.
+
+## DCSG gain becomes an option; chain sample; OPN2>OPNA study (2026-11-07)
+
+The gain verdict came back revised: the first listening had the
+MSX PSG disabled (only the SSG half of the DCSG arrangement
+sounded). With AY enabled the user found the pre-gain balance
+possibly fine, and ruled: the PSG volume is adjustable at the
+cartridge, so the default is no cut (gain 1.0); the gain stays as
+a user option for fixed-ratio hardware (Misato). Implemented on
+this branch: convert(dcsg_gain=1.0), --dcsg-gain on export_mgs
+(export_opn2_vgm inherits its parser from export_mgs; registering
+the option twice is an argparse conflict — see the field note).
+Byte gates on ASOLDR07: default reproduces the established
+transcription makoto (5d40ae3e...); dcsg_gain=0.036 reproduces
+the previous gain build (6cd81706...). Suite: 985 tests, failing
+set identical to the pre-S3 baseline (128F + 5E).
+
+At the user's request an OPN2>OPM>OPNA chain sample was built
+from the established sfg01 file's OPM lane projected by the
+OPM>OPNA candidate law (losses: 1 LFO rate out of range, 465
+inactive-channel writes ignored) and delivered in the share repo
+(msx/opn2_opm_opna_sample/, chain md5 32b3b998...). The user's
+verdict from real-hardware recordings: the chain sounds much
+better than the direct transcription.
+
+The OPN2>OPNA law study opened at ~/workspace/opn2_opna_study/
+(PLAN.md). Anchor 1: pitch identity holds after clock-ratio
+rescale; EG attack is identity at fast rates but diverges at the
+slow end (AR8: 297 ms vs 340 ms to -3 dB), so an EG rate grid
+follows; TL/levels cannot be measured with ymfm vgmrender (it
+flattens carrier TL) and move to the direct renderer.

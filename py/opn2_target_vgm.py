@@ -59,27 +59,34 @@ SSG_CLOCK = 4000000
 # ~1.6 dB); attenuation 15 is the SN mute and maps to volume 0.
 _DCSG_VOLUME_BASE = (15, 14, 14, 13, 12, 12, 11, 11, 10, 9, 9, 8, 7, 7, 6, 0)
 
-# The lanes additionally take x68k_vgm2mml's listening-calibrated
-# DCSG default gain (0.036, v1.3.0) as a level shift: at a
-# dB-faithful level the DCSG lanes sit far too forward against the
-# FM lanes on these devices. The shift is applied to the source
-# level before the nearest-step pick, so quiet source levels fall
-# off the bottom of the AY ladder to mute instead of being
-# re-normalized upward.
-_DCSG_LANE_GAIN = 0.036
+# A lane gain (convert's dcsg_gain, CLI --dcsg-gain) can shift the
+# DCSG lanes' level against the FM lanes: the shift is applied to
+# the source level before the nearest-step pick, so quiet source
+# levels fall off the bottom of the AY ladder to mute instead of
+# being re-normalized upward. The default is 1.0 (no shift, the
+# dB-faithful table below): the PSG volume is adjustable at the
+# cartridge on the MSX route, so no fixed cut is baked in (user
+# decision, 2026-11-07). A gain stays available for targets whose
+# FM/PSG ratio is fixed in hardware, such as Misato (OPN3-L);
+# x68k_vgm2mml's listening-calibrated PCM value is 0.036.
 _AY_STEP_DB = 3.19
 
 
-def _dcsg_volume_for(attenuation):
+def _dcsg_volume_for(attenuation, gain):
     if attenuation >= 15:
         return 0
-    level_db = (-2.0 * attenuation
-                + 20.0 * math.log10(_DCSG_LANE_GAIN))
+    level_db = -2.0 * attenuation + 20.0 * math.log10(gain)
     volume = 15 - round(-level_db / _AY_STEP_DB)
     return volume if volume > 0 else 0
 
 
-_DCSG_VOLUME = tuple(_dcsg_volume_for(a) for a in range(16))
+def _dcsg_volume_table(gain):
+    if gain == 1.0:
+        return _DCSG_VOLUME_BASE
+    return tuple(_dcsg_volume_for(a, gain) for a in range(16))
+
+
+_DCSG_VOLUME = _DCSG_VOLUME_BASE
 
 _DCSG_DEVICES = {0: ('ay', 0xA0, AY_CLOCK), 1: ('ssg', 0x56, SSG_CLOCK)}
 
@@ -391,7 +398,8 @@ def project(analysis, *, clock_raw, pitch_policy='clamp', channel_map=None, forc
     return rows, dict(losses)
 
 
-def project_dcsg(analysis, *, loop_start=None, loop_event_id=None):
+def project_dcsg(analysis, *, loop_start=None, loop_event_id=None,
+                 dcsg_gain=1.0):
     """Project native DCSG Segments to AY (instance 0) + SSG (instance 1) rows.
 
     Split, designed for this pair: each DCSG chip keeps its three
@@ -482,8 +490,10 @@ def project_dcsg(analysis, *, loop_start=None, loop_event_id=None):
             np_ = min(31, max(1, np_))
         return np_, clock / (16 * np_), ''
 
+    volume_table = _dcsg_volume_table(dcsg_gain)
+
     def volume_of(seg):
-        return _DCSG_VOLUME[seg.attenuation] if seg.attenuation is not None else 0
+        return volume_table[seg.attenuation] if seg.attenuation is not None else 0
 
     for issue in analysis.issues:
         losses[f"dcsg_issue_{issue['code']}"] += 1
@@ -1311,7 +1321,7 @@ def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None, prefix=b'
 
 
 def convert(source, outdir, *, force=False, layered=False, target='makoto',
-            dac='opna'):
+            dac='opna', dcsg_gain=1.0):
     """Analyze one OPN2 VGM and emit its target VGM.
 
     Native evidence (registers/states/segments CSVs and the source
@@ -1348,6 +1358,8 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
     dac_corrected = bool(layered and dac == 'y8950')
     if dac_corrected:
         dac = 'opna'
+    if not dcsg_gain > 0:
+        raise ValueError(f'dcsg_gain must be positive: {dcsg_gain!r}')
     opm_clock = OPM4MHZ_CLOCK if target == 'opm4mhz' else TARGET_CLOCK
     source, outdir = Path(source), Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
@@ -1372,7 +1384,8 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
     dcsg_analysis = bundle['analyses'].get('dcsg')
     if dcsg_analysis is not None:
         dcsg_rows, dcsg_losses, dcsg_stats = project_dcsg(
-            dcsg_analysis, loop_start=loop_start, loop_event_id=loop_event_id)
+            dcsg_analysis, loop_start=loop_start, loop_event_id=loop_event_id,
+            dcsg_gain=dcsg_gain)
         for key, value in dcsg_losses.items():
             losses[key] = losses.get(key, 0) + value
     raw = read_vgm_bytes(str(source))
@@ -1449,6 +1462,7 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
                    opna_fm_writes=(len(opna_fm_rows)
                                    if target == 'makoto' else 0),
                    dcsg_writes=len(dcsg_rows), dcsg=dcsg_stats,
+                   dcsg_gain=dcsg_gain,
                    dac_target=dac,
                    dac_writes=len(dac_rows), dac=dac_stats,
                    layered=layered, layer_writes=len(added_rows),

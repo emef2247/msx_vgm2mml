@@ -60,6 +60,7 @@ def build_parser():
                         help='DAC lane destination on the target VGM route: opna = OPNA '
                              'ADPCM-B (default), y8950 = MSX-AUDIO (Y8950) Delta-T unit '
                              '(with --layered the DAC lane always goes to the OPNA)')
+    # --dcsg-gain comes from export_mgs.build_parser (shared base).
     parser.add_argument('--layered', action='store_true',
                         help='On the target VGM route, also publish '
                              '<stem>.layer.target.vgm: the FM part layered onto both FM '
@@ -233,7 +234,7 @@ def _export_target(path, relative, output, adjacent, args):
         try:
             result = convert_target_vgm(path, spec['outdir'], force=args.force,
                                         layered=spec['layered'], target=spec['target'],
-                                        dac=spec['dac'])
+                                        dac=spec['dac'], dcsg_gain=args.dcsg_gain)
         except Exception as error:
             failure = (spec, error)
             break

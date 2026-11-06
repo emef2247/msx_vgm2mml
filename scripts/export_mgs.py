@@ -76,6 +76,10 @@ def build_parser():
                              'variants that do not apply to a source are recorded '
                              'unavailable with a reason). '
                              'Rerunning without this flag removes the variants')
+    parser.add_argument('--dcsg-gain', type=float, default=1.0,
+                        help='Level gain for the DCSG lanes (PSG/SSG) in OPN2 target '
+                             'and variant VGMs (default 1.0 = no shift; e.g. 0.036 '
+                             'matches the x68k PCM balance)')
     parser.add_argument('--dump-passes', action='store_true',
                         help='Retain inspectable conversion passes')
     macros=parser.add_mutually_exclusive_group()
@@ -391,7 +395,8 @@ def _update_song_variants(path, relative, package, output, args):
             (spec['outdir'] / (stem + '.layer.target.vgm')).unlink(missing_ok=True)
             summaries[spec['key']] = convert_target_vgm(
                 path, spec['outdir'], force=args.force, layered=spec['layered'],
-                target=spec['target'], dac=spec['dac'])
+                target=spec['target'], dac=spec['dac'],
+                dcsg_gain=args.dcsg_gain)
     except Exception as error:
         row.update(error_code=type(error).__name__, legacy_status='conversion_error',
                    processing_status='conversion_failed',
