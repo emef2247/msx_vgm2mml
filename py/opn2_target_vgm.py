@@ -40,6 +40,7 @@ from native_imports.vgm_io import read_vgm_bytes
 
 
 TARGET_CLOCK = 3579545
+OPM4MHZ_CLOCK = 4000000
 
 # S3 target devices for the DCSG lanes. The MSX PSG is stamped with
 # the repo family's AY clock (3579545 / 2, rounded) and the YM2149
@@ -98,7 +99,7 @@ def _unassigned_register(write):
 
 
 def project(analysis, *, clock_raw, pitch_policy='clamp', channel_map=None, force=False,
-            dac_external=False):
+            dac_external=False, opm_clock=TARGET_CLOCK):
     """Return target write rows plus explicit losses, retaining source identities."""
     clock_hz = clock_raw & 0x3fffffff
     if not 0 < clock_hz < 0x40000000:
@@ -237,19 +238,21 @@ def project(analysis, *, clock_raw, pitch_policy='clamp', channel_map=None, forc
         # Nuked-verified phase generator agrees). The 2**(20-block)
         # form used here before played every note one octave high.
         frequency = fnum * clock_hz * (6 / state.fm_prescale_divisor) / (144 * 2 ** (21 - block))
+        clock_label = ('3.579545MHz' if opm_clock == TARGET_CLOCK
+                       else f'{opm_clock / 1000000:g}MHz')
         if frequency:
             try:
-                kc, kf, actual = opm_pitch(frequency, TARGET_CLOCK)
+                kc, kf, actual = opm_pitch(frequency, opm_clock)
             except ValueError:
                 if pitch_policy == 'error':
                     raise
-                kc, kf, actual = opm_pitch(frequency, TARGET_CLOCK, clamp=True)
+                kc, kf, actual = opm_pitch(frequency, opm_clock, clamp=True)
                 losses['pitch_range_clamped'] += 1
         else:
             kc = kf = 0
             actual = None
             losses['zero_frequency_target_minimum_pitch'] += 1
-        emit(s, 0x28 + ch, kc, 'committed native FNUM/BLOCK to 3.579545MHz KC', frequency=frequency, actual=actual)
+        emit(s, 0x28 + ch, kc, f'committed native FNUM/BLOCK to {clock_label} KC', frequency=frequency, actual=actual)
         emit(s, 0x30 + ch, kf, 'committed native FNUM/BLOCK to KF', frequency=frequency, actual=actual)
 
     for _, segments in sorted(groups.items()):
@@ -1155,7 +1158,8 @@ def project_fm_layer(events, raw, *, clock_raw):
     return rows, dict(fnum_corrections=corrections)
 
 
-def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None, prefix=b''):
+def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None, prefix=b'',
+              opm_clock=TARGET_CLOCK):
     """Serialize merged projection rows at exact source samples.
 
     Rows carry their own target command (0x54 YM2151, 0xA0 AY,
@@ -1202,7 +1206,7 @@ def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None, prefix=b'
     stamps = [(4, len(raw) - 4), (8, 0x171), (0x18, end),
               (0x34, 0x100 - 0x34)]
     if 0x54 in present:
-        stamps.append((0x30, TARGET_CLOCK))
+        stamps.append((0x30, opm_clock))
     if present & {0x56, 0x57}:
         stamps.append((0x48, OPNA_CLOCK))
     if 0x5C in present:
@@ -1239,6 +1243,10 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
     writes are emitted. ``sfg01`` is the dual-cartridge
     composition: the FM part is projected to the OPM cartridge
     (YM2151) and the OPNA cartridge carries SSG + ADPCM-B.
+    ``opm4mhz`` is that same composition with the OPM clock at
+    4 MHz (the eseopm switch position for X1/X68000 pitches);
+    only the KC/KF pitch projection and the YM2151 header clock
+    change.
 
     ``dac`` selects the DAC lane's destination: ``opna``
     (default) is the OPNA's ADPCM-B; ``y8950`` is an MSX-AUDIO
@@ -1257,6 +1265,7 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
     dac_corrected = bool(layered and dac == 'y8950')
     if dac_corrected:
         dac = 'opna'
+    opm_clock = OPM4MHZ_CLOCK if target == 'opm4mhz' else TARGET_CLOCK
     source, outdir = Path(source), Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
     stem = source.stem
@@ -1273,7 +1282,8 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
         loop_start = loop['loop_start_samples']
         loop_event_id = next((e.source_event_id for e in bundle['events']
                               if e.address == loop.get('loop_address')), None)
-    rows, losses = project(analysis, clock_raw=clock_raw, force=force, dac_external=True)
+    rows, losses = project(analysis, clock_raw=clock_raw, force=force, dac_external=True,
+                           opm_clock=opm_clock)
     losses.pop('dac_data_writes_projected_to_pcm', None)
     dcsg_rows, dcsg_stats = [], {}
     dcsg_analysis = bundle['analyses'].get('dcsg')
@@ -1288,7 +1298,7 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
         raw=raw, events=bundle['events'], dac_target=dac)
     for key, value in dac_losses.items():
         losses[key] = losses.get(key, 0) + value
-    if target not in ('makoto', 'sfg01'):
+    if target not in ('makoto', 'sfg01', 'opm4mhz'):
         raise ValueError(f'Unknown OPN2 target cartridge: {target!r}')
     opna_fm_rows, opna_fm_stats = [], {}
     if target == 'makoto' or layered:
@@ -1300,7 +1310,7 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
     target_file = outdir / f'{stem}.target.vgm'
     write_vgm(merged, target_file, end=bundle['source_end_sample'],
               loop_start=loop_start, loop_event_id=loop_event_id,
-              prefix=dac_block)
+              prefix=dac_block, opm_clock=opm_clock)
     writes_csv = outdir / f'{stem}.opn2_opm.writes.csv'
     with writes_csv.open('w', encoding='utf-8', newline='') as stream:
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]) if rows else ['write_id'])
@@ -1341,18 +1351,18 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
             write_vgm(layer_merged, layer_target,
                       end=bundle['source_end_sample'],
                       loop_start=loop_start, loop_event_id=loop_event_id,
-                      prefix=dac_block)
+                      prefix=dac_block, opm_clock=opm_clock)
             layer_target_writes = len(layer_merged)
     deferred = {}
     summary = dict(source=str(source), source_sha256=bundle['source_sha256'],
                    active_chips=list(bundle['active_chips']),
                    opn2_clock_hz=clock_raw & 0x3fffffff,
                    target_cartridge=target,
-                   target_clock_hz=(TARGET_CLOCK if target == 'sfg01'
+                   target_clock_hz=(opm_clock if target in ('sfg01', 'opm4mhz')
                                     else OPNA_CLOCK),
                    target_vgm=target_file.name,
                    target_writes=len(merged),
-                   opm_writes=len(rows) if target == 'sfg01' else 0,
+                   opm_writes=len(rows) if target in ('sfg01', 'opm4mhz') else 0,
                    opna_fm_writes=(len(opna_fm_rows)
                                    if target == 'makoto' else 0),
                    dcsg_writes=len(dcsg_rows), dcsg=dcsg_stats,

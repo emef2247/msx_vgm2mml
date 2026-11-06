@@ -35,7 +35,8 @@ from opn2_target_vgm import convert as convert_target_vgm
 
 TARGET_PRODUCTS = ('{stem}.target.vgm', '{stem}.layer.target.vgm')
 SD_PRODUCTS = ('{stem}/makoto/{stem}.vgm', '{stem}/sfg01/dac_makoto/{stem}.vgm',
-               '{stem}/sfg01/dac_y8950/{stem}.vgm', '{stem}/layered/{stem}.vgm')
+               '{stem}/sfg01/dac_y8950/{stem}.vgm', '{stem}/layered/{stem}.vgm',
+               '{stem}/opm4mhz/{stem}.vgm')
 
 
 def _sd_names(stem):
@@ -67,8 +68,10 @@ def build_parser():
                         help='On the target VGM route, additionally publish every '
                              'cartridge variant in an SD-card tree: '
                              '<stem>/makoto/<stem>.vgm, <stem>/sfg01/dac_makoto/<stem>.vgm, '
-                             '<stem>/sfg01/dac_y8950/<stem>.vgm and '
-                             '<stem>/layered/<stem>.vgm')
+                             '<stem>/sfg01/dac_y8950/<stem>.vgm, '
+                             '<stem>/layered/<stem>.vgm and '
+                             '<stem>/opm4mhz/<stem>.vgm (sfg01 composition with '
+                             'the OPM clock at 4 MHz)')
     return parser
 
 
@@ -216,6 +219,11 @@ def _export_target(path, relative, output, adjacent, args):
         if (selected, args.dac) != ('sfg01', 'y8950'):
             passes.append(dict(key='sfg01_y8950', target='sfg01', dac='y8950',
                                layered=False, outdir=variants / 'sfg01_y8950'))
+        # opm4mhz is never the selected route (--target has no such
+        # choice), so it always needs its own pass: the sfg01
+        # composition with the OPM clock at 4 MHz, DAC on the OPNA.
+        passes.append(dict(key='opm4mhz', target='opm4mhz', dac='opna',
+                           layered=False, outdir=variants / 'opm4mhz'))
     staged_by_key = {}
     failure = None
     for spec in passes:
@@ -276,8 +284,10 @@ def _export_target(path, relative, output, adjacent, args):
                          else variant_file('sfg01_opna'))
             y8950_file = (variant_file('main') if (selected, args.dac) == ('sfg01', 'y8950')
                           else variant_file('sfg01_y8950'))
+            opm4mhz_file = variant_file('opm4mhz')
             sources = dict(zip(_sd_names(path.stem),
-                               (makoto_file, opna_file, y8950_file, layered_file)))
+                               (makoto_file, opna_file, y8950_file, layered_file,
+                                opm4mhz_file)))
             for name, staged_file in sources.items():
                 publish(staged_file, package / name)
         else:

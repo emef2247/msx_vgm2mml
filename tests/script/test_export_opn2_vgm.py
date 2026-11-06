@@ -31,6 +31,29 @@ PHRASE = bytes((
     0x61, 0x00, 0x10,
     0x52, 0x28, 0x00,
 ))
+
+
+def vgm_commands(raw):
+    """(command, register, data) triples of the 3-byte writes in a target VGM."""
+    stream = raw[0x100:]
+    index, commands = 0, []
+    while index < len(stream):
+        cmd = stream[index]
+        if cmd == 0x66:
+            break
+        if cmd in (0x54, 0x56, 0x57, 0x5c, 0xa0):
+            commands.append((cmd, stream[index + 1], stream[index + 2]))
+            index += 3
+        elif cmd == 0x61:
+            index += 3
+        elif cmd in (0x62, 0x63) or 0x70 <= cmd <= 0x7f:
+            index += 1
+        elif cmd == 0x67:
+            size = struct.unpack_from('<I', stream, index + 3)[0]
+            index += 7 + size
+        else:
+            raise AssertionError(f'unexpected VGM command 0x{cmd:02x} at {index}')
+    return commands
 BURST = bytes((0x52, 0x2b, 0x80))
 for _value in (0x80, 0xA0, 0xC0, 0xE0, 0xC0, 0xA0, 0x80, 0x60):
     BURST += bytes((0x52, 0x2a, _value, 0x61, 0x02, 0x00))
@@ -111,7 +134,8 @@ class ExportOpn2VgmTests(unittest.TestCase):
             dac_makoto = package / 'song' / 'sfg01' / 'dac_makoto' / 'song.vgm'
             dac_y8950 = package / 'song' / 'sfg01' / 'dac_y8950' / 'song.vgm'
             layered = package / 'song' / 'layered' / 'song.vgm'
-            for product in (makoto, dac_makoto, dac_y8950, layered):
+            opm4mhz = package / 'song' / 'opm4mhz' / 'song.vgm'
+            for product in (makoto, dac_makoto, dac_y8950, layered, opm4mhz):
                 self.assertTrue(product.is_file(), product)
             # The SD makoto variant is the tracks product's own bytes.
             self.assertEqual(makoto.read_bytes(),
@@ -126,10 +150,34 @@ class ExportOpn2VgmTests(unittest.TestCase):
             layered_raw = layered.read_bytes()
             self.assertNotEqual(struct.unpack_from('<I', layered_raw, 0x30)[0], 0)
             self.assertNotEqual(struct.unpack_from('<I', layered_raw, 0x48)[0], 0)
+            opm4mhz_raw = opm4mhz.read_bytes()
+            self.assertEqual(struct.unpack_from('<I', opm4mhz_raw, 0x30)[0], 4000000)
+            self.assertNotEqual(struct.unpack_from('<I', opm4mhz_raw, 0x48)[0], 0)
+            self.assertGreater(opm4mhz_raw.find(b'\x67\x66\x81'), 0)
+            # opm4mhz differs from the sfg01/dac_makoto variant only in
+            # the OPM pitch projection: the same command stream except
+            # YM2151 KC/KF data, the same header except the YM2151 clock.
+            sfg01_raw = dac_makoto.read_bytes()
+            self.assertEqual(len(opm4mhz_raw), len(sfg01_raw))
+            # Both clocks fit in 24 bits, so the top clock byte (0x33) is 0 in both.
+            self.assertEqual([i for i in range(0x100)
+                              if opm4mhz_raw[i] != sfg01_raw[i]],
+                             [0x30, 0x31, 0x32])
+            a, b = vgm_commands(opm4mhz_raw), vgm_commands(sfg01_raw)
+            self.assertEqual(len(a), len(b))
+            self.assertTrue(any(left != right for left, right in zip(a, b)))
+            for left, right in zip(a, b):
+                if left == right:
+                    continue
+                self.assertEqual(left[0], 0x54)
+                self.assertEqual(left[1], right[1])
+                self.assertIn(left[1],
+                              tuple(range(0x28, 0x2e)) + tuple(range(0x30, 0x36)))
             manifest = json.loads((out / 'listening_manifest.json').read_text(encoding='utf-8'))
             published = manifest['entries']['song.vgm']['published']
             for name in ('song/makoto/song.vgm', 'song/sfg01/dac_makoto/song.vgm',
-                         'song/sfg01/dac_y8950/song.vgm', 'song/layered/song.vgm'):
+                         'song/sfg01/dac_y8950/song.vgm', 'song/layered/song.vgm',
+                         'song/opm4mhz/song.vgm'):
                 self.assertIn(name, published)
 
     def test_sd_layout_variants_removed_when_option_dropped(self):
@@ -140,9 +188,11 @@ class ExportOpn2VgmTests(unittest.TestCase):
             out = root / 'out'
             self.assertEqual(self.run_main(source, '--outdir', out, '--sd-layout'), 0)
             self.assertTrue((out / 'song' / 'makoto' / 'song.vgm').is_file())
+            self.assertTrue((out / 'song' / 'opm4mhz' / 'song.vgm').is_file())
             self.assertEqual(self.run_main(source, '--outdir', out), 0)
             self.assertFalse((out / 'song' / 'makoto' / 'song.vgm').exists())
             self.assertFalse((out / 'song' / 'layered' / 'song.vgm').exists())
+            self.assertFalse((out / 'song' / 'opm4mhz' / 'song.vgm').exists())
             manifest = json.loads((out / 'listening_manifest.json').read_text(encoding='utf-8'))
             published = manifest['entries']['song.vgm']['published']
             self.assertNotIn('song/makoto/song.vgm', published)

@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT/'py'))
 from native_imports import inspect_source
 from native_imports.vgm_timing import command_times
-from opn2_target_vgm import TARGET_CLOCK, convert, project
+from opn2_target_vgm import OPM4MHZ_CLOCK, TARGET_CLOCK, convert, project
 from native_imports.source import analyze_source
 
 
@@ -56,6 +56,16 @@ class Opn2TargetVgmTests(unittest.TestCase):
         self.assertEqual(summary['losses'], {})
         self.assertEqual(summary['deferred'], {})
         self.assertTrue((out / 'authored.opn2_opm.writes.csv').is_file())
+
+    def test_opm4mhz_variant_uses_4mhz_opm_clock(self):
+        summary, out = self.convert(vgm(PHRASE), target='opm4mhz')
+        raw = (out / 'authored.target.vgm').read_bytes()
+        self.assertEqual(summary['target_cartridge'], 'opm4mhz')
+        self.assertEqual(summary['target_clock_hz'], OPM4MHZ_CLOCK)
+        self.assertEqual(struct.unpack_from('<I', raw, 0x30)[0], OPM4MHZ_CLOCK)
+        self.assertGreater(summary['opm_writes'], 0)
+        bundle = inspect_source(raw)
+        self.assertEqual(bundle['active_chips'], ('opm',))
 
     def test_pitch_row_carries_source_hz_and_close_target_hz(self):
         temporary = tempfile.TemporaryDirectory()
