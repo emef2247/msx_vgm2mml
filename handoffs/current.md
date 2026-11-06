@@ -4314,3 +4314,25 @@ should gain an optional musical clock fitter. MUCOM work remains paused.
   may become a stage after the normal export_mgs processing
   (analyze_source is the shared front half of both routes;
   today each variant pass re-runs it). Not implemented.
+
+## --sd-layout: opm4mhz variant (2026-11-06, claude/layered-option)
+
+- The opm4mhz variant the user settled (eseopm manual: sfg01
+  composition, OPM clock 4 MHz) is now a fifth --sd-layout
+  product: <stem>/opm4mhz/<stem>.vgm, DAC on the OPNA.
+- Implementation: opn2_target_vgm.convert accepts
+  target='opm4mhz'; the OPM clock is a parameter through
+  project()/write_vgm() (default 3.579545 MHz, so existing
+  routes are byte-identical); only KC/KF and the YM2151
+  header clock change. The batch publication allowlist
+  includes the new product name.
+- Verification: synthetic OPN2 song --sd-layout: opm4mhz
+  differs from sfg01/dac_makoto only in the header clock
+  bytes and YM2151 KC/KF data; the other four variants and
+  the tracks product are byte-identical to the pre-change
+  run. Tests: 27 in test_export_opn2_vgm.py +
+  test_opn2_target_vgm.py pass (test_export_mgs.py keeps
+  its 3 pre-existing VM failures).
+- Not done: ASOLDR07 real-song check (no local fixture in
+  this VM); real-hardware listening of the 4 MHz variant is
+  the user's call.
