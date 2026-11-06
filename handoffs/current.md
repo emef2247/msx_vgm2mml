@@ -4501,3 +4501,26 @@ Not done / limits: the OPM route has no real-song gate in this
 VM (synthetic fixtures only). The M5 listening A/B for
 OPM>OPNA and the noise loudness calibration remain open. The
 S2-noted same-outdir re-export failure is untouched.
+
+## DCSG lane gain (2026-11-06, branch claude/dcsg-lane-gain on S3)
+
+First real-hardware listening of the makoto variant (MAmidiMEmo +
+VSIF, real OPNA): ADPCM and pitch fine, but the DCSG lanes far too
+loud — also in software emulation. The user's played file was
+md5-identical to the verified bytes, and a register-level audit of
+that file showed every FM voice parameter identical to the source
+at all 2,652 key-ons, so the wrongness was the lane balance, not
+the FM data.
+
+At the user's instruction the lanes now take x68k_vgm2mml's
+listening-calibrated DCSG default gain (0.036, ~-28.9 dB) as a
+level shift before the nearest-step pick on the AY ladder
+(`_DCSG_LANE_GAIN` in py/opn2_target_vgm.py). The PSG/SSG devices
+quantize where the x68k PCM rendering did not: source
+attenuations >= 9 fall off the ladder to mute. Regenerated
+ASOLDR07 makoto differs from the previous verified file in
+exactly 5,147 volume-write bytes and nothing else (old volumes
+15/14/13/12 -> 6/5/4/3). Suite: 985 tests, failing set unchanged.
+Gained variants for the listening check are in the share repo
+under msx/dcsg_gain_test/ASOLDR07/. Awaiting the user's verdict;
+the shift may need softening for these devices.
