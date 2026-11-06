@@ -4377,3 +4377,81 @@ should gain an optional musical clock fitter. MUCOM work remains paused.
   identical.
 - Not done: variant routes for the other sources (plan stages
   S2/S3); real-hardware listening remains the user's call.
+
+## export_mgs --vgm-variants S2: OPNA / DCSG / NES routes (2026-11-06, claude/vgm-variants-s2)
+
+- The variant pass now routes by source chip. OPN2 keeps the S1
+  path unchanged. OPNA-only and DCSG-only sources go through a
+  routed pass that publishes the variants that apply and records
+  the rest in the evidence (vgm_variants.json gains source_route,
+  summaries and an unavailable map name -> reason); a route with
+  no applicable variant records route_unavailable as before.
+  Mixed OPNA+DCSG sources and NES APU/FDS sources (detected via
+  nesapu_projection.has_nesapu) record route_unavailable with a
+  route-specific reason; no substitute mapping is emitted.
+- OPNA (py/opna_target_vgm.py, new): makoto = register-level
+  passthrough of the whole chip at the 8.00 MHz cartridge stamp
+  (FNUM, SSG tone/noise/envelope periods, ADPCM-B delta-N and
+  timer periods rescaled from the source clock; type-0x81 blocks
+  carried verbatim). sfg01 family = FM projected to OPM with the
+  OPNA>OPM law V1 ported from x68k py/opna_opm.py
+  (claude/opna-voice adb5ec3; EG prescaler law and OPNA LFO table
+  included), identity channel map, OPM clock parameterized;
+  SSG/rhythm/ADPCM-B stay on the OPNA. layered adds the FM
+  passthrough. sfg01/dac_y8950 is recorded unavailable (the
+  ADPCM-B lane is native to the cartridge; no Y8950 relocation
+  law exists). Dual-chip OPNA sources are refused by the
+  serializer and record all variants unavailable.
+- DCSG (py/dcsg_opm.py ported from x68k cd5bf4b with its note
+  extraction / membership / performance records bundled;
+  py/dcsg_target_vgm.py, new): sfg01/dac_makoto = the OPN2
+  route's project_dcsg composition (chip 0 to the internal PSG,
+  chip 1 to the OPNA SSG). layered adds the DCSG>OPM projection
+  at the cartridge clock. makoto (mucom88-side S3), dac_y8950
+  (no DAC-class lane) and opm4mhz (no OPM lane in the sfg01
+  composition) are recorded unavailable.
+- NES/FDS: no variant. The x68k chain core (psg_scc_opm) has
+  diverged from this repo's snapshot (SCC voice-bank fitting,
+  PSG noise ownership, musical note units; nesapu_projection
+  BALANCE_GAINS also differ), so a faithful, verifiable port is
+  a separate stage.
+- Verification (local study material only, nothing committed):
+  OPNA FM law vs x68k opna_opm.project at the 4 MHz law clock
+  with the identity map -- event streams and losses identical on
+  all 16 public OPNA fixtures (4,861 rows) and on a synthetic
+  prescaler-/3 rig (30 rows, eg_rate_prescaler_adjustments 16 on
+  both sides). Makoto passthrough on Grounseed track 01 (real
+  PC-98 song, 7,987,200 Hz): 12,769/12,769 non-rescaled writes
+  identical, 2,840/2,840 FNUM commits match the rescale law,
+  header stamped 8,000,000, total samples unchanged; 73,720
+  ADPCM-B block bytes carried. On 6 sampled Grounseed tracks
+  every song uses CH3 special mode, so without --force the
+  sfg01 family records unavailable (the law's documented
+  refusal, same as x68k) while makoto publishes. DCSG law vs
+  x68k --emit-vgm (layout worktree): scheduled-order event
+  streams identical on dual_synth (254 writes), single_synth
+  (141) and fm_synth (35).
+- Found while testing (pre-existing, not S2): re-running a
+  plain export of an OPNA source into the same outdir exits 2
+  with "Unexpected published path in manifest:
+  blueprint/ndp/<stem>.mml"; reproduced at the S1 commit
+  a7cce61 with no variant involvement.
+- Note for the law's next revision: the parallel OPM>OPNA
+  measurement track found the forward bridge's PMS depth series
+  (3.4 * 2^k) wrong (correct {3.4, 6.7, 10.1, 13.5, 20.2, 40.1,
+  79.3}); the ported PMD 86 / AMD 16 constants are x68k V1's as
+  shipped and will need the same re-derivation there.
+- Tests: 5 new in tests/script/test_export_mgs_variants_s2.py
+  (synthetic byte-built OPNA / CH3-special OPNA / DCSG / NES
+  songs; publication, unavailable records, header stamps,
+  subset removal). Full suite on this VM: before 974 tests /
+  128F+5E / skipped 106, after 979 / 128F+5E / skipped 106; the
+  failing-test sets are identical.
+- Pitch formula provenance: the OPNA>OPM port's decode uses the
+  corrected hardware form fnum * clock * (6 / prescale) /
+  (144 * 2 ** (21 - block)) throughout -- taken from x68k
+  claude/opna-voice (adb5ec3) py/opna_opm.py, matching this
+  repo's own opn2_target_vgm.py; the old 2 ** (20 - block) form
+  in the x68k claude/opn2 checkout was not used as a source.
+  py/dcsg_opm.py (from x68k cd5bf4b) contains no OPN pitch
+  decode (DCSG pitches arrive as analysis frequencies).
