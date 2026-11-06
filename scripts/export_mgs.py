@@ -6,9 +6,10 @@ by the existing batch runner. Its own defaults remain unchanged.
 
 With --vgm-variants, each source additionally publishes cartridge
 variant VGMs under vgm_variants/<stem>/ (see _update_vgm_variants).
-OPN2 (YM2612), OPNA (YM2608) and DCSG (SN76489) sources have
-variant routes; a variant that does not apply to a source is
-recorded unavailable with its reason instead of being emitted.
+OPN2 (YM2612), OPNA (YM2608), DCSG (SN76489) and OPM (YM2151)
+sources have variant routes; a variant that does not apply to a
+source is recorded unavailable with its reason instead of being
+emitted.
 """
 import argparse
 import csv
@@ -70,7 +71,7 @@ def build_parser():
                         help='Apply only documented target omission rules')
     parser.add_argument('--vgm-variants', action='store_true',
                         help='Also publish cartridge variant VGMs under '
-                             'vgm_variants/<stem>/ (OPN2, OPNA and DCSG sources; '
+                             'vgm_variants/<stem>/ (OPN2, OPNA, DCSG and OPM sources; '
                              'other sources record a route_unavailable row, and '
                              'variants that do not apply to a source are recorded '
                              'unavailable with a reason). '
@@ -197,10 +198,32 @@ def _dcsg_variant_sources(path, stem, stage_root, names, force):
     return sources, unavailable, summaries
 
 
+def _opm_variant_sources(path, stem, stage_root, names, force):
+    """Variant products for an OPM-only source (see opm_target_vgm)."""
+    from opm_target_vgm import convert as convert_opm
+    sources, unavailable, summaries = {}, {}, {}
+    _run_variant_pass(convert_opm, path, stem, stage_root, 'makoto', False,
+                      {names[0]: stem + '.target.vgm'},
+                      sources, unavailable, summaries, 'makoto', force)
+    _run_variant_pass(convert_opm, path, stem, stage_root / 'sfg01_opm',
+                      'sfg01', False, {names[1]: stem + '.target.vgm'},
+                      sources, unavailable, summaries, 'sfg01_opm', force)
+    unavailable[names[2]] = (
+        'an OPM source has no DAC-class lane for the Y8950 to carry; '
+        'sfg01/dac_y8950 is not emitted for OPM sources')
+    _run_variant_pass(convert_opm, path, stem, stage_root / 'layered',
+                      'makoto', True, {names[3]: stem + '.layer.target.vgm'},
+                      sources, unavailable, summaries, 'layered', force)
+    _run_variant_pass(convert_opm, path, stem, stage_root / 'opm4mhz',
+                      'opm4mhz', False, {names[4]: stem + '.target.vgm'},
+                      sources, unavailable, summaries, 'opm4mhz', force)
+    return sources, unavailable, summaries
+
+
 def _update_routed_variants(path, relative, package, output, args, row,
                             evidence, folder, manifest, state, previous_state,
                             entry, products, owned_names, names, chips):
-    """Variant pass for the non-OPN2 routes (OPNA, DCSG, NES APU/FDS).
+    """Variant pass for the non-OPN2 routes (OPNA, DCSG, OPM, NES APU/FDS).
 
     Each route publishes the variants that apply to the source;
     the rest are recorded in the evidence with their reason. A
@@ -221,6 +244,10 @@ def _update_routed_variants(path, relative, package, output, args, row,
         evidence['source_route'] = 'dcsg'
         sources, unavailable, summaries = _dcsg_variant_sources(
             path, stem, stage_root, names, args.force)
+    elif chip_set == {'opm'}:
+        evidence['source_route'] = 'opm'
+        sources, unavailable, summaries = _opm_variant_sources(
+            path, stem, stage_root, names, args.force)
     elif chip_set and chip_set <= {'opna', 'dcsg'}:
         detail = ('VGM variants are not available for sources mixing OPNA '
                   'and DCSG yet; each variant route covers a single source '
@@ -238,8 +265,8 @@ def _update_routed_variants(path, relative, package, output, args, row,
                       'separate stage; no substitute mapping is emitted')
         else:
             detail = ('VGM variants are not available for this source yet; '
-                      'OPN2 (YM2612), OPNA (YM2608) and DCSG (SN76489) '
-                      'sources produce variant VGMs')
+                      'OPN2 (YM2612), OPNA (YM2608), DCSG (SN76489) and '
+                      'OPM (YM2151) sources produce variant VGMs')
     evidence['summaries'] = summaries
     evidence['unavailable'] = unavailable
     if not sources:

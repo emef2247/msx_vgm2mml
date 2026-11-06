@@ -155,8 +155,10 @@ class ExportOpn2VgmTests(unittest.TestCase):
             self.assertNotEqual(struct.unpack_from('<I', opm4mhz_raw, 0x48)[0], 0)
             self.assertGreater(opm4mhz_raw.find(b'\x67\x66\x81'), 0)
             # opm4mhz differs from the sfg01/dac_makoto variant only in
-            # the OPM pitch projection: the same command stream except
-            # YM2151 KC/KF data, the same header except the YM2151 clock.
+            # the OPM pitch projection and the initial LFO frequency
+            # write (the bridge rate table is selected by the stamped
+            # OPM clock): the same command stream except YM2151 KC/KF
+            # and 0x18 data, the same header except the YM2151 clock.
             sfg01_raw = dac_makoto.read_bytes()
             self.assertEqual(len(opm4mhz_raw), len(sfg01_raw))
             # Both clocks fit in 24 bits, so the top clock byte (0x33) is 0 in both.
@@ -172,7 +174,8 @@ class ExportOpn2VgmTests(unittest.TestCase):
                 self.assertEqual(left[0], 0x54)
                 self.assertEqual(left[1], right[1])
                 self.assertIn(left[1],
-                              tuple(range(0x28, 0x2e)) + tuple(range(0x30, 0x36)))
+                              (0x18,) + tuple(range(0x28, 0x2e))
+                              + tuple(range(0x30, 0x36)))
             manifest = json.loads((out / 'listening_manifest.json').read_text(encoding='utf-8'))
             published = manifest['entries']['song.vgm']['published']
             for name in ('song/makoto/song.vgm', 'song/sfg01/dac_makoto/song.vgm',

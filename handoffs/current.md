@@ -4455,3 +4455,49 @@ should gain an optional musical clock fitter. MUCOM work remains paused.
   in the x68k claude/opn2 checkout was not used as a source.
   py/dcsg_opm.py (from x68k cd5bf4b) contains no OPN pitch
   decode (DCSG pitches arrive as analysis frequencies).
+
+## S3 (2026-11-06): forward LFO bridge correction + the OPM source route
+
+Branch `claude/vgm-variants-s3` on top of S2 (`7ed859d`).
+
+Part A — the forward bridge (OPN2 / OPNA sources) now follows
+`~/workspace/opna_opm_voice/LFO_BRIDGE_CORRECTION.md`:
+
+- The LFO rate table is selected by the OPM clock the variant
+  stamps (3,579,545 Hz and 4 MHz tables in both
+  `py/opn2_target_vgm.py` and `py/opna_target_vgm.py`); the 4 MHz
+  table is byte-identical to the previously shipped single table.
+- The fixed bridge depths (PMD 86 / AMD 16) are gone. On each
+  bridge activation the depths are selected from the largest
+  PMS / AMS in effect (`_LFO_BRIDGE_PMD` / `_LFO_BRIDGE_AMD`,
+  identical constants in both modules), and every selection is
+  counted in the summary losses (`lfo_pmd_selected_<n>` etc.).
+
+Part B — OPM sources (`py/opm_target_vgm.py`, new): makoto
+projects OPM -> OPNA under the measured candidate law
+(`~/workspace/opm_opna_study/MEASUREMENTS.md`); sfg01 re-emits
+the OPM stream unchanged (plus the source's own OPNA/SSG
+lanes); layered stacks both; opm4mhz re-stamps 4 MHz. The
+8 -> 6 channel allocation follows the mucom88 `opm_opna.py`
+policy as a mapping decision. Losses are recorded, never
+silent (DT2, CSM, noise loudness uncalibrated, PM saturation,
+sub-range LFO rates, ...). Exports stay behind
+`--vgm-variants`; the plain MGS export of an OPM source still
+declines with a reason.
+
+Verification (this VM): the variant tests (16) and the
+export_opn2 module pass. ASOLDR07 gate, S2 code vs S3 code
+under the same harness: makoto and opm4mhz byte-identical;
+the three 3.58 MHz variants differ by exactly one byte — the
+initial LFO frequency write (register 0x18, 0xc0 -> 0xc2).
+ASOLDR07 never bridges LFO depths, so the depth selection is
+covered by the synthetic S3 tests only. One pre-existing test
+updated: `test_sd_layout_publishes_all_variants` now allows
+the 0x18 write among the opm4mhz-vs-sfg01 stream differences.
+Full suite: 985 tests; the failing set equals the pre-S3 set
+(128 failures + 5 errors, skipped 106).
+
+Not done / limits: the OPM route has no real-song gate in this
+VM (synthetic fixtures only). The M5 listening A/B for
+OPM>OPNA and the noise loudness calibration remain open. The
+S2-noted same-outdir re-export failure is untouched.

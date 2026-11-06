@@ -58,9 +58,39 @@ from opn2_target_vgm import (OPM4MHZ_CLOCK, OPNA_CLOCK, TARGET_CLOCK,
 # 7,987,200/144 = 55.5 kHz, so the nearest-OPM bytes differ.
 # Each entry is the OPM byte nearest in Hz to the source rate
 # (4.01/5.63/6.10/6.47/6.99/9.85/54.1/86.4 Hz). Source rate 7
-# exceeds the OPM maximum of 59.1 Hz and saturates at 0xff.
+# exceeds the OPM maximum and saturates at 0xff.
 # Derivation script: opna_opm_voice study, lfo_rate_map.py.
-_LFO_RATE_TO_OPM = (0xc1, 0xc8, 0xca, 0xcb, 0xcd, 0xd5, 0xfc, 0xff)
+#
+# The OPM byte for a given Hz depends on the OPM clock actually
+# stamped, so there are two tables. The 4 MHz table below served
+# every target until 2026-11-06, but the sfg01 family stamps the
+# OPM at 3,579,545 Hz, which made every bridged rate x0.8949 of
+# intended; the 3,579,545 Hz table corrects that (opm4mhz keeps
+# the 4 MHz table). Rederivation: opna_opm_voice study,
+# LFO_BRIDGE_CORRECTION.md and lfo_bridge_rates.csv (2026-11-06).
+_LFO_RATE_TO_OPM_4MHZ = (0xc1, 0xc8, 0xca, 0xcb, 0xcd, 0xd5, 0xfc, 0xff)
+_LFO_RATE_TO_OPM = (0xc3, 0xca, 0xcd, 0xce, 0xd0, 0xd7, 0xff, 0xff)
+
+
+def _lfo_rate_table(opm_clock):
+    """Rate table for the OPM clock the target VGM actually stamps."""
+    return (_LFO_RATE_TO_OPM_4MHZ if opm_clock == OPM4MHZ_CLOCK
+            else _LFO_RATE_TO_OPM)
+
+
+# LFO bridge depths, per sensitivity step (LFO_BRIDGE_CORRECTION.md,
+# 2026-11-06). The depth series the original bridge derivation
+# assumed for the OPN side, 3.4 * 2^k cents, is wrong above PMS 3:
+# the render-verified OPNA PMS series is {3.4, 6.7, 10.1, 13.5,
+# 20.2, 40.1, 79.3} cents, so the fixed PMD 86 was +187/+391 cents
+# too deep at PMS 6/7. PMD/AMD are global OPM latches, so a bridge
+# span selects the ideal value for the maximum step in use in
+# that span (the span maximum governs the deepest channel; lower
+# steps inherit the same latch, the documented trade-off of the
+# per-activation rule). The OPNA AMS series {1.4, 5.9, 11.8} dB
+# was verified correct; only AMS 1's AMD changes (16 -> 8).
+_LFO_BRIDGE_PMD = {1: 85, 2: 83, 3: 61, 4: 41, 5: 31, 6: 15, 7: 15}
+_LFO_BRIDGE_AMD = {1: 8, 2: 16, 3: 16}
 
 # EG rate conversion. The OPN and OPM envelope cores share one
 # design (EG clock = sample rate / 3, effective rate = 2R + the
@@ -177,34 +207,63 @@ def project_fm(analysis, *, clock_raw, pitch_policy='clamp', channel_map=None,
             target_ch=channel_map.get(s.ch) if s and register != 0x18 else None,
             source_row=None, inferred_key=False, synthetic_phase=None))
 
-    emit(None, 0x18, _LFO_RATE_TO_OPM[0], 'initial LFO frequency')
+    emit(None, 0x18, _lfo_rate_table(opm_clock)[0], 'initial LFO frequency')
 
-    # Hardware LFO bridge: the source LFO waveform is a fixed
-    # triangle and its depths live in the per-channel PMS/AMS
-    # steps, while OPM scales those steps by the global PMD/AMD
-    # latches. PMD 86 makes the OPM PMS steps 3.4 * 2^k cents
-    # (the OPN series) for PMS 1..3 and keeps 4..7 within
-    # +25%/-38%; AMD 16 makes the OPM AMS steps 0/3.0/6.0/12.0
-    # dB against the source 0/1.4/5.9/11.8 dB. The depths are
-    # emitted once per span in which the source LFO is enabled
-    # and some channel has nonzero sensitivity, and zeroed when
-    # that span ends; rate and sensitivities already flow as
-    # 0x18/0x38 writes.
-    lfo = {'enabled': False, 'on': False, 'sensitivities': {}}
+    # Hardware LFO bridge: same law as the OPN2 route. The source
+    # LFO waveform is a fixed triangle and its depths live in the
+    # per-channel PMS/AMS steps, while OPM scales those steps by
+    # the global PMD/AMD latches, so the bridge selects the latch
+    # values per activation: PMD is the ideal value for the
+    # maximum PMS in use in the span and AMD the value for the
+    # maximum AMS (_LFO_BRIDGE_PMD/_LFO_BRIDGE_AMD; the fixed
+    # PMD 86 / AMD 16 pair used until 2026-11-06 rested on a wrong
+    # depth series, see the table comment). Sensitivities arrive
+    # one write at a time, so the span maximum is not known when
+    # the span opens: if a later sensitivity write changes the
+    # selected pair mid-span, the pair is re-emitted and the
+    # reselection is recorded. A span with no PM sensitivity
+    # selects PMD 0 (likewise AMD 0), since the depth tables only
+    # cover steps 1..7. Every selection is counted in the losses
+    # dict as lfo_bridge_pmd_<value>/lfo_bridge_amd_<value> so the
+    # summary shows which values were chosen. The depths are
+    # zeroed when the span ends; rate and sensitivities already
+    # flow as 0x18/0x38 writes.
+    lfo = {'enabled': False, 'on': False, 'sensitivities': {},
+           'depths': None}
 
     def lfo_bridge(s):
         active = lfo['enabled'] and any(
             pms or ams for pms, ams in lfo['sensitivities'].values())
-        if active and not lfo['on']:
-            emit(s, 0x1b, 0x02, 'OPN fixed triangle as OPM LFO waveform')
-            emit(s, 0x19, 0x80 | 86, 'OPM PMD scaled to OPN PMS depth steps')
-            emit(s, 0x19, 16, 'OPM AMD scaled to OPN AMS depth steps')
-            losses['lfo_depths_bridged'] += 1
-            lfo['on'] = True
-        elif not active and lfo['on']:
+        if active:
+            max_pms = max(pms for pms, ams in lfo['sensitivities'].values())
+            max_ams = max(ams for pms, ams in lfo['sensitivities'].values())
+            depths = (_LFO_BRIDGE_PMD.get(max_pms, 0),
+                      _LFO_BRIDGE_AMD.get(max_ams, 0))
+            if not lfo['on']:
+                emit(s, 0x1b, 0x02, 'OPN fixed triangle as OPM LFO waveform')
+                emit(s, 0x19, 0x80 | depths[0],
+                     'OPM PMD: ideal for the maximum PMS in this span')
+                emit(s, 0x19, depths[1],
+                     'OPM AMD: ideal for the maximum AMS in this span')
+                losses['lfo_depths_bridged'] += 1
+                losses[f'lfo_bridge_pmd_{depths[0]}'] += 1
+                losses[f'lfo_bridge_amd_{depths[1]}'] += 1
+                lfo['on'] = True
+                lfo['depths'] = depths
+            elif depths != lfo['depths']:
+                emit(s, 0x19, 0x80 | depths[0],
+                     'OPM PMD reselected: span sensitivity maximum changed')
+                emit(s, 0x19, depths[1],
+                     'OPM AMD reselected: span sensitivity maximum changed')
+                losses['lfo_bridge_depths_reselected'] += 1
+                losses[f'lfo_bridge_pmd_{depths[0]}'] += 1
+                losses[f'lfo_bridge_amd_{depths[1]}'] += 1
+                lfo['depths'] = depths
+        elif lfo['on']:
             emit(s, 0x19, 0x80, 'LFO bridge span ended: PM depth zero')
             emit(s, 0x19, 0, 'LFO bridge span ended: AM depth zero')
             lfo['on'] = False
+            lfo['depths'] = None
 
     def target_channel(s):
         return channel_map.get(s.ch)
@@ -309,7 +368,7 @@ def project_fm(analysis, *, clock_raw, pitch_policy='clamp', channel_map=None,
                 if item.state.fnum is not None:
                     pitch(item)
         elif s.port == 0 and reg == 0x22:
-            emit(s, 0x18, _LFO_RATE_TO_OPM[state.lfo_rate],
+            emit(s, 0x18, _lfo_rate_table(opm_clock)[state.lfo_rate],
                  'approximate LFO frequency (derived rate table)')
             lfo['enabled'] = bool(state.lfo_enabled)
             lfo_bridge(s)
