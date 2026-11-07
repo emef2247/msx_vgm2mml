@@ -4579,3 +4579,16 @@ user's real-hardware A/B. Sample delivered in the share repo
 (msx/opn2_opna_law_sample/). Early anchor-1 EG attack claim in
 the previous section was a DC-offset measurement artifact and
 is retracted in the study's PLAN.md.
+
+## Correction (2026-11-07, user): the makoto FM lane is not a route
+
+The user corrected the framing of the OPN2>OPNA work above:
+in msx_vgm2mml every output passes through the musical layer,
+and a register transcription is not a legitimate output form.
+project_fm_layer consumes the raw event stream; the OPNA
+target should be emitted from the OPN2 analysis (states /
+segments) the way project() emits the OPM target. The law
+measurements stand as mapping-stage knowledge; the vehicle
+does not. Rebuild not yet scheduled; do not extend the
+transcription lane. Field note:
+2026-11-07_makoto_fm_lane_is_not_a_route.md.
