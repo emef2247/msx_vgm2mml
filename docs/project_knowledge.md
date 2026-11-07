@@ -735,3 +735,10 @@ the extra tokens consume MGSDRV track buffer. MGSDRV restarts the hardware
 envelope on every untied note, so gapless adjacency preserves both the source
 timing and each note's attack. Loop/macro compression may group the adjacent
 notes, but grouping must not merge them.
+
+
+Cartridge VGM variants consume `NativePerformance` directly. Preserve decoded
+PCM content separately from original transport, and let native musical curves
+own projected pitch, level, timbre and gates. Typed source register evidence
+must not silently override edited musical records. See
+[cartridge VGM variants](musical_vgm_variants.md).

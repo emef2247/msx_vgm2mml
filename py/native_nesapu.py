@@ -51,7 +51,8 @@ def add_units(builder, root, stem):
                 append(volume, at, view.volume)
                 parameters = (('duty', view.duty),) if view.kind == 'pulse' else \
                     (('lfsr_mode', view.lfsr_mode),) if view.kind == 'noise' else \
-                    (('wave_id', view.wave_id),) if view.kind == 'fds' else \
+                    (('wave_id', view.wave_id),
+                     ('waveform_u6', tuple(trace.fds_waves[view.wave_id]))) if view.kind == 'fds' else \
                     (('waveform', 'triangle'),)
                 append(voices, at, builder.voice(device, section, parameters))
             builder.units.append(NativeUnit(
@@ -98,13 +99,16 @@ def add_units(builder, root, stem):
             f'nesapu:0:4:gate:{number}', device.device_id,
             'dpcm', 4, run[0].start_vgmticks, run[-1].end_vgmticks,
             ((run[0].start_vgmticks, None),), tuple(volume),
-            (builder.voice(device, 'dpcm', (('rendering', 'scc_slice'),)),),
+            ((run[0].start_vgmticks, builder.voice(device, 'dpcm',
+                (('source_encoding', 'nes_dpcm'),))),),
             builder.control_ids(device, 'dpcm', 4,
                                 run[0].start_vgmticks, run[-1].end_vgmticks),
             (), 'unpitched',
             (('boundary_origin', 'dpcm_trigger_playback_interval'),
              ('volume_domain', 'native_apu_level_0_15'),
              ('source_event_index', str(event_index)))))
+    from native_pcm import add_nes_pcm
+    add_nes_pcm(builder, trace, device)
     report = builder.bundle['report']
     report['active_chips'] = tuple(dict.fromkeys(
         (*report['active_chips'], 'nesapu')))

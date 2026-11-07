@@ -1030,12 +1030,54 @@ def project_dac(analysis, *, source_end, raw, events, dac_target='opna'):
                  runs=0, playbacks=0, unique_samples=0, dram_bytes=0)
     if not timeline:
         return rows, b'', losses, stats, run_rows
+    return project_dac_timeline(timeline, source_end=source_end, dac_target=dac_target,
+                                stats=stats, losses=losses)
+
+
+def project_dac_timeline(timeline, *, source_end, dac_target='opna', stats=None, losses=None, split_samples=(), budget_policy='omit'):
+    """Pure decoded-supply projection shared by native and musical callers.
+
+    Input rows are (sample, byte, provenance ID, stream offset, stream step).
+    No source file, chip analyzer or Segment is consulted here. Keep the
+    established run splitting, stream-rate clustering, encoding and sample
+    inventory identical for both callers.
+    """
+    if dac_target not in ('opna', 'y8950'):
+        raise ValueError(f'Unknown DAC target: {dac_target!r}')
+    rate_clock, rate_divisor, sample_budget = (
+        (Y8950_CLOCK,72*65536,Y8950_RAM_BUDGET) if dac_target=='y8950' else
+        (OPNA_CLOCK,144*65536,ADPCM_B_DRAM_BUDGET))
+    rows,run_rows=[],[]
+    losses=Counter(losses or {})
+    stats=dict(stats or dict(timeline_writes=len(timeline), runs=0,
+                            playbacks=0,unique_samples=0,dram_bytes=0))
+    if not timeline:return rows,b'',losses,stats,run_rows
+    if budget_policy not in ('omit','replace'):raise ValueError('Unknown decoded PCM bank budget policy')
+    cuts=sorted({cut for cut in split_samples if 0<cut<source_end})
+    if budget_policy=='replace' and sample_budget>=128:
+        # Bound independent PCM assets before encoding, never cut compressed
+        # ADPCM bytes. Worst-case supply rate is one byte per VGM sample.
+        window=max(2,(sample_budget//32-1)*64)
+        partitions=list(range(timeline[0][0]+window,source_end,window))
+        cuts=sorted(set(cuts)|set(partitions))
+        stats['capacity_partition_bound_samples']=window
+        stats['capacity_partition_candidates']=len(partitions)
+    if cuts:
+        timeline=list(timeline)
+        for cut in cuts:
+            for index,(previous,current) in enumerate(zip(timeline,timeline[1:])):
+                if previous[0]<cut<current[0] and current[0]-previous[0]<=_DAC_RUN_GAP_TICKS:
+                    timeline.insert(index+1,(cut,previous[1],previous[2],None,None))
+                    losses['dac_loop_boundary_held_sample_inserted']+=1
+                    break
+        stats['loop_run_splits']=len(cuts)
     runs = [[timeline[0]]]
     for row in timeline[1:]:
         previous = runs[-1][-1]
         offset_break = (row[3] is not None and previous[3] is not None
                         and row[3] != previous[3] + (previous[4] or 1))
-        if row[0] - previous[0] <= _DAC_RUN_GAP_TICKS and not offset_break:
+        loop_break=any(previous[0]<cut<=row[0] for cut in cuts)
+        if row[0] - previous[0] <= _DAC_RUN_GAP_TICKS and not offset_break and not loop_break:
             runs[-1].append(row)
         else:
             runs.append([row])
@@ -1048,12 +1090,12 @@ def project_dac(analysis, *, source_end, raw, events, dac_target='opna'):
     prepared = [None] * len(runs)
     run_rows = [None] * len(runs)
 
-    def add_sample(encoded, delta_n, rate, count):
-        if len(image) + len(encoded) > sample_budget:
+    def add_sample(encoded, delta_n, rate, count, amplitudes):
+        if budget_policy=='omit' and len(image) + len(encoded) > sample_budget:
             return None
         sample = dict(sample_id=len(sample_list), address=len(image),
                       encoded=encoded, delta_n=delta_n,
-                      rate_hz=float(rate), samples=count)
+                      rate_hz=float(rate), samples=count, amplitudes=amplitudes)
         sample_list.append(sample)
         image.extend(encoded)
         return sample
@@ -1118,7 +1160,7 @@ def project_dac(analysis, *, source_end, raw, events, dac_target='opna'):
         key = hashlib.sha256(resampled.tobytes()).digest()
         sample = waveform_ids.get(key)
         if sample is None:
-            sample = add_sample(_encode_adpcm_b(resampled), delta_n, rate, count)
+            sample = add_sample(_encode_adpcm_b(resampled), delta_n, rate, count, resampled)
             if sample is None:
                 losses['dac_dram_budget_samples_dropped'] += 1
                 base['termination'] = 'dram_budget_dropped'
@@ -1149,7 +1191,7 @@ def project_dac(analysis, *, source_end, raw, events, dac_target='opna'):
             if count % 64:
                 amplitudes = amplitudes + [amplitudes[-1]] * (64 - count % 64)
                 count = len(amplitudes)
-            sample = add_sample(_encode_adpcm_b(amplitudes), delta_n, rate, count)
+            sample = add_sample(_encode_adpcm_b(amplitudes), delta_n, rate, count, amplitudes)
             if sample is None:
                 losses['dac_dram_budget_samples_dropped'] += 1
             for descriptor in cluster:
@@ -1166,6 +1208,33 @@ def project_dac(analysis, *, source_end, raw, events, dac_target='opna'):
                         else 'gap')
                     prepared[descriptor['run_index']] = base | {'sample': sample}
                 run_rows[descriptor['run_index']] = base
+    if budget_policy=='replace' and len(image)>sample_budget:
+        from pcm_target_budget import fit_bank
+        usage=Counter(entry['sample']['sample_id'] for entry in prepared if entry)
+        candidates=[dict(sample_id=sample['sample_id'],encoded=sample['encoded'],
+            amplitudes=sample['amplitudes'],rate_hz=sample['rate_hz']) for sample in sample_list]
+        try:
+            mapping,selected,diagnostics=fit_bank(candidates,usage,sample_budget)
+        except ValueError as error:
+            raise ValueError(f'PCM DRAM bank cannot fit its representatives: {error}') from error
+        by_id={sample['sample_id']:sample for sample in sample_list}
+        image=bytearray()
+        for identity in selected:
+            by_id[identity]['address']=len(image);image.extend(by_id[identity]['encoded'])
+        for index,entry in enumerate(prepared):
+            if entry is None:continue
+            original=entry['sample'];representative=by_id[mapping[original['sample_id']]]
+            replaced=original['sample_id']!=representative['sample_id']
+            delta=max(1,min(65535,round(original['delta_n']*representative['samples']/original['samples']))) if replaced else original['delta_n']
+            base=run_rows[index]
+            base.update(original_sample_id=original['sample_id'],sample_id=representative['sample_id'],
+                dram_address=representative['address'],samples_emitted=representative['samples'],
+                delta_n=delta,rate_hz=rate_clock*delta/rate_divisor,budget_replaced=replaced)
+            entry.update(base);entry['sample']=representative;entry['playback_delta_n']=delta
+        sample_list=[by_id[identity] for identity in selected]
+        stats['bank_budget']=diagnostics
+        losses['dac_budget_reused_playbacks']+=sum(entry is not None and entry.get('budget_replaced',False) for entry in prepared)
+        losses['dac_budget_replaced_samples']+=sum(source!=target for source,target in mapping.items())
     stats.update(playbacks=sum(1 for entry in prepared if entry),
                  unique_samples=len(sample_list), dram_bytes=len(image))
     if not sample_list:
@@ -1203,8 +1272,8 @@ def project_dac(analysis, *, source_end, raw, events, dac_target='opna'):
                     (0x0A, start_unit >> 8, 'y8950_adpcm start address high'),
                     (0x0B, stop_unit & 0xFF, 'y8950_adpcm stop address low'),
                     (0x0C, stop_unit >> 8, 'y8950_adpcm stop address high'),
-                    (0x10, sample['delta_n'] & 0xFF, 'y8950_adpcm delta-N low'),
-                    (0x11, sample['delta_n'] >> 8, 'y8950_adpcm delta-N high'),
+                    (0x10, entry.get('playback_delta_n',sample['delta_n']) & 0xFF, 'y8950_adpcm delta-N low'),
+                    (0x11, entry.get('playback_delta_n',sample['delta_n']) >> 8, 'y8950_adpcm delta-N high'),
                     (0x12, ADPCM_B_LEVEL, 'y8950_adpcm level'),
                     (0x07, 0x80, 'y8950_adpcm start')):
                 emit(tick, event_id, register, data, reason)
@@ -1226,8 +1295,8 @@ def project_dac(analysis, *, source_end, raw, events, dac_target='opna'):
                     (0x03, start_unit >> 8, 'adpcm_b start address high'),
                     (0x04, (end_unit - 1) & 0xFF, 'adpcm_b end address low'),
                     (0x05, (end_unit - 1) >> 8, 'adpcm_b end address high'),
-                    (0x09, sample['delta_n'] & 0xFF, 'adpcm_b delta-N low'),
-                    (0x0A, sample['delta_n'] >> 8, 'adpcm_b delta-N high'),
+                    (0x09, entry.get('playback_delta_n',sample['delta_n']) & 0xFF, 'adpcm_b delta-N low'),
+                    (0x0A, entry.get('playback_delta_n',sample['delta_n']) >> 8, 'adpcm_b delta-N high'),
                     (0x0B, ADPCM_B_LEVEL, 'adpcm_b level'),
                     (0x0C, 0xFF, 'adpcm_b limit low'),
                     (0x0D, 0xFF, 'adpcm_b limit high'),

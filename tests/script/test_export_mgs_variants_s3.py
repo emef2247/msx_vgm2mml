@@ -1,18 +1,4 @@
-"""S3: LFO bridge correction (OPN2/OPNA routes) and the OPM route.
-
-Part A: the forward LFO bridge selects its rate table by the OPM
-clock actually stamped (3,579,545 Hz for the sfg01 family, the
-previous 4 MHz table only for opm4mhz) and selects PMD/AMD per
-activation from the span's maximum PMS/AMS instead of the fixed
-86/16 pair; selections land in the summary losses.
-
-Part B: OPM (YM2151) sources publish the makoto variant (the
-verified OPM>OPNA law), the sfg01/opm4mhz passthrough
-re-emissions and the layered composition; sfg01/dac_y8950 is
-recorded unavailable. Allocation losses (8 keyed channels) refuse
-without force and are recorded under force. All fixtures are
-byte-built synthetics.
-"""
+"""Native musical OPM profiles and retained standalone LFO bridge checks."""
 import json
 from pathlib import Path
 import struct
@@ -42,11 +28,13 @@ def _vgm(commands, *, version=0x171, total=4410, stamps=()):
 
 def _opm_song(channels=2, *, clock=3579545, dt2=0, lfo=False, noise=False):
     cmds = bytearray()
+    channel_ids=list(range(channels))
+    if noise and 7 not in channel_ids:channel_ids[-1]=7
 
     def w(reg, data):
         cmds.extend((0x54, reg, data))
 
-    for ch in range(channels):
+    for ch in channel_ids:
         w(0x20 + ch, 0xC2)
         for bank in range(4):
             w(0x40 + bank * 8 + ch, 0x32)
@@ -65,12 +53,12 @@ def _opm_song(channels=2, *, clock=3579545, dt2=0, lfo=False, noise=False):
         w(0x18, 0xC8)                   # ~5.1 Hz at the MSX clock
     if noise:
         w(0x0F, 0x80 | 20)              # noise on, NFREQ 20
-    for ch in range(channels):
+    for ch in channel_ids:
         w(0x08, 0x78 | ch)
     cmds.extend(b'\x61' + struct.pack('<H', 4410))
     if noise:
         w(0x0F, 0x00)
-    for ch in range(channels):
+    for ch in channel_ids:
         w(0x08, ch)
     return _vgm(cmds, stamps=((0x30, clock),))
 
@@ -126,12 +114,7 @@ def _opm_writes(raw):
     return writes
 
 
-def _variant_pass(source_dir, out, enabled, force=False):
-    from types import SimpleNamespace
-    args = SimpleNamespace(input=source_dir, outdir=out,
-                           vgm_variants=enabled, force=force,
-                           normalization_ms=8.0, fm_state_ms=24.0)
-    return export_mgs._update_vgm_variants(args)
+from test_export_mgs_variants import assert_profiles, variant_pass as _variant_pass
 
 
 def _evidence(out, stem):
@@ -177,85 +160,44 @@ class LfoBridgeCorrectionTests(unittest.TestCase):
 
 
 class ExportMgsOpmVariantsTests(unittest.TestCase):
-    def stage(self, root, name, data):
-        source_dir = root / 'input'
-        source_dir.mkdir()
-        (source_dir / name).write_bytes(data)
-        return source_dir, root / 'out'
-
-    def test_opm_publishes_four_variants_and_records_dac_y8950(self):
+    def render(self, data, check, force=False):
         with tempfile.TemporaryDirectory() as tmp:
-            source_dir, out = self.stage(Path(tmp), 'song.vgm', _opm_song())
-            rows = _variant_pass(source_dir, out, True)
-            self.assertEqual(rows[0]['status'], 'success')
-            package = out / 'vgm_variants' / 'song'
-            makoto = (package / 'makoto' / 'song.vgm').read_bytes()
-            sfg01 = (package / 'sfg01' / 'dac_makoto' / 'song.vgm').read_bytes()
-            layered = (package / 'layered' / 'song.vgm').read_bytes()
-            opm4mhz = (package / 'opm4mhz' / 'song.vgm').read_bytes()
-            self.assertFalse((package / 'sfg01' / 'dac_y8950' / 'song.vgm').exists())
+            root = Path(tmp); source = root / 'song.vgm'; source.write_bytes(data)
+            out = root / 'out'; rows = _variant_pass(source, out, force=force)
+            self.assertEqual(rows[0]['status'], 'success', rows)
+            check(out, _evidence(out, 'song'))
+
+    def test_opm_publishes_base_profiles_without_redundant_auxiliaries(self):
+        def check(out, report):
+            assert_profiles(self, out, ('sfg01', 'makoto'))
+            makoto = (out / 'vgm-variants/makoto/song.vgm').read_bytes()
+            sfg01 = (out / 'vgm-variants/sfg01/song.vgm').read_bytes()
             self.assertEqual(_stamp(makoto, 0x48), 8000000)
             self.assertEqual(_stamp(makoto, 0x30), 0)
             self.assertEqual(_stamp(sfg01, 0x30), 3579545)
             self.assertEqual(_stamp(sfg01, 0x48), 0)
-            self.assertEqual(_stamp(layered, 0x30), 3579545)
-            self.assertEqual(_stamp(layered, 0x48), 8000000)
-            self.assertEqual(_stamp(opm4mhz, 0x30), 4000000)
-            evidence = _evidence(out, 'song')
-            self.assertEqual(evidence['source_route'], 'opm')
-            self.assertEqual(len(evidence['published']), 4)
-            unavailable = evidence['unavailable']
-            self.assertEqual(list(unavailable),
-                             ['vgm_variants/song/sfg01/dac_y8950/song.vgm'])
-            self.assertIn('Y8950', list(unavailable.values())[0])
+        self.render(_opm_song(), check)
 
-    def test_opm_makoto_summary_records_law_losses(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            source_dir, out = self.stage(
-                Path(tmp), 'song.vgm',
-                _opm_song(dt2=2, lfo=True, noise=True))
-            rows = _variant_pass(source_dir, out, True)
-            self.assertEqual(rows[0]['status'], 'success')
-            summary = _evidence(out, 'song')['summaries']['makoto']
-            losses = summary['losses']
-            self.assertGreaterEqual(losses['opm_dt2_dropped'], 1)
-            self.assertEqual(losses['opm_pm_depth_saturated'], 1)
-            self.assertEqual(losses['opm_am_depth_saturated'], 1)
-            self.assertEqual(losses['opm_lfo_waveform_substituted'], 1)
-            self.assertEqual(losses['opm_noise_loudness_uncalibrated'], 1)
-            self.assertEqual(summary['noise_loudness'], 'calibration-pending')
+    def test_opm_cross_chip_timbre_losses_are_reported(self):
+        def check(out, report):
+            losses = report['summaries']['makoto']['losses']
+            self.assertGreater(losses['fm_opm_dt2_unavailable_on_opn'], 0)
+            self.assertGreater(losses['fm_lfo_cross_chip_approximation'], 0)
+            self.assertGreater(losses['fm_opm_lfo_waveform_approximated'], 0)
+            self.assertGreater(losses['fm_native_noise_register_not_projected'],0)
+        self.render(_opm_song(dt2=2, lfo=True, noise=True), check)
 
-    def test_opm_eight_channels_refuse_without_force(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            source_dir, out = self.stage(Path(tmp), 'song.vgm',
-                                         _opm_song(channels=8))
-            rows = _variant_pass(source_dir, out, True)
-            self.assertEqual(rows[0]['status'], 'success')
-            package = out / 'vgm_variants' / 'song'
-            self.assertFalse((package / 'makoto' / 'song.vgm').exists())
-            self.assertFalse((package / 'layered' / 'song.vgm').exists())
-            self.assertTrue((package / 'sfg01' / 'dac_makoto' / 'song.vgm').is_file())
-            self.assertTrue((package / 'opm4mhz' / 'song.vgm').is_file())
-            evidence = _evidence(out, 'song')
-            reasons = ' '.join(evidence['unavailable'].values())
-            self.assertIn('8 FM channels', reasons)
+    def test_opm_eight_channels_keep_sfg_and_refuse_makoto_capacity_loss(self):
+        def check(out, report):
+            assert_profiles(self, out, ('sfg01',))
+            self.assertIn('capacity', report['summaries']['makoto']['reason'])
+        self.render(_opm_song(channels=8), check)
 
-    def test_opm_eight_channels_allocate_under_force(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            source_dir, out = self.stage(Path(tmp), 'song.vgm',
-                                         _opm_song(channels=8))
-            rows = _variant_pass(source_dir, out, True, force=True)
-            self.assertEqual(rows[0]['status'], 'success')
-            package = out / 'vgm_variants' / 'song'
-            self.assertTrue((package / 'makoto' / 'song.vgm').is_file())
-            summary = _evidence(out, 'song')['summaries']['makoto']
-            self.assertEqual(len(summary['allocation_omissions']), 2)
-            reasons = {item['reason'] for item in summary['allocation_omissions']}
-            self.assertEqual(reasons, {'opm_simultaneous_fm_capacity'})
-            self.assertEqual(
-                summary['losses']['allocation_opm_simultaneous_fm_capacity'], 2)
-            self.assertEqual(
-                summary['allocation']['peak_ordered_source_keyed_voices'], 8)
+    def test_opm_eight_channels_record_omissions_under_force(self):
+        def check(out, report):
+            assert_profiles(self, out, ('sfg01', 'makoto'))
+            self.assertEqual(report['summaries']['makoto']['losses']['fm_units_omitted_capacity'], 2)
+        self.render(_opm_song(channels=8), check, force=True)
 
 
 if __name__ == '__main__':

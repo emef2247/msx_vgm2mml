@@ -1,10 +1,4 @@
-"""export_mgs.py --vgm-variants: cartridge variant VGMs beside the MGS export.
-
-Only OPN2 (YM2612) sources have a variant route in this stage; other
-sources record a route_unavailable variant row without failing the
-batch. Variant products are owned through the package listening
-manifest like every other product.
-"""
+"""Real source integration for native musical cartridge variant publication."""
 import json
 from pathlib import Path
 import struct
@@ -42,119 +36,113 @@ for _value in (0x80, 0xA0, 0xC0, 0xE0, 0xC0, 0xA0, 0x80, 0x60):
     BURST += bytes((0x52, 0x2a, _value, 0x61, 0x02, 0x00))
 OPN2_SONG = vgm(PHRASE + BURST)
 
-VARIANT_NAMES = ('vgm_variants/song/makoto/song.vgm',
-                 'vgm_variants/song/sfg01/dac_makoto/song.vgm',
-                 'vgm_variants/song/sfg01/dac_y8950/song.vgm',
-                 'vgm_variants/song/layered/song.vgm',
-                 'vgm_variants/song/opm4mhz/song.vgm')
+PROFILES = ('sfg01', 'makoto', 'sfg01_makoto', 'sfg01_msxaudio')
+VARIANT_NAMES = tuple(f'vgm-variants/{profile}/song.vgm' for profile in PROFILES)
 
 
 def combined_rows(out):
-    return json.loads((out / '_diagnostics' / 'results.json').read_text(encoding='utf-8'))
+    return json.loads((out / '_diagnostics/results.json').read_text(encoding='utf-8'))
 
 
 def variant_rows(out):
     return [row for row in combined_rows(out) if row.get('route') == 'vgm_variants']
 
 
+def evidence(out, stem='song'):
+    return json.loads((out / '_diagnostics' / stem / 'vgm_variants.json').read_text(encoding='utf-8'))
+
+
+def variant_pass(source, out, enabled=True, force=False):
+    argv = [str(source), '--outdir', str(out)]
+    if enabled:
+        argv.append('--vgm-variants')
+    if force:
+        argv.append('--force')
+    return export_mgs._update_vgm_variants(export_mgs.build_parser().parse_args(argv))
+
+
+def assert_profiles(test, out, expected, stem='song'):
+    report = evidence(out, stem)
+    summaries = report['summaries']
+    test.assertEqual(set(summaries), set(PROFILES))
+    test.assertEqual({p for p, result in summaries.items() if result['status'] == 'success'}, set(expected))
+    published = {f'vgm-variants/{profile}/{stem}.vgm' for profile in expected}
+    test.assertEqual(set(report['published']), published)
+    manifest = json.loads((out / 'listening_manifest.json').read_text(encoding='utf-8'))
+    owned = manifest['entries'][stem + '.vgm']['published']
+    for profile in PROFILES:
+        path = out / 'vgm-variants' / profile / (stem + '.vgm')
+        test.assertEqual(path.is_file(), profile in expected)
+        if profile in expected:
+            test.assertIn(path.relative_to(out).as_posix(), owned)
+            result = summaries[profile]
+            test.assertEqual(result['input_representation'], 'NativePerformance')
+            test.assertFalse(result['source_file_consulted'])
+            csv_path = out / '_diagnostics' / stem / 'vgm_variants' / profile / (stem + '.writes.csv')
+            test.assertTrue(csv_path.is_file())
+            test.assertIn('unit_id', csv_path.read_text().splitlines()[0])
+        else:
+            test.assertEqual(summaries[profile]['status'], 'unavailable')
+            test.assertTrue(summaries[profile]['reason'])
+    test.assertTrue((out / '_diagnostics' / stem / 'vgm_variants/native' / (stem + '.native_music.json')).is_file())
+    return report
+
+
 class ExportMgsVgmVariantsTests(unittest.TestCase):
     def run_main(self, *argv):
         return export_mgs.main([str(item) for item in argv])
 
-    def test_opn2_publishes_all_five_variants(self):
+    def test_opn2_pcm_publishes_three_capable_profiles(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            source = root / 'song.vgm'
-            source.write_bytes(OPN2_SONG)
+            root = Path(tmp); source = root / 'song.vgm'; source.write_bytes(OPN2_SONG)
             out = root / 'out'
             self.run_main(source, '--outdir', out, '--vgm-variants', '--skip-keyon-counts')
-            package = out / 'vgm_variants' / 'song'
-            makoto = package / 'makoto' / 'song.vgm'
-            dac_makoto = package / 'sfg01' / 'dac_makoto' / 'song.vgm'
-            dac_y8950 = package / 'sfg01' / 'dac_y8950' / 'song.vgm'
-            layered = package / 'layered' / 'song.vgm'
-            opm4mhz = package / 'opm4mhz' / 'song.vgm'
-            for product in (makoto, dac_makoto, dac_y8950, layered, opm4mhz):
-                self.assertTrue(product.is_file(), product)
-            makoto_raw = makoto.read_bytes()
-            self.assertEqual(struct.unpack_from('<I', makoto_raw, 0x30)[0], 0)
-            self.assertNotEqual(struct.unpack_from('<I', makoto_raw, 0x48)[0], 0)
-            self.assertGreater(dac_makoto.read_bytes().find(b'\x67\x66\x81'), 0)
-            self.assertGreater(dac_y8950.read_bytes().find(b'\x67\x66\x88'), 0)
-            self.assertEqual(struct.unpack_from('<I', opm4mhz.read_bytes(), 0x30)[0],
-                             4000000)
-            manifest = json.loads((out / 'listening_manifest.json').read_text(encoding='utf-8'))
-            published = manifest['entries']['song.vgm']['published']
-            for name in VARIANT_NAMES:
-                self.assertIn(name, published)
-            rows = variant_rows(out)
-            self.assertEqual(len(rows), 1)
-            self.assertEqual(rows[0]['status'], 'success')
-            self.assertEqual(rows[0]['vgm'], 'vgm_variants/song/makoto/song.vgm')
-            evidence = json.loads((out / '_diagnostics' / 'song' / 'vgm_variants.json')
-                                  .read_text(encoding='utf-8'))
-            self.assertEqual(evidence['status'], 'success')
-            self.assertEqual(sorted(evidence['published']), sorted(VARIANT_NAMES))
-            self.assertEqual(sorted(evidence['summaries']),
-                             ['makoto', 'opm4mhz', 'sfg01_opna', 'sfg01_y8950'])
+            report = assert_profiles(self, out, ('makoto', 'sfg01_makoto', 'sfg01_msxaudio'))
+            self.assertIn('PCM', report['summaries']['sfg01']['reason'])
+            makoto = (out / 'vgm-variants/makoto/song.vgm').read_bytes()
+            self.assertEqual(struct.unpack_from('<I', makoto, 0x30)[0], 0)
+            self.assertEqual(struct.unpack_from('<I', makoto, 0x48)[0], 8000000)
+            self.assertIn(b'\x67\x66\x81', makoto)
+            self.assertIn(b'\x67\x66\x88', (out / 'vgm-variants/sfg01_msxaudio/song.vgm').read_bytes())
+            self.assertEqual(variant_rows(out)[0]['status'], 'success')
 
-    def test_non_opn2_records_route_unavailable_without_failing_the_batch(self):
+    def test_public_psg_fixture_publishes_two_profiles_without_failing_mgs(self):
         fixture = ROOT / 'tests/fixtures/public/psg/scale_rom1/scale_rom1.vgm'
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / 'out'
-            # mgsexc is the bundled compiler: the batch outcome then
-            # depends on the conversion alone, not on an npm setup.
-            result = self.run_main(fixture, '--outdir', out, '--vgm-variants',
-                                   '--skip-keyon-counts', '--compiler', 'mgsexc')
+            result = self.run_main(fixture, '--outdir', out, '--vgm-variants', '--skip-keyon-counts', '--compiler', 'mgsexc')
             self.assertEqual(result, 0)
-            self.assertFalse((out / 'vgm_variants').exists())
-            rows = variant_rows(out)
-            self.assertEqual(len(rows), 1)
-            self.assertEqual(rows[0]['input'], 'scale_rom1.vgm')
-            self.assertEqual(rows[0]['status'], 'conversion_failed')
-            self.assertEqual(rows[0]['error_code'], 'route_unavailable')
-            evidence = json.loads((out / '_diagnostics' / 'scale_rom1' / 'vgm_variants.json')
-                                  .read_text(encoding='utf-8'))
-            self.assertEqual(evidence['status'], 'route_unavailable')
+            assert_profiles(self, out, ('sfg01', 'makoto'), 'scale_rom1')
+            self.assertEqual(variant_rows(out)[0]['status'], 'success')
 
-    def test_rerun_without_the_flag_removes_variants(self):
+    def test_rerun_without_flag_removes_products_and_ownership(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            source = root / 'song.vgm'
-            source.write_bytes(OPN2_SONG)
+            root = Path(tmp); source = root / 'song.vgm'; source.write_bytes(OPN2_SONG)
             out = root / 'out'
-            self.run_main(source, '--outdir', out, '--vgm-variants', '--skip-keyon-counts')
-            self.assertTrue((out / 'vgm_variants' / 'song' / 'makoto' / 'song.vgm').is_file())
-            self.run_main(source, '--outdir', out, '--skip-keyon-counts')
+            self.assertEqual(variant_pass(source, out)[0]['status'], 'success')
+            self.assertEqual(variant_pass(source, out, False), [])
             for name in VARIANT_NAMES:
-                self.assertFalse((out / name).exists(), name)
-            manifest = json.loads((out / 'listening_manifest.json').read_text(encoding='utf-8'))
-            published = manifest['entries']['song.vgm']['published']
-            for name in VARIANT_NAMES:
-                self.assertNotIn(name, published)
-            self.assertEqual(variant_rows(out), [])
+                self.assertFalse((out / name).exists())
+            self.assertEqual(json.loads((out / 'listening_manifest.json').read_text())['entries']['song.vgm']['published'], {})
 
-    def test_hand_edited_variant_product_is_refused(self):
+    def test_hand_edited_product_is_preserved_and_reported(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            source = root / 'song.vgm'
-            source.write_bytes(OPN2_SONG)
-            out = root / 'out'
-            self.run_main(source, '--outdir', out, '--vgm-variants', '--skip-keyon-counts')
-            (out / 'vgm_variants' / 'song' / 'layered' / 'song.vgm').write_bytes(b'edited')
-            with self.assertRaises(SystemExit) as raised:
-                self.run_main(source, '--outdir', out, '--vgm-variants',
-                              '--skip-keyon-counts')
-            self.assertEqual(raised.exception.code, 2)
+            root = Path(tmp); source = root / 'song.vgm'; source.write_bytes(OPN2_SONG)
+            out = root / 'out'; variant_pass(source, out)
+            edited = out / 'vgm-variants/makoto/song.vgm'; edited.write_bytes(b'edited')
+            row, = variant_pass(source, out)
+            self.assertEqual(row['status'], 'publication_failed')
+            self.assertIn('unowned or modified', row['detail'])
+            self.assertEqual(edited.read_bytes(), b'edited')
 
-    def test_adjacent_discovery_does_not_reingest_variant_products(self):
+    def test_discovery_does_not_reingest_either_variant_tree(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / 'song.vgm').write_bytes(OPN2_SONG)
-            nested = root / 'vgm_variants' / 'song' / 'makoto'
-            nested.mkdir(parents=True)
-            (nested / 'song.vgm').write_bytes(OPN2_SONG)
-            self.assertEqual(discover_inputs(root, adjacent=True), [root / 'song.vgm'])
+            root = Path(tmp); (root / 'song.vgm').write_bytes(OPN2_SONG)
+            for name in ('vgm_variants/song/makoto', 'vgm-variants/makoto'):
+                nested = root / name; nested.mkdir(parents=True)
+                (nested / 'song.vgm').write_bytes(OPN2_SONG)
+            for adjacent in (False, True):
+                self.assertEqual(discover_inputs(root, adjacent=adjacent), [root / 'song.vgm'])
 
 
 if __name__ == '__main__':

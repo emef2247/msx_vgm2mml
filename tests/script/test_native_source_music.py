@@ -81,7 +81,9 @@ class NativeSourceMusicTests(unittest.TestCase):
         self.assertEqual((unit.start_sample,unit.end_sample),(0,1470))
         self.assertEqual(unit.pitch_curve[0],(0,440.0))
         self.assertGreater(len(unit.pitch_curve),1)
-        self.assertEqual(len(unit.voice_curve),1)
+        # One carrier changes independently; it is a timbre change inside
+        # the same sounding unit, rather than a new gate.
+        self.assertEqual(len(unit.voice_curve),2)
         self.assertEqual(unit.parameters[2][0],'volume_domain')
         self.assertTrue((folder/'authored.native_music.json').is_file())
         self.assertTrue(unit.control_ids)

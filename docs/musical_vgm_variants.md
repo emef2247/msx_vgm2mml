@@ -1,0 +1,130 @@
+# Musical-layer cartridge VGM variants
+
+`export_mgs.py --vgm-variants` adds independent target VGM products. The
+ordinary MML/MGS, native reference VGM and score blueprint keep their existing
+roles. An unavailable MGS mapping does not prevent the variant pass from
+running. Normal MGS status and variant status are reported separately.
+
+Example:
+
+```sh
+python scripts/export_mgs.py INPUT --outdir OUTPUT --vgm-variants --force
+```
+
+The input-relative parent directory is retained. Within each output package:
+
+```text
+tracks/<stem>.mml, <stem>.mgs, <stem>.vgm
+blueprint/<stem>.mml, <stem>.midi
+vgm-variants/sfg01/<stem>.vgm
+vgm-variants/makoto/<stem>.vgm
+vgm-variants/sfg01_makoto/<stem>.vgm
+vgm-variants/sfg01_msxaudio/<stem>.vgm
+_diagnostics/<stem>/vgm_variants/
+```
+
+Only applicable, successful profiles are published. PCM-free sources normally
+need only sfg01 and makoto. PCM-bearing sources use makoto and the two auxiliary
+SFG01 compositions; plain sfg01 cannot play their PCM. Native OPNA rhythm can
+also use the Makoto auxiliary composition. Unsupported profiles have explicit
+reasons in `_diagnostics/<stem>/vgm_variants.json`.
+
+| Profile | FM / auxiliary sound hardware |
+| --- | --- |
+| sfg01 | YM2151 at 3,579,545 Hz, plus native YM2413 and AY PSG |
+| makoto | YM2608 at 8 MHz, plus native YM2413 and AY PSG |
+| sfg01_makoto | YM2151 FM, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
+| sfg01_msxaudio | YM2151 FM, Y8950 Delta-T, YM2413 and PSG |
+
+## Representation boundary
+
+The pipeline is source analysis -> `NativePerformance` -> target projection
+-> VGM serialization. Target projectors do not open the source VGM or invoke
+Segment/event-based conversion choreography. Authored performances without a
+source file are valid inputs. Native controls preserve the original register
+semantics and event order; they are not an alternative owner of editable
+pitch, volume, voice, gate or percussion curves.
+
+Native FM units group complete gates and retain mid-gate voice changes,
+partial operator key transitions and shared effects. Carrier attenuation is
+separated from native voice TL and recombined at projection, including after
+an algorithm change. OPN-family FNUM high/low writes remain atomic.
+
+All times are original integer VGM samples (44,100 per second). Target
+frequency encoders use physical Hz and the clock actually stamped into the
+output. No 60 Hz grid replaces source timing. Native pattern descriptions do
+not duplicate or retime source controls. VGM song loops retain the native
+loop time; serializer compaction keeps first register assignments within the
+loop even when their values match the introduction. Decoded PCM runs crossing
+the song-loop entry are partitioned there, so continuation triggers are inside
+the repeat rather than only in the introduction.
+
+## Sources and approximations
+
+- OPN2, OPNA and OPM FM use musical pitch, volume and voice curves. Existing
+  measured conversion helpers and LFO depth tables are reused. Native FM
+  channel limits are applied only to the target. Excess lanes require force
+  for explicit omission.
+- SCC, HuC6280 waveform voices, NES pulse/triangle and FDS waves use a
+  four-operator additive approximation. Four selected harmonics are retained;
+  phase and analog transfer are not reproduced. FDS's 64 cells are reduced to
+  32 for this approximation. HuC LFO-dependent pitches currently use the
+  retained base pitch and report the omission of phase modulation.
+- HuC/NES noise and DCSG use available AY/SSG generators. Shared noise periods,
+  range clamping, spectrum and volume approximations are diagnosed. There
+  are at most three AY voices, plus three OPNA SSG voices where present.
+- Native PSG/SSG and OPLL retain their own target chip families. PSG shared
+  hardware envelope controls remain distinct from the score's sounding gates.
+  Native OPLL/OPNA percussion attacks, stops and levels come from percussion
+  records; oscillator/global/pan effects remain separate controls.
+- `NativePCM` retains decoded signed16 source content independently of opaque
+  original PCM packets. OPN2 DAC, NES DPCM and HuC DDA are decoded. OPN2 uses
+  the inherited shared decoded-supply renderer, including run splitting,
+  rate clustering, deduplication and ADPCM-B/Y8950 encoding. Edited amplitudes
+  are taken from PCM samples, never from a copied source payload.
+- Generic decoded PCM overlaps are mixed at target projection because a
+  cartridge has one Delta-T voice. Makoto and MSX-Audio each have a 256 KiB
+  (262,144-byte) PCM budget. These profiles do not combine them into a 512 KiB
+  pool; joint allocation across both cartridges is future work. Clipping and DRAM-capacity omissions are
+  reported. Native OPNA ADPCM is preserved only on Makoto; a Y8950 relocation
+  of that opaque transport is not implemented.
+
+Within one source sample, voice/level writes after key-on currently project
+the final onset curve state before target key-on. Original control order is
+retained in native evidence and these cases have an explicit onset-order loss.
+
+Cross-chip CH3 special mode, CSM, noise/SSG-EG, post-gate channel effects and
+clock-dependent envelope/timer differences have explicit loss records where
+not implemented exactly. NES DPCM memory uses the source data-block image;
+missing bytes and mid-play rate/level changes are diagnosed. Analog filtering
+and cross-chip acoustic equivalence are not claimed. These are experimental
+playback projections; source evidence is retained for improved future maps.
+
+## Inspection and publication
+
+Each variant has a `.writes.csv` and `.projection.json` in its diagnostic
+profile directory, alongside native JSON/CSVs. The write CSV retains musical
+unit/device/source identities, exact samples, target bytes and whether a
+redundant assignment was emitted. PCM inventory/rate/DRAM statistics and
+projection losses are recorded in JSON. A successful write/framing check does
+not establish acoustic equivalence.
+
+Publication uses the existing ownership hashes and atomic bundle rollback.
+Failed or disabled profiles remove their owned old products; user-modified
+files are protected. The previous underscore layout (`vgm_variants/<stem>/`)
+is recognized for owned-file migration/removal, not used for new products.
+Generated folders from either layout are excluded from recursive inputs.
+
+## Byte-budget representative reuse
+
+The OPN2 musical route first keeps exact payload/run sharing and the established
+rate clustering. If the unique encoded bank still exceeds the cartridge budget,
+a separate target-only policy selects existing representatives using playback
+demand and coarse normalized-envelope/duration/zero-crossing features. Every
+playback is mapped; DC-only or delayed-onset assets cannot replace an active
+onset. The result has no 96-slot constraint, remains within 256 KiB, and records
+source-to-representative distances, counts and playback rate changes. These
+features are capacity heuristics, not a claim of perceptual equivalence. No
+source PCM content or event time is changed. If no feasible audible
+representative exists, the failure is explicit rather than silently dropping
+playbacks. The generic NES/HuC renderer has not yet adopted this policy.

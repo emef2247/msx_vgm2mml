@@ -4674,3 +4674,47 @@ silence was the TurboR Upgrade Board's R8000 IO Wait back at
 its default 0; 4clk plays. The OPNA pitch audit closed as
 correct (key-ons within 1.2 cents of the source on both
 routes; the user accepted the file-side result).
+
+
+## Checkpoint: NativePerformance cartridge variants (2026-11-08)
+
+Working repository: G:/repository/emef2247/msx_vgm2mml-dev, WSL /mnt/g/repository/emef2247/msx_vgm2mml-dev.
+Branch codex/musical-layer-vgm-variants, based on Muse's claude/sfg01-opm-layer at 0bb5650.
+Use G: only; do not update the old I: checkout.
+
+Implemented: OPN2 native units/controls and source PCM content; complete mid-gate
+FM voice curves; NativePerformance-only FM/wave/PSG/OPLL/rhythm/PCM projectors;
+4 cartridge profiles in vgm-variants/<profile>/<stem>.vgm; exact sample clocks,
+source provenance, diagnostic CSV/JSON, protected/atomic publication and old
+layout migration. Native reference VGM retains inline DAC waits correctly.
+Native percussion edits own triggers/stops/levels. Same-sample gates retain
+source operation boundaries. Original source controls are never rewritten.
+
+Makoto and MSX-Audio each have 262144-byte PCM budgets, not a joint 512 KiB
+pool. OPN2 reuses the existing decoded-supply run/rate/encoding implementation.
+When capacity is exceeded, its new target-only byte-budget stage selects
+usage-weighted existing representatives, preserving playback times and reporting
+replacements. No MDX-specific 96-slot limit applies. Overlong runs are partitioned
+before encoding; song-loop crossings have target continuation triggers.
+
+Verification: related suite 254 tests, no failures/errors, 1 optional pinned-audio
+skip before the budget extension; latest 47 PCM/native/legacy-DAC checks passed
+including capacity replacement. Public source matrix 8 inputs and authored OPN2,
+HuC/NES/FDS cases generated applicable profiles. Actual public PSG/SCC export made
+MML/MGS and both base variants. Inspect outputs/diagnostics/musical_variants_20261108/.
+No local_only regression was run; the user owns it. README remains unchanged.
+
+Experimental losses remain explicit: waveform phase/harmonic approximation,
+clock-dependent EG/timers, some cross-chip effects and post-gate channel writes.
+Same-sample voice/level writes after key-on currently collapse to the final onset
+state in target projection; native order is retained and a loss identifies it.
+Generic NES/HuC PCM does not yet use the byte-budget representative stage (its
+capacity omissions remain diagnosed). Native OPNA over-capacity opaque banks
+need relocation; force may omit that lane. PCM loop continuation has trigger
+checks; hardware/acoustic verification remains with user regression.
+
+Next allowed work: user listening/regression, optional generic-PCM bank-policy
+connection, improved unsupported-effect mappings. Do not replace the layer route
+with Segment choreography, silently omit resources, combine both PCM budgets,
+or push/publish without instruction. See docs/musical_vgm_variants.md and the
+external 2026-11-08_native_musical_variants_checkpoint.md field note.

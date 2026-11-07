@@ -56,7 +56,7 @@ def _header(performance):
     if version < 0x110:
         header[0x28:0x34] = bytes(12)
     offsets = {'dcsg':0x0c, 'opll':0x10, 'opm':0x30, 'segapcm':0x38,
-               'opna':0x48, 'psg':0x74, 'msm6258':0x90, 'msm6295':0x98,
+               'opna':0x48, 'opn2':0x2c, 'nesapu':0x84, 'psg':0x74, 'msm6258':0x90, 'msm6295':0x98,
                'scc':0x9c, 'c140':0xa8,'huc6280':0xa4}
     by_chip = {}
     for device in performance.devices:
@@ -131,6 +131,10 @@ def write_native_vgm(performance, path, *, gd3=None, mapping_path=None, source_l
             bytes=len(command), payload_sha256=hashlib.sha256(command).hexdigest())
         mapped.append(record)
         body.extend(command)
+        # Inline OPN2 DAC commands include their own source-sample wait.
+        # It must not be emitted a second time by the external scheduler.
+        if 0x80<=command[0]<=0x8f:
+            cursor+=command[0]&15
     advance(performance.end_sample, float('inf'))
     body.append(0x66)
     struct.pack_into('<I', header, 0x18, performance.end_sample)
