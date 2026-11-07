@@ -4555,3 +4555,27 @@ rescale; EG attack is identity at fast rates but diverges at the
 slow end (AR8: 297 ms vs 340 ms to -3 dB), so an EG rate grid
 follows; TL/levels cannot be measured with ymfm vgmrender (it
 flattens carrier TL) and move to the direct renderer.
+
+## OPN2>OPNA law v1 (2026-11-07, branch claude/opn2-opna-law)
+
+The study (~/workspace/opn2_opna_study/, PLAN.md) is complete and
+the law is implemented as an option: convert(opna_law=True) /
+--opna-law (parser lives in export_mgs only, same inheritance
+rule as --dcsg-gain). Default off: the established transcription
+is byte-identical (ASOLDR07 makoto 5d40ae3e...). The law remaps
+carrier TLs through the YM2612 effective-level curve (its TL
+compresses to a ~35 dB floor and silences at TL >= 104, where
+the 2608 is a clean -0.753 dB/step) and corrects KS-0 decay
+rates by the measured ladder argmin (-1 step at source rates
+{3,4,5,7,9,10,11}); AR/RR/DT/FB/LFO/modulator TL measured
+identity. Uncorrected by design: the 2612 output stage's
+distortion and the ~2.2 dB TL0 level offset. ASOLDR07 law build:
+md5 11b210c5..., 730 changed writes (544 TL + 77 DR + 109 SR)
+and nothing else. Suite: 987 tests, failing set identical to
+baseline. Song-level render metrics (direct renderer, FM only)
+are a wash (shape error 5.98 -> 5.87 dB); the register-level
+measurements are the ground truth and the verdict is the
+user's real-hardware A/B. Sample delivered in the share repo
+(msx/opn2_opna_law_sample/). Early anchor-1 EG attack claim in
+the previous section was a DC-offset measurement artifact and
+is retracted in the study's PLAN.md.

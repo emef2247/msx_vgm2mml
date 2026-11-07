@@ -234,7 +234,8 @@ def _export_target(path, relative, output, adjacent, args):
         try:
             result = convert_target_vgm(path, spec['outdir'], force=args.force,
                                         layered=spec['layered'], target=spec['target'],
-                                        dac=spec['dac'], dcsg_gain=args.dcsg_gain)
+                                        dac=spec['dac'], dcsg_gain=args.dcsg_gain,
+                                        opna_law=args.opna_law)
         except Exception as error:
             failure = (spec, error)
             break

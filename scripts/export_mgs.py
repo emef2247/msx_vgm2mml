@@ -80,6 +80,11 @@ def build_parser():
                         help='Level gain for the DCSG lanes (PSG/SSG) in OPN2 target '
                              'and variant VGMs (default 1.0 = no shift; e.g. 0.036 '
                              'matches the x68k PCM balance)')
+    parser.add_argument('--opna-law', action='store_true',
+                        help='Apply the measured OPN2>OPNA conversion law to the '
+                             'OPNA FM lane of OPN2 target and variant VGMs '
+                             '(carrier TL remap and decay-rate correction; '
+                             'default off = register transcription)')
     parser.add_argument('--dump-passes', action='store_true',
                         help='Retain inspectable conversion passes')
     macros=parser.add_mutually_exclusive_group()
@@ -396,7 +401,7 @@ def _update_song_variants(path, relative, package, output, args):
             summaries[spec['key']] = convert_target_vgm(
                 path, spec['outdir'], force=args.force, layered=spec['layered'],
                 target=spec['target'], dac=spec['dac'],
-                dcsg_gain=args.dcsg_gain)
+                dcsg_gain=args.dcsg_gain, opna_law=args.opna_law)
     except Exception as error:
         row.update(error_code=type(error).__name__, legacy_status='conversion_error',
                    processing_status='conversion_failed',

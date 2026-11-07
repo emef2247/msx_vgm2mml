@@ -400,5 +400,69 @@ class Opn2DcsgTargetTests(unittest.TestCase):
             self.convert(vgm(PHRASE), target='bogus')
 
 
+# Voice setup exercising the OPN2>OPNA law: ch1 ALG7 (all slots
+# are carriers), ch1 slot2 with key scale 2, ch2 ALG0 (only OP4
+# is a carrier, OP1 is a modulator).
+LAW_PHRASE = bytes((
+    0x52, 0xb0, 0x07,   # ch1 algorithm 7
+    0x52, 0x4c, 0x40,   # ch1 OP4 TL 64 (carrier)
+    0x52, 0x40, 0x60,   # ch1 OP1 TL 96 (carrier under ALG7)
+    0x52, 0x5c, 0x1f,   # ch1 OP4 AR 31, KS 0
+    0x52, 0x6c, 0x0a,   # ch1 OP4 DR 10
+    0x52, 0x7c, 0x05,   # ch1 OP4 SR 5
+    0x52, 0x58, 0x9f,   # ch1 OP2 AR 31, KS 2
+    0x52, 0x68, 0x0a,   # ch1 OP2 DR 10 (KS 2: not corrected)
+    0x52, 0xb1, 0x00,   # ch2 algorithm 0
+    0x52, 0x4d, 0x40,   # ch2 OP4 TL 64 (carrier)
+    0x52, 0x41, 0x40,   # ch2 OP1 TL 64 (modulator: verbatim)
+    0x52, 0xa4, 0x22, 0x52, 0xa0, 0x69, 0x52, 0x28, 0xf0,
+    0x61, 0x00, 0x10,
+    0x52, 0x28, 0x00,
+))
+
+
+class Opn2OpnaLawTests(unittest.TestCase):
+    def convert(self, raw, **kwargs):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        folder = Path(temporary.name)
+        source = folder / 'authored.vgm'
+        source.write_bytes(raw)
+        return convert(source, folder / 'out', **kwargs), folder / 'out'
+
+    def opna_writes(self, out):
+        raw = (out / 'authored.target.vgm').read_bytes()
+        return [(raw[e.address + 1], raw[e.address + 2])
+                for e in command_times(raw) if e.command == 0x56]
+
+    def test_law_off_by_default_keeps_transcription(self):
+        summary, out = self.convert(vgm(LAW_PHRASE))
+        self.assertFalse(summary['opna_law'])
+        self.assertNotIn('law_tl_carrier_writes', summary['layer'])
+        writes = self.opna_writes(out)
+        self.assertIn((0x4c, 0x40), writes)
+        self.assertIn((0x6c, 0x0a), writes)
+
+    def test_law_remaps_carrier_tl_and_corrects_decay(self):
+        summary, out = self.convert(vgm(LAW_PHRASE), opna_law=True)
+        self.assertTrue(summary['opna_law'])
+        writes = self.opna_writes(out)
+        # Carrier TLs follow the measured effective-level map:
+        # 64 -> 45, 96 -> 47, on both channels' carrier slots.
+        self.assertIn((0x4c, 45), writes)
+        self.assertIn((0x40, 47), writes)
+        self.assertIn((0x4d, 45), writes)
+        self.assertNotIn((0x4c, 0x40), writes)
+        # The ch2 OP1 is a modulator under ALG0: TL passes through.
+        self.assertIn((0x41, 0x40), writes)
+        # Decay rates of the KS 0 slot: DR 10 -> 9, SR 5 -> 4.
+        self.assertIn((0x6c, 9), writes)
+        self.assertIn((0x7c, 4), writes)
+        # The KS 2 slot keeps its decay rate.
+        self.assertIn((0x68, 0x0a), writes)
+        self.assertEqual(summary['layer']['law_tl_carrier_writes'], 3)
+        self.assertEqual(summary['layer']['law_decay_rate_writes'], 2)
+
+
 if __name__ == '__main__':
     unittest.main()

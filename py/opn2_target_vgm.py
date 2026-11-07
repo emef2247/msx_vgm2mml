@@ -1187,8 +1187,55 @@ _FNUM_GROUPS = ((0xA0, 0xA4), (0xA8, 0xAC))
 # including the test register.
 _LAYER_SKIP = frozenset((0x24, 0x25, 0x26, 0x29, 0x2A, 0x2B))
 
+# OPN2>OPNA conversion law (measured 2026-11-07 with ymfm cores
+# driven directly; study in ~/workspace/opn2_opna_study, PLAN.md).
+# The YM2608's TL is a clean -0.753 dB/step over the whole range,
+# but the YM2612's effective carrier level compresses: -22.1 dB
+# at TL 32 (ideal -24.1), a floor of -34..-35 dB over TL 64-100,
+# and silence from TL 104. Mapping a source TL through its
+# effective level on the 2612 and back to a 2608 TL at
+# 0.753 dB/step gives this table. It applies to carrier slots
+# only: a best-match sweep over modulator TLs found no target
+# value that reproduces a 2612 modulator's spectrum better than
+# identity (the residual is the 2612 output stage's own
+# distortion), so modulators keep their register values.
+_OPNA_LAW_TL = (
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 14,
+    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 24, 25, 26, 27, 28, 29,
+    29, 30, 31, 32, 32, 33, 34, 34, 35, 36, 36, 37, 37, 38, 39, 39,
+    40, 40, 41, 41, 41, 42, 42, 43, 43, 43, 43, 43, 44, 44, 44, 45,
+    45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
+    45, 45, 45, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 47, 47,
+    47, 48, 48, 49, 49, 51, 52, 56, 127, 127, 127, 127, 127, 127, 127, 127,
+    127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
+)
 
-def project_fm_layer(events, raw, *, clock_raw):
+# EG decay rates (D1R/D2R share one measured time ladder): the
+# 2608 decays faster than the clock ratio predicts, worst
+# around rates 4-11 (up to ~25%). The per-rate argmin over the
+# measured ladders gives -1 step at source rates {3,4,5,7,9,10,
+# 11} and identity elsewhere (the fast end is measurement
+# floor). Attacks match after clock normalisation, releases
+# differ by less than half of their coarse (~x2) step, so AR
+# and RR stay identity. The correction is applied only to
+# slots whose key scale is 0; KS > 0 pushes the effective rate
+# toward the range where the chips already agree.
+_OPNA_LAW_DECAY = (
+    0, 1, 2, 2, 3, 4, 6, 6, 8, 8, 9, 10, 12, 13, 14, 15,
+    16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+)
+
+# Carrier operator numbers (1-4) per algorithm, and the
+# register slot order: slots are laid out OP1, OP3, OP2, OP4.
+_ALG_CARRIERS = (
+    frozenset((4,)), frozenset((4,)), frozenset((4,)), frozenset((4,)),
+    frozenset((2, 4)), frozenset((2, 3, 4)), frozenset((2, 3, 4)),
+    frozenset((1, 2, 3, 4)),
+)
+_SLOT_OPERATOR = (1, 3, 2, 4)
+
+
+def project_fm_layer(events, raw, *, clock_raw, law=False):
     """Retarget the source YM2612 FM writes onto the OPNA FM section.
 
     This register-level copy (commands 0x56/0x57) is the FM lane
@@ -1201,12 +1248,54 @@ def project_fm_layer(events, raw, *, clock_raw):
     unless the scaled value overflows 11 bits. The pitch therefore
     tracks the OPM lane within a cent or so, not exactly. DAC,
     timer and test-register writes are not layered.
+
+    With ``law``, the measured OPN2>OPNA conversion law is
+    applied on top of the copy: carrier TLs are remapped through
+    the YM2612's effective level curve (_OPNA_LAW_TL) and decay
+    rates of key-scale-0 slots are corrected (_OPNA_LAW_DECAY).
+    Everything else stays verbatim (the measurements found AR,
+    RR, DT, FB, LFO rate and PM/AM depths identical after clock
+    normalisation, and no modulator TL that reproduces a 2612
+    modulator's spectrum better than identity). The YM2612's
+    output-stage distortion and the OPNA's ~2.2 dB lower level
+    at TL 0 have no register equivalent and are not corrected.
     """
     clock = clock_raw & 0x3fffffff
     ratio = clock / OPNA_CLOCK
     latch = {}   # (port, high register) -> last high byte
     rows = []
     corrections = 0
+    # Law state, tracked from the source writes themselves: the
+    # current algorithm per channel (for the carrier set) and the
+    # current key scale per operator slot (for the decay gate).
+    alg_state = {}   # (port, channel) -> algorithm, default 0
+    ks_state = {}    # (port, channel, slot) -> key scale, default 0
+    law_counts = dict(tl_carrier=0, decay_rate=0)
+
+    def law_data(port, register, data):
+        channel = register & 3
+        if 0xB0 <= register <= 0xB2:
+            alg_state[(port, channel)] = data & 7
+            return data
+        if channel == 3:
+            return data
+        slot = (register >> 2) & 3
+        if 0x50 <= register <= 0x5F:
+            ks_state[(port, channel, slot)] = (data >> 6) & 3
+        elif 0x40 <= register <= 0x4F:
+            carriers = _ALG_CARRIERS[alg_state.get((port, channel), 0)]
+            if _SLOT_OPERATOR[slot] in carriers:
+                mapped = _OPNA_LAW_TL[data & 0x7F]
+                if mapped != (data & 0x7F):
+                    law_counts['tl_carrier'] += 1
+                return (data & 0x80) | mapped
+        elif 0x60 <= register <= 0x7F:
+            if ks_state.get((port, channel, slot), 0) == 0:
+                mapped = _OPNA_LAW_DECAY[data & 0x1F]
+                if mapped != (data & 0x1F):
+                    law_counts['decay_rate'] += 1
+                return (data & 0xE0) | mapped
+        return data
     for event in events:
         if event.command not in (0x52, 0x53):
             continue
@@ -1247,8 +1336,14 @@ def project_fm_layer(events, raw, *, clock_raw):
             latch[(port, register)] = data
             rows.append(dict(base, target_register=register, target_data=data))
         else:
+            if law:
+                data = law_data(port, register, data)
             rows.append(dict(base, target_register=register, target_data=data))
-    return rows, dict(fnum_corrections=corrections)
+    stats = dict(fnum_corrections=corrections)
+    if law:
+        stats['law_tl_carrier_writes'] = law_counts['tl_carrier']
+        stats['law_decay_rate_writes'] = law_counts['decay_rate']
+    return rows, stats
 
 
 def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None, prefix=b'',
@@ -1321,7 +1416,7 @@ def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None, prefix=b'
 
 
 def convert(source, outdir, *, force=False, layered=False, target='makoto',
-            dac='opna', dcsg_gain=1.0):
+            dac='opna', dcsg_gain=1.0, opna_law=False):
     """Analyze one OPN2 VGM and emit its target VGM.
 
     Native evidence (registers/states/segments CSVs and the source
@@ -1399,7 +1494,7 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
     opna_fm_rows, opna_fm_stats = [], {}
     if target == 'makoto' or layered:
         opna_fm_rows, opna_fm_stats = project_fm_layer(
-            bundle['events'], raw, clock_raw=clock_raw)
+            bundle['events'], raw, clock_raw=clock_raw, law=opna_law)
     fm_rows = opna_fm_rows if target == 'makoto' else rows
     merged = sorted(fm_rows + dcsg_rows + dac_rows,
                     key=lambda r: (r['source_vgmticks'], r.get('sort_rank', 1)))
@@ -1463,6 +1558,7 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
                                    if target == 'makoto' else 0),
                    dcsg_writes=len(dcsg_rows), dcsg=dcsg_stats,
                    dcsg_gain=dcsg_gain,
+                   opna_law=opna_law,
                    dac_target=dac,
                    dac_writes=len(dac_rows), dac=dac_stats,
                    layered=layered, layer_writes=len(added_rows),
