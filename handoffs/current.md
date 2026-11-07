@@ -4635,3 +4635,28 @@ the encoding, and the user chose 50% decisively. ASOLDR07 with
 --opna-law and defaults now lands on the auditioned bytes
 (b6780a8c). Field note:
 2026-11-07_dcsg_default_settled_at_half_by_listening.md.
+
+## SFG01 OPM layer route (2026-11-07, claude/sfg01-opm-layer)
+
+The OPN2>OPM FM lane is now project_opm_from_analysis, in the
+same layer-route form as the OPNA lane: events decide when,
+segment state decides what, and the one context-dependent
+byte (channel control under the DAC gate on channel 6) is
+re-evaluated from state + context at every segment. A channel
+joins that re-evaluation only once its control state is
+established; without that gate the sync writes the reset
+control value (0x00) for every channel at tick 0 - inert on
+hardware, but a byte change. The old project() was already
+state-driven in substance, so the gate is parity: ASOLDR07
+sfg01 fa63bc24, layered e24acf38, opm4mhz b5a78982, all
+byte-identical to the previous implementation, writes CSV
+identical in all 22,703 rows, losses unchanged. Suite: 991
+tests, failing set unchanged from the branch base (the one
+OPLL FAIL/ERROR drift predates this work; the provenance-hash
+test that failed in the layer suite run passes here - that
+run predated the provenance fix commit). Merging is the
+user's. Also closed today, user-reported: the real-hardware
+silence was the TurboR Upgrade Board's R8000 IO Wait back at
+its default 0; 4clk plays. The OPNA pitch audit closed as
+correct (key-ons within 1.2 cents of the source on both
+routes; the user accepted the file-side result).
