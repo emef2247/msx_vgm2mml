@@ -494,7 +494,7 @@ def project_passthrough(events, raw, *, clock_raw):
                 scaled = 1
             # The F-number commits on the low write against the
             # high latch, so the corrected high byte is emitted
-            # first (the project_fm_layer precedent).
+            # first.
             emit(event, port, high_register, (new_block << 3) | (scaled >> 8),
                  reason='F-number high byte rescaled to the 8 MHz cartridge clock')
             emit(event, port, register, scaled & 0xff,

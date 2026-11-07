@@ -263,6 +263,13 @@ class Opn2RegisterState:
         if 0xa4 <= register <= 0xa6:
             self.high_latch = data
             return tuple(range(self.num_channels)), 'frequency_latch', 0, 0
+        # FNUM commits on the low write, paired with the CURRENT shared
+        # high latch, not the channel's own high register: ymfm's
+        # verified register model keeps one latch cell for the whole
+        # A0-A7 group (and one for A8-AF), so a batched high write for
+        # another channel is what the next low write commits. The
+        # snapshot's per-channel register values preserve what was
+        # written where; the committed pair follows the latch.
         if 0xa0 <= register <= 0xa2 and ch is not None and ch < self.num_channels:
             self.frequency[ch] = (data, self.high_latch)
         if port == 0 and 0xac <= register <= 0xae:

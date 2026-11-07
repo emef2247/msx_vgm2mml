@@ -435,7 +435,7 @@ class Opn2OpnaLawTests(unittest.TestCase):
         return [(raw[e.address + 1], raw[e.address + 2])
                 for e in command_times(raw) if e.command == 0x56]
 
-    def test_law_off_by_default_keeps_transcription(self):
+    def test_law_off_by_default_keeps_state_values(self):
         summary, out = self.convert(vgm(LAW_PHRASE))
         self.assertFalse(summary['opna_law'])
         self.assertNotIn('law_tl_carrier_writes', summary['layer'])
@@ -462,6 +462,86 @@ class Opn2OpnaLawTests(unittest.TestCase):
         self.assertIn((0x68, 0x0a), writes)
         self.assertEqual(summary['layer']['law_tl_carrier_writes'], 3)
         self.assertEqual(summary['layer']['law_decay_rate_writes'], 2)
+
+    def test_law_reevaluates_tl_when_algorithm_context_changes(self):
+        # OP2 TL 20 is a carrier under ALG4 (mapped to 19). The
+        # algorithm then changes to ALG3, where OP2 is a
+        # modulator, without any TL rewrite: the law value must
+        # be re-evaluated from the state and re-emitted as 20
+        # before the next key-on.
+        phrase = bytes((
+            0x52, 0xb0, 0x04,
+            0x52, 0x48, 0x14,
+            0x52, 0xa4, 0x22, 0x52, 0xa0, 0x69,
+            0x52, 0x28, 0xf0,
+            0x61, 0x00, 0x10,
+            0x52, 0x28, 0x00,
+            0x52, 0xb0, 0x03,
+            0x52, 0x28, 0xf0,
+            0x61, 0x00, 0x10,
+            0x52, 0x28, 0x00,
+        ))
+        summary, out = self.convert(vgm(phrase), opna_law=True)
+        writes = self.opna_writes(out)
+        tl_writes = [data for reg, data in writes if reg == 0x48]
+        self.assertEqual(tl_writes, [19, 20])
+        summary, out = self.convert(vgm(phrase))
+        writes = self.opna_writes(out)
+        tl_writes = [data for reg, data in writes if reg == 0x48]
+        self.assertEqual(tl_writes, [20])
+
+    def test_law_reeval_uses_channel_port_on_shared_events(self):
+        # A port-0 F-number latch fans out to segments of every
+        # channel. Re-evaluating ch4 (port 1) from such a segment
+        # must still address port 1: its mapped TL belongs to the
+        # 0x57 stream only, never to ch1's 0x48 on port 0.
+        phrase = bytes((
+            0x53, 0xb0, 0x04,   # ch4 algorithm 4
+            0x53, 0x48, 0x1e,   # ch4 OP2 TL 30 (carrier -> 28)
+            0x52, 0xb0, 0x04,   # ch1 algorithm 4
+            0x52, 0x48, 0x14,   # ch1 OP2 TL 20 (carrier -> 19)
+            0x52, 0xb0, 0x03,   # ch1 algorithm 3: OP2 modulator
+            0x52, 0xa4, 0x22,   # ch1 F-number latch (shared event)
+            0x52, 0xa0, 0x69,
+            0x52, 0x28, 0xf0,
+            0x61, 0x00, 0x10,
+            0x52, 0x28, 0x00,
+        ))
+        summary, out = self.convert(vgm(phrase), opna_law=True)
+        raw = (out / 'authored.target.vgm').read_bytes()
+        by_command = {0x56: [], 0x57: []}
+        for e in command_times(raw):
+            if e.command in by_command:
+                by_command[e.command].append(
+                    (raw[e.address + 1], raw[e.address + 2]))
+        port0_tl = [d for r, d in by_command[0x56] if r == 0x48]
+        port1_tl = [d for r, d in by_command[0x57] if r == 0x48]
+        self.assertEqual(port0_tl, [19, 20])
+        self.assertEqual(port1_tl, [28])
+
+    def test_pitch_pair_is_atomic_under_shared_latch(self):
+        # The F-number high byte feeds a latch shared by all
+        # channels and the low write commits whatever it holds
+        # (ymfm's register model). ch1 takes an octave step with
+        # the SAME low byte after ch2's pitch write overwrote the
+        # latch: the projected pair must be re-emitted in full -
+        # high byte first, then the committing low byte - or the
+        # target commit would carry ch2's block.
+        phrase = bytes((
+            0x52, 0xa4, 0x13, 0x52, 0xa0, 0x64,   # ch1 fnum 868 block 2
+            0x52, 0xa5, 0x29, 0x52, 0xa1, 0x0a,   # ch2 fnum 266 block 5
+            0x52, 0xa4, 0x1b, 0x52, 0xa0, 0x64,   # ch1 fnum 868 block 3
+            0x52, 0x28, 0xf0,
+            0x61, 0x00, 0x10,
+            0x52, 0x28, 0x00,
+        ))
+        summary, out = self.convert(vgm(phrase))
+        writes = self.opna_writes(out)
+        ch1_pair = [(r, d) for r, d in writes if r in (0xa4, 0xa0)]
+        self.assertEqual(ch1_pair, [(0xa4, 0x13), (0xa0, 64),
+                                    (0xa4, 0x1b), (0xa0, 64)])
+        ch2_pair = [(r, d) for r, d in writes if r in (0xa5, 0xa1)]
+        self.assertEqual(ch2_pair, [(0xa5, 0x28), (0xa1, 255)])
 
 
 if __name__ == '__main__':

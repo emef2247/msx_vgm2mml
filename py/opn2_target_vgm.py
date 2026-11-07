@@ -1177,16 +1177,6 @@ def project_dac(analysis, *, source_end, raw, events, dac_target='opna'):
     return rows, data_block, losses, stats, run_rows
 
 
-# (low register, high register) pairs per port-local offset group:
-# channels 1-3 and the CH3 special-mode operator frequencies.
-_FNUM_GROUPS = ((0xA0, 0xA4), (0xA8, 0xAC))
-
-# Source registers that are not part of the FM layer: the timer
-# periods (0x24-0x26), the key-on enable (0x29), the DAC data and
-# enable (0x2A/0x2B) and everything below the LFO frequency (0x22),
-# including the test register.
-_LAYER_SKIP = frozenset((0x24, 0x25, 0x26, 0x29, 0x2A, 0x2B))
-
 # OPN2>OPNA conversion law (measured 2026-11-07 with ymfm cores
 # driven directly; study in ~/workspace/opn2_opna_study, PLAN.md).
 # The YM2608's TL is a clean -0.753 dB/step over the whole range,
@@ -1235,111 +1225,239 @@ _ALG_CARRIERS = (
 _SLOT_OPERATOR = (1, 3, 2, 4)
 
 
-def project_fm_layer(events, raw, *, clock_raw, law=False):
-    """Retarget the source YM2612 FM writes onto the OPNA FM section.
+def project_fm_from_analysis(analysis, *, clock_raw, force=False, law=False):
+    """Project the OPN2 analysis onto the OPNA's own FM section.
 
-    This register-level copy (commands 0x56/0x57) is the FM lane
-    of the makoto target composition and the added layer of the
-    layered file, where it sounds together with the OPM lane. The
-    YM2608 FM register map is the YM2612's, so operator parameters,
-    feedback/algorithm, pan/LFO sensitivity, key on/off and the CH3
-    mode pass through verbatim; only the F-numbers are rescaled
-    from the source clock to the OPNA's 8 MHz, block preserved
-    unless the scaled value overflows 11 bits. The pitch therefore
-    tracks the OPM lane within a cent or so, not exactly. DAC,
-    timer and test-register writes are not layered.
+    This is the FM lane of the makoto target composition and the
+    added lane of the layered file. Like project() on the OPM
+    route, it is driven by the analysis: source events decide
+    when a write happens, the segment state decides what it
+    contains. The YM2608 FM register map is the YM2612's, so
+    operator parameters, feedback/algorithm, pan/LFO sensitivity
+    and key on/off are rebuilt from the synchronised state, and
+    the F-numbers are rescaled from the source clock to the
+    OPNA's 8 MHz (block preserved unless the scaled value
+    overflows 11 bits). A write whose value the target already
+    holds is not re-emitted, so the source's write choreography
+    (in particular the F-number high byte, a latch that is only
+    ever committed by the paired low write) leaves no duplicate
+    writes in the target stream.
+
+    Channel 6 keys are gated while the source DAC owns that
+    channel's output, mirroring the source chip: suppressed key
+    writes are counted, and the current mask is restored when
+    the DAC releases the channel. Timer controls have no lane
+    here and are counted, not copied. CSM is refused without
+    force, as on the OPM route.
 
     With ``law``, the measured OPN2>OPNA conversion law is
-    applied on top of the copy: carrier TLs are remapped through
-    the YM2612's effective level curve (_OPNA_LAW_TL) and decay
-    rates of key-scale-0 slots are corrected (_OPNA_LAW_DECAY).
-    Everything else stays verbatim (the measurements found AR,
-    RR, DT, FB, LFO rate and PM/AM depths identical after clock
-    normalisation, and no modulator TL that reproduces a 2612
-    modulator's spectrum better than identity). The YM2612's
-    output-stage distortion and the OPNA's ~2.2 dB lower level
-    at TL 0 have no register equivalent and are not corrected.
+    applied at this mapping stage: carrier TLs are remapped
+    through the YM2612's effective level curve (_OPNA_LAW_TL)
+    and decay rates of key-scale-0 slots are corrected
+    (_OPNA_LAW_DECAY), both read from the segment state.
+    Everything else stays at the state value (the measurements
+    found AR, RR, DT, FB, LFO rate and PM/AM depths identical
+    after clock normalisation, and no modulator TL that
+    reproduces a 2612 modulator's spectrum better than
+    identity). The YM2612's output-stage distortion and the
+    OPNA's ~2.2 dB lower level at TL 0 have no register
+    equivalent and are not corrected.
     """
+    if analysis.csm_observed and not force:
+        raise ValueError('OPN2 CSM timer-generated key events '
+                         'cannot project to OPNA FM')
     clock = clock_raw & 0x3fffffff
     ratio = clock / OPNA_CLOCK
-    latch = {}   # (port, high register) -> last high byte
     rows = []
+    cache = {}
+    key_emitted = [0] * 6
     corrections = 0
-    # Law state, tracked from the source writes themselves: the
-    # current algorithm per channel (for the carrier set) and the
-    # current key scale per operator slot (for the decay gate).
-    alg_state = {}   # (port, channel) -> algorithm, default 0
-    ks_state = {}    # (port, channel, slot) -> key scale, default 0
     law_counts = dict(tl_carrier=0, decay_rate=0)
+    gated_keys = 0
+    timer_writes = 0
 
-    def law_data(port, register, data):
-        channel = register & 3
-        if 0xB0 <= register <= 0xB2:
-            alg_state[(port, channel)] = data & 7
-            return data
-        if channel == 3:
-            return data
-        slot = (register >> 2) & 3
-        if 0x50 <= register <= 0x5F:
-            ks_state[(port, channel, slot)] = (data >> 6) & 3
-        elif 0x40 <= register <= 0x4F:
-            carriers = _ALG_CARRIERS[alg_state.get((port, channel), 0)]
-            if _SLOT_OPERATOR[slot] in carriers:
-                mapped = _OPNA_LAW_TL[data & 0x7F]
-                if mapped != (data & 0x7F):
+    def emit(s, command, register, data, *, force=False):
+        if not force and cache.get((command, register)) == data:
+            return
+        cache[(command, register)] = data
+        rows.append(dict(source_vgmticks=s.vgmticks,
+                         source_event_id=s.source_event_id,
+                         source_register=s.register, source_data=s.data,
+                         target_command=command, sort_rank=2,
+                         target_register=register, target_data=data))
+
+    def emit_pitch(s, command, low_register, high_register, fnum, block):
+        nonlocal corrections
+        scaled = round(fnum * ratio)
+        new_block = block
+        while scaled > 2047 and new_block < 7:
+            new_block += 1
+            scaled = (scaled + 1) >> 1
+        if fnum and not scaled:
+            scaled = 1
+        if (scaled, new_block) != (fnum, block):
+            corrections += 1
+        # The pair is atomic: the high byte goes into a latch cell
+        # shared by every channel (ymfm's verified model), which the
+        # low write then commits. Neither byte may be deduped - the
+        # high byte because another channel's pitch write can
+        # overwrite the shared cell before this commit, the low byte
+        # because a block-only change (same low byte) takes effect
+        # only when the commit write happens.
+        emit(s, command, high_register, (new_block << 3) | (scaled >> 8),
+             force=True)
+        emit(s, command, low_register, scaled & 0xff, force=True)
+
+    def law_reeval(s):
+        # The law's target value for a slot is a function of the
+        # slot's state AND its context (the channel's current
+        # algorithm for TL, the slot's key scale for decay rates).
+        # A context change alone - an algorithm or key-scale write
+        # with no rewrite of the affected register - therefore
+        # changes the desired byte, and the state machine records
+        # no event for the affected register itself. Re-evaluate
+        # the law-affected bytes from every segment state so a
+        # context change re-emits them at the tick it takes
+        # effect; the emit cache suppresses anything unchanged.
+        if s.ch is None or not 0 <= s.ch < 6:
+            return
+        state = s.state
+        # The segment's port field is its opening event's port,
+        # which for fanned-out shared events (the F-number latch
+        # above all) is not the channel's own port; the target
+        # port follows from the channel alone.
+        command = 0x56 if s.ch < 3 else 0x57
+        local = s.ch % 3
+        carriers = _ALG_CARRIERS[state.algorithm or 0]
+        for bank, op in enumerate(state.operators):
+            slot_reg = bank * 4 + local
+            if op.tl is not None:
+                data = (_OPNA_LAW_TL[op.tl]
+                        if _SLOT_OPERATOR[bank] in carriers else op.tl)
+                if (data != op.tl
+                        and cache.get((command, 0x40 + slot_reg)) != data):
                     law_counts['tl_carrier'] += 1
-                return (data & 0x80) | mapped
-        elif 0x60 <= register <= 0x7F:
-            if ks_state.get((port, channel, slot), 0) == 0:
-                mapped = _OPNA_LAW_DECAY[data & 0x1F]
-                if mapped != (data & 0x1F):
+                emit(s, command, 0x40 + slot_reg, data)
+            if op.d1r is not None:
+                rate = op.d1r
+                if (op.ks or 0) == 0:
+                    rate = _OPNA_LAW_DECAY[rate]
+                data = (op.am_enabled or 0) << 7 | rate
+                if (rate != op.d1r
+                        and cache.get((command, 0x60 + slot_reg)) != data):
                     law_counts['decay_rate'] += 1
-                return (data & 0xE0) | mapped
-        return data
-    for event in events:
-        if event.command not in (0x52, 0x53):
+                emit(s, command, 0x60 + slot_reg, data)
+            if op.d2r is not None:
+                rate = op.d2r
+                if (op.ks or 0) == 0:
+                    rate = _OPNA_LAW_DECAY[rate]
+                if (rate != op.d2r
+                        and cache.get((command, 0x70 + slot_reg)) != rate):
+                    law_counts['decay_rate'] += 1
+                emit(s, command, 0x70 + slot_reg, rate)
+
+    groups = {}
+    for s in analysis.segments:
+        if s.source_event_id is not None:
+            groups.setdefault(s.source_event_id, []).append(s)
+    for _, segments in sorted(groups.items()):
+        s = segments[0]
+        state, reg = s.state, s.register
+        if reg is None:
             continue
-        port = 0 if event.command == 0x52 else 1
-        register = raw[event.address + 1]
-        data = raw[event.address + 2]
-        if register in _LAYER_SKIP or register < 0x22:
-            continue
-        base = dict(source_vgmticks=event.vgmticks,
-                    source_event_id=event.source_event_id,
-                    source_register=register, source_data=data,
-                    target_command=0x56 if port == 0 else 0x57,
-                    sort_rank=2)
-        group = next(((lo, hi) for lo, hi in _FNUM_GROUPS
-                      if lo <= register <= lo + 2 or hi <= register <= hi + 2),
-                     None)
-        if group and group[0] <= register <= group[0] + 2:
-            lo, hi = group
-            high = latch.get((port, hi + (register - lo)), 0)
-            block = (high >> 3) & 7
-            fnum = ((high & 7) << 8) | data
-            scaled = round(fnum * ratio)
-            new_block = block
-            while scaled > 2047 and new_block < 7:
-                new_block += 1
-                scaled = (scaled + 1) >> 1
-            if fnum and not scaled:
-                scaled = 1
-            if (scaled, new_block) != (fnum, block):
-                corrections += 1
-            # The F-number commits on the low write against the high
-            # latch, so the corrected high byte is emitted first.
-            rows.append(dict(base, target_register=hi + (register - lo),
-                             target_data=(new_block << 3) | (scaled >> 8)))
-            rows.append(dict(base, target_register=register,
-                             target_data=scaled & 0xff))
-        elif group:
-            latch[(port, register)] = data
-            rows.append(dict(base, target_register=register, target_data=data))
-        else:
-            if law:
-                data = law_data(port, register, data)
-            rows.append(dict(base, target_register=register, target_data=data))
+        port = s.port
+        command = 0x56 if port == 0 else 0x57
+        if 0x30 <= reg <= 0x9f:
+            bank = (reg >> 2) & 3
+            op = state.operators[bank]
+            kind = reg & 0xf0
+            if kind == 0x30:
+                data = (op.dt or 0) << 4 | (op.mul or 0)
+            elif kind == 0x40:
+                data = op.tl or 0
+                if (law and _SLOT_OPERATOR[bank]
+                        in _ALG_CARRIERS[state.algorithm or 0]):
+                    mapped = _OPNA_LAW_TL[data]
+                    if mapped != data:
+                        law_counts['tl_carrier'] += 1
+                    data = mapped
+            elif kind == 0x50:
+                data = (op.ks or 0) << 6 | (op.ar or 0)
+            elif kind == 0x60:
+                rate = op.d1r or 0
+                if law and (op.ks or 0) == 0:
+                    mapped = _OPNA_LAW_DECAY[rate]
+                    if mapped != rate:
+                        law_counts['decay_rate'] += 1
+                    rate = mapped
+                data = (op.am_enabled or 0) << 7 | rate
+            elif kind == 0x70:
+                rate = op.d2r or 0
+                if law and (op.ks or 0) == 0:
+                    mapped = _OPNA_LAW_DECAY[rate]
+                    if mapped != rate:
+                        law_counts['decay_rate'] += 1
+                    rate = mapped
+                data = rate
+            elif kind == 0x80:
+                data = (op.sl or 0) << 4 | (op.rr or 0)
+            else:
+                data = op.ssg_eg_raw or 0
+            emit(s, command, reg, data)
+        elif 0xb0 <= reg <= 0xb2:
+            emit(s, command, reg,
+                 (state.feedback or 0) << 3 | (state.algorithm or 0))
+        elif 0xb4 <= reg <= 0xb6:
+            emit(s, command, reg,
+                 (state.left_enabled or 0) << 7
+                 | (state.right_enabled or 0) << 6
+                 | (state.ams or 0) << 4 | (state.pms or 0))
+        elif 0xa0 <= reg <= 0xa2:
+            if state.fnum is not None:
+                emit_pitch(s, command, reg, reg + 4,
+                           state.fnum, state.block or 0)
+        elif 0xa8 <= reg <= 0xaa:
+            name = {0xa8: 'op3', 0xa9: 'op1', 0xaa: 'op2'}[reg]
+            special = {n: (f, b) for n, f, b in state.special_frequencies}
+            fnum, block = special.get(name, (None, None))
+            if fnum is not None:
+                emit_pitch(s, command, reg, reg + 4, fnum, block or 0)
+        elif reg == 0x28 and port == 0:
+            if s.ch == 5 and state.dac_enabled == 1:
+                gated_keys += 1
+                continue
+            rows.append(dict(source_vgmticks=s.vgmticks,
+                             source_event_id=s.source_event_id,
+                             source_register=s.register, source_data=s.data,
+                             target_command=0x56, sort_rank=2,
+                             target_register=0x28, target_data=s.data))
+            if 0 <= s.ch < 6:
+                key_emitted[s.ch] = state.key_mask or 0
+        elif port == 0 and reg == 0x2b:
+            if (not state.dac_enabled and s.ch == 5
+                    and (state.key_mask or 0) != key_emitted[5]):
+                rows.append(dict(
+                    source_vgmticks=s.vgmticks,
+                    source_event_id=s.source_event_id,
+                    source_register=s.register, source_data=s.data,
+                    target_command=0x56, sort_rank=2,
+                    target_register=0x28,
+                    target_data=(state.key_mask or 0) << 4 | 6))
+                key_emitted[5] = state.key_mask or 0
+        elif port == 0 and reg == 0x22:
+            emit(s, 0x56, 0x22, state.lfo_raw or 0)
+        elif port == 0 and reg == 0x27:
+            emit(s, 0x56, 0x27, state.mode_raw or 0)
+        elif port == 0 and reg in (0x24, 0x25, 0x26):
+            timer_writes += 1
+        if law:
+            for item in segments:
+                law_reeval(item)
     stats = dict(fnum_corrections=corrections)
+    if gated_keys:
+        stats['dac_enabled_ch6_key_writes_gated'] = gated_keys
+    if timer_writes:
+        stats['source_timer_controls_not_projected'] = timer_writes
     if law:
         stats['law_tl_carrier_writes'] = law_counts['tl_carrier']
         stats['law_decay_rate_writes'] = law_counts['decay_rate']
@@ -1427,7 +1545,7 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
 
     ``target`` selects the FM composition. ``makoto`` (default)
     is the OPNA cartridge alone: the FM part is retargeted onto
-    the OPNA's own FM section (project_fm_layer) and no YM2151
+    the OPNA's own FM section (project_fm_from_analysis) and no YM2151
     writes are emitted. ``sfg01`` is the dual-cartridge
     composition: the FM part is projected to the OPM cartridge
     (YM2151) and the OPNA cartridge carries SSG + ADPCM-B.
@@ -1493,8 +1611,8 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
         raise ValueError(f'Unknown OPN2 target cartridge: {target!r}')
     opna_fm_rows, opna_fm_stats = [], {}
     if target == 'makoto' or layered:
-        opna_fm_rows, opna_fm_stats = project_fm_layer(
-            bundle['events'], raw, clock_raw=clock_raw, law=opna_law)
+        opna_fm_rows, opna_fm_stats = project_fm_from_analysis(
+            analysis, clock_raw=clock_raw, force=force, law=opna_law)
     fm_rows = opna_fm_rows if target == 'makoto' else rows
     merged = sorted(fm_rows + dcsg_rows + dac_rows,
                     key=lambda r: (r['source_vgmticks'], r.get('sort_rank', 1)))
