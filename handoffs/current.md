@@ -4595,6 +4595,14 @@ transcription lane. Field note:
 
 ## Layer-route rebuild done (2026-11-07, claude/opna-layer-route a8c420a)
 
+Correction (2026-11-08): "layer route" here is wrong. This
+rebuild emits from segment state; it does not generate from
+the musical layer, which OPN2 is not connected to. The gates
+and traps recorded in this section stand as facts about the
+segment route. Field note:
+2026-11-08_segment_state_is_not_the_musical_layer.md. The
+OPN2 musical-layer work is Codex's (user, 2026-11-08).
+
 The correction above is implemented. project_fm_from_analysis
 replaces project_fm_layer: the OPNA FM lane is emitted from
 segment state like the OPM route; the law sits at that mapping
@@ -4637,6 +4645,12 @@ the encoding, and the user chose 50% decisively. ASOLDR07 with
 2026-11-07_dcsg_default_settled_at_half_by_listening.md.
 
 ## SFG01 OPM layer route (2026-11-07, claude/sfg01-opm-layer)
+
+Correction (2026-11-08): "layer-route form" means the
+segment-state form, not the musical layer; see the correction
+in the previous section and field note
+2026-11-08_segment_state_is_not_the_musical_layer.md. The
+parity gate and the re-evaluation gate recorded here stand.
 
 The OPN2>OPM FM lane is now project_opm_from_analysis, in the
 same layer-route form as the OPNA lane: events decide when,
