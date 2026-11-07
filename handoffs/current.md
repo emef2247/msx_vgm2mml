@@ -4592,3 +4592,33 @@ measurements stand as mapping-stage knowledge; the vehicle
 does not. Rebuild not yet scheduled; do not extend the
 transcription lane. Field note:
 2026-11-07_makoto_fm_lane_is_not_a_route.md.
+
+## Layer-route rebuild done (2026-11-07, claude/opna-layer-route a8c420a)
+
+The correction above is implemented. project_fm_from_analysis
+replaces project_fm_layer: the OPNA FM lane is emitted from
+segment state like the OPM route; the law sits at that mapping
+stage and is re-evaluated from state + context (algorithm / key
+scale) when the context changes without a rewrite of the affected
+register. ASOLDR07 gates, all under a latch/commit replay model
+(one shared F-number latch per register group, committed by the
+low write — ymfm's model, micro-verified): key-on states are
+identical to the previous lane's output, 2652/2652, plain and
+law; the FM render is sample-identical to the previous lane's;
+redundant value writes are zero; the layered variant's OPNA lane
+matches makoto key-on for key-on. New makoto bytes differ from
+the established 5d40ae3e file (plain 6a093e24, law 3fba6a90):
+same sound, no duplicate writes. sfg01 output is byte-identical
+to before this work. Suite: 990 tests, failure set unchanged
+from the branch base (the provenance hash for the opn2.py
+comment was updated; one OPLL test's FAIL->ERROR drift predates
+this branch, verified at e5a455c).
+
+Two traps now recorded in the code and the field note
+2026-11-07_opna_layer_route_and_fnum_latch.md: pitch pairs are
+atomic (never dedup either byte — the shared latch and the
+commit semantics make same-value writes load-bearing), and a
+per-channel F-number latch is a wrong model (tried, reverted;
+the analyzer's shared latch matches ymfm). Next: the user's
+real-hardware listening for the new law sample; merging is the
+user's. Do not reintroduce a stream lane for OPNA FM.
