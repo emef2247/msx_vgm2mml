@@ -4622,3 +4622,16 @@ per-channel F-number latch is a wrong model (tried, reverted;
 the analyzer's shared latch matches ymfm). Next: the user's
 real-hardware listening for the new law sample; merging is the
 user's. Do not reintroduce a stream lane for OPNA FM.
+
+## DCSG default settled at 0.5 (2026-11-07)
+
+dcsg_gain's default is now 0.5 in convert / project_dcsg and
+the export CLI (was 1.0; the option itself is unchanged). The
+decision path matters: the first 25%/50% audition ran with the
+cartridge-side volume at maximum, which shifted the measured
+steps (50% read as ~0 dB, 25% as ~-5 dB instead of -6/-12); the
+re-listen at a middle volume measured -5.3/-12.0 dB, matching
+the encoding, and the user chose 50% decisively. ASOLDR07 with
+--opna-law and defaults now lands on the auditioned bytes
+(b6780a8c). Field note:
+2026-11-07_dcsg_default_settled_at_half_by_listening.md.
