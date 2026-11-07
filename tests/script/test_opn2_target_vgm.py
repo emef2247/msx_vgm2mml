@@ -10,7 +10,8 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT/'py'))
 from native_imports import inspect_source
 from native_imports.vgm_timing import command_times
-from opn2_target_vgm import OPM4MHZ_CLOCK, TARGET_CLOCK, convert, project
+from opn2_target_vgm import (OPM4MHZ_CLOCK, TARGET_CLOCK, convert,
+                            project_opm_from_analysis)
 from native_imports.source import analyze_source
 
 
@@ -71,12 +72,38 @@ class Opn2TargetVgmTests(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         bundle = analyze_source(vgm(PHRASE), Path(temporary.name), 'authored')
-        rows, losses = project(bundle['analyses']['opn2'], clock_raw=7670454)
+        rows, losses = project_opm_from_analysis(bundle['analyses']['opn2'], clock_raw=7670454)
         pitch = [r for r in rows if r['target_register'] == 0x28]
         self.assertEqual(len(pitch), 1)
         # fnum 617, block 4 at 7,670,454 Hz -> 617*7670454/(144*2**17)
         self.assertAlmostEqual(pitch[0]['source_frequency_hz'], 250.71, places=1)
         self.assertLess(abs(pitch[0]['target_frequency_hz'] / pitch[0]['source_frequency_hz'] - 1), 0.01)
+
+    def test_opm_control_reevaluated_when_dac_context_changes(self):
+        # Channel 6's OPM control byte gates its output while the
+        # DAC owns the channel. The gate is context, not a write
+        # to the channel's own registers: enabling and disabling
+        # the DAC (register 0x2B) must re-emit the control byte
+        # from the segment state at the toggle ticks.
+        commands = bytes((
+            0x53, 0xb6, 0xc0,              # ch6 pan L+R
+            0x53, 0xb2, 0x07,              # ch6 FB 0, ALG 7
+            0x53, 0xa6, 0x22, 0x53, 0xa2, 0x69,
+            0x52, 0x28, 0xf6,              # key on ch6
+            0x61, 0x10, 0x00,
+            0x52, 0x2b, 0x80,              # DAC enable: gate shut
+            0x61, 0x10, 0x00,
+            0x52, 0x2b, 0x00,              # DAC disable: gate restored
+            0x52, 0x28, 0x06,              # key off ch6
+        ))
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        bundle = analyze_source(vgm(commands), Path(temporary.name), 'authored')
+        rows, losses = project_opm_from_analysis(
+            bundle['analyses']['opn2'], clock_raw=7670454)
+        control = [r['target_data'] for r in rows
+                   if r['target_register'] == 0x25]
+        self.assertEqual(control, [0xc0, 0xc7, 0x07, 0xc7])
 
     def test_dac_writes_project_to_adpcm_b(self):
         # DAC enable, then an 8-byte burst at a 2-tick spacing.
@@ -202,8 +229,8 @@ class Opn2TargetVgmTests(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         bundle = analyze_source(raw, Path(temporary.name), 'authored')
         with self.assertRaises(ValueError):
-            project(bundle['analyses']['opn2'], clock_raw=7670454)
-        rows, losses = project(bundle['analyses']['opn2'], clock_raw=7670454, force=True)
+            project_opm_from_analysis(bundle['analyses']['opn2'], clock_raw=7670454)
+        rows, losses = project_opm_from_analysis(bundle['analyses']['opn2'], clock_raw=7670454, force=True)
         self.assertEqual(losses['forced_unmodeled_register_writes'], 1)
 
 

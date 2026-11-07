@@ -159,9 +159,41 @@ def _unassigned_register(write):
             or 0x2c <= reg <= 0x2f or reg >= 0xb7)
 
 
-def project(analysis, *, clock_raw, pitch_policy='clamp', channel_map=None, force=False,
-            dac_external=False, opm_clock=TARGET_CLOCK):
-    """Return target write rows plus explicit losses, retaining source identities."""
+def project_opm_from_analysis(analysis, *, clock_raw, pitch_policy='clamp',
+                              channel_map=None, force=False,
+                              dac_external=False, opm_clock=TARGET_CLOCK):
+    """Project the OPN2 analysis onto the OPM (YM2151).
+
+    This is the FM lane of the sfg01 / opm4mhz target
+    compositions and the base lane of the layered file. Like
+    project_fm_from_analysis on the OPNA route, it is driven by
+    the analysis: source events decide when a write happens, the
+    segment state decides what it contains. Operator parameters,
+    feedback/algorithm, pan and LFO sensitivities are rebuilt
+    from the synchronised state under the OPN2>OPM mapping
+    (DT2 has no OPN counterpart and resets to zero; pitch is
+    re-encoded as KC/KF at the target clock by opm_pitch), and
+    a write whose value the target already holds is not
+    re-emitted.
+
+    Bytes whose desired value depends on context outside the
+    channel - the channel control byte, which gates channel 6
+    silent while the DAC owns its output - are re-evaluated
+    from the state plus that context at every segment, not
+    only at the writes that carry them (see reeval). The LFO
+    bridge is the other context mapping: the source's fixed
+    triangle waveform and per-channel PMS/AMS steps are bridged
+    onto the OPM's global PMD/AMD latches, selected per
+    activation span from the sensitivities in the state.
+
+    CH3 special operator frequencies and CSM have no OPM
+    representation and are refused without force; with force
+    they are counted as losses and the ordinary state is
+    projected. Timer controls are counted, not copied.
+
+    Returns target write rows plus explicit losses, retaining
+    source identities.
+    """
     clock_hz = clock_raw & 0x3fffffff
     if not 0 < clock_hz < 0x40000000:
         raise ValueError('OPN2 FM projection requires one positive-clock YM2612')
@@ -215,6 +247,7 @@ def project(analysis, *, clock_raw, pitch_policy='clamp', channel_map=None, forc
     if force and unknown:
         losses['forced_unmodeled_register_writes'] = len(unknown)
     rows, cache, groups = [], {}, {}
+    control_seen = set()
     for s in analysis.segments:
         if s.chip_instance or s.clock_raw != clock_raw:
             raise ValueError('OPN2 FM projection requires one unflagged YM2612 clock')
@@ -345,11 +378,32 @@ def project(analysis, *, clock_raw, pitch_policy='clamp', channel_map=None, forc
         emit(s, 0x28 + ch, kc, f'committed native FNUM/BLOCK to {clock_label} KC', frequency=frequency, actual=actual)
         emit(s, 0x30 + ch, kf, 'committed native FNUM/BLOCK to KF', frequency=frequency, actual=actual)
 
-    for _, segments in sorted(groups.items()):
+    def reeval(s):
+        # The channel control byte is a function of the channel's
+        # state AND of context outside the channel: while the DAC
+        # owns channel 6's output the byte gates it silent, so a
+        # DAC toggle changes the desired byte with no write to
+        # the channel's own control register. Re-evaluate it from
+        # every segment state, as the OPNA route re-evaluates its
+        # law bytes; the emit cache suppresses anything unchanged.
+        # A channel joins the re-evaluation only once its control
+        # state has been established (a control-carrying write or
+        # a DAC gate event dispatched for it): before that the
+        # target's reset value already holds and there is nothing
+        # to sync.
+        if s.ch not in control_seen:
+            return
+        ch = target_channel(s)
+        if ch is None:
+            return
+        emit(s, 0x20 + ch, channel_control(s),
+             'RL swap and FB/algorithm')
+
+    def dispatch_group(segments):
         s = segments[0]
         state, reg, ch = s.state, s.register, target_channel(s)
         if ch is None and not (s.port == 0 and reg in (0x22, 0x24, 0x25, 0x26, 0x27, 0x2b)):
-            continue
+            return
         if 0x30 <= reg <= 0x8f:
             bank = (reg >> 2) & 3
             op = state.operators[bank]
@@ -365,10 +419,12 @@ def project(analysis, *, clock_raw, pitch_policy='clamp', channel_map=None, forc
                 losses['ssg_eg_not_available_on_opm'] += 1
             if force:
                 emit(s, 0x20 + ch, channel_control(s), 'forced FM SSG-EG output gate')
+                control_seen.add(s.ch)
         elif 0xb0 <= reg <= 0xb2 or 0xb4 <= reg <= 0xb6:
             # Target-only reset assumptions for unwritten counterpart controls.
             emit(s, 0x20 + ch, channel_control(s),
                  'RL swap and FB/algorithm')
+            control_seen.add(s.ch)
             if reg >= 0xb4:
                 emit(s, 0x38 + ch, state.pms << 4 | state.ams, 'PMS/AMS mapping')
                 lfo['sensitivities'][s.ch] = (state.pms or 0, state.ams or 0)
@@ -382,6 +438,7 @@ def project(analysis, *, clock_raw, pitch_policy='clamp', channel_map=None, forc
                 if target_channel(item) is not None:
                     emit(item, 0x20 + target_channel(item), channel_control(item),
                          'DAC enable as channel-6 output gate; FM state retained')
+                    control_seen.add(item.ch)
         elif s.port == 0 and reg == 0x22:
             emit(s, 0x18, _lfo_rate_table(opm_clock)[state.lfo_rate],
                  'approximate LFO frequency (derived rate table)')
@@ -394,7 +451,13 @@ def project(analysis, *, clock_raw, pitch_policy='clamp', channel_map=None, forc
                     if item.ch == 2 and target_channel(item) is not None:
                         emit(item, 0x20 + target_channel(item), channel_control(item),
                              'forced CH3/CSM output gate; ordinary keys retained')
+                        control_seen.add(item.ch)
         # High FNUM writes affect source latches; forced CH3 modes stay output-gated.
+
+    for _, segments in sorted(groups.items()):
+        dispatch_group(segments)
+        for item in segments:
+            reeval(item)
     return rows, dict(losses)
 
 
@@ -1229,8 +1292,9 @@ def project_fm_from_analysis(analysis, *, clock_raw, force=False, law=False):
     """Project the OPN2 analysis onto the OPNA's own FM section.
 
     This is the FM lane of the makoto target composition and the
-    added lane of the layered file. Like project() on the OPM
-    route, it is driven by the analysis: source events decide
+    added lane of the layered file. Like
+    project_opm_from_analysis on the OPM route, it is driven
+    by the analysis: source events decide
     when a write happens, the segment state decides what it
     contains. The YM2608 FM register map is the YM2612's, so
     operator parameters, feedback/algorithm, pan/LFO sensitivity
@@ -1590,8 +1654,9 @@ def convert(source, outdir, *, force=False, layered=False, target='makoto',
         loop_start = loop['loop_start_samples']
         loop_event_id = next((e.source_event_id for e in bundle['events']
                               if e.address == loop.get('loop_address')), None)
-    rows, losses = project(analysis, clock_raw=clock_raw, force=force, dac_external=True,
-                           opm_clock=opm_clock)
+    rows, losses = project_opm_from_analysis(
+        analysis, clock_raw=clock_raw, force=force, dac_external=True,
+        opm_clock=opm_clock)
     losses.pop('dac_data_writes_projected_to_pcm', None)
     dcsg_rows, dcsg_stats = [], {}
     dcsg_analysis = bundle['analyses'].get('dcsg')
