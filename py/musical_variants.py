@@ -11,7 +11,7 @@ import struct
 
 from musical_wave_target import project_waves, project_psg_opll
 
-PROFILES = ('sfg01','makoto','sfg01_makoto','sfg01_msxaudio')
+PROFILES = ('sfg01','makoto','sfg01_makoto','sfg01_msxaudio','layered')
 CLOCKS = {0x54:(0x30,3579545),0x56:(0x48,8000000),0x57:(0x48,8000000),
           0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545)}
 
@@ -68,14 +68,28 @@ def _write(performance, rows, prefix, path):
     return rows
 
 
-def project_variant(performance, profile, *, force=False, dcsg_gain=.5, opna_law=False):
+def _project_fm_layer(performance, chip, clock, *, force):
     from musical_fm_target import project_fm
+    fm, losses, allocation = project_fm(performance, chip, clock, force=force)
+    wave, wave_losses, wave_allocation = project_waves(performance, chip, clock,
+        set(allocation.values()), force=True)
+    if wave_losses.get('wave_channel_capacity_units_omitted') and not force:
+        raise ValueError('Waveform voices exceed cartridge FM capacity (use --force for explicit omission)')
+    losses = Counter(losses)
+    losses.update(wave_losses)
+    return fm + wave, losses, dict(clock_hz=clock,
+        fm_allocation={str(k): v for k, v in allocation.items()},
+        waveform_allocation={str(k): v for k, v in wave_allocation.items()},
+        losses=dict(losses))
+
+
+def project_variant(performance, profile, *, force=False, dcsg_gain=.5, opna_law=False):
     from musical_pcm_target import project_pcm
     if profile not in PROFILES:raise ValueError('Unknown cartridge profile')
     if not 0<dcsg_gain<=1:raise ValueError('DCSG gain must be >0 and <=1')
     chip='opna' if profile=='makoto' else 'opm'
     clock=8000000 if chip=='opna' else 3579545
-    auxiliary='opna' if profile in ('makoto','sfg01_makoto') else 'y8950' if profile=='sfg01_msxaudio' else None
+    auxiliary='opna' if profile in ('makoto','sfg01_makoto','layered') else 'y8950' if profile=='sfg01_msxaudio' else None
     losses=Counter();rows=[];prefix=b''
     supported={'opm','opna','opn2','psg','opll','scc','dcsg','huc6280','nesapu'}
     for device in performance.devices:
@@ -84,13 +98,13 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.5, opna_law
         raise ValueError('No cartridge projection for '+', '.join(sorted(losses)))
     # Inherent cross-chip waveform/LFO approximations are reported, not fatal.
     # Resource omissions still follow the caller's documented --force policy.
-    fm,fm_losses,allocation=project_fm(performance,chip,clock,force=force)
-    rows.extend(fm);losses.update(fm_losses)
-    wave,wave_losses,wave_allocation=project_waves(performance,chip,clock,
-        set(allocation.values()),force=True)
-    if wave_losses.get('wave_channel_capacity_units_omitted') and not force:
-        raise ValueError('Waveform voices exceed cartridge FM capacity (use --force for explicit omission)')
-    rows.extend(wave);losses.update(wave_losses)
+    targets=[(chip,clock)]
+    if profile=='layered':targets.append(('opna',8000000))
+    fm_layers={}
+    for target_chip,target_clock in targets:
+        fm,fm_losses,layer_plan=_project_fm_layer(performance,target_chip,target_clock,force=force)
+        rows.extend(fm);losses.update(fm_losses)
+        fm_layers[target_chip]=layer_plan
     aux,aux_losses=project_psg_opll(performance,dcsg_gain=dcsg_gain,
         opna=auxiliary=='opna',force=True)
     if any(aux_losses.get(k) for k in ('psg_channel_capacity_units_omitted','second_opll_device_omitted')) and not force:
@@ -134,7 +148,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.5, opna_law
     rows.extend(rhythm);losses.update(rhythm_losses)
     # The measured OPNA TL/decay law is applied to projected carrier values,
     # after native curve/voice recombination, never to source evidence.
-    if opna_law and chip=='opna':
+    if opna_law and any(target=='opna' for target,_ in targets):
         from opn2_target_vgm import _OPNA_LAW_TL, _OPNA_LAW_DECAY
         device_chips={d.device_id:d.chip for d in performance.devices}
         carriers=(8,8,8,8,12,14,14,15);algorithms={};ks={}
@@ -151,8 +165,10 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.5, opna_law
     if any(row['command'][0] in (0x56,0x57) for row in rows):
         rows.insert(0,dict(sample=0,order=-2,command=bytes((0x56,0x29,0x80)),unit_id='',device_id='',source_indices=(),reason='enable six OPNA FM channels'))
     if not rows and not prefix:raise ValueError('No mapped musical operations in source')
-    return rows,prefix,dict(losses),dict(fm_allocation={str(k):v for k,v in allocation.items()},
-        waveform_allocation={str(k):v for k,v in wave_allocation.items()},pcm=pcm_stats)
+    plan=dict(fm_allocation=fm_layers[chip]['fm_allocation'],
+        waveform_allocation=fm_layers[chip]['waveform_allocation'],pcm=pcm_stats)
+    if profile=='layered':plan['fm_layers']=fm_layers
+    return rows,prefix,dict(losses),plan
 
 
 def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.5, opna_law=False):

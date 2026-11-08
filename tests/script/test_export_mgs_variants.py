@@ -38,7 +38,7 @@ for _value in (0x80, 0xA0, 0xC0, 0xE0, 0xC0, 0xA0, 0x80, 0x60):
     BURST += bytes((0x52, 0x2a, _value, 0x61, 0x02, 0x00))
 OPN2_SONG = vgm(PHRASE + BURST)
 
-PROFILES = ('sfg01', 'makoto', 'sfg01_makoto', 'sfg01_msxaudio')
+PROFILES = ('sfg01', 'makoto', 'sfg01_makoto', 'sfg01_msxaudio', 'layered')
 VARIANT_NAMES = tuple(f'vgm-variants/{profile}/song.vgm' for profile in PROFILES)
 
 
@@ -94,27 +94,37 @@ class ExportMgsVgmVariantsTests(unittest.TestCase):
     def run_main(self, *argv):
         return export_mgs.main([str(item) for item in argv])
 
-    def test_opn2_pcm_publishes_three_capable_profiles(self):
+    def test_opn2_pcm_publishes_auxiliary_and_layered_profiles(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp); source = root / 'song.vgm'; source.write_bytes(OPN2_SONG)
             out = root / 'out'
             self.run_main(source, '--outdir', out, '--vgm-variants', '--skip-keyon-counts')
-            report = assert_profiles(self, out, ('makoto', 'sfg01_makoto', 'sfg01_msxaudio'))
+            report = assert_profiles(self, out, ('makoto', 'sfg01_makoto', 'sfg01_msxaudio', 'layered'))
             self.assertIn('PCM', report['summaries']['sfg01']['reason'])
             makoto = (out / 'vgm-variants/makoto/song.vgm').read_bytes()
             self.assertEqual(struct.unpack_from('<I', makoto, 0x30)[0], 0)
             self.assertEqual(struct.unpack_from('<I', makoto, 0x48)[0], 8000000)
             self.assertIn(b'\x67\x66\x81', makoto)
             self.assertIn(b'\x67\x66\x88', (out / 'vgm-variants/sfg01_msxaudio/song.vgm').read_bytes())
+            layered = (out / 'vgm-variants/layered/song.vgm').read_bytes()
+            self.assertEqual(struct.unpack_from('<I', layered, 0x30)[0], 3579545)
+            self.assertEqual(struct.unpack_from('<I', layered, 0x48)[0], 8000000)
+            from native_imports.vgm_timing import command_times
+            events = tuple(command_times(layered))
+            blocks = [event for event in events if event.command == 0x67]
+            self.assertEqual(len(blocks), 1)
+            self.assertEqual(layered[blocks[0].address + 2], 0x81)
+            self.assertEqual(report['summaries']['layered']['plan']['pcm'],
+                             report['summaries']['makoto']['plan']['pcm'])
             self.assertEqual(variant_rows(out)[0]['status'], 'success')
 
-    def test_public_psg_fixture_publishes_two_profiles_without_failing_mgs(self):
+    def test_public_psg_fixture_publishes_base_and_layered_profiles_without_failing_mgs(self):
         fixture = ROOT / 'tests/fixtures/public/psg/scale_rom1/scale_rom1.vgm'
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / 'out'
             result = self.run_main(fixture, '--outdir', out, '--vgm-variants', '--skip-keyon-counts', '--compiler', 'mgsexc')
             self.assertEqual(result, 0)
-            assert_profiles(self, out, ('sfg01', 'makoto'), 'scale_rom1')
+            assert_profiles(self, out, ('sfg01', 'makoto', 'layered'), 'scale_rom1')
             self.assertEqual(variant_rows(out)[0]['status'], 'success')
 
     def test_rerun_without_flag_removes_products_and_ownership(self):

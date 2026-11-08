@@ -1,3 +1,42 @@
+# Checkpoint: calibration guide, variant visibility, layered FM (2026-11-08)
+
+Branch: codex/layered-vgm-calibration-guide, from main a45e497; use G: only.
+Owner assigns overall architecture/integration to Codex and focused calibration
+to Muse.ai. docs/calibration_collaboration.md is the shareable working guide;
+it complements existing rules and does not grant unrelated redesign authority.
+
+The saved BRNKL02 run now has three successful PCM-capable variants, matching
+manifest hashes. MGS conversion_failed / 0-of-1 describes the MGS route, not all
+outputs. Log ends in vgm variants success. Ownership preflight errors can occur
+but were not evidenced in this saved run. Added a flushed variants-start message
+and visible preflight/publication exceptions without weakening overwrite guards.
+Guide/display checkpoint committed as c0ba784.
+
+Added vgm-variants/layered/<stem>.vgm under --vgm-variants. The same retained
+NativePerformance projects FM and waveform-derived FM independently to SFG01
+(3579545 Hz) and Makoto (8000000 Hz). PSG/OPLL/rhythm/PCM project once; PCM uses
+Makoto's existing 256 KiB path. No automatic gain reduction. Per-chip allocations
+and losses are in plan.fm_layers. OPNA still has six FM channels, OPM eight;
+force allows explicit per-layer capacity omission, not source-data mutation.
+OPNA law correction only affects the OPNA layer. Publication/migration/disabled
+cleanup now recognize the fifth profile. Ordinary MML defaults are unchanged.
+
+Verification: 79 related authored/public checks passed, no failures/errors/skips.
+Inspected persisted native/target CSV and JSON from authored OPN2 FM+DAC under
+outputs/diagnostics/layered_variants_20261108: both FM clocks and keys, single
+Makoto PCM encoding (32 bytes of 262144), 78 planned writes. A prior check run's
+seven failures were old two-profile success-set expectations; updated only those
+expectations for the requested layered addition. No private fixture reconversion
+or listening performed. Owner retains broad regression and hardware audition.
+
+Next: commit/push task changes to this branch, then owner/Muse verification.
+Keep private outputs untracked and user edits protected. Do not combine cartridge
+PCM budgets, retune shared source evidence, change production defaults, or claim
+acoustic equivalence from these checks. External notes are committed separately;
+no external-notes push is authorized.
+
+---
+
 # PSG HW drum checkpoint (2026-10-30)
 
 - User SALAMD03 audition is hybrid legacy+score-guided. Extra HW shape resets confirmed in actual playback.

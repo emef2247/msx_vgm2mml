@@ -21,7 +21,7 @@ from mgs_conversion_config import sample_threshold
 
 DEFAULT_FM_STATE_MS = 24.0
 
-VARIANT_PROFILES = ('sfg01', 'makoto', 'sfg01_makoto', 'sfg01_msxaudio')
+VARIANT_PROFILES = ('sfg01', 'makoto', 'sfg01_makoto', 'sfg01_msxaudio', 'layered')
 VARIANT_PRODUCTS = tuple('vgm-variants/' + profile + '/{stem}.vgm'
                          for profile in VARIANT_PROFILES)
 # Previous publications remain owned during migration and disabled reruns.

@@ -51,7 +51,7 @@ class MusicalVariantPublicationTests(unittest.TestCase):
         batch.save_json(self.output / 'listening_manifest.json', state)
         return path
 
-    def test_four_paths_and_single_native_construction(self):
+    def test_all_paths_and_single_native_construction(self):
         row, = self.update()
         self.assertEqual(row['status'], 'success')
         self.build.assert_called_once_with(self.source, self.output / '_diagnostics/song/vgm_variants/native', 'song')

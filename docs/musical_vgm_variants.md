@@ -20,12 +20,13 @@ vgm-variants/sfg01/<stem>.vgm
 vgm-variants/makoto/<stem>.vgm
 vgm-variants/sfg01_makoto/<stem>.vgm
 vgm-variants/sfg01_msxaudio/<stem>.vgm
+vgm-variants/layered/<stem>.vgm
 _diagnostics/<stem>/vgm_variants/
 ```
 
-Only applicable, successful profiles are published. PCM-free sources normally
-need only sfg01 and makoto. PCM-bearing sources use makoto and the two auxiliary
-SFG01 compositions; plain sfg01 cannot play their PCM. Native OPNA rhythm can
+Only applicable, successful profiles are published. PCM-free sources can use
+sfg01, makoto, and layered. PCM-bearing sources can use makoto, layered, and the
+two auxiliary SFG01 compositions; plain sfg01 cannot play their PCM. Native OPNA rhythm can
 also use the Makoto auxiliary composition. Unsupported profiles have explicit
 reasons in `_diagnostics/<stem>/vgm_variants.json`.
 
@@ -35,6 +36,22 @@ reasons in `_diagnostics/<stem>/vgm_variants.json`.
 | makoto | YM2608 at 8 MHz, plus native YM2413 and AY PSG |
 | sfg01_makoto | YM2151 FM, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
 | sfg01_msxaudio | YM2151 FM, Y8950 Delta-T, YM2413 and PSG |
+| layered | YM2151 and YM2608 FM in parallel, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
+
+## Layered FM
+
+`layered` projects the same musical FM voices independently to SFG01 at
+3,579,545 Hz and Makoto at 8 MHz. Waveform voices approximated by FM also use
+both targets. Each chip has its own allocation and approximation diagnostics
+under `plan.fm_layers`; the Makoto layer retains its six-channel limit even
+though SFG01 has eight. Without force, a required capacity omission blocks the
+profile; with force, omissions are reported separately for each FM layer.
+
+PSG, OPLL, native rhythm, and PCM are projected once. PCM uses Makoto's existing
+256 KiB ADPCM-B path, including representative reuse where supported. There is
+no additional MSX-Audio bank or automatic FM gain reduction in this profile.
+Both FM layers retain the ordinary mapping levels, so listening balance may
+differ from a single-chip profile. Song timing and loop positions are shared.
 
 ## Representation boundary
 
