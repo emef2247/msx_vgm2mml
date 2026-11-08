@@ -172,3 +172,33 @@ features are capacity heuristics, not a claim of perceptual equivalence. No
 source PCM content or event time is changed. If no feasible audible
 representative exists, the failure is explicit rather than silently dropping
 playbacks. The generic NES/HuC renderer has not yet adopted this policy.
+
+## MSM6258 musical PCM
+
+Eligible primary MSM6258 ADPCM4 playback is decoded into source-native signed16
+assets before cartridge projection. Encoded bytes, original controls, timing,
+reset evidence and source identities remain available in native diagnostics.
+Unknown reset/rate, unsupported modes and incomplete supply remain explicit
+source decisions; they must not silently become FM-only success.
+
+OPM + MSM6258 inputs use the existing Makoto, SFG01 + Makoto,
+SFG01 + MSX-Audio and layered profiles. PCM is re-encoded as target ADPCM-B,
+with one 256 KiB budget per cartridge. Standalone SFG01 has no PCM destination.
+Exact encoded payloads are shared first. Capacity windows and song-loop cuts
+preserve the source sample origin and scheduled playback endpoints. Padding
+is included in the budget. There is no MDX/PDX 96-slot constraint.
+
+When the bank exceeds capacity, `--force` enables the existing representative
+selection policy. Every eligible playback receives a sample; substitutions,
+source/representative identities, rate changes and any rate clamping are
+reported in projection JSON alongside the target write CSV. Source assets
+are unchanged. This is lossy capacity fitting, not perceptual equivalence.
+Without force, over-budget banks and unresolved source evidence are rejected.
+Force can omit unresolved source assets, with explicit loss counts.
+
+MSM pan and mute are retained per playback, independently of payload sharing.
+MSX-Audio folds stereo routing to mono with a loss record. Overlapping MSM
+assets or a mixture with another decoded PCM family require an explicit mix
+policy and currently fail. Fresh target predictors at packaging cuts,
+linear resampling and finite decoded coverage are reported limitations.
+Hardware playback and private-fixture regression remain separate validation.

@@ -6,13 +6,19 @@ import math
 import struct
 
 
-def project_pcm(performance, target):
+def project_pcm(performance, target, *, force=False):
     from opn2_target_vgm import (_encode_adpcm_b, OPNA_CLOCK, Y8950_CLOCK,
         ADPCM_B_DRAM_BUDGET, Y8950_RAM_BUDGET, ADPCM_B_LEVEL)
     if target not in ('opna','y8950'):
         raise ValueError('Unknown PCM cartridge')
     assets=sorted(getattr(performance,'pcm_assets',()),key=lambda a:(a.start_sample,a.asset_id))
     clock,divisor,budget=(OPNA_CLOCK,144*65536,ADPCM_B_DRAM_BUDGET) if target=='opna' else (Y8950_CLOCK,72*65536,Y8950_RAM_BUDGET)
+    msm_assets=[a for a in assets if next(d for d in performance.devices if d.device_id==a.device_id).chip=='msm6258']
+    if msm_assets and len(msm_assets)!=len(assets):
+        raise ValueError('Mixed MSM6258 and other decoded PCM needs an explicit target mix policy')
+    if assets and all(next(d for d in performance.devices if d.device_id==a.device_id).chip=='msm6258' for a in assets):
+        from musical_msm6258_target import project
+        return project(performance,target,force=force)
     rows=[];losses=Counter();image=bytearray();inventory={};records=[]
     # OPN2 retains the established run inventory/rate clustering. Supply
     # timings are evidence; amplitudes always come from editable PCM content.

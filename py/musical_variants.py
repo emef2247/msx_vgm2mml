@@ -97,11 +97,16 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.5, opna_law
     clock=8000000 if chip=='opna' else 3579545
     auxiliary='opna' if profile in ('makoto','sfg01_makoto','layered') else 'y8950' if profile=='sfg01_msxaudio' else None
     losses=Counter();rows=[];prefix=b''
-    supported={'opm','opna','opn2','psg','opll','scc','dcsg','huc6280','nesapu'}
+    supported={'opm','opna','opn2','psg','opll','scc','dcsg','huc6280','nesapu','msm6258'}
     for device in performance.devices:
         if device.chip not in supported:losses['unsupported_source_device_'+device.chip]+=1
     if any(k.startswith('unsupported_source_device_') for k in losses):
         raise ValueError('No cartridge projection for '+', '.join(sorted(losses)))
+    msm_issues=[d for d in performance.decisions if d and d[0] in
+        ('msm6258_pcm_source_issue','msm6258_pcm_unresolved_playback')]
+    if msm_issues:
+        if not force:raise ValueError('MSM6258 PCM source evidence is unresolved; inspect native decisions')
+        losses['msm6258_pcm_unavailable_source_assets_omitted']+=len(msm_issues)
     # Inherent cross-chip waveform/LFO approximations are reported, not fatal.
     # Resource omissions still follow the caller's documented --force policy.
     targets=[(chip,clock)]
@@ -133,7 +138,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.5, opna_law
     if missing_pcm:losses['source_pcm_content_incomplete_diagnostics']+=len(missing_pcm)
     if assets:
         if auxiliary is None:raise ValueError('PCM source requires sfg01_makoto or sfg01_msxaudio')
-        pcm,prefix,pcm_losses,pcm_stats=project_pcm(performance,auxiliary)
+        pcm,prefix,pcm_losses,pcm_stats=project_pcm(performance,auxiliary,force=force)
         if any(count for code,count in pcm_losses.items() if 'budget' in code and ('omitted' in code or 'dropped' in code)) and not force:
             raise ValueError('PCM content exceeds cartridge DRAM (use --force for explicit omission)')
         rows.extend(pcm);losses.update(pcm_losses)
@@ -191,7 +196,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.5, opna_law
 
 def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.5, opna_law=False):
     root=Path(outdir);root.mkdir(parents=True,exist_ok=True);results={}
-    has_pcm=bool(getattr(performance,'pcm_assets',()) or any(p.chip=='opna' for p in performance.pcm_packets))
+    has_pcm=bool(getattr(performance,'pcm_assets',()) or any(p.chip in ('opna','msm6258') for p in performance.pcm_packets))
     native_rhythm=any(e.device_id in {d.device_id for d in performance.devices if d.chip=='opna'} for e in performance.percussion)
     for profile in PROFILES:
         folder=root/profile;folder.mkdir(parents=True,exist_ok=True)
