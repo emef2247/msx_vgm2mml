@@ -474,6 +474,8 @@ The musical representation should permit alternative interpretations without des
 
 Pattern detection and compression must not destroy the information-preservation pipeline.
 
+First reconstruct complete sounding units and their internal control curves, then detect repeat structures, and only afterward select shared software envelopes for the target. Target envelope selection must not determine the earlier sounding-unit boundaries or score-repeat identity.
+
 A repeated candidate is evidence of structural similarity, not automatic permission to rewrite source Segments.
 
 Prefer reversible structural plans.
@@ -757,6 +759,8 @@ Keep the source performance separate from the target-specific VGM encoding.
 
 Preserve decoded PCM content separately from its original transport representation.
 
+Keep reusable PCM sample assets separate from playback occurrences, including their start and stop times, playback rates, levels, and loop behavior. Sharing or merging sample assets does not by itself authorize merging or dropping playback occurrences. A target approximation must retain source-to-target playback mappings and report changes to playback behavior explicitly.
+
 Native musical curves own projected pitch, level, timbre, and gates.
 
 Typed source register evidence remains available for provenance and source-specific behavior.
@@ -801,6 +805,8 @@ Target-specific resource conflicts must be resolved in the target projection, no
 ## 17.4 Target Capacity and Loss
 
 Target channel counts, PCM memory, and available synthesis features may require approximation or omission.
+
+Evaluate capacity using the actual target storage and allocation format, including required terminators, reference tables, alignment, and other mandatory overhead. Note or sample payload size alone is insufficient; distinguish encoded storage size from decoded or runtime buffer requirements.
 
 Distinguish unsupported semantics from capacity exhaustion, implementation failure, and unverified behavior.
 
