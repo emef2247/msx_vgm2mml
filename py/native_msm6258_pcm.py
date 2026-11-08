@@ -61,13 +61,24 @@ def add_msm6258_pcm(builder):
         if any(pan != p.pan for _, pan, _ in pan_curve): reasons.append('midplay_pan_change')
         if p.end_vgmticks <= p.start_vgmticks: reasons.append('empty_playback_interval')
         rate = Fraction(p.rate_num, p.rate_den) if p.rate_den > 0 else Fraction(0)
-        count = math.ceil(Fraction(p.end_vgmticks-p.start_vgmticks, 44100) * rate)
-        if sample is not None and count > len(sample.encoded_bytes) * 2:
-            reasons.append('source_gate_exceeds_finite_decoded_samples')
+        end = p.end_vgmticks; exhaustion = None
+        if sample is not None and rate > 0:
+            exhaustion = Fraction(p.start_vgmticks) + len(sample.encoded_bytes)*2*44100/rate
+            if end > exhaustion:
+                if end-exhaustion <= 1:
+                    end = math.floor(exhaustion)
+                else:
+                    reasons.append('source_gate_exceeds_finite_decoded_samples')
+        count = math.ceil(Fraction(end-p.start_vgmticks, 44100) * rate)
+        if end <= p.start_vgmticks: reasons.append('finite_playback_below_source_tick')
         if reasons:
             builder.decisions.append(('msm6258_pcm_unresolved_playback', device.device_id,
                                       p.playback_id, tuple(dict.fromkeys(reasons))))
             continue
+        if end != p.end_vgmticks:
+            builder.decisions.append(('msm6258_pcm_source_observation',
+                'finite_exhaustion_endpoint_rounding', p.playback_id,
+                p.end_vgmticks, end, exhaustion.numerator, exhaustion.denominator))
         decoded = decode_msm4(sample.encoded_bytes)
         identities = [p.first_source_event_id, *p.control_event_ids, p.last_source_event_id]
         identities.extend(t.source_event_id for t in transfers[p.transfer_start:p.transfer_end]
@@ -76,11 +87,14 @@ def add_msm6258_pcm(builder):
                           if s.chip_instance == p.chip_instance)
         builder.pcm_assets.append(NativePCM(
             f'{device.device_id}:playback:{p.playback_id}', device.device_id,
-            p.start_vgmticks, p.end_vgmticks, float(rate), decoded[:count],
+            p.start_vgmticks, end, float(rate), decoded[:count],
             tuple(dict.fromkeys(source_id(i) for i in identities)),
             (('source_encoding', sample.codec), ('source_sample_id', p.sample_id),
              ('source_sample_sha256', sample.sha256), ('source_playback_id', p.playback_id),
              ('source_rate_num', p.rate_num), ('source_rate_den', p.rate_den),
+             ('source_gate_end_vgmticks', p.end_vgmticks),
+             ('decoded_exhaustion_num', exhaustion.numerator),
+             ('decoded_exhaustion_den', exhaustion.denominator),
              ('source_clock_hz', p.clock_hz), ('source_divider', p.divider), ('pan', p.pan),
              ('pan_interpretation', 'low2_disable_bits_0_both_1_left_2_right_3_mute'),
              ('source_pan_curve', pan_curve), ('source_options', analysis.options),

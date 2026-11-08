@@ -67,6 +67,19 @@ class NativeMsm6258PcmTests(unittest.TestCase):
         add_msm6258_pcm(b);self.assertEqual(b.pcm_assets,[])
         self.assertIn('source_gate_exceeds_finite_decoded_samples',b.decisions[-1][-1])
 
+    def test_fractional_exhaustion_clips_at_most_one_vgm_tick(self):
+        raw=authored_msm6258();a=msm6258.analyze(raw)
+        p=replace(a.playbacks[0],rate_num=15625,rate_den=1,end_vgmticks=181)
+        b=Builder(raw,replace(a,playbacks=(p,)));add_msm6258_pcm(b)
+        self.assertEqual(len(b.pcm_assets),1)
+        self.assertEqual(b.pcm_assets[0].end_sample,180)
+        self.assertEqual(len(b.pcm_assets[0].samples),64)
+        self.assertEqual(dict(b.pcm_assets[0].parameters)['source_gate_end_vgmticks'],181)
+        self.assertIn('finite_exhaustion_endpoint_rounding',b.decisions[-1])
+        b=Builder(raw,replace(a,playbacks=(replace(p,end_vgmticks=182),)))
+        add_msm6258_pcm(b);self.assertFalse(b.pcm_assets)
+        self.assertIn('source_gate_exceeds_finite_decoded_samples',b.decisions[-1][-1])
+
     def test_short_gate_clips_without_changing_native_sample(self):
         raw=authored_msm6258();a=msm6258.analyze(raw);original=a.samples[0].encoded_bytes
         b=Builder(raw,replace(a,playbacks=(replace(a.playbacks[0],end_vgmticks=248),)))

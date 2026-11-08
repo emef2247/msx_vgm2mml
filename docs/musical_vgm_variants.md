@@ -175,10 +175,10 @@ playbacks. The generic NES/HuC renderer has not yet adopted this policy.
 
 ## MSM6258 musical PCM
 
-Eligible primary MSM6258 ADPCM4 playback is decoded into source-native signed16
+Eligible primary MSM6258 ADPCM4 / 10-bit-output playback is decoded into source-native signed16
 assets before cartridge projection. Encoded bytes, original controls, timing,
 reset evidence and source identities remain available in native diagnostics.
-Unknown reset/rate, unsupported modes and incomplete supply remain explicit
+ADPCM3, 12-bit output, mid-play pan changes, unknown reset/rate and incomplete supply remain explicit
 source decisions; they must not silently become FM-only success.
 
 OPM + MSM6258 inputs use the existing Makoto, SFG01 + Makoto,
@@ -202,3 +202,12 @@ assets or a mixture with another decoded PCM family require an explicit mix
 policy and currently fail. Fresh target predictors at packaging cuts,
 linear resampling and finite decoded coverage are reported limitations.
 Hardware playback and private-fixture regression remain separate validation.
+
+The first source decoder uses the established x68k 10-bit MSM transition,
+low nibble first, known reset predictor -2/index 0 and signed16 scaling.
+The 12-bit output mode is explicitly unresolved, not silently decoded as 10-bit.
+Blocking native analysis issues conservatively invalidate all its decoded assets;
+observations do not. At most one VGM tick of fractional finite-exhaustion
+rounding can be clipped downward, with exact rational exhaustion and the
+original gate endpoint retained in asset metadata and source decisions. Larger
+overruns remain unresolved; no extra samples or last-value hold are invented.

@@ -1,17 +1,35 @@
-# MSM6258 musical cartridge variants checkpoint (2026-11-09)
+# OPM + MSM6258 musical cartridge variants (2026-11-09)
 
-Target stage committed as e4d6cfa on codex/layered-vgm-calibration-guide.
-Decoded MSM6258 -> Makoto/MSX-Audio ADPCM-B uses one 256 KiB budget, exact
-payload sharing and force-only existing representative reuse. No PDX slot cap.
-Pan/mute and original scheduled times remain per playback. Candidate padding,
-loop splits and sample origin are preserved; replacement rate saturation and
-endpoint errors are explicit diagnostics. Native evidence is never budgeted.
+Implemented target checkpoint e4d6cfa and source connection 9d308fd on
+codex/layered-vgm-calibration-guide. Ordinary MML and the OPN2 fast path are
+unchanged. Decoded NativePCM is the input to Makoto, SFG01+Makoto,
+SFG01+MSX-Audio and layered variants. Use the existing --vgm-variants flag;
+--force permits explicit representative replacement for a bank above 256 KiB.
+One cartridge budget, no PDX 96-slot limit. Every eligible playback remains
+scheduled; mapping, delta-N saturation and endpoint errors are inspectable.
 
-63 related authored/public checks passed; two further scoped capacity/rate
-boundaries pass (8 MSM target tests total). Source decoding connection is being
-finished separately. Native source ambiguity must not silently become FM-only
-success. User owns local_only regression and listening; no private data run.
-README/user's untracked legacy knowledge doc untouched. Owner handles push.
+Primary known-reset ADPCM4 / 10-bit output only. ADPCM3, 12-bit output,
+unknown reset/rate/cadence, mid-play pan changes and larger finite exhaustion
+overruns are unresolved, not silently decoded. Force may omit unresolved
+source assets with loss diagnostics; invalid assets are never projected.
+Up to one VGM tick of exhaustion rounding is clipped down with exact rational
+exhaustion and original end preserved. No held-tail invention. Raw commands,
+encoded source bytes, pan, rates and provenance remain intact.
+
+112 related authored/public tests passed, no failures/errors/skips. Actual
+source-to-publication integration publishes all four PCM-capable profiles.
+Inspected native PCM CSV/JSON and four target write CSVs under ignored
+outputs/diagnostics/msm6258_variants_20261109/. Authored source 0..256 ticks,
+Makoto bank 64 bytes / MSX-Audio 32 bytes; tests exercise padded capacity,
+force-only reuse, pan/mute, finite coverage, loop offsets and rate saturation.
+No private fixtures, listening or hardware verification. Owner owns these
+regressions and push. README and unrelated legacy knowledge file untouched.
+
+Next allowed action: owner regression with --force --vgm-variants on OPM+
+MSM6258 input. Inspect native decisions when PCM is unresolved; do not weaken
+source evidence checks merely to obtain success. Extend source modes/pan
+changes only with verified semantics. Do not infer acoustic equivalence from
+passing tests or repurpose the unused second cartridge as a 512 KiB pool.
 
 # Real SCC plus FM companions (2026-11-08)
 
