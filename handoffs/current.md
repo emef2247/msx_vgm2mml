@@ -29,7 +29,9 @@ seven failures were old two-profile success-set expectations; updated only those
 expectations for the requested layered addition. No private fixture reconversion
 or listening performed. Owner retains broad regression and hardware audition.
 
-Next: commit/push task changes to this branch, then owner/Muse verification.
+Published code checkpoint: 684a27e; guide/display checkpoint: c0ba784.
+Both are pushed to origin/codex/layered-vgm-calibration-guide.
+Next: owner/Muse regression, listening, and review before merging.
 Keep private outputs untracked and user edits protected. Do not combine cartridge
 PCM budgets, retune shared source evidence, change production defaults, or claim
 acoustic equivalence from these checks. External notes are committed separately;
