@@ -250,13 +250,16 @@ def _update_vgm_variants(args):
     for path in discover_inputs(source, adjacent=adjacent):
         relative = path.relative_to(source_root)
         package = output / relative.parent
+        if args.vgm_variants:
+            print(f'{relative}: vgm variants starting', flush=True)
         try:
             rows.extend(_update_song_variants(path, relative, package, output, args))
         except (OSError, ValueError) as error:
             row = _variant_row(relative, package / '_diagnostics' / path.stem, output, args)
-            row.update(status='publication_failed', publication_status='failed',
+            row.update(status='publication_failed', publication_status='failed', stage='publish',
                        publication_error=str(error), error_code='publication_error', detail=str(error))
             rows.append(row)
+            print(f'{relative}: vgm variants publication_failed: {error}', flush=True)
     return rows
 
 

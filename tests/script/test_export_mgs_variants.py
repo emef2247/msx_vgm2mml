@@ -1,4 +1,6 @@
 """Real source integration for native musical cartridge variant publication."""
+from contextlib import redirect_stdout
+import io
 import json
 from pathlib import Path
 import struct
@@ -130,10 +132,31 @@ class ExportMgsVgmVariantsTests(unittest.TestCase):
             root = Path(tmp); source = root / 'song.vgm'; source.write_bytes(OPN2_SONG)
             out = root / 'out'; variant_pass(source, out)
             edited = out / 'vgm-variants/makoto/song.vgm'; edited.write_bytes(b'edited')
-            row, = variant_pass(source, out)
+            console = io.StringIO()
+            with redirect_stdout(console):
+                row, = variant_pass(source, out)
             self.assertEqual(row['status'], 'publication_failed')
+            self.assertEqual(row['stage'], 'publish')
             self.assertIn('unowned or modified', row['detail'])
+            self.assertIn('vgm variants starting', console.getvalue())
+            self.assertIn('vgm variants publication_failed', console.getvalue())
+            self.assertIn(str(edited), console.getvalue())
             self.assertEqual(edited.read_bytes(), b'edited')
+
+    def test_invalid_manifest_failure_is_visible_without_overwriting_it(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); source = root / 'song.vgm'; source.write_bytes(OPN2_SONG)
+            out = root / 'out'; out.mkdir()
+            manifest = out / 'listening_manifest.json'; manifest.write_text('invalid')
+            console = io.StringIO()
+            with redirect_stdout(console):
+                row, = variant_pass(source, out)
+            self.assertEqual(row['status'], 'publication_failed')
+            self.assertIn('Invalid listening manifest', row['detail'])
+            self.assertIn('vgm variants publication_failed', console.getvalue())
+            self.assertIn(str(manifest), console.getvalue())
+            self.assertEqual(manifest.read_text(), 'invalid')
+            self.assertFalse((out / 'vgm-variants').exists())
 
     def test_discovery_does_not_reingest_either_variant_tree(self):
         with tempfile.TemporaryDirectory() as tmp:
