@@ -97,6 +97,31 @@ class MusicalMsm6258TargetTests(unittest.TestCase):
         self.assertEqual(stats['runs'][-1]['end_sample'],1000)
         self.assertTrue(all(r['bytes']%32==0 and r['bytes']<=64 for r in stats['runs']))
 
+    def test_authored_opm_msm_source_publishes_bounded_cartridge_variants(self):
+        from test_native_imports import vgm
+        from test_native_source_music import opm_setup
+        from test_export_mgs_variants import variant_pass,assert_profiles
+        commands=opm_setup()+bytes.fromhex('54 08 78 b7 00 01 b7 00 02')
+        for value in (0x12,0x34,0x87,0xab)*8:
+            commands+=bytes((0xb7,1,value,0x61,8,0))
+        commands+=bytes.fromhex('b7 00 01 54 08 00')
+        raw=vgm(commands,{0x30:3579545,0x90:11289600},{0x94:4})
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);source=root/'song.vgm';source.write_bytes(raw);out=root/'out'
+            rows=variant_pass(source,out,force=True)
+            self.assertEqual(rows[0]['status'],'success',rows)
+            report=assert_profiles(self,out,('makoto','sfg01_makoto','sfg01_msxaudio','layered'))
+            for profile in ('makoto','sfg01_makoto','sfg01_msxaudio','layered'):
+                pcm=report['summaries'][profile]['plan']['pcm']
+                self.assertEqual(pcm['encoder_path'],'decoded_msm6258_budget_bank')
+                self.assertGreater(pcm['playbacks'],0)
+                self.assertLessEqual(pcm['ram_used_bytes'],262144)
+            import json
+            native=json.loads((out/'_diagnostics/song/vgm_variants/native/song.native_music.json').read_text())
+            self.assertTrue(native['pcm_assets'])
+            self.assertEqual(native['pcm_assets'][0]['start_sample'],0)
+            self.assertEqual(native['pcm_assets'][0]['rate_hz'],11025)
+
     def test_pcm_profiles_and_source_coverage(self):
         with tempfile.TemporaryDirectory() as tmp:
             results=export_variants(performance((0,)),tmp,'authored',force=True)
