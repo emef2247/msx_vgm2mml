@@ -128,8 +128,8 @@
       "source_revision": "4f9c91a7c2d875a23e91a46b21fd91b54e428d40",
       "source_worktree_status": "clean",
       "source_sha256": "b4ddd9a403c115e9b3b6720d34f20777915ebbbbc1f09b837a47eadff9a82ab6",
-      "imported_sha256": "b4ddd9a403c115e9b3b6720d34f20777915ebbbbc1f09b837a47eadff9a82ab6",
-      "adaptation": "none; verbatim copy. The module itself records its earlier porting from mucom88_vgm2mml and the DAC-enable state adaptation."
+      "imported_sha256": "e64eac4fdd9279b1f415627e5142cf9322cb007d55dc10a16ab050d7eb9f6a0f",
+      "adaptation": "none; verbatim copy. The module itself records its earlier porting from mucom88_vgm2mml and the DAC-enable state adaptation. A comment at the F-number commit now records the shared-latch semantics it implements (no behavior change)."
     },
     {
       "module": "opn2_music",

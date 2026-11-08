@@ -44,8 +44,13 @@ def add_units(builder,root,stem):
                 append(volume,at,(state.volume,*attenuation_levels(state.control,state.balance,segment.global_balance)))
                 voice=builder.voice(device,mode,(('waveform_u5',state.waveform),
                     ('waveform_known',state.waveform_known),('waveform_id',state.waveform_id),
-                    ('noise_control',state.noise_control),('lfo_frequency',segment.lfo_frequency),
-                    ('lfo_control',segment.lfo_control)))
+                    ('noise_control',state.noise_control),
+                    ('native_noise_rate_hz',trace.clock_hz/(64*(32-(state.noise_control&31)))
+                        if trace.clock_hz and mode=='noise' else None),
+                    ('lfo_frequency',segment.lfo_frequency),
+                    ('lfo_control',segment.lfo_control),
+                    ('base_frequency_hz',trace.clock_hz/(32*(state.frequency or 4096))
+                        if trace.clock_hz and mode=='wave' else None)))
                 append(voices,at,voice)
             section='pcm_dda' if mode=='dda' else mode
             builder.units.append(NativeUnit(f'huc6280:0:{channel}:gate:{number}',device.device_id,
@@ -56,6 +61,9 @@ def add_units(builder,root,stem):
                  ('volume_domain','native_control_level_and_left_right_attenuation'),
                  ('dda_samples_retained_in_control_ids',mode=='dda'),
                  ('lfo_pitch_phase_unmodeled',any(s.lfo_control&3 for _,s in active)))))
+            if mode=='dda':
+                from native_pcm import add_huc_pcm
+                add_huc_pcm(builder,trace,device,channel,active,number)
             number+=1;active.clear()
         for index,segment in segments:
             if not segment.active:

@@ -4134,3 +4134,591 @@ should gain an optional musical clock fitter. MUCOM work remains paused.
   field note.
 - Next: S4 DAC -> OPNA ADPCM-B (Delta re-encode, upload
   sequence, 256 KB DRAM budget as recorded degradation).
+
+## --layered for the OPN2 target VGM (2026-11-05, claude/layered-option)
+
+- py/opn2_target_vgm.py: project_fm_layer() retargets the source
+  YM2612 FM writes onto the YM2608 FM section (0x56/0x57) at
+  register level; F-numbers are rescaled from the source clock to
+  8 MHz, block preserved unless the scaled value overflows 11
+  bits. DAC, timer and test-register writes are not layered.
+  convert(layered=True) additionally emits
+  <stem>.layer.target.vgm and <stem>.opn2_layer.writes.csv; the
+  summary gains layered / layer_writes / layer /
+  layer_target_vgm. FM only, per the user's scope decision; a
+  general all-routes layered rendering belongs to the future
+  MAP-file / vgm_enhancer work, not to per-target CLI flags.
+- scripts/export_opn2_vgm.py: --layered flag.
+- Verification: ASOLDR07 layered output is byte-identical to
+  the trial file previously auditioned on real hardware, and
+  the plain target is byte-identical with and without the flag.
+  Full suite 953 tests (main 950 + 3 new); the FAIL/ERROR name
+  set is identical to main's (127F+6E, skipped 106).
+- Developed on the private dev repository (msx_vgm2mml-dev);
+  publication to the public repository stays with the user.
+
+## --target / --dac for the OPN2 target VGM (2026-11-05, claude/layered-option)
+
+- User decision (2026-11-05): --target {sfg01, makoto} selects
+  the cartridge composition; makoto is the default because
+  Makoto is the currently produced doujin hardware and covers
+  the whole file alone. --dac {opna, y8950} selects the DAC
+  lane destination; the Delta-T codec/encoding is shared, only
+  the VGM commands/registers differ. Misato (OPN3-L, no ADPCM)
+  is covered by --target makoto --dac y8950 plus MSX-AUDIO.
+  No further per-route flags; general layering belongs to the
+  MAP-file / vgm_enhancer work.
+- py/opn2_target_vgm.py: convert(target=...) makes the OPNA
+  FM projection (project_fm_layer) the primary FM lane under
+  makoto: no YM2151 writes, and write_vgm stamps the YM2151
+  clock only when 0x54 writes exist, so sfg01 output is
+  unchanged byte-for-byte. The OPNA FM writes CSV is renamed
+  opn2_opna_fm.writes.csv. Layered composition uses the
+  canonical row order [OPM, DCSG, DAC, OPNA FM] under both
+  targets (a primary-relative ordering diverged at one byte).
+  project_dac(dac_target='y8950'): same waveform inventory,
+  stream runs and Delta-T encoding; the Y8950 differences are
+  the 0x88 data block, 0x5C register writes, start/stop
+  addresses in 4-byte units, delta-N at the 3.579545 MHz
+  clock, and a 32,768-byte sample budget (standard MSX-AUDIO
+  RAM); over-budget samples are dropped and counted.
+- scripts/export_opn2_vgm.py: --target / --dac flags; the
+  status line reports the composition and DAC destination.
+- Verification: tests 16/16 in test_opn2_target_vgm. ASOLDR07:
+  sfg01 plain target byte-identical to the shipped v2.4.0
+  file; layered byte-identical to the auditioned trial under
+  both targets; makoto plain has zero YM2151 writes and no
+  YM2151 clock stamp; the y8950 variant fills exactly
+  32,768 bytes (49 samples, 161 over-budget drops) and renders
+  in ymfm vgmrender with the ADPCM lane audibly active
+  (whole-file RMS about 4.5 dB hotter than the OPNA render in
+  ymfm; both destinations use full level, so real-hardware
+  balance is a listening matter). Full suite 958 tests
+  (main 950 + 8 new); the FAIL/ERROR name set is identical
+  to main's (127F+6E, skipped 106).
+- Open question for the user: keep the Y8950 sample budget at
+  32 KB (standard MSX-AUDIO RAM) or assume a 256 KB expansion.
+- Publication to the public repository stays with the user.
+
+## Y8950 budget follow-up (2026-11-05, claude/layered-option)
+
+- The user chose the 256 KB expansion assumption:
+  Y8950_RAM_BUDGET is now 262,144 (the chip's RAM 256K space,
+  the mode the triggers already used). No code path change
+  beyond the constant and its comment.
+- ASOLDR07 re-check: the Y8950 variant now carries the full
+  DAC inventory, byte-count-identical to the OPNA variant
+  (220,512 bytes, 210 samples, 604 playbacks, no drops), and
+  still renders in ymfm (94.0 s, RMS -10.95 dBFS).
+  test_opn2_target_vgm remains 16/16.
+
+## Status-line presentation (2026-11-05, claude/layered-option)
+
+- At the user's request, export_opn2_vgm.py no longer prints
+  the per-song writes breakdown with the raw losses dict.
+  Success is one line, "<name>: success", matching the other
+  exporters; failures still print their error to stderr. The
+  full summary (composition, write counts, losses, deferred)
+  remains in the output root's report.json.
+
+## Layered corrects the DAC destination to OPNA (2026-11-05, claude/layered-option)
+
+- At the user's request, convert() now corrects dac='y8950'
+  to 'opna' whenever layered is set: the layered composition
+  is the dual-cartridge one, so the OPNA cartridge (and its
+  ADPCM-B) is present by construction. The summary records
+  dac_corrected_from='y8950' when the correction fires; the
+  CLI help says the same. Without --layered, y8950 is
+  unaffected.
+- Verification: test_opn2_target_vgm 17/17 (new authored
+  case). On ASOLDR07 with --layered --dac y8950, both outputs
+  are byte-identical to the same run with --dac opna; without
+  --force the layered file also stays byte-identical to the
+  auditioned trial file. (Under --force the layered file
+  gains the OPM lane's force-projected writes, as in the
+  sfg01 plain target; unrelated to this correction.)
+
+## export_opn2_vgm rebuilt on export_mgs (2026-11-06, claude/layered-option)
+
+- At the user's request, scripts/export_opn2_vgm.py is now
+  export_mgs.py plus one route, instead of its own flat
+  output: products publish to tracks/, all conversion
+  evidence (native and writes CSVs, the summary JSON) stays
+  in _diagnostics/<stem>/ with report.json/report.txt and
+  publication.json, sources stage into _source_inputs/, and
+  results.csv/results.json + listening_manifest.json follow
+  the batch runner's ownership rules (publish_bundle reuse;
+  a hand-edited target product is refused, exit 2). The old
+  flat <outdir>/<stem>/ layout and the root report.json are
+  gone. py/opn2_target_vgm.convert is unchanged and now runs
+  into the diagnostics folder as its staging area.
+- --target names the route: msx-music-scc (the user's name
+  for the standard route) is plain export_mgs behaviour;
+  makoto/sfg01 select the cartridge composition. Unset
+  --target resolves per source: OPN2 sources default to
+  makoto, everything else to msx-music-scc. Combinations
+  with no route yet (OPN2 + msx-music-scc, non-OPN2 +
+  makoto/sfg01) become per-song route_unavailable failure
+  rows instead of being silently ignored. The user is
+  considering giving NES/HuC6280 sources a makoto/sfg01
+  route via the x68k_vgm2mml path instead of SCC; that is
+  future work, not implemented here.
+- Non-OPN2-only runs make one run_batch call on the original
+  arguments (byte-identical behaviour to export_mgs.py).
+  Mixed directories call run_batch per non-OPN2 file and the
+  target route per OPN2 file, then write combined
+  _diagnostics/results.{csv,json}.
+- batch_vgm_to_mgs.publication_targets now also allows
+  tracks/<stem>.target.vgm and .layer.target.vgm as manifest
+  published products, so the two scripts can share a package.
+- Verification: ASOLDR07 through the new script publishes
+  tracks/ASOLDR07.target.vgm byte-identical to the
+  established file (md5 5d40ae3e...), with every CSV under
+  _diagnostics/ASOLDR07/. A public OPLL fixture through the
+  new script yields .mml/.mgs/blueprint byte-identical to
+  export_mgs.py itself. tests/script/test_export_opn2_vgm.py
+  is new (7 tests: layout, layered+dac correction, stale
+  layer removal, hand-edit refusal, both route_unavailable
+  directions, run_batch delegation). The export/batch test
+  subset shows the same 4 failures + 1 error with and
+  without these changes (pre-existing on this VM).
+
+## --sd-layout: all cartridge variants in the SD-card tree (2026-11-06, claude/layered-option)
+
+- export_opn2_vgm.py --sd-layout (user's option choice)
+  additionally publishes all four cartridge variants per
+  OPN2 song in the user's SD-card tree, currently rooted at
+  the package: <stem>/makoto/<stem>.vgm,
+  <stem>/sfg01/dac_makoto/<stem>.vgm (sfg01 + DAC on the
+  OPNA), <stem>/sfg01/dac_y8950/<stem>.vgm and
+  <stem>/layered/<stem>.vgm, under the same manifest
+  ownership as the tracks products.Dropping the option
+  removes the owned variants again.
+- Implementation: convert passes per composition (the
+  selected route's pass runs in the diagnostics folder, the
+  others under _diagnostics/<stem>/sd_variants/), one
+  publish_bundle for tracks + SD products. A makoto pass
+  always runs layered in SD mode since it also supplies the
+  canonical layered variant. batch publication_targets
+  allows the four SD product names.
+- Verification: ASOLDR07 --sd-layout (no --force): makoto
+  variant = established file (5d40ae3e...), layered variant
+  = the auditioned trial file (2d7280b3...), sfg01
+  dac_makoto variant = the S4 share file (6c4ed90c...), all
+  byte-identical; dac_y8950 has no share counterpart.
+  Tests grow to 9 in test_export_opn2_vgm.py (SD publication
+  with structural clock/block checks, variant removal).
+- Open design thread (user, 2026-11-06, undecided): the
+  variant tree may move under a vgm_variants/ category
+  folder beside tracks/ and blueprint/, and the variants
+  may become a stage after the normal export_mgs processing
+  (analyze_source is the shared front half of both routes;
+  today each variant pass re-runs it). Not implemented.
+
+## --sd-layout: opm4mhz variant (2026-11-06, claude/layered-option)
+
+- The opm4mhz variant the user settled (eseopm manual: sfg01
+  composition, OPM clock 4 MHz) is now a fifth --sd-layout
+  product: <stem>/opm4mhz/<stem>.vgm, DAC on the OPNA.
+- Implementation: opn2_target_vgm.convert accepts
+  target='opm4mhz'; the OPM clock is a parameter through
+  project()/write_vgm() (default 3.579545 MHz, so existing
+  routes are byte-identical); only KC/KF and the YM2151
+  header clock change. The batch publication allowlist
+  includes the new product name.
+- Verification: synthetic OPN2 song --sd-layout: opm4mhz
+  differs from sfg01/dac_makoto only in the header clock
+  bytes and YM2151 KC/KF data; the other four variants and
+  the tracks product are byte-identical to the pre-change
+  run. Tests: 27 in test_export_opn2_vgm.py +
+  test_opn2_target_vgm.py pass (test_export_mgs.py keeps
+  its 3 pre-existing VM failures).
+- Not done: ASOLDR07 real-song check (no local fixture in
+  this VM); real-hardware listening of the 4 MHz variant is
+  the user's call.
+
+## export_mgs --vgm-variants (S1) (2026-11-06, claude/vgm-variants)
+
+- export_mgs.py gains --vgm-variants: after the normal batch export, a
+  per-song variant pass publishes the five cartridge variants under
+  vgm_variants/<stem>/{makoto, sfg01/dac_makoto, sfg01/dac_y8950,
+  layered, opm4mhz}/<stem>.vgm. Only OPN2 sources have the route in
+  this stage; the passes are export_opn2_vgm.py --sd-layout's own
+  (the makoto pass runs layered) against py/opn2_target_vgm.convert,
+  staged in _diagnostics/<stem>/vgm_variants/ with a vgm_variants.json
+  evidence file per song.
+- Ownership follows the package listening manifest / publish_bundle:
+  hand-edited or unowned variant products refuse the run (exit 2);
+  rerunning without the flag removes the products and their manifest
+  entries. batch_vgm_to_mgs' publication allowlist and reserved
+  route/discovery names learned the vgm_variants/ products, so either
+  export script can rerun a shared package and adjacent discovery
+  never re-ingests variant VGMs.
+- Non-OPN2 sources record a route_unavailable row (route field
+  'vgm_variants') appended to the combined _diagnostics results; the
+  batch exit status stays with the MGS rows. Variant conversion or
+  publication failures are recorded in the variant row likewise.
+- export_opn2_vgm.py is unchanged: its --sd-layout remains the
+  SD-card publisher (S1 decision: coexist, not merge).
+- Verification: ASOLDR07 (no --force) -- all five variants are
+  byte-identical to a fresh export_opn2_vgm --sd-layout run
+  (makoto 5d40ae3e..., sfg01/dac_makoto 6c4ed90c..., layered
+  2d7280b3..., sfg01/dac_y8950 edb1bdb8..., opm4mhz 0fdb9c69...).
+  Note the established ASOLDR07.makoto.y8950.target.vgm (d0cf53e4...)
+  is the makoto+y8950 composition, not the sfg01/dac_y8950 variant;
+  they are different products. ASOLDR07's MGS row itself fails in
+  vgm2mml's native analysis (unsupported source data block) --
+  the route's own result on this source, independent of the
+  variant pass, which still publishes.
+- Tests: 5 new in tests/script/test_export_mgs_variants.py
+  (synthetic byte-built OPN2 song + the public PSG fixture).
+  Full suite on this VM: before 969 tests / 128F+5E / skipped 106,
+  after 974 / 128F+5E / skipped 106; the failing-test sets are
+  identical.
+- Not done: variant routes for the other sources (plan stages
+  S2/S3); real-hardware listening remains the user's call.
+
+## export_mgs --vgm-variants S2: OPNA / DCSG / NES routes (2026-11-06, claude/vgm-variants-s2)
+
+- The variant pass now routes by source chip. OPN2 keeps the S1
+  path unchanged. OPNA-only and DCSG-only sources go through a
+  routed pass that publishes the variants that apply and records
+  the rest in the evidence (vgm_variants.json gains source_route,
+  summaries and an unavailable map name -> reason); a route with
+  no applicable variant records route_unavailable as before.
+  Mixed OPNA+DCSG sources and NES APU/FDS sources (detected via
+  nesapu_projection.has_nesapu) record route_unavailable with a
+  route-specific reason; no substitute mapping is emitted.
+- OPNA (py/opna_target_vgm.py, new): makoto = register-level
+  passthrough of the whole chip at the 8.00 MHz cartridge stamp
+  (FNUM, SSG tone/noise/envelope periods, ADPCM-B delta-N and
+  timer periods rescaled from the source clock; type-0x81 blocks
+  carried verbatim). sfg01 family = FM projected to OPM with the
+  OPNA>OPM law V1 ported from x68k py/opna_opm.py
+  (claude/opna-voice adb5ec3; EG prescaler law and OPNA LFO table
+  included), identity channel map, OPM clock parameterized;
+  SSG/rhythm/ADPCM-B stay on the OPNA. layered adds the FM
+  passthrough. sfg01/dac_y8950 is recorded unavailable (the
+  ADPCM-B lane is native to the cartridge; no Y8950 relocation
+  law exists). Dual-chip OPNA sources are refused by the
+  serializer and record all variants unavailable.
+- DCSG (py/dcsg_opm.py ported from x68k cd5bf4b with its note
+  extraction / membership / performance records bundled;
+  py/dcsg_target_vgm.py, new): sfg01/dac_makoto = the OPN2
+  route's project_dcsg composition (chip 0 to the internal PSG,
+  chip 1 to the OPNA SSG). layered adds the DCSG>OPM projection
+  at the cartridge clock. makoto (mucom88-side S3), dac_y8950
+  (no DAC-class lane) and opm4mhz (no OPM lane in the sfg01
+  composition) are recorded unavailable.
+- NES/FDS: no variant. The x68k chain core (psg_scc_opm) has
+  diverged from this repo's snapshot (SCC voice-bank fitting,
+  PSG noise ownership, musical note units; nesapu_projection
+  BALANCE_GAINS also differ), so a faithful, verifiable port is
+  a separate stage.
+- Verification (local study material only, nothing committed):
+  OPNA FM law vs x68k opna_opm.project at the 4 MHz law clock
+  with the identity map -- event streams and losses identical on
+  all 16 public OPNA fixtures (4,861 rows) and on a synthetic
+  prescaler-/3 rig (30 rows, eg_rate_prescaler_adjustments 16 on
+  both sides). Makoto passthrough on Grounseed track 01 (real
+  PC-98 song, 7,987,200 Hz): 12,769/12,769 non-rescaled writes
+  identical, 2,840/2,840 FNUM commits match the rescale law,
+  header stamped 8,000,000, total samples unchanged; 73,720
+  ADPCM-B block bytes carried. On 6 sampled Grounseed tracks
+  every song uses CH3 special mode, so without --force the
+  sfg01 family records unavailable (the law's documented
+  refusal, same as x68k) while makoto publishes. DCSG law vs
+  x68k --emit-vgm (layout worktree): scheduled-order event
+  streams identical on dual_synth (254 writes), single_synth
+  (141) and fm_synth (35).
+- Found while testing (pre-existing, not S2): re-running a
+  plain export of an OPNA source into the same outdir exits 2
+  with "Unexpected published path in manifest:
+  blueprint/ndp/<stem>.mml"; reproduced at the S1 commit
+  a7cce61 with no variant involvement.
+- Note for the law's next revision: the parallel OPM>OPNA
+  measurement track found the forward bridge's PMS depth series
+  (3.4 * 2^k) wrong (correct {3.4, 6.7, 10.1, 13.5, 20.2, 40.1,
+  79.3}); the ported PMD 86 / AMD 16 constants are x68k V1's as
+  shipped and will need the same re-derivation there.
+- Tests: 5 new in tests/script/test_export_mgs_variants_s2.py
+  (synthetic byte-built OPNA / CH3-special OPNA / DCSG / NES
+  songs; publication, unavailable records, header stamps,
+  subset removal). Full suite on this VM: before 974 tests /
+  128F+5E / skipped 106, after 979 / 128F+5E / skipped 106; the
+  failing-test sets are identical.
+- Pitch formula provenance: the OPNA>OPM port's decode uses the
+  corrected hardware form fnum * clock * (6 / prescale) /
+  (144 * 2 ** (21 - block)) throughout -- taken from x68k
+  claude/opna-voice (adb5ec3) py/opna_opm.py, matching this
+  repo's own opn2_target_vgm.py; the old 2 ** (20 - block) form
+  in the x68k claude/opn2 checkout was not used as a source.
+  py/dcsg_opm.py (from x68k cd5bf4b) contains no OPN pitch
+  decode (DCSG pitches arrive as analysis frequencies).
+
+## S3 (2026-11-06): forward LFO bridge correction + the OPM source route
+
+Branch `claude/vgm-variants-s3` on top of S2 (`7ed859d`).
+
+Part A — the forward bridge (OPN2 / OPNA sources) now follows
+`~/workspace/opna_opm_voice/LFO_BRIDGE_CORRECTION.md`:
+
+- The LFO rate table is selected by the OPM clock the variant
+  stamps (3,579,545 Hz and 4 MHz tables in both
+  `py/opn2_target_vgm.py` and `py/opna_target_vgm.py`); the 4 MHz
+  table is byte-identical to the previously shipped single table.
+- The fixed bridge depths (PMD 86 / AMD 16) are gone. On each
+  bridge activation the depths are selected from the largest
+  PMS / AMS in effect (`_LFO_BRIDGE_PMD` / `_LFO_BRIDGE_AMD`,
+  identical constants in both modules), and every selection is
+  counted in the summary losses (`lfo_pmd_selected_<n>` etc.).
+
+Part B — OPM sources (`py/opm_target_vgm.py`, new): makoto
+projects OPM -> OPNA under the measured candidate law
+(`~/workspace/opm_opna_study/MEASUREMENTS.md`); sfg01 re-emits
+the OPM stream unchanged (plus the source's own OPNA/SSG
+lanes); layered stacks both; opm4mhz re-stamps 4 MHz. The
+8 -> 6 channel allocation follows the mucom88 `opm_opna.py`
+policy as a mapping decision. Losses are recorded, never
+silent (DT2, CSM, noise loudness uncalibrated, PM saturation,
+sub-range LFO rates, ...). Exports stay behind
+`--vgm-variants`; the plain MGS export of an OPM source still
+declines with a reason.
+
+Verification (this VM): the variant tests (16) and the
+export_opn2 module pass. ASOLDR07 gate, S2 code vs S3 code
+under the same harness: makoto and opm4mhz byte-identical;
+the three 3.58 MHz variants differ by exactly one byte — the
+initial LFO frequency write (register 0x18, 0xc0 -> 0xc2).
+ASOLDR07 never bridges LFO depths, so the depth selection is
+covered by the synthetic S3 tests only. One pre-existing test
+updated: `test_sd_layout_publishes_all_variants` now allows
+the 0x18 write among the opm4mhz-vs-sfg01 stream differences.
+Full suite: 985 tests; the failing set equals the pre-S3 set
+(128 failures + 5 errors, skipped 106).
+
+Not done / limits: the OPM route has no real-song gate in this
+VM (synthetic fixtures only). The M5 listening A/B for
+OPM>OPNA and the noise loudness calibration remain open. The
+S2-noted same-outdir re-export failure is untouched.
+
+## DCSG lane gain (2026-11-06, branch claude/dcsg-lane-gain on S3)
+
+First real-hardware listening of the makoto variant (MAmidiMEmo +
+VSIF, real OPNA): ADPCM and pitch fine, but the DCSG lanes far too
+loud — also in software emulation. The user's played file was
+md5-identical to the verified bytes, and a register-level audit of
+that file showed every FM voice parameter identical to the source
+at all 2,652 key-ons, so the wrongness was the lane balance, not
+the FM data.
+
+At the user's instruction the lanes now take x68k_vgm2mml's
+listening-calibrated DCSG default gain (0.036, ~-28.9 dB) as a
+level shift before the nearest-step pick on the AY ladder
+(`_DCSG_LANE_GAIN` in py/opn2_target_vgm.py). The PSG/SSG devices
+quantize where the x68k PCM rendering did not: source
+attenuations >= 9 fall off the ladder to mute. Regenerated
+ASOLDR07 makoto differs from the previous verified file in
+exactly 5,147 volume-write bytes and nothing else (old volumes
+15/14/13/12 -> 6/5/4/3). Suite: 985 tests, failing set unchanged.
+Gained variants for the listening check are in the share repo
+under msx/dcsg_gain_test/ASOLDR07/. Awaiting the user's verdict;
+the shift may need softening for these devices.
+
+## DCSG gain becomes an option; chain sample; OPN2>OPNA study (2026-11-07)
+
+The gain verdict came back revised: the first listening had the
+MSX PSG disabled (only the SSG half of the DCSG arrangement
+sounded). With AY enabled the user found the pre-gain balance
+possibly fine, and ruled: the PSG volume is adjustable at the
+cartridge, so the default is no cut (gain 1.0); the gain stays as
+a user option for fixed-ratio hardware (Misato). Implemented on
+this branch: convert(dcsg_gain=1.0), --dcsg-gain on export_mgs
+(export_opn2_vgm inherits its parser from export_mgs; registering
+the option twice is an argparse conflict — see the field note).
+Byte gates on ASOLDR07: default reproduces the established
+transcription makoto (5d40ae3e...); dcsg_gain=0.036 reproduces
+the previous gain build (6cd81706...). Suite: 985 tests, failing
+set identical to the pre-S3 baseline (128F + 5E).
+
+At the user's request an OPN2>OPM>OPNA chain sample was built
+from the established sfg01 file's OPM lane projected by the
+OPM>OPNA candidate law (losses: 1 LFO rate out of range, 465
+inactive-channel writes ignored) and delivered in the share repo
+(msx/opn2_opm_opna_sample/, chain md5 32b3b998...). The user's
+verdict from real-hardware recordings: the chain sounds much
+better than the direct transcription.
+
+The OPN2>OPNA law study opened at ~/workspace/opn2_opna_study/
+(PLAN.md). Anchor 1: pitch identity holds after clock-ratio
+rescale; EG attack is identity at fast rates but diverges at the
+slow end (AR8: 297 ms vs 340 ms to -3 dB), so an EG rate grid
+follows; TL/levels cannot be measured with ymfm vgmrender (it
+flattens carrier TL) and move to the direct renderer.
+
+## OPN2>OPNA law v1 (2026-11-07, branch claude/opn2-opna-law)
+
+The study (~/workspace/opn2_opna_study/, PLAN.md) is complete and
+the law is implemented as an option: convert(opna_law=True) /
+--opna-law (parser lives in export_mgs only, same inheritance
+rule as --dcsg-gain). Default off: the established transcription
+is byte-identical (ASOLDR07 makoto 5d40ae3e...). The law remaps
+carrier TLs through the YM2612 effective-level curve (its TL
+compresses to a ~35 dB floor and silences at TL >= 104, where
+the 2608 is a clean -0.753 dB/step) and corrects KS-0 decay
+rates by the measured ladder argmin (-1 step at source rates
+{3,4,5,7,9,10,11}); AR/RR/DT/FB/LFO/modulator TL measured
+identity. Uncorrected by design: the 2612 output stage's
+distortion and the ~2.2 dB TL0 level offset. ASOLDR07 law build:
+md5 11b210c5..., 730 changed writes (544 TL + 77 DR + 109 SR)
+and nothing else. Suite: 987 tests, failing set identical to
+baseline. Song-level render metrics (direct renderer, FM only)
+are a wash (shape error 5.98 -> 5.87 dB); the register-level
+measurements are the ground truth and the verdict is the
+user's real-hardware A/B. Sample delivered in the share repo
+(msx/opn2_opna_law_sample/). Early anchor-1 EG attack claim in
+the previous section was a DC-offset measurement artifact and
+is retracted in the study's PLAN.md.
+
+## Correction (2026-11-07, user): the makoto FM lane is not a route
+
+The user corrected the framing of the OPN2>OPNA work above:
+in msx_vgm2mml every output passes through the musical layer,
+and a register transcription is not a legitimate output form.
+project_fm_layer consumes the raw event stream; the OPNA
+target should be emitted from the OPN2 analysis (states /
+segments) the way project() emits the OPM target. The law
+measurements stand as mapping-stage knowledge; the vehicle
+does not. Rebuild not yet scheduled; do not extend the
+transcription lane. Field note:
+2026-11-07_makoto_fm_lane_is_not_a_route.md.
+
+## Layer-route rebuild done (2026-11-07, claude/opna-layer-route a8c420a)
+
+Correction (2026-11-08): "layer route" here is wrong. This
+rebuild emits from segment state; it does not generate from
+the musical layer, which OPN2 is not connected to. The gates
+and traps recorded in this section stand as facts about the
+segment route. Field note:
+2026-11-08_segment_state_is_not_the_musical_layer.md. The
+OPN2 musical-layer work is Codex's (user, 2026-11-08).
+
+The correction above is implemented. project_fm_from_analysis
+replaces project_fm_layer: the OPNA FM lane is emitted from
+segment state like the OPM route; the law sits at that mapping
+stage and is re-evaluated from state + context (algorithm / key
+scale) when the context changes without a rewrite of the affected
+register. ASOLDR07 gates, all under a latch/commit replay model
+(one shared F-number latch per register group, committed by the
+low write — ymfm's model, micro-verified): key-on states are
+identical to the previous lane's output, 2652/2652, plain and
+law; the FM render is sample-identical to the previous lane's;
+redundant value writes are zero; the layered variant's OPNA lane
+matches makoto key-on for key-on. New makoto bytes differ from
+the established 5d40ae3e file (plain 6a093e24, law 3fba6a90):
+same sound, no duplicate writes. sfg01 output is byte-identical
+to before this work. Suite: 990 tests, failure set unchanged
+from the branch base (the provenance hash for the opn2.py
+comment was updated; one OPLL test's FAIL->ERROR drift predates
+this branch, verified at e5a455c).
+
+Two traps now recorded in the code and the field note
+2026-11-07_opna_layer_route_and_fnum_latch.md: pitch pairs are
+atomic (never dedup either byte — the shared latch and the
+commit semantics make same-value writes load-bearing), and a
+per-channel F-number latch is a wrong model (tried, reverted;
+the analyzer's shared latch matches ymfm). Next: the user's
+real-hardware listening for the new law sample; merging is the
+user's. Do not reintroduce a stream lane for OPNA FM.
+
+## DCSG default settled at 0.5 (2026-11-07)
+
+dcsg_gain's default is now 0.5 in convert / project_dcsg and
+the export CLI (was 1.0; the option itself is unchanged). The
+decision path matters: the first 25%/50% audition ran with the
+cartridge-side volume at maximum, which shifted the measured
+steps (50% read as ~0 dB, 25% as ~-5 dB instead of -6/-12); the
+re-listen at a middle volume measured -5.3/-12.0 dB, matching
+the encoding, and the user chose 50% decisively. ASOLDR07 with
+--opna-law and defaults now lands on the auditioned bytes
+(b6780a8c). Field note:
+2026-11-07_dcsg_default_settled_at_half_by_listening.md.
+
+## SFG01 OPM layer route (2026-11-07, claude/sfg01-opm-layer)
+
+Correction (2026-11-08): "layer-route form" means the
+segment-state form, not the musical layer; see the correction
+in the previous section and field note
+2026-11-08_segment_state_is_not_the_musical_layer.md. The
+parity gate and the re-evaluation gate recorded here stand.
+
+The OPN2>OPM FM lane is now project_opm_from_analysis, in the
+same layer-route form as the OPNA lane: events decide when,
+segment state decides what, and the one context-dependent
+byte (channel control under the DAC gate on channel 6) is
+re-evaluated from state + context at every segment. A channel
+joins that re-evaluation only once its control state is
+established; without that gate the sync writes the reset
+control value (0x00) for every channel at tick 0 - inert on
+hardware, but a byte change. The old project() was already
+state-driven in substance, so the gate is parity: ASOLDR07
+sfg01 fa63bc24, layered e24acf38, opm4mhz b5a78982, all
+byte-identical to the previous implementation, writes CSV
+identical in all 22,703 rows, losses unchanged. Suite: 991
+tests, failing set unchanged from the branch base (the one
+OPLL FAIL/ERROR drift predates this work; the provenance-hash
+test that failed in the layer suite run passes here - that
+run predated the provenance fix commit). Merging is the
+user's. Also closed today, user-reported: the real-hardware
+silence was the TurboR Upgrade Board's R8000 IO Wait back at
+its default 0; 4clk plays. The OPNA pitch audit closed as
+correct (key-ons within 1.2 cents of the source on both
+routes; the user accepted the file-side result).
+
+
+## Checkpoint: NativePerformance cartridge variants (2026-11-08)
+
+Working repository: G:/repository/emef2247/msx_vgm2mml-dev, WSL /mnt/g/repository/emef2247/msx_vgm2mml-dev.
+Branch codex/musical-layer-vgm-variants, based on Muse's claude/sfg01-opm-layer at 0bb5650.
+Use G: only; do not update the old I: checkout.
+
+Implemented: OPN2 native units/controls and source PCM content; complete mid-gate
+FM voice curves; NativePerformance-only FM/wave/PSG/OPLL/rhythm/PCM projectors;
+4 cartridge profiles in vgm-variants/<profile>/<stem>.vgm; exact sample clocks,
+source provenance, diagnostic CSV/JSON, protected/atomic publication and old
+layout migration. Native reference VGM retains inline DAC waits correctly.
+Native percussion edits own triggers/stops/levels. Same-sample gates retain
+source operation boundaries. Original source controls are never rewritten.
+
+Makoto and MSX-Audio each have 262144-byte PCM budgets, not a joint 512 KiB
+pool. OPN2 reuses the existing decoded-supply run/rate/encoding implementation.
+When capacity is exceeded, its new target-only byte-budget stage selects
+usage-weighted existing representatives, preserving playback times and reporting
+replacements. No MDX-specific 96-slot limit applies. Overlong runs are partitioned
+before encoding; song-loop crossings have target continuation triggers.
+
+Verification: related suite 254 tests, no failures/errors, 1 optional pinned-audio
+skip before the budget extension; latest 47 PCM/native/legacy-DAC checks passed
+including capacity replacement. Public source matrix 8 inputs and authored OPN2,
+HuC/NES/FDS cases generated applicable profiles. Actual public PSG/SCC export made
+MML/MGS and both base variants. Inspect outputs/diagnostics/musical_variants_20261108/.
+No local_only regression was run; the user owns it. README remains unchanged.
+
+Experimental losses remain explicit: waveform phase/harmonic approximation,
+clock-dependent EG/timers, some cross-chip effects and post-gate channel writes.
+Same-sample voice/level writes after key-on currently collapse to the final onset
+state in target projection; native order is retained and a loss identifies it.
+Generic NES/HuC PCM does not yet use the byte-budget representative stage (its
+capacity omissions remain diagnosed). Native OPNA over-capacity opaque banks
+need relocation; force may omit that lane. PCM loop continuation has trigger
+checks; hardware/acoustic verification remains with user regression.
+
+Next allowed work: user listening/regression, optional generic-PCM bank-policy
+connection, improved unsupported-effect mappings. Do not replace the layer route
+with Segment choreography, silently omit resources, combine both PCM budgets,
+or push/publish without instruction. See docs/musical_vgm_variants.md and the
+external 2026-11-08_native_musical_variants_checkpoint.md field note.
+
+Final checkpoint verification: 269 related tests, zero failures/errors, one optional
+pinned-audio test skipped. Code checkpoint 045a48d. User requested publishing
+this development branch and always committing task field-note changes.

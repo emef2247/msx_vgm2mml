@@ -20,9 +20,9 @@ COMMAND_CHIPS = {0x54:'opm',0xa4:'opm',0x56:'opna',0x57:'opna',0xa6:'opna',0xa7:
     0x52:'opn2',0x53:'opn2',0xa2:'opn2',0xa3:'opn2',
     0x50:'dcsg',0x30:'dcsg',0x4f:'dcsg',0x3f:'dcsg',0xb7:'msm6258',0xb8:'msm6295',
     0xc0:'segapcm',0xd4:'c140',0xa0:'psg',0xd2:'scc',0x51:'opll',0xa1:'opll',0xb9:'huc6280',0xb4:'nesapu'}
-BLOCK_CHIPS = {4:'msm6258',0x44:'msm6258',0x7f:'pcm',0x80:'segapcm',0x81:'opna',0x8b:'msm6295',0x8d:'c140',
+BLOCK_CHIPS = {0:'opn2',0x40:'opn2',4:'msm6258',0x44:'msm6258',0x7f:'pcm',0x80:'segapcm',0x81:'opna',0x8b:'msm6295',0x8d:'c140',
                0xc0:'nesapu',0xc1:'nesapu',0xc2:'nesapu'}
-STREAM_CHIPS = {0:'dcsg',1:'opll',3:'opm',4:'segapcm',7:'opna',0x12:'psg',
+STREAM_CHIPS = {0:'dcsg',1:'opll',2:'opn2',3:'opm',4:'segapcm',7:'opna',0x12:'psg',
                 0x17:'msm6258',0x18:'msm6295',0x19:'scc',0x1c:'c140'}
 HEADER_OFFSETS = {'opm':0x30,'opna':0x48,'opn2':0x2c,'dcsg':0x0c,'msm6258':0x90,'msm6295':0x98,
                   'segapcm':0x38,'c140':0xa8,'psg':0x74,'scc':0x9c,'opll':0x10,'huc6280':0xa4,'nesapu':0x84}
@@ -53,7 +53,7 @@ class _Builder:
     def __init__(self, bundle):
         self.bundle=bundle;self.raw=bundle['raw'];self.header=bundle['header']
         self.devices={};self.controls=[];self.packets=[];self.units=[];self.voices={};self.percussion=[]
-        self.decisions=[];self.latches={}
+        self.decisions=[];self.latches={};self.pcm_assets=[]
 
     def device(self, chip, instance=0):
         identity=f'{chip}:{instance}'
@@ -132,19 +132,16 @@ class _Builder:
                 self.packet(event,order,'pcm','ram_copy',12,tuple(banks.values()))
                 self.decisions.append(('opaque_pcm_ram_copy',order))
                 continue
+            if command==0xe0 or 0x80<=command<=0x8f:
+                self.device('opn2')
+                self.packet(event,order,'opn2','dac_seek' if command==0xe0 else 'dac_inline',5 if command==0xe0 else 1,tuple(banks.values()))
+                continue
             chip=COMMAND_CHIPS.get(command)
             if chip is None:raise ValueError(f'Unsupported active native source command {command:#x} at {pos:#x}')
             instance=_chip_instance(command,self.raw,pos);device=self.device(chip,instance)
-            if chip=='opn2':
-                # Source analysis and register evidence exist (native_imports);
-                # no target projection consumes OPN2 yet, so the writes stay
-                # out of the musical plan and the omission is decided here,
-                # once per device, instead of crashing the command scan.
-                if not any(d[0]=='opn2_projection_not_implemented' and d[1]==device.device_id
-                           for d in self.decisions):
-                    self.decisions.append(('opn2_projection_not_implemented',device.device_id))
-                continue
-            if chip in ('msm6258','msm6295','segapcm','c140'):
+            if chip=='opn2' and command in (0x52,0xa2) and self.raw[pos+1]==0x2a:
+                self.packet(event,order,chip,'dac_data_register',3)
+            elif chip in ('msm6258','msm6295','segapcm','c140'):
                 self.packet(event,order,chip,'native_pcm_register',4 if command in (0xc0,0xd4) else 3)
             elif chip=='opna' and command in (0x57,0xa7) and self.raw[pos+1]<0x11:
                 self.packet(event,order,chip,'adpcm_b_register',3)
@@ -155,12 +152,15 @@ class _Builder:
         analysis=self.bundle['analyses'].get(chip)
         if analysis is None:return
         groups=defaultdict(list)
-        full_off=defaultdict(set)
+        full_off=defaultdict(set);off_events=defaultdict(list)
+        source_orders={e.source_event_id:i for i,e in enumerate(self.bundle['events'])}
+        native_controls={c.control_id:c for c in self.controls}
         for event in analysis.events:
             if event.falling_mask and not event.state.key_mask:
                 full_off[event.chip_instance,event.ch].add(event.vgmticks)
+                off_events[event.chip_instance,event.ch].append(event)
         for segment in analysis.segments:
-            if segment.state.key_mask:
+            if segment.state.key_mask and not (chip=='opn2' and segment.ch==5 and segment.state.dac_enabled):
                 groups[segment.chip_instance,segment.ch].append(segment)
         for (instance,channel),rows in sorted(groups.items()):
             device=self.device(chip,instance);gates=[]
@@ -171,24 +171,39 @@ class _Builder:
                 gates[-1].append(row)
             for index,gate in enumerate(gates):
                 start,stop=gate[0].vgmticks,gate[-1].vgmticks_end
-                pitches=[];volumes=[]
+                start_order=source_orders.get(gate[0].source_event_id)
+                end_order=min((source_orders[e.source_event_id] for e in off_events[instance,channel]
+                    if e.vgmticks==stop and e.source_event_id in source_orders and
+                    (start_order is None or source_orders[e.source_event_id]>=start_order)),default=None)
+                pitches=[];volumes=[];voices=[]
                 for segment in gate:
                     _add_curve(pitches,segment.vgmticks,_fm_pitch(chip,segment.state,device.clock_hz))
                     _add_curve(volumes,segment.vgmticks,_fm_level(segment.state))
+                    _add_curve(voices,segment.vgmticks,self.voice(device,'fm',_fm_voice(segment.state)))
                 effective=next((s for s in gate if s.vgmticks==start and s.vgmticks_end>start),gate[0])
                 voice=self.voice(device,'fm',_fm_voice(effective.state))
+                # Multiple zero-width setup snapshots at the onset remain in
+                # controls; the positive-span voice is authoritative there.
+                voices=[(at,v) for at,v in voices if at>start]
+                voices.insert(0,(start,voice))
                 ids=self.control_ids(device,'fm',channel,start,stop)
                 parameters=(('native_segment_ids',tuple(s.segment_id for s in gate)),
                     ('source_continuity_ids',tuple(s.continuity_id for s in gate)),
                     ('volume_domain','native_carrier_attenuation'),
-                    ('voice_basis','first positive onset state; ordered zero-width setup remains in controls'),
-                    ('channel3_special_observed',chip=='opna' and any(s.state.channel3_special_enabled for s in gate)),
+                    ('voice_basis','positive onset state and complete mid-gate voice curve; zero-width setup remains in controls'),
+                    ('channel3_special_observed',chip in ('opna','opn2') and any(s.state.channel3_special_enabled for s in gate)),
                     ('csm_observed',any(s.state.csm_enabled for s in gate)),
                     ('noise_enabled_observed',chip=='opm' and channel==7 and any(s.state.noise_enabled for s in gate)),
                     ('pitch_fraction_reset_assumption',chip=='opm' and any(s.state.kf_raw is None for s in gate)),
-                    ('termination','observed_key_off' if stop in full_off[instance,channel] else 'source_observation_end'))
+                    ('termination','observed_key_off' if end_order is not None else 'source_observation_end'),
+                    ('source_gate_start_order',start_order),('source_gate_end_order',end_order),
+                    ('onset_controls_after_key',tuple(identity for identity in ids
+                        if (c:=native_controls[identity]).channel==channel and c.sample==start and
+                        start_order is not None and c.order>start_order and
+                        (stop>start or end_order is None or c.order<end_order) and
+                        c.kind not in ('opm_key','opna_key','opm_pitch_note','opm_pitch_fraction','opna_frequency_low','opna_frequency_high'))))
                 self.units.append(NativeUnit(f'{device.device_id}:fm:{channel}:gate:{index}',device.device_id,
-                    'fm',channel,start,stop,tuple(pitches),tuple(volumes),((start,voice),),ids,
+                    'fm',channel,start,stop,tuple(pitches),tuple(volumes),tuple(voices),ids,
                     tuple(s.segment_id for s in gate),'melody',parameters))
 
     def dcsg(self):
@@ -204,7 +219,7 @@ class _Builder:
                 groups[-1].append(segment)
             for index,gate in enumerate(groups):
                 start,stop=gate[0].start_sample,gate[-1].end_sample
-                pitches=[];volumes=[]
+                pitches=[];volumes=[];voices=[]
                 for segment in gate:
                     _add_curve(pitches,segment.start_sample,segment.frequency_hz)
                     _add_curve(volumes,segment.start_sample,segment.attenuation)
@@ -250,7 +265,8 @@ def _fm_voice(state):
             operator['tl']-=attenuation
         operators.append(tuple(sorted(operator.items())))
     return (('algorithm',state.algorithm),('feedback',state.feedback),('operators',tuple(operators)),
-            ('ams',getattr(state,'ams',None)),('pms',getattr(state,'pms',None)))
+            ('ams',getattr(state,'ams',None)),('pms',getattr(state,'pms',None)),
+            ('left',state.left_enabled),('right',state.right_enabled))
 
 
 def _legacy_performances(source,root,stem,performances,opll_segments,raw):
@@ -466,7 +482,10 @@ def build_native_performance(source,outdir,stem=None,legacy_performances=(),lega
     if any(e.command==0xb4 for e in bundle['events']):
         from native_nesapu import add_units
         add_units(builder,root,stem)
-    for chip in ('opm','opna'):builder.fm(chip)
+    for chip in ('opm','opna','opn2'):builder.fm(chip)
+    if any(d.chip=='opn2' for d in builder.devices.values()):
+        from native_pcm import add_opn2_pcm
+        add_opn2_pcm(builder)
     builder.dcsg()
     performances,_=_legacy_performances(bundle,root,stem,legacy_performances,legacy_opll_segments,bundle['raw'])
     _legacy_units(builder,performances);_opll(builder);_opna_aux(builder)
@@ -495,6 +514,6 @@ def build_native_performance(source,outdir,stem=None,legacy_performances=(),lega
     performance=NativePerformance(tuple(sorted(builder.devices.values(),key=lambda d:d.device_id)),
         tuple(builder.units),controls,tuple(builder.voices.values()),tuple(builder.percussion),tuple(builder.packets),
         bundle['source_end_sample'],bundle['source_sha256'],raw[:bundle['header']['data_start']].hex(),
-        loop_sample,loop_order,metadata,tuple(builder.decisions),patterns)
+        loop_sample,loop_order,metadata,tuple(builder.decisions),patterns,pcm_assets=tuple(builder.pcm_assets))
     performance.dump(root,stem)
     return performance

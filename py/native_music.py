@@ -92,6 +92,32 @@ class NativePacket:
 
 
 @dataclass(frozen=True)
+class NativePCM:
+    """Decoded source samples; timing and chip identity precede target encoding."""
+    asset_id: str
+    device_id: str
+    start_sample: int
+    end_sample: int
+    rate_hz: float
+    samples: tuple
+    source_event_ids: tuple = ()
+    parameters: tuple = ()
+
+    def __post_init__(self):
+        import math
+        if not 0 <= self.start_sample <= self.end_sample:
+            raise ValueError('Native PCM must have an ordered nonnegative interval')
+        if not math.isfinite(self.rate_hz) or self.rate_hz <= 0:
+            raise ValueError('Native PCM rate must be finite and positive')
+        if not isinstance(self.samples, tuple) or any(
+                not isinstance(value, int) or not -32768 <= value <= 32767
+                for value in self.samples):
+            raise ValueError('Native PCM samples must be an immutable signed16 tuple')
+        if self.end_sample > self.start_sample and not self.samples:
+            raise ValueError('Nonempty native PCM interval requires sample content')
+
+
+@dataclass(frozen=True)
 class NativePerformance:
     devices: tuple
     units: tuple
@@ -107,6 +133,7 @@ class NativePerformance:
     metadata: tuple = ()
     decisions: tuple = ()
     patterns: tuple = ()
+    pcm_assets: tuple = ()
 
     def __post_init__(self):
         ids = {device.device_id for device in self.devices}
@@ -114,12 +141,16 @@ class NativePerformance:
             raise ValueError('Duplicate native device identity')
         if self.end_sample < 0:
             raise ValueError('Negative native performance duration')
-        for item in (*self.units, *self.controls, *self.voices, *self.percussion):
+        for item in (*self.units, *self.controls, *self.voices, *self.percussion, *self.pcm_assets):
             if item.device_id not in ids:
                 raise ValueError('Native record references an unknown device')
         for unit in self.units:
             if unit.end_sample > self.end_sample:
                 raise ValueError('Native unit exceeds the source duration')
+        if len({a.asset_id for a in self.pcm_assets}) != len(self.pcm_assets):
+            raise ValueError('Duplicate native PCM identity')
+        if any(a.end_sample > self.end_sample for a in self.pcm_assets):
+            raise ValueError('Native PCM exceeds the source duration')
         if any(c.sample > self.end_sample or c.sample < 0 for c in self.controls):
             raise ValueError('Native control outside the source timeline')
 
@@ -133,7 +164,8 @@ class NativePerformance:
         for name, records, cls in (
             ('devices', self.devices, NativeDevice), ('units', self.units, NativeUnit),
             ('controls', self.controls, NativeControl), ('voices', self.voices, NativeVoice),
-            ('percussion', self.percussion, NativePercussion), ('pcm_packets', self.pcm_packets, NativePacket)):
+            ('percussion', self.percussion, NativePercussion), ('pcm_packets', self.pcm_packets, NativePacket),
+            ('pcm_assets', self.pcm_assets, NativePCM)):
             with (root / f'{stem}.native_music.{name}.csv').open('w', newline='', encoding='utf-8') as stream:
                 writer = csv.DictWriter(stream, fieldnames=list(cls.__dataclass_fields__))
                 writer.writeheader()

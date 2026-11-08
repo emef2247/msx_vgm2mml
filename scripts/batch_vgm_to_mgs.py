@@ -306,6 +306,17 @@ def package_manifest(package):
         raise ValueError(f'Invalid listening manifest: {path}') from error
 
 
+def variant_publication_names(stem):
+    """Current products plus owned legacy paths accepted during migration."""
+    return tuple(f'vgm-variants/{profile}/{stem}.vgm'
+                 for profile in ('sfg01', 'makoto', 'sfg01_makoto', 'sfg01_msxaudio')) + (
+        f'vgm_variants/{stem}/makoto/{stem}.vgm',
+        f'vgm_variants/{stem}/sfg01/dac_makoto/{stem}.vgm',
+        f'vgm_variants/{stem}/sfg01/dac_y8950/{stem}.vgm',
+        f'vgm_variants/{stem}/layered/{stem}.vgm',
+        f'vgm_variants/{stem}/opm4mhz/{stem}.vgm')
+
+
 def publication_targets(files, source_root, output, psg_part):
     """Preflight all routes and owned publications before changing any artifact."""
     mode = Path() if psg_part == 'all' else Path('psg_' + psg_part)
@@ -313,7 +324,7 @@ def publication_targets(files, source_root, output, psg_part):
     routes, seen = [], set()
     for path in files:
         relative = path.relative_to(source_root)
-        if any(part.casefold() in ('_diagnostics', '_source_inputs', 'tracks', 'blueprint', 'psg_melody', 'psg_rhythm', '_huc6280_target', '_score_normalized', 'native_legacy')
+        if any(part.casefold() in ('_diagnostics', '_source_inputs', 'tracks', 'blueprint', 'psg_melody', 'psg_rhythm', '_huc6280_target', '_score_normalized', 'native_legacy', 'vgm_variants', 'vgm-variants')
                for part in relative.parts[:-1]):
             raise ValueError(f'Reserved output route in input: {relative}')
         package = output / mode / relative.parent
@@ -328,7 +339,8 @@ def publication_targets(files, source_root, output, psg_part):
         reference = final.with_suffix('.vgm')
         blueprint = package / 'blueprint' / (path.stem + '.mml')
         manifest = package / 'listening_manifest.json'
-        for candidate in (*targets, reference, blueprint, folder, staged, manifest, package / 'results.csv', package / 'results.json',
+        variants = tuple(package / name for name in variant_publication_names(path.stem))
+        for candidate in (*targets, *variants, reference, blueprint, folder, staged, manifest, package / 'results.csv', package / 'results.json',
                           diagnostics / 'results.csv', diagnostics / 'results.json', diagnostics / 'keyon_setup.log'):
             if not candidate.resolve().is_relative_to(output):
                 raise ValueError(f'Output route escapes output tree: {candidate}')
@@ -350,6 +362,15 @@ def publication_targets(files, source_root, output, psg_part):
         for name in owned:
             allowed_products = {target.relative_to(package).as_posix() for target in targets}
             allowed_products.add((package / 'tracks' / (path.stem + '.vgm')).relative_to(package).as_posix())
+            allowed_products.add((package / 'tracks' / (path.stem + '.target.vgm')).relative_to(package).as_posix())
+            allowed_products.add((package / 'tracks' / (path.stem + '.layer.target.vgm')).relative_to(package).as_posix())
+            for sd_name in (f'{path.stem}/makoto/{path.stem}.vgm',
+                            f'{path.stem}/sfg01/dac_makoto/{path.stem}.vgm',
+                            f'{path.stem}/sfg01/dac_y8950/{path.stem}.vgm',
+                            f'{path.stem}/layered/{path.stem}.vgm',
+                            f'{path.stem}/opm4mhz/{path.stem}.vgm'):
+                allowed_products.add(sd_name)
+            allowed_products.update(variant_publication_names(path.stem))
             allowed_products.add(blueprint.relative_to(package).as_posix())
             if name not in allowed_products and not (Path(name).parent.as_posix() == 'blueprint'
                     and blueprint_artifact_name(Path(name).name, path.stem)):
@@ -369,7 +390,8 @@ def publication_targets(files, source_root, output, psg_part):
     directories = set()
     for path, _, folder, targets, manifest in routes:
         package = manifest.parent
-        for item in (*targets, targets[0].with_suffix('.vgm'), package / 'blueprint' / (path.stem + '.mml'),
+        variants = tuple(package / name for name in variant_publication_names(path.stem))
+        for item in (*targets, *variants, targets[0].with_suffix('.vgm'), package / 'blueprint' / (path.stem + '.mml'),
                      package / 'blueprint' / (path.stem + '.midi'),package / '_source_inputs' / path.name, manifest,
                      package / 'results.csv', package / 'results.json',
                      diagnostics / 'results.csv', diagnostics / 'results.json', diagnostics / 'keyon_setup.log'):
@@ -433,10 +455,11 @@ def discover_inputs(source, adjacent=False):
         return [source] if is_input(source) else []
     if not adjacent:
         return sorted(p for p in source.rglob('*') if p.is_file()
-                      and '_huc6280_target' not in [part.casefold() for part in p.relative_to(source).parts[:-1]]
+                      and not {'_huc6280_target', 'vgm_variants', 'vgm-variants'}.intersection(
+                          part.casefold() for part in p.relative_to(source).parts[:-1])
                       and is_input(p))
     # Adjacent reruns must not convert their own roundtrip VGM or audition trees.
-    reserved = {'_diagnostics', '_source_inputs', 'tracks', 'blueprint', 'psg_melody', 'psg_rhythm', '_huc6280_target', '_score_normalized', 'native_legacy'}
+    reserved = {'_diagnostics', '_source_inputs', 'tracks', 'blueprint', 'psg_melody', 'psg_rhythm', '_huc6280_target', '_score_normalized', 'native_legacy', 'vgm_variants', 'vgm-variants'}
     files = []
     for parent, directories, names in os.walk(source):
         directories[:] = [name for name in directories if name.casefold() not in reserved]

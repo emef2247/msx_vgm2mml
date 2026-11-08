@@ -37,6 +37,7 @@ RECIPES = {
     'opm_noise': (('rate',31,0),('enabled',128,7)),
     'opm_modulation_depth': (('depth',127,0),('phase_modulation',128,7)),
     'opm_lfo_wave': (('waveform',3,0),('ct',192,6)),
+    'opn2_dac_enable': (('enabled',128,7),),
     'opna_key': (('channel_code',7,0),('key_mask',240,4)),
     'opna_operator_multiple': (('multiple',15,0),('detune',112,4)),
     'opna_operator_decay2': (('decay2',31,0),),
@@ -180,11 +181,16 @@ def decode_control(device, event, raw, *, order=None, latches=None):
             else:kind={1:'opm_test',0x0f:'opm_noise',0x10:'opm_timer_a_high',0x11:'opm_timer_a_low',
                 0x12:'opm_timer_b',0x14:'opm_timer_control',0x18:'opm_lfo_rate',
                 0x19:'opm_modulation_depth',0x1b:'opm_lfo_wave'}.get(register,'opm_shared_parameter')
-        elif chip=='opna':
-            from native_imports.opna import register_channel
-            port=int(command in (0x57,0xa7));channel=register_channel(register,data,port)
+        elif chip in ('opna','opn2'):
+            if chip=='opna':
+                from native_imports.opna import register_channel
+            else:
+                from native_imports.opn2 import register_channel
+            port=int(command in (0x57,0xa7,0x53,0xa3));channel=register_channel(register,data,port)
             section='fm' if channel is not None else 'shared'
-            if not port and register<=15:
+            if chip=='opn2' and register==0x2b and not port:kind='opn2_dac_enable'
+            elif chip=='opn2' and register<0x20:kind='opn2_native_parameter'
+            elif not port and register<=15:
                 section='ssg';channel=register//2 if register<=5 else register-8 if 8<=register<=10 else None
                 kind=('ssg_period_high' if register&1 else 'ssg_period_low') if register<=5 else {
                     6:'ssg_noise',7:'ssg_mixer',8:'ssg_amplitude',9:'ssg_amplitude',10:'ssg_amplitude',
@@ -254,6 +260,7 @@ def encode_control(control, device):
         return bytes((0x30 if device.instance else 0x50,value))
     register=p['register'];value=_value(control)
     if chip=='opm':return bytes((0xa4 if device.instance else 0x54,register,value))
+    if chip=='opn2':return bytes(((0xa2 if device.instance else 0x52)+p['port'],register,value))
     if chip=='opna':return bytes(((0xa6 if device.instance else 0x56)+p['port'],register,value))
     if chip=='opll':return bytes((0xa1 if device.instance else 0x51,register,value))
     if chip=='psg':return bytes((0xa0,register|(device.instance<<7),value))
