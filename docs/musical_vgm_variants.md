@@ -21,6 +21,9 @@ vgm-variants/makoto/<stem>.vgm
 vgm-variants/sfg01_makoto/<stem>.vgm
 vgm-variants/sfg01_msxaudio/<stem>.vgm
 vgm-variants/layered/<stem>.vgm
+vgm-variants/scc_sfg01/<stem>.vgm
+vgm-variants/scc_makoto/<stem>.vgm
+vgm-variants/scc_layered/<stem>.vgm
 _diagnostics/<stem>/vgm_variants/
 ```
 
@@ -37,6 +40,9 @@ reasons in `_diagnostics/<stem>/vgm_variants.json`.
 | sfg01_makoto | YM2151 FM, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
 | sfg01_msxaudio | YM2151 FM, Y8950 Delta-T, YM2413 and PSG |
 | layered | YM2151 and YM2608 FM in parallel, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
+| scc_sfg01 | Real SCC plus the sfg01 composition; SCC-derived FM at half amplitude |
+| scc_makoto | Real SCC plus the makoto composition; SCC-derived FM at half amplitude |
+| scc_layered | Real SCC plus both FM layers; each SCC-derived FM at half amplitude |
 
 ## Layered FM
 
@@ -52,6 +58,27 @@ PSG, OPLL, native rhythm, and PCM are projected once. PCM uses Makoto's existing
 no additional MSX-Audio bank or automatic FM gain reduction in this profile.
 Both FM layers retain the ordinary mapping levels, so listening balance may
 differ from a single-chip profile. Song timing and loop positions are shared.
+
+## Real SCC with FM companions
+
+SCC-bearing sources additionally publish `scc_sfg01`, `scc_makoto`, and
+`scc_layered`: real SCC plus respectively OPM, OPNA, or both FM approximations.
+The real SCC lane is reconstructed from the same NativePerformance pitch,
+volume and waveform curves, without reopening the source file. Its original
+clock/level are retained. Only SCC-derived FM companions have a fixed 0.5
+linear-amplitude gain; existing profiles and other source voices are unchanged.
+PSG, OPLL, noise and PCM are not duplicated. Makoto-containing compositions
+retain their existing single PCM bank and 256 KiB budget.
+
+The additional profiles require sounding SCC units on one primary cartridge.
+Ordinary SCC channel 4/5 wave sharing is checked; incompatible simultaneous
+waveforms are unavailable rather than silently overwritten. SCC+ independent
+wave banks retain the native chip-type flag. Extended test/phase controls,
+unknown waveforms or unrepresentable pitch also yield explicit unavailable
+reasons. This does not add HuC/APU/FDS-to-SCC mapping. Musical time is unchanged;
+the SCC loop boundary reasserts its enable mask and active voice state.
+Per-profile write CSVs and `plan.real_scc` make the additional lane inspectable.
+No detune is added and relative loudness still needs user listening checks.
 
 ## Representation boundary
 

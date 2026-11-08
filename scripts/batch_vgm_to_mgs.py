@@ -309,7 +309,7 @@ def package_manifest(package):
 def variant_publication_names(stem):
     """Current products plus owned legacy paths accepted during migration."""
     return tuple(f'vgm-variants/{profile}/{stem}.vgm'
-                 for profile in ('sfg01', 'makoto', 'sfg01_makoto', 'sfg01_msxaudio', 'layered')) + (
+                 for profile in ('sfg01', 'makoto', 'sfg01_makoto', 'sfg01_msxaudio', 'layered', 'scc_sfg01', 'scc_makoto', 'scc_layered')) + (
         f'vgm_variants/{stem}/makoto/{stem}.vgm',
         f'vgm_variants/{stem}/sfg01/dac_makoto/{stem}.vgm',
         f'vgm_variants/{stem}/sfg01/dac_y8950/{stem}.vgm',

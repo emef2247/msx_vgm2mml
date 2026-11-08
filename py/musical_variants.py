@@ -11,7 +11,8 @@ import struct
 
 from musical_wave_target import project_waves, project_psg_opll
 
-PROFILES = ('sfg01','makoto','sfg01_makoto','sfg01_msxaudio','layered')
+SCC_PROFILES = {'scc_sfg01':'sfg01', 'scc_makoto':'makoto', 'scc_layered':'layered'}
+PROFILES = ('sfg01','makoto','sfg01_makoto','sfg01_msxaudio','layered', *SCC_PROFILES)
 CLOCKS = {0x54:(0x30,3579545),0x56:(0x48,8000000),0x57:(0x48,8000000),
           0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545)}
 
@@ -40,8 +41,11 @@ def _write(performance, rows, prefix, path):
         advance(row['sample'])
         row['write_id']=index;row['target_address']=256+len(body)
         command=row['command']
-        if command[0] not in CLOCKS:raise ValueError('Unmapped source chip escaped into cartridge output')
-        offset,clock=CLOCKS[command[0]];struct.pack_into('<I',header,offset,clock)
+        if command[0]==0xd2:
+            offset,clock=0x9c,row['scc_clock_raw']
+        elif command[0] in CLOCKS:offset,clock=CLOCKS[command[0]]
+        else:raise ValueError('Unmapped source chip escaped into cartridge output')
+        struct.pack_into('<I',header,offset,clock)
         reg=command[1]
         state_only=(command[0]==0x54 and 0x20<=reg<=0xff or command[0] in (0x56,0x57) and (0x30<=reg<0x90 or 0xb0<=reg<=0xb6))
         key=(command[0],reg)
@@ -86,6 +90,8 @@ def _project_fm_layer(performance, chip, clock, *, force):
 def project_variant(performance, profile, *, force=False, dcsg_gain=.5, opna_law=False):
     from musical_pcm_target import project_pcm
     if profile not in PROFILES:raise ValueError('Unknown cartridge profile')
+    real_scc=profile in SCC_PROFILES
+    profile=SCC_PROFILES.get(profile,profile)
     if not 0<dcsg_gain<=1:raise ValueError('DCSG gain must be >0 and <=1')
     chip='opna' if profile=='makoto' else 'opm'
     clock=8000000 if chip=='opna' else 3579545
@@ -101,8 +107,19 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.5, opna_law
     targets=[(chip,clock)]
     if profile=='layered':targets.append(('opna',8000000))
     fm_layers={}
+    fm_performance=performance
+    scc_plan=None
+    if real_scc:
+        from dataclasses import replace
+        from musical_scc_target import project_scc
+        scc_rows,scc_losses,scc_plan=project_scc(performance)
+        rows.extend(scc_rows);losses.update(scc_losses)
+        scc_devices={d.device_id for d in performance.devices if d.chip=='scc'}
+        fm_performance=replace(performance,units=tuple(replace(u,
+            volume_curve=tuple((at,level*.5) for at,level in u.volume_curve))
+            if u.device_id in scc_devices else u for u in performance.units))
     for target_chip,target_clock in targets:
-        fm,fm_losses,layer_plan=_project_fm_layer(performance,target_chip,target_clock,force=force)
+        fm,fm_losses,layer_plan=_project_fm_layer(fm_performance,target_chip,target_clock,force=force)
         rows.extend(fm);losses.update(fm_losses)
         fm_layers[target_chip]=layer_plan
     aux,aux_losses=project_psg_opll(performance,dcsg_gain=dcsg_gain,
@@ -168,6 +185,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.5, opna_law
     plan=dict(fm_allocation=fm_layers[chip]['fm_allocation'],
         waveform_allocation=fm_layers[chip]['waveform_allocation'],pcm=pcm_stats)
     if profile=='layered':plan['fm_layers']=fm_layers
+    if real_scc:plan['real_scc']=scc_plan
     return rows,prefix,dict(losses),plan
 
 

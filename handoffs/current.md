@@ -1,3 +1,30 @@
+# Real SCC plus FM companions (2026-11-08)
+
+Added scc_sfg01 / scc_makoto / scc_layered to --vgm-variants. Existing five
+profiles and production MML defaults are unchanged. NativePerformance curves
+feed both a real SCC projector and OPM/OPNA approximation; no source reopening.
+Real SCC preserves native clock/level, FM companions derived from SCC use 0.5
+linear gain. PSG/OPLL/noise/PCM remain single projections, existing PCM policy.
+No HuC/APU/FDS-to-SCC projection added by this scoped request.
+
+One primary SCC cartridge only; SCC+ flag/independent banks are retained.
+Ordinary SCC4/5 shared-wave incompatibility and extended test/phase controls
+have explicit unavailable reasons. Gate/curve state and loop-boundary mask
+restoration are emitted on original integer samples. Source evidence untouched.
+Profile inventories in projection, export and batch collision checks include
+all eight; ownership, cleanup and rollback remain enforced. README untouched.
+
+55 related authored/public tests passed, no failures/errors/skips. One initial
+failure was an accidentally expanded OPN2 success expectation; corrected it
+rather than making SCC-free inputs publish SCC variants. Authored source VGM
+was ingested and published through the actual variants pass. Inspected native
+and target artifacts under outputs/diagnostics/scc_layered_20261108/ (ignored).
+No local_only regression, listening or hardware accuracy claim. Owner retains
+these checks; listen for gain balance and inherited FM spectral approximation.
+User's untracked docs/project_knowledge_legacy_2026_11-08.md is untouched.
+
+---
+
 # Checkpoint: calibration guide, variant visibility, layered FM (2026-11-08)
 
 Branch: codex/layered-vgm-calibration-guide, from main a45e497; use G: only.
