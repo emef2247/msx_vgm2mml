@@ -1,3 +1,18 @@
+# MSM6258 musical cartridge variants checkpoint (2026-11-09)
+
+Target stage committed as e4d6cfa on codex/layered-vgm-calibration-guide.
+Decoded MSM6258 -> Makoto/MSX-Audio ADPCM-B uses one 256 KiB budget, exact
+payload sharing and force-only existing representative reuse. No PDX slot cap.
+Pan/mute and original scheduled times remain per playback. Candidate padding,
+loop splits and sample origin are preserved; replacement rate saturation and
+endpoint errors are explicit diagnostics. Native evidence is never budgeted.
+
+63 related authored/public checks passed; two further scoped capacity/rate
+boundaries pass (8 MSM target tests total). Source decoding connection is being
+finished separately. Native source ambiguity must not silently become FM-only
+success. User owns local_only regression and listening; no private data run.
+README/user's untracked legacy knowledge doc untouched. Owner handles push.
+
 # Real SCC plus FM companions (2026-11-08)
 
 Added scc_sfg01 / scc_makoto / scc_layered to --vgm-variants. Existing five

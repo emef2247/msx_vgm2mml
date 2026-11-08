@@ -71,6 +71,32 @@ class MusicalMsm6258TargetTests(unittest.TestCase):
         _,_,losses,_=project_variant(p,'makoto',force=True)
         self.assertEqual(losses['msm6258_pcm_unavailable_source_assets_omitted'],1)
 
+    def test_replacement_rate_limit_is_explicit(self):
+        p=performance((0,));a=p.pcm_assets[0]
+        long=replace(a,asset_id='long',start_sample=200,end_sample=11750,
+            samples=tuple(round(10000*math.sin(j*math.tau/64)) for j in range(4096)))
+        p=replace(p,pcm_assets=(a,long),end_sample=11750)
+        def choose_long(candidates,usage,budget):
+            return {0:1,1:1},[1],{'forced_for_test':True}
+        with patch('opn2_target_vgm.ADPCM_B_DRAM_BUDGET',2048),patch('pcm_target_budget.fit_bank',side_effect=choose_long):
+            _,_,losses,stats=project_pcm(p,'opna',force=True)
+        self.assertEqual(losses['msm6258_replacement_rate_clamped_playbacks'],1)
+        self.assertGreater(stats['runs'][0]['required_delta_n'],65535)
+        self.assertEqual(stats['runs'][0]['delta_n'],65535)
+        self.assertGreater(stats['runs'][0]['valid_end_error_samples'],0)
+
+    def test_long_asset_splits_after_padding_within_budget(self):
+        p=performance((0,));a=replace(p.pcm_assets[0],end_sample=1000,
+            samples=tuple(round(12000*math.sin(j*math.tau/64)) for j in range(355)))
+        p=replace(p,pcm_assets=(a,),end_sample=1000)
+        with patch('opn2_target_vgm.ADPCM_B_DRAM_BUDGET',64):
+            _,_,_,stats=project_pcm(p,'opna',force=True)
+        self.assertLessEqual(stats['ram_used_bytes'],64)
+        self.assertGreater(stats['playbacks'],1)
+        self.assertEqual(stats['runs'][0]['start_sample'],0)
+        self.assertEqual(stats['runs'][-1]['end_sample'],1000)
+        self.assertTrue(all(r['bytes']%32==0 and r['bytes']<=64 for r in stats['runs']))
+
     def test_pcm_profiles_and_source_coverage(self):
         with tempfile.TemporaryDirectory() as tmp:
             results=export_variants(performance((0,)),tmp,'authored',force=True)
