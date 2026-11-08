@@ -1,250 +1,294 @@
-# VGM → MGSDRV MML / MS2
+# VGM → Musical Representation / MSX Targets
 
 ## Project Knowledge & Design Principles
 
-Score normalization uses original integer VGM sample spans through musical
-interpretation, then derives note values at an explicit reference tempo.
-Do not use a reference VGM's already warped gates to recover original note
-durations. Keep musical score steps separate from driver-frame software
-envelope holds. Exact notation shortening must preserve real attacks and
-compiler default-length scope; whitespace is not an MGSC tie operator.
-See [sample-based score timing](score_normalization.md).
+This document records stable technical principles and durable domain knowledge for `emef2247/msx_vgm2mml`.
 
-This document records **stable project principles and durable domain
-knowledge** for `emef2247/msx_vgm2mml`.
+It defines what information must be preserved, how source behavior should be interpreted, and where target-specific transformations belong.
 
-Keep this file small enough to read before changing conversion behavior.
-Implementation history, measurements, fixture-specific results, rejected
-experiments, and dated observations belong in `field_notes/` or focused
-documents under `docs/`.
+It complements:
 
-Not every statement is a formal specification. Distinguish:
+- `AGENTS.md`: repository operating rules and development workflow.
+- `docs/collaboration_principles.md`: collaboration and decision-making principles.
+- Focused `docs/*.md`: subsystem designs, implementation details, and target-specific behavior.
+- External private `field_notes/`: experiments, measurements, rejected approaches, regressions, and provisional findings.
 
--   confirmed facts / specifications
--   implementation decisions
--   measurements
--   hypotheses
--   unresolved questions
+Keep this document focused on principles that should remain valid across implementations and targets.
 
-Do not silently promote a hypothesis, test expectation, or
-fixture-specific observation into a project invariant.
+Not every statement is a formal specification. Distinguish confirmed facts, implementation decisions, measurements, hypotheses, and unresolved questions.
 
-------------------------------------------------------------------------
+Do not silently promote a hypothesis, fixture-specific observation, or test expectation into a project invariant.
+
+---
 
 # 1. Project Goal
 
-The project converts MSX-related VGM sound-chip data into human-readable
-and editable musical representations, primarily MGSDRV MML and
-MS2/MAmidiMemo compatible data. It also contains native analysis/target
-paths for additional chips such as OPM/YM2151.
+The project interprets VGM sound-chip performances and produces inspectable, editable musical representations and target-specific outputs.
 
-The goal is **not merely to produce output that sounds similar or passes
-a regression test**. The project aims to preserve observable source-chip
-behavior and make important transformations inspectable.
+The primary MSX output is MGSDRV MML/MGS. Other paths include score Blueprints, MIDI, reference VGM, and VGM variants for different MSX sound hardware configurations.
+
+Additional source chips and target systems may be supported through native analysis and target projection.
+
+The goal is not merely to generate a valid file, produce similar sound, reduce output size, or pass regression tests.
+
+The project aims to:
+
+1. Preserve observable source-chip behavior.
+2. Derive meaningful musical information from that evidence.
+3. Keep important interpretations and transformations inspectable.
+4. Support independent target projections without unnecessarily constraining shared information.
+5. Make approximation, uncertainty, and information loss explicit.
 
 Conceptually:
 
-``` text
+```text
 VGM
- ↓
-Raw Register Writes
- ↓
-Reconstructed Chip State / Events
- ↓
+  |
+  v
+Raw Register Writes / Source Timing
+  |
+  v
+Chip-Specific State / Native Events
+  |
+  v
 Inspectable Analysis Passes
- ↓
-Musical Segments
- ↓
-Target Projection
- ↓
-MGSDRV MML / MS2 / MDX / other targets
+  |
+  v
+Segments / Native Musical Interpretation
+  |
+  v
+Shared Musical Representation
+  |
+  +--> MGSDRV MML / MGS
+  |
+  +--> Score Blueprint / MIDI
+  |
+  +--> Reference / Target VGM
+  |
+  +--> Future Target Projections
 ```
 
-The implementation does not have to mirror this diagram one-to-one. Do
-not refactor merely to make module boundaries match it.
+This diagram describes conceptual responsibilities, not a mandatory one-to-one module layout.
 
-------------------------------------------------------------------------
+Do not refactor merely to make module boundaries match the diagram.
 
-# 2. Primary Rule: Intermediate Results Are First-Class Artifacts
+A valid source performance must not become invalid merely because one target projection fails.
 
-An editable score blueprint is a separate target projection of retained musical
-source evidence. It deliberately omits executable dynamics and synthesis while
-keeping those original curves and controls in the shared representation. Keep
-source gates, continuation decisions, lane mappings and projection losses
-inspectable. A source score guide may propose target loops, but cannot replace
-native pitch or impose new envelope restarts. Preserve user-edited templates
-without preventing other outputs. See `docs/musical_blueprint.md`.
+---
 
-Blueprint text and MIDI are encodings of the same projected score spans.
-Derive both before notation/macro compaction rather than reparsing final text
-or rerunning source interpretation. Keep original-device identity and explicit
-target pitch/time losses in the score sidecar. MIDI audition defaults must not
-restore source synthesis or overwrite source dynamics.
+# 2. Intermediate Results Are First-Class Artifacts
 
-Generating inspectable intermediate results is a primary project
-requirement, not merely a debugging aid.
+Inspectable intermediate results are a primary project requirement, not merely a debugging convenience.
 
 A human should be able to determine, where relevant:
 
--   which source register event caused a musical event;
--   what chip state existed at that point;
--   where Key-On/Key-Off or trigger edges occurred;
--   which source pitch/volume/instrument/waveform values were present;
--   when an event became an interpreted Segment;
--   which information was changed or discarded by target projection.
+- Which source register event caused a musical event.
+- What chip state existed at that point.
+- Where Key-On, Key-Off, trigger, and control edges occurred.
+- Which source pitch, volume, instrument, waveform, and rhythm values were present.
+- When source evidence became an interpreted Segment or musical unit.
+- Which information was changed, approximated, or discarded by a target projection.
 
-CSV or equivalent pass output should favor human traceability over
-compactness. Redundancy is acceptable when it makes an analyzed event
-self-contained.
+CSV or equivalent pass output should favor human traceability over compactness.
 
-> Redundancy that improves traceability is acceptable.\
-> Loss of source information for structural elegance is not.
+Redundancy is acceptable when it makes an analyzed event self-contained.
 
-Do not remove, merge, split, normalize, or reshape an intermediate
-representation merely because doing so makes final output cleaner or
-makes a regression test pass.
+**Redundancy that improves traceability is acceptable. Loss of source information for structural elegance is not.**
 
-**Tests are evidence, not the objective.** If a test conflicts with the
-information-preservation model, first determine whether the
-implementation, the test expectation, or the target projection is wrong.
+Do not remove, merge, split, normalize, or reshape an intermediate representation merely because doing so makes final output cleaner or makes a regression test pass.
 
-When an intermediate schema must change, explain the semantic reason and
-what information is added, removed, or reinterpreted.
+Tests are evidence, not the objective.
 
-------------------------------------------------------------------------
+If a test conflicts with the information-preservation model, determine whether the implementation, test expectation, musical interpretation, or target projection is incorrect.
+
+When an intermediate schema must change, explain the semantic reason and identify what information is added, removed, or reinterpreted.
+
+---
 
 # 3. Transformation Boundaries
 
-Keep these responsibilities conceptually separate.
+Keep the following responsibilities conceptually separate.
 
 ## 3.1 Raw Register Writes
 
-Preserve what was written to the source chip, when it was written, and
-ordering between writes. Avoid musical interpretation here.
+Preserve what was written to the source chip, when it was written, and the ordering between writes.
 
-## 3.2 Chip-Specific State / Events
+Avoid musical interpretation at this stage.
 
-Reconstruct the meaning of register writes using the native semantics of
-the source chip.
+Repeated writes and writes that appear musically redundant may still be significant.
 
-Examples:
+## 3.2 Chip-Specific State and Native Events
 
--   OPLL: FNUM, BLOCK, instrument, volume, Key state
--   PSG/SSG: tone period, mixer, noise, fixed/hardware envelope state
--   SCC: frequency, volume, waveform state
--   rhythm modes: trigger and per-instrument state
--   OPM: KC/KF, operator parameters, partial Key state and shared
-    controls
+Reconstruct the effective meaning of register writes using the native semantics of the source chip.
 
-Do not force different chips into a lowest-common-denominator state
-schema.
+Examples include:
+
+- OPLL: FNUM, BLOCK, instrument, volume, Key state.
+- PSG/SSG: tone period, mixer, noise, fixed volume, hardware envelope.
+- SCC: frequency, volume, waveform state.
+- Rhythm sources: trigger and per-instrument state.
+- OPM: KC/KF, operator parameters, partial Key state, shared controls.
+
+Do not force different chips into a lowest-common-denominator state schema.
+
+Unknown or unwritten source state must remain unknown unless an explicit, documented reset assumption applies.
 
 ## 3.3 Inspectable Analysis Passes
 
-Analysis may progressively derive higher-level information. Later passes
-may repeat earlier fields when this improves human inspection.
+Analysis may progressively derive higher-level information.
+
+Later passes may repeat earlier fields when this improves human inspection.
 
 A pass is not disposable debug text.
 
-## 3.4 Musical Segments
+Preserve source identifiers, timestamps, channel relationships, and other information needed to trace derived events back toward their source.
 
-Segments represent interpreted musical objects or sounding intervals.
-This is where concepts such as start/end, duration, retrigger,
-continuity, note identity, waveform identity, or rhythm identity may be
-derived.
+## 3.4 Segments and Native Musical Interpretation
+
+Segments represent interpreted musical objects, sounding intervals, or other meaningful units.
+
+This is where concepts such as start/end, duration, retrigger, continuity, note identity, waveform identity, and rhythm identity may be derived.
 
 A Segment is not a raw register event.
 
-Do not invent information at the event/state stage that can only be
-inferred during Segment construction.
+Do not invent information at the event/state stage that can only be inferred during Segment construction.
 
-Do not split or merge Segments solely to accommodate target notation,
-compression, buffer limits, or a regression oracle. Such operations
-belong to a later representation unless they reflect a justified change
-in musical interpretation.
+Do not split or merge source Segments solely to accommodate target notation, compression, buffer limits, or regression expectations.
 
-## 3.5 Target Projection
+Such operations belong to a later representation unless they reflect a justified change in musical interpretation.
 
-The target stage decides how interpreted information can be represented
-in MGSDRV MML, MS2/MAmidiMemo, MDX MML, or future formats.
+## 3.5 Shared Musical Representation
 
-Target limitations and conveniences must not rewrite source history.
+The shared musical representation, currently represented by `NativePerformance` and related structures, retains interpreted musical information independently of a particular output driver or encoding.
 
-Information loss should occur as late as practical and should remain
-inspectable.
+`NativePerformance` is an implementation-level representation of this architectural concept, not a requirement that every future target or subsystem use an identical data structure.
 
-------------------------------------------------------------------------
+It may include:
+
+- Musical units and sounding spans.
+- Pitch, volume, timbre, and other control curves.
+- Attack, gate, retrigger, and continuation information.
+- Rhythm and waveform identities.
+- Native source provenance.
+- Relationships between original evidence and interpreted information.
+
+The representation must not be reduced to the capabilities of MGSDRV, a particular sound cartridge, or another current target.
+
+The shared representation may retain information that some targets cannot express.
+
+A target failure must not rewrite or invalidate that retained information.
+
+## 3.6 Target Projection and Encoding
+
+Target projection determines how retained musical information can be represented by a particular sound chip, driver, or output format.
+
+Target-specific decisions may include:
+
+- Pitch and timing quantization.
+- Instrument and channel allocation.
+- Waveform or FM approximation.
+- Envelope and rhythm commands.
+- PCM encoding and memory allocation.
+- Loops, macros, and notation compression.
+- Target-specific resource limitations.
+
+Information loss should occur as late as practical.
+
+Preserve the original information in an earlier inspectable representation and report meaningful target losses explicitly.
+
+Do not rewrite source history to make an unsupported target operation appear valid.
+
+---
 
 # 4. VGM Is a Register Event Stream, Not a Score
 
-A VGM contains register writes and timing information, not conventional
-musical notation.
+VGM contains register writes and timing information, not conventional musical notation.
 
-Potentially meaningful information includes:
+Potentially meaningful source information includes:
 
--   Key-On / Key-Off timing
--   F-number, BLOCK or tone-period changes
--   instrument and volume changes
--   mixer, noise and envelope state
--   SCC waveform changes
--   retrigger behavior
--   pitch changes and portamento-like behavior
--   register-write ordering
--   repeated writes that appear musically redundant
+- Key-On and Key-Off timing.
+- F-number, BLOCK, or tone-period changes.
+- Instrument and volume changes.
+- Mixer, noise, and envelope state.
+- Programmable waveform changes.
+- Retrigger and continuation behavior.
+- Pitch changes and portamento-like behavior.
+- Register-write ordering.
+- Repeated writes that appear musically redundant.
 
-Do not aggressively merge or normalize events merely because they
-eventually produce the same note.
+Do not aggressively merge or normalize events merely because they eventually produce the same note.
 
-A sparse-looking event stream may be correct. Preserve event sparsity
-unless there is evidence that it is an artifact.
+A sparse-looking event stream may be correct.
 
-------------------------------------------------------------------------
+Preserve event sparsity unless there is evidence that it is an artifact.
+
+A musical score is an interpretation of source evidence, not a replacement for it.
+
+---
 
 # 5. Preserve Evidence and Derived Meaning Separately
 
-Whenever practical, preserve both:
+Whenever practical, retain both:
 
-1.  the source-chip representation; and
-2.  the physical or musical quantity derived from it.
+1. The original source-chip representation.
+2. The physical or musical quantity derived from it.
 
-For example, Yamaha FM pitch analysis may retain:
+For Yamaha FM pitch analysis, this may include:
 
-``` text
+```text
 fnum
 block
 frequency_hz
 ```
 
-For PSG, retain source tone period when deriving frequency. For SCC,
-retain waveform data or a stable waveform identity. Derived values must
-not silently replace source evidence.
+For PSG, retain the source tone period when deriving frequency.
 
-Unknown or unwritten source state must remain unknown unless an
-explicit, documented reset assumption applies. Do not fill absent fields
-with invented values.
+For SCC, retain waveform data or a stable waveform identity.
 
-------------------------------------------------------------------------
+For OPM, retain native KC/KF and operator state rather than inventing OPLL-style parameters.
+
+Derived values must not silently replace source evidence.
+
+Keep observed source values, inferred musical meaning, and target-projected values distinguishable.
+
+Typed source register evidence must not silently override edited musical records during target projection.
+
+The source evidence remains authoritative for what was observed; the musical representation owns intentional musical interpretation and edits.
+
+---
 
 # 6. Timing Is Source Evidence
 
-VGM waits are source timing evidence. Preserve native timing before
-target quantization.
+VGM waits are source timing evidence.
 
-The shared VGM source clock accumulates wait samples as integer samples
-at 44100 Hz. Chips share the same stream origin; do not rebase each chip
-at its first write.
+The shared VGM source clock accumulates wait samples as integer samples at 44100 Hz.
 
-Same-sample writes remain ordered. A physical sub-tick interval must not
-disappear merely because a later 60 Hz or musical-grid projection rounds
-it to zero.
+Chips share the same stream origin. Do not rebase each chip at its first write.
 
-A source timestamp, target tick, musical step, and playback-driver frame
-are different concepts. Do not silently substitute one for another.
+Same-sample writes remain ordered.
 
-See `docs/vgm_timing.md` for implementation details and measured
-limitations.
+A physical sub-tick interval must not disappear merely because a later 60 Hz or musical-grid projection rounds it to zero.
 
-------------------------------------------------------------------------
+Distinguish:
+
+- Source sample timestamps.
+- Physical or reconstructed event timing.
+- Musical score steps.
+- Target ticks.
+- Playback-driver frames.
+- Software-envelope hold durations.
+
+These are different concepts and must not be silently substituted for one another.
+
+Source timing must be retained before target quantization.
+
+Tempo and grid inference are interpretations, not source facts.
+
+Preserve inferred parameters and their supporting evidence.
+
+See `docs/vgm_timing.md` and `docs/score_normalization.md` for implementation details and measured limitations.
+
+---
 
 # 7. Key Edges, Retrigger, Continuity, and Zero-Length Events
 
@@ -252,91 +296,124 @@ Retrigger and continuation are distinct.
 
 Retain enough evidence to determine whether:
 
--   a note was newly triggered;
--   an existing sounding state continued;
--   pitch/state changed while the key remained active;
--   a new Segment is justified.
+- A note was newly triggered.
+- An existing sounding state continued.
+- Pitch or other state changed while the key remained active.
+- A new Segment or musical unit is justified.
 
 Do not equate zero target duration with an irrelevant source event.
-Same-tick or zero-length events may contain real Key or rhythm edges.
 
-For OPLL, distinguish an inferred musical `onset` from a real source
-`key_on_edge`. Volume recovery or another inferred onset is not
-permission to restart a hardware envelope.
+Same-tick or zero-length events may contain real Key, rhythm, or control edges.
 
-Do not merge a real same-pitch Key-Off/Key-On sequence merely because
-the resulting pitch is unchanged.
+For OPLL, distinguish an inferred musical `onset` from a real source `key_on_edge`.
 
-How a target represents an unrepresentable sub-tick event is a
-target-stage decision; the source evidence must remain available.
+Volume recovery or another inferred onset is not permission to restart a hardware envelope.
 
-------------------------------------------------------------------------
+Do not merge a real same-pitch Key-Off/Key-On sequence merely because the resulting pitch is unchanged.
+
+Preserve ordered zero-duration controls.
+
+An instantaneous transition group must include its settling state. Replaying only a zero-duration Key-On can invent a sustained note.
+
+How a target represents an unrepresentable sub-tick event is a target-stage decision.
+
+The original source evidence must remain available.
+
+---
 
 # 8. Chip-Specific Durable Semantics
 
 ## 8.1 OPLL / YM2413
 
-Pitch uses FNUM and BLOCK; preserve both when available.
+Pitch uses FNUM and BLOCK. Preserve both when available.
 
 OPLL volume direction is inverted relative to conventional loudness:
 
-``` text
+```text
 VOL = 0   -> loudest
 VOL = 15  -> quietest / near silence
 ```
 
 Register writes need not arrive in convenient note-oriented order.
-Reconstruct effective state without assuming all parameters precede
-Key-On.
 
-User-defined patch registers are meaningful source data. Do not silently
-replace them with perceptually similar presets.
+Reconstruct effective state without assuming all parameters precede Key-On.
 
-OPLL rhythm trigger edges and channel 6--8 pitch state should be
-preserved before target projection.
+User-defined patch registers are meaningful source data.
 
-The final MGSDRV layout may differ between melodic mode and rhythm mode,
-but layout selection is a target concern and must not delete source
-Segments.
+Do not silently replace them with perceptually similar presets.
+
+Preserve rhythm trigger edges and channel 6–8 pitch state before target projection.
+
+The final MGSDRV layout may differ between melodic mode and rhythm mode, but layout selection must not delete source Segments.
 
 ## 8.2 PSG / SSG
 
-PSG state is not "OPLL with different parameters." Preserve tone period,
-tone/noise enable state, noise period, mixer state, fixed volume, and
-hardware envelope state as required for interpretation.
+PSG state is not OPLL with different parameters.
 
-Noise and hardware envelope behavior are musical source data. If the
-target needs IDs, macros, or reconstructed commands, retain decoded
-source state in an earlier pass.
+Preserve, where relevant:
+
+- Tone period.
+- Tone/noise enable state.
+- Noise period.
+- Mixer state.
+- Fixed volume.
+- Hardware-envelope state.
+- Envelope restart behavior.
+
+Noise and hardware-envelope behavior are musical source data.
+
+If the target requires IDs, macros, or reconstructed commands, retain decoded source state in an earlier pass.
+
+Do not confuse a target note boundary with an observed source envelope restart.
 
 ## 8.3 SCC
 
 Programmable waveform data is first-class source information.
 
-Preserve waveform bytes or a stable identity, timing of waveform
-changes, channel use, pitch, and volume where relevant. Exact equality
-may be used for stable deduplication; stronger normalization requires
-explicit justification.
+Preserve waveform bytes or a stable identity, waveform-change timing, channel use, pitch, and volume where relevant.
+
+Exact equality may be used for stable deduplication.
+
+Stronger normalization requires explicit justification.
+
+Do not discard waveform identity merely because a target represents the sound through FM or another synthesis method.
 
 ## 8.4 OPM / YM2151
 
-Native OPM analysis must preserve OPM semantics rather than invent
-OPLL-like FNUM/BLOCK or preset voices.
+Native OPM analysis must preserve OPM semantics rather than invent OPLL-like FNUM/BLOCK or preset voices.
 
-Preserve four operator identities, KC/KF, partial Key edges,
-channel/shared controls, same-time transitions, and unknown state where
-appropriate. Parameter changes must not create artificial Key-Ons.
+Preserve:
 
-Detailed OPM state/target behavior belongs in `docs/opm_segments.md` and
-`docs/opm_mdx.md`.
+- Four operator identities.
+- KC/KF.
+- Partial Key edges.
+- Channel and shared controls.
+- Same-time transitions.
+- Unknown state where appropriate.
 
-------------------------------------------------------------------------
+Parameter changes must not create artificial Key-Ons.
+
+Detailed OPM state and target behavior belong in `docs/opm_segments.md` and `docs/opm_mdx.md`.
+
+## 8.5 Additional Native Sources
+
+Additional supported chips must retain their native semantics before musical projection.
+
+Examples include OPN-family FM, DCSG, HuC6280, NES APU/FDS, and native PCM sources.
+
+Do not reinterpret a source as another chip merely because the target uses that chip.
+
+Cross-chip projection may create a useful target representation, but the projected chip state is not the original source evidence.
+
+Keep source identities and source-to-target relationships inspectable.
+
+---
 
 # 9. Rhythm Semantic Layer
 
 Where a common musical rhythm vocabulary is useful, use:
 
-``` text
+```text
 BD
 SD
 TOM
@@ -346,399 +423,569 @@ RIM
 ```
 
 This vocabulary describes musical meaning, not source implementation.
-Source-specific terminology may still be retained in diagnostic/source
-fields.
 
-Rhythm event/state representations should preserve source trigger state,
-timestamp, volume, source pitch fields and pan where applicable. Segment
-construction may derive sounding intervals later.
+Source-specific terminology should remain available in source or diagnostic fields.
+
+Rhythm event/state representations should preserve, where applicable:
+
+- Trigger state.
+- Timestamp.
+- Volume.
+- Source pitch fields.
+- Pan.
+- Source instrument identity.
+
+Segment construction may derive sounding intervals later.
 
 Do not infer duration earlier than the available evidence justifies.
 
-------------------------------------------------------------------------
+A target's rhythm-channel layout must not redefine the source rhythm event.
 
-# 10. Source Structure, Patterns, Envelopes, and Compression
+---
 
-Pattern detection and compression must operate without destroying the
-information-preservation pipeline.
+# 10. Musical Structure and Score Interpretation
 
-A repeated candidate is evidence of structural similarity, not automatic
-permission to rewrite source Segments.
+Musical structure is an interpretation derived from source evidence.
 
-Prefer reversible structural plans and retain mappings from patterns,
-occurrences, envelopes, or macros back to the original Segments/events.
+Distinguish:
 
-Target loops/macros may be selected only when their expansion preserves
-the required target command semantics.
+- Source sounding spans.
+- Observed attacks and Key edges.
+- Inferred score-note boundaries.
+- Pitch and duration patterns.
+- Control curves and envelope behavior.
+- Target notation boundaries.
 
-Do not introduce new note boundaries, attacks, state resets, or
-quantization merely to improve compression.
+A source-audibility span does not by itself prove an observed Key-On or score attack.
 
-Sounding spans, inferred score-note partitions, and their internal pitch,
-volume and timbre controls are distinct interpretations. A source-audibility
-span does not by itself prove an observed Key-On or a score attack. Keep the
-boundary evidence and uncertainty explicit, and keep target envelope bindings
-outside immutable note identity. Preserve ordered zero-duration controls and
-unknown original sample timing rather than substituting target ticks.
+A held sounding unit may contain an inferred repeated pitch phrase without a corresponding source gate restart.
 
-For software-envelope extraction, do not invent unobserved tails. Source
-volume trajectories and attack/restart semantics remain authoritative.
+Keep the boundary evidence and uncertainty explicit.
 
-Target output size and MGSDRV buffer limits are real constraints, but
-solving them belongs at or near target projection. Shorter MML is not
-evidence of a better conversion.
+Source gate identity must remain distinct from boundaries introduced by target ties, rests, or notation.
 
-See `docs/melody_patterns.md` and focused field notes for current
-algorithms and experimental results.
+Target envelope bindings should not become part of immutable note identity.
 
-------------------------------------------------------------------------
+The musical representation should permit alternative interpretations without destroying original evidence.
 
-# 11. Source Loops and Target Loops
+---
 
-Declared VGM loops are source structure and must be preserved without
-inventing a Key-On at the loop boundary.
+# 11. Patterns, Envelopes, and Compression
 
-Structural loop candidates should remain reversible until target
-selection. Overlapping or nested alternatives may be useful to later
-macro selection.
+Pattern detection and compression must not destroy the information-preservation pipeline.
 
-Compiler acceptance, MML character count, compiled size, and
-musical/source equivalence are separate validation dimensions. Success
-in one does not prove the others.
+A repeated candidate is evidence of structural similarity, not automatic permission to rewrite source Segments.
 
-See `docs/vgm_loop.md` for VGM loop details.
+Prefer reversible structural plans.
 
-------------------------------------------------------------------------
+Retain mappings from patterns, occurrences, envelopes, and macros back to the original musical units or source events.
 
-# 12. Register-Oriented vs Grid/Normalized Projection
+Target loops and macros may be selected only when their expansion preserves the required target command semantics.
+
+Do not introduce new note boundaries, attacks, state resets, or quantization merely to improve compression.
+
+## 11.1 Score Patterns
+
+Score repeat candidates should be chip-independent.
+
+When identifying score-level repetition, distinguish musical identity from documentary source details.
+
+Pitch, duration, rests, and attack/continuation relationships may define score similarity without requiring identical source timbre IDs or volume slices.
+
+However, score-level similarity does not establish equivalence of executable source controls.
+
+When score keys omit dynamics or timbre, retain the complete set of source control variants associated with each structural position.
+
+The first occurrence of a motif is not sufficient evidence for choosing a reusable target envelope.
+
+## 11.2 Software Envelopes
+
+Source volume trajectories and attack/restart semantics remain authoritative.
+
+Do not invent unobserved envelope tails.
+
+A repeated envelope-control fragment is not necessarily an independent musical phrase.
+
+Prefer complete sounding gestures and phrases over arbitrary internal holds.
+
+Exact adjacent repetitions may be folded when the operation preserves relative-state accumulation and command semantics.
+
+Target macro slots and envelope-bank capacity must not constrain the shared musical representation.
+
+## 11.3 Hardware Envelopes
+
+A running hardware envelope is not automatically a barrier to score-level repetition.
+
+Do not compare simulated oscillator or envelope phase as score identity.
+
+Do not add hardware resets merely to make a loop entry or repeated phrase appear equivalent.
+
+Preserve original target operations in every emitted iteration unless a separately validated approximation is selected.
+
+For MGSDRV PSG hardware-envelope pitch partitions, adjacent untied notes are significant.
+
+Do not replace these partitions with `&` ties merely to shorten notation.
+
+A tie merges the partitions into a sustained note and prevents the intended envelope restart at each partition.
+
+Gapless adjacent untied notes preserve the distinct attacks.
+
+Loop or macro compression may group these notes but must not merge their attack semantics.
+
+## 11.4 Target Compression
+
+Target output size and MGSDRV buffer limits are real constraints.
+
+Solving them belongs at or near target projection.
+
+Shorter MML is not evidence of a better conversion.
+
+Compiler acceptance, MML character count, compiled size, musical correctness, and source behavioral equivalence are separate validation dimensions.
+
+Exact notation shortening must preserve real attacks, compiler default-length scope, and target command semantics.
+
+Whitespace is not an MGSC tie operator.
+
+Moving a compile-time default-length change into a finite loop requires semantic justification, not merely matching text.
+
+See `docs/melody_patterns.md` and relevant focused documentation for current algorithms.
+
+---
+
+# 12. Source Loops and Target Loops
+
+Declared VGM loops are source structure.
+
+Preserve them without inventing a Key-On or other control event at the loop boundary.
+
+Structural loop candidates should remain reversible until target selection.
+
+Overlapping or nested alternatives may be useful for later macro selection.
+
+## 12.1 Repeated Traversal
+
+Suppressing a redundant register write during the first traversal is not necessarily safe inside a song loop.
+
+A write that appears redundant initially may restore a different state after the end of the preceding iteration.
+
+Check repeated native and target dependencies, including:
+
+- Held pitch and volume state.
+- Muted pitch updates.
+- Shared register ownership.
+- Waveform upload pointers.
+- Other evolving chip state.
+
+Do not solve loop entry by resetting unrelated held voices to first-traversal snapshots.
+
+A small number of equal loop traversals does not prove independence from phase or an evolving write pointer.
+
+Either establish that the dependency is handled correctly or reject the unsupported operation explicitly.
+
+Increasing the number of sampled traversals alone is not proof of periodic behavior.
+
+## 12.2 Source Structure Versus Target Execution
+
+A source score guide may propose target loops.
+
+It cannot replace native pitch evidence or impose new envelope restarts.
+
+Target execution must preserve the necessary control operations for every iteration.
+
+Different complete command sequences require expansion or a separately validated approximation.
+
+See `docs/vgm_loop.md` for source-loop details.
+
+---
+
+# 13. Register-Oriented and Score-Normalized Paths
 
 The project contains intentionally different transformation paths.
 
-`vgm2mml.py` is register-oriented: source timing and event semantics
-have priority over visually regular notation.
+`vgm2mml.py` is register-oriented: source timing and event semantics have priority over visually regular notation.
 
 `vgm2mml_grid.py` intentionally maps events onto a musical grid.
 
-Optional normalization such as `--normalize-lengths` is a target-stage
-inference. It must not rewrite native source timestamps or Segment
-evidence.
+Optional normalization such as `--normalize-lengths` is a target-stage inference.
+
+It must not rewrite native source timestamps or Segment evidence.
 
 Keep the distinction explicit:
 
-``` text
-source-faithful interpretation != intentional quantization/normalization
+```text
+source-faithful interpretation
+    !=
+intentional quantization or normalization
 ```
 
-Tempo/grid inference is interpretation, not source fact. Preserve
-original timestamps and make inferred parameters inspectable.
+## 13.1 Score Timing
 
-------------------------------------------------------------------------
+Score normalization uses original integer VGM sample spans through musical interpretation.
 
-# 13. Target Formats Are Not Canonical Internal Representations
+Note values are derived at an explicit reference tempo.
 
-MGSDRV MML, MS2/MAmidiMemo, MDX MML, and future targets have different
-constraints.
+Do not use a reference VGM's already warped gates to recover original note durations.
+
+Keep musical score steps separate from driver-frame software-envelope holds.
+
+Coarse score clocks require explicit interval mapping and displacement diagnostics.
+
+Do not silently delete short positive-duration notes because they disappear after quantization.
+
+Keep original and projected curves separate.
+
+Post-clock clipping may invalidate an approximation budget that appeared acceptable before quantization.
+
+See `docs/score_normalization.md` for detailed rules.
+
+---
+
+# 14. Target Formats Are Not Canonical Internal Representations
+
+MGSDRV MML/MGS, Blueprint NDP MML, MIDI (SMF), and VGM outputs have different capabilities and constraints.
+
+Do not shape source state, Segments, or shared musical information solely around one target's syntax.
 
 Target-specific choices may include:
 
--   duration quantization/encoding
--   instrument commands
--   noise/envelope commands
--   waveform definitions
--   rhythm commands
--   ties, rests and gates
--   loops/macros
--   channel/buffer allocation
--   target-specific timing
+- Duration quantization and encoding.
+- Instrument commands.
+- Noise and envelope commands.
+- Waveform definitions.
+- Rhythm commands.
+- Ties, rests, and gates.
+- Loops and macros.
+- Channel and buffer allocation.
+- PCM format and memory limits.
+- Target-specific timing.
 
-Do not shape source/state/Segment data solely around one target's
-syntax.
+A target may intentionally approximate or discard information it cannot represent.
 
-A target may intentionally approximate or discard information it cannot
-represent. When it does:
+When this happens:
 
-1.  preserve the source information in an earlier inspectable stage;
-2.  document or report the approximation where useful;
-3.  perform the loss in target projection;
-4.  do not alter earlier representations to pretend the source lacked
-    it.
+1. Preserve source information in an earlier inspectable stage.
+2. Make the interpretation or approximation explicit.
+3. Perform the loss in target projection.
+4. Record meaningful loss and omission diagnostics.
+5. Do not alter earlier representations to pretend the source lacked the information.
+
+Target-specific resource limitations must not become shared musical invariants.
 
 MGSDRV syntax references:
 
--   `https://p.gigamix.jp/mgsdrv/MGSDR320.TXT`
--   `https://z80.msx.click/index.php?title=MGSDRV_MML_11_JP`
+- https://p.gigamix.jp/mgsdrv/MGSDR320.TXT
+- https://z80.msx.click/index.php?title=MGSDRV_MML_11_JP
 
-------------------------------------------------------------------------
+---
 
-# 14. Validation: Correctness Has Multiple Meanings
+# 15. Independent Source Products and Output Projections
 
-Keep these objectives separate:
+Build and retain source musical information before output-specific execution lowering.
 
-**Register correctness**\
-Reconstruct source-chip state and behavior accurately.
+Independent output paths must not depend unnecessarily on one another.
 
-**Musical correctness**\
-Represent the intended performance usefully.
+A valid source performance remains available to independent score and reference backends even if MGS projection fails.
 
-**Target correctness**\
-Produce valid target data within target constraints.
+Keep each artifact's outcome and failure cause separate.
 
-Also distinguish audible similarity, source behavioral equivalence,
-target command equivalence, and textual/compiled-size optimization.
+Do not label a retained previous artifact as a newly generated success.
 
-A final MML file, successful compilation, matching event count, or
-passing test suite is not sufficient by itself to prove conversion
-correctness.
+Successful legacy execution remains a distinct target projection.
 
-For non-trivial behavior changes, inspect the relevant intermediate
-results before and after the change and validate more than one
-representative piece where practical.
+When selecting native reference output, validate that target preparation has not substituted projected chip data for the original source performance.
 
-Real/reference playback, emulator behavior, compiler roundtrips,
-hardware observations, code inspection, and subjective listening are
-different kinds of evidence. Record which kind supports a conclusion.
+This must be checked after successful target lowering as well as after failure.
+
+An explicit partial projection must identify omitted source parts and retain original event links.
+
+Failure to map one target part does not establish that all source parts are unmappable.
+
+---
+
+# 16. Editable Score Blueprints
+
+An editable score Blueprint is a separate target projection of retained musical source evidence.
+
+It deliberately omits executable synthesis and dynamics from the score representation while preserving the original curves and controls in the shared musical information.
+
+The Blueprint must not redefine the original source performance.
+
+Preserve, where relevant:
+
+- Source gates.
+- Attack and continuation decisions.
+- Lane mappings.
+- Original device identity.
+- Projection losses.
+- Source-to-score relationships.
+
+Blueprint text and MIDI are encodings of the same projected score spans.
+
+Derive both from the projected score representation before notation or macro compaction.
+
+Do not reparse final MML text or rerun source interpretation independently for each encoding.
+
+Keep original-device identity and explicit target pitch/time losses in the score sidecar.
+
+MIDI audition defaults must not restore source synthesis or overwrite source dynamics.
+
+A fixed audition initialization may set constant volume and a neutral instrument, but it must remain a target convenience.
+
+It must not influence score-repeat equality or source musical interpretation.
+
+Preserve user-edited templates without preventing other output paths.
+
+A source score guide is not a one-to-one target note map.
+
+Initially retain existing source boundaries where envelope-phase handling is unresolved.
+
+Do not introduce guide cuts that require unsupported envelope restarts or phase reconstruction.
+
+See `docs/musical_blueprint.md`.
+
+---
+
+# 17. Cartridge VGM Variants and Cross-Chip Projection
+
+Cartridge VGM variants consume `NativePerformance` directly.
+
+They are independent target projections of retained musical information, not reconstructions derived from final MML/MGS output.
+
+Keep the source performance separate from the target-specific VGM encoding.
+
+## 17.1 Musical Authority and Source Evidence
+
+Preserve decoded PCM content separately from its original transport representation.
+
+Native musical curves own projected pitch, level, timbre, and gates.
+
+Typed source register evidence remains available for provenance and source-specific behavior.
+
+It must not silently override intentionally edited musical records.
+
+The shared musical plan separates interpreted units, control curves, and native provenance from the initial target profile and output encoding.
+
+MML envelope-bank capacity, macro syntax, and compiler buffers must not limit direct VGM projection.
+
+## 17.2 Cross-Chip Adaptation
+
+A retained target VGM may adapt native source analysis into an established target pipeline.
+
+However:
+
+- Native source State and Segments must remain separately inspectable.
+- Source-to-target event relationships must remain available.
+- Later target-chip Segments must not be presented as original source evidence.
+- Cross-chip register equality is not an appropriate equivalence criterion.
+
+A useful approximation does not imply identical sound or behavior.
+
+Backend-specific losses must be reported explicitly rather than redefining common musical information.
+
+## 17.3 Shared Target Resources
+
+When multiple target parts share a register, waveform memory, or other hardware resource, per-part caches alone may be insufficient.
+
+Reconcile final positive-time shared demand after zero-time ownership transitions.
+
+A transient owner must not leave its state on a continuing voice.
+
+Shared chip operations remain ordered even outside notes.
+
+For FM targets, Key-Off must preserve frequency while the release tail remains audible.
+
+An inactive score gate does not imply immediate oscillator silence.
+
+Target-specific resource conflicts must be resolved in the target projection, not by rewriting source evidence.
+
+## 17.4 Target Capacity and Loss
+
+Target channel counts, PCM memory, and available synthesis features may require approximation or omission.
+
+Distinguish unsupported semantics from capacity exhaustion, implementation failure, and unverified behavior.
+
+Do not silently substitute an unrelated target sound or omit a source part merely to generate a valid VGM.
+
+Keep source identity and diagnostic evidence available.
+
+See `docs/musical_vgm_variants.md` for supported profiles, conversion behavior, and limitations.
+
+---
+
+# 18. Validation: Correctness Has Multiple Meanings
+
+Keep the following objectives separate.
+
+**Register correctness**
+
+Reconstruct source-chip state and observable behavior accurately.
+
+**Musical correctness**
+
+Represent the interpreted performance usefully and consistently with source evidence.
+
+**Target correctness**
+
+Produce valid target data within the target's constraints.
+
+Also distinguish:
+
+- Audible similarity.
+- Source behavioral equivalence.
+- Target command equivalence.
+- Compiler acceptance.
+- Textual and compiled-size optimization.
+- Emulator playback.
+- Physical hardware playback.
+
+A final MML or VGM file, successful compilation, matching event count, or passing test suite is not sufficient by itself to prove conversion correctness.
+
+For non-trivial behavior changes, inspect relevant intermediate results before and after the change.
+
+Validate more than one representative piece where practical.
+
+Real hardware, emulator behavior, compiler roundtrips, code inspection, generated diagnostics, and subjective listening provide different kinds of evidence.
+
+Record which kind supports a conclusion.
+
+Do not claim physical hardware compatibility based solely on emulator or software-renderer results.
 
 Do not overfit a general rule to one song or fixture.
 
-------------------------------------------------------------------------
+---
 
-# 15. Tests and Fixtures
+# 19. Tests and Fixtures
 
-Fixtures should make specific behaviors reproducible and, where
-practical, cover the relevant layers:
+Fixtures should make specific behaviors reproducible.
 
-``` text
-source VGM
-raw/state trace
-analysis pass
-Segments
-target output
+Where practical, tests should cover relevant layers:
+
+```text
+Source VGM
+    |
+    v
+Raw / State Trace
+    |
+    v
+Analysis Passes
+    |
+    v
+Segments / Native Performance
+    |
+    v
+Target Projection
+    |
+    v
+Generated Output
 ```
 
 Do not blindly update expected artifacts when a regression test fails.
 
 First determine whether:
 
-1.  the implementation violated source semantics;
-2.  the interpretation/Segment logic is wrong;
-3.  the target projection is wrong;
-4.  the test expectation encodes obsolete or incorrect behavior.
+1. The implementation violated source semantics.
+2. Native state or musical interpretation is incorrect.
+3. The shared representation lost necessary information.
+4. The target projection is incorrect.
+5. The test expectation encodes obsolete or incorrect behavior.
 
-**Never change an intermediate representation solely to satisfy an
-expected artifact.**
+Never change an intermediate representation solely to satisfy an expected artifact.
 
-A fixture is an oracle only for the behavior it was designed and
-justified to test.
+A fixture is an oracle only for the behavior it was designed and justified to test.
 
-Private copyrighted source material must not be copied into tracked
-documentation or fixtures unless explicitly safe to commit.
+Private copyrighted source material must not be copied into tracked documentation or fixtures unless explicitly safe to commit.
 
-------------------------------------------------------------------------
+---
 
-# 16. Human-Readable Intermediate Output
+# 20. Human-Readable Intermediate Output
 
 Intermediate output should favor diagnosis over compactness.
 
-Use explicit names with stable semantics. Prefer `frequency_hz` for a
-physical frequency and retain source representations such as `fnum`,
-`block`, or `tone_period`.
+Use explicit names with stable semantics.
 
-Do not fill non-applicable fields with misleading values. Use empty/null
-values or chip-specific schemas.
+Prefer `frequency_hz` for physical frequency while retaining source representations such as `fnum`, `block`, or `tone_period`.
 
-Preserve enough timestamps, channel/source indices, pattern/occurrence
-IDs, and other identifiers to trace target behavior back toward source
-evidence.
+Do not fill non-applicable fields with misleading values.
 
-PASS files generated by `--dump-passes` are part of the project's
-diagnostic contract, not arbitrary temporary dumps.
+Use empty/null values or chip-specific schemas.
 
-------------------------------------------------------------------------
+Preserve enough timestamps, channel/source indices, pattern and occurrence IDs, and other identifiers to trace target behavior back toward source evidence.
 
-# 17. Development Workflow
+PASS files generated by `--dump-passes` are part of the project's diagnostic contract, not arbitrary temporary dumps.
 
-For a non-trivial conversion change:
+Target projection diagnostics should identify meaningful approximation, omission, and uncertainty without obscuring the original source information.
 
-``` text
-1. Inspect the existing implementation.
-2. Identify the conceptual stage that owns the problem.
-3. Inspect representative source/intermediate evidence.
-4. Explain current behavior.
-5. Form a hypothesis.
-6. Design the smallest useful experiment or test.
-7. Implement the smallest justified change.
-8. Run regression tests.
-9. Inspect intermediate results again.
-10. Validate target output.
-11. Record durable knowledge in the appropriate place.
-```
+---
 
-Do not jump from a failing final artifact directly to reshaping Segments
-or earlier passes.
+# 21. Development and Documentation Boundaries
+
+For non-trivial conversion changes, use the existing repository workflow in `AGENTS.md`.
+
+The technical investigation should establish:
+
+- What the existing implementation does.
+- Which transformation stage owns the behavior.
+- What source and intermediate evidence supports the current interpretation.
+- Which hypothesis is being tested.
+- What information would change or be lost.
+- How the proposed change can be validated.
+
+Do not jump from a failing final artifact directly to reshaping Segments or earlier passes.
 
 Before changing established behavior, identify why it exists.
 
-------------------------------------------------------------------------
+Keep documentation responsibilities separate.
 
-# 18. Documentation Placement
+## 21.1 `AGENTS.md`
 
-Keep documentation layered so the highest-priority rules remain visible.
+Short, always-on operating rules, repository navigation, and development workflow.
 
-## `AGENTS.md`
+## 21.2 `docs/collaboration_principles.md`
 
-Only short, always-on operating rules and repository navigation.
+How AI agents should understand intent, exercise technical judgment, communicate uncertainty, and respect the owner's decision authority.
 
-## `docs/project_knowledge.md`
+## 21.3 `docs/project_knowledge.md`
 
-Only stable architectural principles and durable chip/domain knowledge
-that should guide future work.
+Stable architecture, transformation principles, and durable chip/domain knowledge.
 
-## Focused `docs/*.md`
+## 21.4 Focused `docs/*.md`
 
-Current design and usage of substantial subsystems, for example timing,
-loops, patterns, OPLL rhythm, OPM Segments, or target formats.
+Detailed subsystem designs, target-specific behavior, implementation contracts, and established technical decisions.
 
-## `field_notes/*.md`
+## 21.5 External `field_notes/*.md`
 
-Dated experiments, measurements, fixture-specific findings, regressions,
-benchmarks, rejected approaches, and provisional conclusions.
+Dated experiments, measurements, fixture-specific findings, regressions, rejected approaches, and provisional conclusions.
 
-A finding may move from a field note into this file only after it
-becomes a stable project principle or durable domain rule.
+A finding should move into project knowledge only when it becomes a stable principle or durable domain rule.
 
-Do not append implementation history to this document merely because it
-may be useful later.
+Do not append implementation history to this document merely because it may be useful later.
 
-------------------------------------------------------------------------
+---
 
-# 19. Final Rule
+# 22. Final Rule
 
-When uncertain whether to simplify, merge, split, normalize, quantize,
-discard, or reinterpret data:
+When uncertain whether to simplify, merge, split, normalize, quantize, discard, or reinterpret data:
 
-1.  preserve the source evidence;
-2.  expose it in an inspectable intermediate result;
-3.  make the interpretation explicit;
-4.  defer irreversible loss until the target stage;
-5.  ask whether a human can still trace the final result back toward the
-    VGM.
+1. Preserve the source evidence.
+2. Expose it in an inspectable intermediate result.
+3. Make the interpretation explicit.
+4. Defer irreversible loss until the appropriate target stage.
+5. Ask whether a human can still trace the final result back toward the VGM.
 
-If the answer to step 5 becomes "no", the change requires strong
-justification.
+If the answer to step 5 becomes "no", the change requires strong justification.
 
 The central design question is not:
 
-> "How can we make this conversion simpler or make this test pass?"
+> How can we make this conversion simpler or make this test pass?
 
 It is:
 
-> "What information is being changed or lost here, at which
-> transformation stage, and is that loss intentional?"
+> What information is being changed or lost here, at which transformation stage, and is that loss intentional?
 
-A final target file is not sufficient evidence that the conversion is
-correct. The path from source register stream to target must remain
-inspectable.
+A final target file is not sufficient evidence that the conversion is correct.
 
-## Cross-chip source adapters and repeated traversal
+The path from source register stream to musical interpretation and target output must remain inspectable.
 
-A retained target VGM may adapt native source analysis into an established
-target pipeline, provided native State/Segments and source-to-target event
-links remain separately inspectable. Later target-chip Segments must not be
-presented as the original source evidence. Cross-chip register equality is not
-an appropriate roundtrip criterion.
-
-Suppressing a redundant register write during the first traversal is not
-necessarily safe inside a song loop: that write may restore a different EOF
-state. Check repeated native and target dependencies, including muted pitch
-updates and waveform upload pointers. Do not solve loop entry by resetting
-unrelated held voices to first-traversal snapshots.
-
-A small number of equal loop traversals does not prove independence from phase
-or an evolving write pointer. Either prove/reset that dependency or reject the
-unsupported operation explicitly; increasing the sampled traversal count alone
-is not a proof of periodic behavior.
-
-The shared musical plan separates interpreted units/curves and native provenance
-from the initial target profile and output encoding. MML envelope-bank capacity,
-macro spelling and compiler buffers must not limit direct VGM. Shared chip
-operations remain ordered even outside notes. An instantaneous transition group
-must include its settling state; replaying only a zero-duration key-on can invent
-a sustained note. Backend-specific losses must be reported explicitly rather
-than redefining the common musical information.
-
-## Distribution and tool scope
-
-MGSDRV is the supported output target here. MDX export, compilation, replay and inspector tooling
-are maintained in x68k_vgm2mml. Shared analysis/structural modules and reference
-evidence may still mention MDX; their presence does not provide an MDX toolchain
-in this repository. Keep required attribution for retained referenced code.
-
-## Independent source products and score projection
-
-Build and retain source musical information before output-specific execution
-lowering. A valid source performance remains available to independent score and
-reference backends if MGS projection fails. Keep failure causes and each
-artifact's outcome separate; never label a retained previous artifact as a new
-success. Successful accepted legacy execution remains a distinct projection.
-Validate native output selection after successful target lowering as well as
-after failure: target preparation must not substitute projected chip data for
-the original source performance in the reference backend.
-
-When multiple target parts share a register or waveform memory, per-part
-caches alone are insufficient. Reconcile final positive-time shared demand
-after zero-time owner transitions. A transient owner must not leave its state
-on a continuing voice. FM key-off must preserve frequency while its release
-tail remains audible; inactive score gates do not imply instant oscillator
-silence.
-
-A score-only projection strips dynamics and synthesis without deleting those
-curves from source music. Detect repeats using pitch, duration, rest and
-attack/continuation rather than documentary timbre IDs or volume slices. A held
-unit can contain a repeated pitch phrase; its source gate and control lineage
-must remain inspectable. Coarse score clocks require explicit interval mapping
-and displacement diagnostics, not silent deletion of short positive notes.
-
-Fixed audition initialization is a separate target convenience: it may set a
-constant volume and neutral instrument without restoring source control curves
-or using them in score repeat equality. Definition allocation must still include
-the driver terminator. An explicit partial target projection must name omitted
-source parts and preserve native reference output and original event links;
-failure of one target part does not establish that all source parts are unmappable.
-
-Target macro slots are not a reason to treat repeated envelope-control fragments
-as independent phrases. Fold exact adjacent repetitions first, preserving
-relative-state accumulation; prioritize complete sounding gestures and phrases
-over internal holds. Target spelling alone does not prove that a compile-time
-default-length change is safe to move into a finite loop. Keep source gate
-identity distinct from boundaries established only by target tie/rest syntax.
-
-## Score guidance and hardware envelopes
-
-Score repeat candidates are chip-independent; software-envelope assignment is
-one later target-specific operation. A running hardware envelope is not a score
-repeat barrier. Do not compare simulated oscillator/envelope phase as score
-identity, and do not add resets merely to make loop entry match. Preserve the
-original target operations in every emitted iteration. Different complete
-commands still require expansion or a separately validated approximation.
-
-When score keys omit dynamics or timbres, the first occurrence of a motif is
-not sufficient evidence for choosing envelopes: retain all exact settings/curve
-variants at each structural position. Source guides are not one-to-one target
-note maps. Initially retain existing boundaries and abstain from guide cuts
-requiring envelope-phase handling. Keep original and projected curves separate;
-post-clock clipping can invalidate a previously accepted approximation budget.
-
-PSG hardware-envelope pitch partitions are emitted as adjacent untied notes,
-never tied with `&`. A tie merges the partitions into one sustained note: the
-envelope no longer restarts at each partition, drum-like attacks are lost, and
-the extra tokens consume MGSDRV track buffer. MGSDRV restarts the hardware
-envelope on every untied note, so gapless adjacency preserves both the source
-timing and each note's attack. Loop/macro compression may group the adjacent
-notes, but grouping must not merge them.
+**Preserve source evidence, maintain independent musical meaning, and make target-specific compromises explicit.**
 
 
-Cartridge VGM variants consume `NativePerformance` directly. Preserve decoded
-PCM content separately from original transport, and let native musical curves
-own projected pitch, level, timbre and gates. Typed source register evidence
-must not silently override edited musical records. See
-[cartridge VGM variants](musical_vgm_variants.md).
