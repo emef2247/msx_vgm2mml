@@ -1266,6 +1266,13 @@ def project_dac_timeline(timeline, *, source_end, dac_target='opna', stats=None,
             stop_unit = (sample['address'] + len(sample['encoded']) - 1) >> 2
             tick, event_id = (entry['start_vgmticks'],
                               entry['first_source_event_id'])
+            # Every run is an independent retrigger, not a continuation:
+            # pulse the reset before its registers and stop it at its end,
+            # the same discipline the MSM6258 target uses. A start written
+            # while the unit still holds the previous run is not reliably
+            # accepted (real-hardware report: only the first hit sounded).
+            emit(tick, event_id, 0x07, 0x01, 'y8950_adpcm stop/reset before start', rank=0)
+            emit(tick, event_id, 0x07, 0x00, 'y8950_adpcm reset release', rank=0)
             for register, data, reason in (
                     (0x08, 0x00, 'y8950_adpcm memory select (RAM 256K)'),
                     (0x09, start_unit & 0xFF, 'y8950_adpcm start address low'),
@@ -1277,6 +1284,8 @@ def project_dac_timeline(timeline, *, source_end, dac_target='opna', stats=None,
                     (0x12, ADPCM_B_LEVEL, 'y8950_adpcm level'),
                     (0x07, 0x80, 'y8950_adpcm start')):
                 emit(tick, event_id, register, data, reason)
+            emit(entry['end_vgmticks'], entry['last_source_event_id'], 0x07, 0x01,
+                 'y8950_adpcm stop at run end', rank=0)
         block_type = 0x88
     else:
         emit(0, None, 0x00, 0x01, 'adpcm_b reset', rank=0)
@@ -1289,6 +1298,13 @@ def project_dac_timeline(timeline, *, source_end, dac_target='opna', stats=None,
             end_unit = (sample['address'] + len(sample['encoded'])) >> 5
             tick, event_id = (entry['start_vgmticks'],
                               entry['first_source_event_id'])
+            # Every run is an independent retrigger, not a continuation:
+            # pulse the reset before its registers and stop it at its end,
+            # the same discipline the MSM6258 target uses. A start written
+            # while the unit still holds the previous run is not reliably
+            # accepted (real-hardware report: only the first hit sounded).
+            emit(tick, event_id, 0x00, 0x01, 'adpcm_b stop/reset before start', rank=0)
+            emit(tick, event_id, 0x00, 0x00, 'adpcm_b reset release', rank=0)
             for register, data, reason in (
                     (0x01, 0xC2, 'adpcm_b control 2 (L+R, DRAM x8)'),
                     (0x02, start_unit & 0xFF, 'adpcm_b start address low'),
@@ -1302,6 +1318,8 @@ def project_dac_timeline(timeline, *, source_end, dac_target='opna', stats=None,
                     (0x0D, 0xFF, 'adpcm_b limit high'),
                     (0x00, 0xA0, 'adpcm_b start (external DRAM)')):
                 emit(tick, event_id, register, data, reason)
+            emit(entry['end_vgmticks'], entry['last_source_event_id'], 0x00, 0x01,
+                 'adpcm_b stop at run end', rank=0)
         block_type = 0x81
     payload = struct.pack('<II', len(image), 0) + bytes(image)
     data_block = (bytes((0x67, 0x66, block_type))
