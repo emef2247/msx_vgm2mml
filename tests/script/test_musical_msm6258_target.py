@@ -122,6 +122,36 @@ class MusicalMsm6258TargetTests(unittest.TestCase):
             self.assertEqual(native['pcm_assets'][0]['start_sample'],0)
             self.assertEqual(native['pcm_assets'][0]['rate_hz'],11025)
 
+    def test_stream_asset_over_budget_uses_chunked_blocks_without_replacement(self):
+        d=NativeDevice('msm6258:0','msm6258',0,8000000)
+        samples=tuple(((j*2654435761)>>8)%20001-10000 for j in range(600000))
+        asset=NativePCM('stream',d.device_id,0,1693440,15625,samples,(0,),
+            (('pan',0),('policy_reasons',('irregular_byte_supply',))))
+        p=NativePerformance((d,),(),(),(),(),(),1693440,'','',pcm_assets=(asset,))
+        rows,prefix,losses,stats=project_pcm(p,'y8950')
+        self.assertEqual(stats['delivery'],'chunked_stream');self.assertEqual(stats['blocks'],2)
+        self.assertEqual(stats['ram_used_bytes'],262144);self.assertGreater(stats['dram_bytes'],262144)
+        self.assertEqual(prefix[2],0x88);self.assertEqual(int.from_bytes(prefix[3:7],'little'),262144+8)
+        uploads=[r for r in rows if r['command'][0]==0x67]
+        self.assertEqual(len(uploads),1)
+        self.assertEqual(int.from_bytes(uploads[0]['command'][3:7],'little'),37856+8)
+        self.assertEqual(losses['msm6258_stream_irregular_byte_supply'],1)
+        self.assertEqual(losses['msm6258_stream_block_uploads'],1)
+        self.assertFalse(losses['msm6258_budget_reused_playbacks'])
+        self.assertEqual([r['block'] for r in stats['runs']],[0,0,0,0,1])
+        self.assertTrue(all(not r['budget_replaced'] for r in stats['runs']))
+        # With a song loop inside the stream, the first chunk at or after the
+        # loop point opens a fresh image whose upload row sits at that chunk,
+        # inside the looped region.
+        p2=NativePerformance((d,),(),(),(),(),(),1693440,'','',
+            song_loop_sample=850000,pcm_assets=(asset,))
+        rows2,_,_,stats2=project_pcm(p2,'y8950')
+        starts=[r['start_sample'] for r in stats2['runs']]
+        self.assertIn(850000,starts)
+        at=starts.index(850000)
+        self.assertGreater(stats2['runs'][at]['block'],stats2['runs'][at-1]['block'])
+        self.assertTrue(any(r['command'][0]==0x67 and r['sample']==850000 for r in rows2))
+
     def test_pcm_profiles_and_source_coverage(self):
         with tempfile.TemporaryDirectory() as tmp:
             results=export_variants(performance((0,)),tmp,'authored',force=True)

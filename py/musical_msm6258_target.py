@@ -66,17 +66,56 @@ def project(performance,target,*,force=False):
             playbacks.append(dict(asset=asset,start=start,end=stop,original_sample_id=sid,
                 sample_id=sid,delta_n=delta,rate_hz=rate,valid_samples=count,pan_bits=pan_bits,
                 source_sample_position=origin))
+    for asset in assets:
+        for reason in dict(asset.parameters).get('policy_reasons') or ():
+            losses['msm6258_stream_'+reason]+=1
+    stream_delivery=any(dict(a.parameters).get('policy_reasons') for a in assets)
     usage=Counter(p['sample_id'] for p in playbacks)
     total=sum(len(c['encoded']) for c in candidates)
-    if total>budget and not force:raise ValueError(f'MSM6258 PCM exceeds cartridge DRAM ({budget} bytes); use --force for explicit representative reuse')
-    mapping,selected,budget_report=fit_bank(candidates,usage,budget)
-    image=bytearray();addresses={}
-    for sid in selected:
-        addresses[sid]=len(image);image.extend(candidates[sid]['encoded'])
+    orig_candidates=candidates;blocks=None
+    if total>budget and stream_delivery:
+        # Stream delivery: pack the chunk candidates into sequential DRAM
+        # images of at most `budget` bytes each. Every chunk keeps its own
+        # audio (no representative replacement); images after the first are
+        # uploaded by a data-block row at the first playback that needs one,
+        # so a stream longer than one cartridge image still plays in order.
+        bcandidates=[];addresses={};image=bytearray();placement={}
+        blocks=[];first_sample=None;bidx=0
+        for p in playbacks:
+            sid=p['sample_id']
+            if (loop is not None and image and first_sample is not None
+                and first_sample<loop<=p['start']):
+                # The first chunk at or after the song loop must open a fresh
+                # image: its upload row sits inside the looped region, so a
+                # repeat reloads the image those chunks address.
+                blocks.append((bytes(image),first_sample))
+                image=bytearray();placement={};first_sample=None;bidx+=1
+            if sid in placement:
+                p['block_sid'],p['block_index']=placement[sid];continue
+            encoded=candidates[sid]['encoded']
+            if image and len(image)+len(encoded)>budget:
+                blocks.append((bytes(image),first_sample))
+                image=bytearray();placement={};first_sample=None;bidx+=1
+            new_sid=len(bcandidates);bcandidates.append(candidates[sid])
+            placement[sid]=(new_sid,bidx);addresses[new_sid]=len(image);image.extend(encoded)
+            p['block_sid'],p['block_index']=new_sid,bidx
+            if first_sample is None:first_sample=p['start']
+        if image:blocks.append((bytes(image),first_sample))
+        candidates=bcandidates;selected=list(range(len(bcandidates)));mapping={}
+        budget_report=dict(delivery='chunked_stream',blocks=len(blocks),
+            block_bytes=[len(b) for b,_ in blocks],selection_method='sequential_stream_blocks')
+        losses['msm6258_stream_block_uploads']+=len(blocks)-1
+        image=bytearray(blocks[0][0])
+    else:
+        if total>budget and not force:raise ValueError(f'MSM6258 PCM exceeds cartridge DRAM ({budget} bytes); use --force for explicit representative reuse')
+        mapping,selected,budget_report=fit_bank(candidates,usage,budget)
+        image=bytearray();addresses={}
+        for sid in selected:
+            addresses[sid]=len(image);image.extend(candidates[sid]['encoded'])
     records=[]
     for p in playbacks:
-        sid=mapping[p['sample_id']];sample=candidates[sid]
-        replaced=sid!=p['original_sample_id']
+        sid=p['block_sid'] if 'block_sid' in p else mapping[p['sample_id']];sample=candidates[sid]
+        replaced=sample is not orig_candidates[p['original_sample_id']]
         required=(p['delta_n']*sample['valid_samples']/p['valid_samples'] if replaced else p['delta_n'])
         delta=max(1,min(65535,round(required)));rate=clock*delta/divisor
         if not 1<=round(required)<=65535:losses['msm6258_replacement_rate_clamped_playbacks']+=1
@@ -96,6 +135,7 @@ def project(performance,target,*,force=False):
         for reg,value in registers:emit(start,reg,value,'MSM6258 musical PCM trigger')
         emit(stop,reset,1,'MSM6258 PCM stop at original endpoint',-1)
         records.append(dict(asset_id=asset.asset_id,original_sample_id=p['original_sample_id'],sample_id=sid,
+            block=p.get('block_index',0),
             budget_replaced=replaced,start_sample=start,end_sample=stop,address=address,bytes=length,
             required_delta_n=required,delta_n=delta,rate_hz=rate,pan_bits=p['pan_bits'],
             source_sample_position=p['source_sample_position'],valid_samples=sample['valid_samples'],
@@ -105,8 +145,19 @@ def project(performance,target,*,force=False):
     if image:
         payload=struct.pack('<II',len(image),0)+image
         prefix=bytes((0x67,0x66,0x81 if target=='opna' else 0x88))+struct.pack('<I',len(payload))+payload
+    if blocks is not None:
+        for bimg,bfirst in blocks[1:]:
+            payload=struct.pack('<II',len(bimg),0)+bimg
+            rows.append(dict(sample=bfirst,order=-2,
+                command=bytes((0x67,0x66,0x81 if target=='opna' else 0x88))+struct.pack('<I',len(payload))+payload,
+                unit_id='',device_id=assets[0].device_id,source_indices=(),
+                reason='MSM6258 PCM stream block upload'))
     return rows,prefix,losses,dict(encoder_path='decoded_msm6258_budget_bank',playbacks=len(playbacks),
-        unique_samples=len(selected),dram_bytes=len(image),ram_used_bytes=len(image),ram_budget_bytes=budget,
+        unique_samples=len(selected),
+        dram_bytes=sum(len(b) for b,_ in blocks) if blocks is not None else len(image),
+        ram_used_bytes=max((len(b) for b,_ in blocks),default=0) if blocks is not None else len(image),
+        ram_budget_bytes=budget,delivery='chunked_stream' if blocks is not None else 'single_bank',
+        blocks=len(blocks) if blocks is not None else 1,
         bank_budget=budget_report,runs=records,source_evidence_unchanged=True,
         limitations=['Independent target ADPCM-B predictor at each packaging cut',
                      'Linear resampling; target padding is zero PCM',

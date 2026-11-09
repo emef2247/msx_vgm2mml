@@ -41,6 +41,11 @@ def _write(performance, rows, prefix, path):
         advance(row['sample'])
         row['write_id']=index;row['target_address']=256+len(body)
         command=row['command']
+        if command[0]==0x67:
+            # A data block (for example a later PCM stream image) carries no
+            # register clock or dedup state: emit it where it sits so the
+            # player loads it when playback reaches it.
+            row['emitted']=True;body.extend(command);continue
         if command[0]==0xd2:
             offset,clock=0x9c,row['scc_clock_raw']
         elif command[0] in CLOCKS:offset,clock=CLOCKS[command[0]]
