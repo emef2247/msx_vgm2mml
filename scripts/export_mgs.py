@@ -232,13 +232,33 @@ def _update_song_variants(path, relative, package, output, args):
     return [row]
 
 
-def _update_vgm_variants(args):
-    """Variant pass over every input, after the normal MGS export.
+def _update_one_variant(path, relative, package, output, args, rows):
+    """Variant update for one song, appended to rows.
 
     Runs whether or not --vgm-variants was given: with the flag the
     variants are (re)published, without it previously published
-    variants are removed again. The batch exit status stays with the
-    MGS rows; variant outcomes are recorded as extra result rows.
+    variants are removed again.
+    """
+    if args.vgm_variants:
+        print(f'{relative}: vgm variants starting', flush=True)
+    try:
+        rows.extend(_update_song_variants(path, relative, package, output, args))
+    except (OSError, ValueError) as error:
+        row = _variant_row(relative, package / '_diagnostics' / path.stem, output, args)
+        row.update(status='publication_failed', publication_status='failed', stage='publish',
+                   publication_error=str(error), error_code='publication_error', detail=str(error))
+        rows.append(row)
+        print(f'{relative}: vgm variants publication_failed: {error}', flush=True)
+
+
+def _update_vgm_variants(args):
+    """Standalone variant pass over every input.
+
+    main() no longer calls this after the batch: it passes a per-song
+    hook to run_batch so each song's variants are processed right after
+    that song's MGS export. This pass remains for callers that only
+    want the variant stage. The batch exit status stays with the MGS
+    rows; variant outcomes are recorded as extra result rows.
     """
     source = args.input.resolve()
     if not source.exists():
@@ -250,16 +270,7 @@ def _update_vgm_variants(args):
     for path in discover_inputs(source, adjacent=adjacent):
         relative = path.relative_to(source_root)
         package = output / relative.parent
-        if args.vgm_variants:
-            print(f'{relative}: vgm variants starting', flush=True)
-        try:
-            rows.extend(_update_song_variants(path, relative, package, output, args))
-        except (OSError, ValueError) as error:
-            row = _variant_row(relative, package / '_diagnostics' / path.stem, output, args)
-            row.update(status='publication_failed', publication_status='failed', stage='publish',
-                       publication_error=str(error), error_code='publication_error', detail=str(error))
-            rows.append(row)
-            print(f'{relative}: vgm variants publication_failed: {error}', flush=True)
+        _update_one_variant(path, relative, package, output, args, rows)
     return rows
 
 
@@ -311,6 +322,11 @@ def main(argv=None):
         if macro_budget is None and args.compiler == 'mgsc':
             from macro_budget import MGSC_MACRO_DEFINITION_BUDGET
             macro_budget = MGSC_MACRO_DEFINITION_BUDGET
+        variant_rows = []
+
+        def _song_hook(path, relative, package, output):
+            _update_one_variant(path, relative, package, output, args, variant_rows)
+
         rows = run_batch(args.input, args.outdir, module=args.mgsc_module,
                          node=args.node, timeout=args.timeout, mgsc=args.mgsc,
                          compiler=args.compiler,
@@ -329,8 +345,8 @@ def main(argv=None):
                          macro_definition_budget=macro_budget,
                          nes_balance=args.nes_balance, nes_gain=args.nes_gain,
                          psg_state_ms=None, scc_state_ms=None,
-                         curve_volume_error=None, curve_mean_error=None)
-        variant_rows = _update_vgm_variants(args)
+                         curve_volume_error=None, curve_mean_error=None,
+                         song_hook=_song_hook)
     except (RuntimeError, ValueError) as error:
         parser.exit(2, str(error) + '\n')
     if variant_rows:

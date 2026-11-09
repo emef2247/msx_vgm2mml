@@ -475,7 +475,7 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
               psg_state_ms=None, scc_state_ms=None, curve_volume_error=None, curve_mean_error=None,
               score_normalize=False, score_tempo=225, blueprint_score_normalize=False,
               macro_mode=None, loop_mode=None, macro_definition_budget=None,
-              nes_balance=False, nes_gain=()):
+              nes_balance=False, nes_gain=(), song_hook=None):
     options = MgsOptions(normalize_lengths=normalize_lengths, normalization_ms=normalization_ms,
                          fm_state_ms=fm_state_ms, force=force, dump_passes=dump_passes, enhance_drums=enhance_drums, psg_part=psg_part,
                          software_volume_curves=software_volume_curves, score_guided_loops=score_guided_loops,
@@ -828,6 +828,8 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
         if row['force_summary']:
             print('Forced MGS projection: ' + row['force_summary'], flush=True)
             print('Omission details: ' + str(force_data.get('csv_path', sidecar) if force_data else sidecar), flush=True)
+        if song_hook is not None:
+            song_hook(path, relative, package, output)
     print(f"{sum(row['status'] == 'success' for row in rows)}/{len(rows)} exported; results: {diagnostics / 'results.csv'}", flush=True)
     return rows
 
