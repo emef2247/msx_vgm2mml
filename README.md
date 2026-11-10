@@ -147,6 +147,9 @@ MML 生成用に構築した音楽情報を、MSX のサウンドカートリッ
 - `makoto`：各音源を OPNA の FM 向けに変換します。複数の音源が混在する場合は優先順位があります。PCM は OPNA の ADPCM-B へ変換します。
 - `sfg01`：各音源を OPM の FM 向けに変換します。こちらも音源の優先順位があります。PCM の再生には Makoto または MSX-AUDIO を併用できます（`sfg01_makoto` / `sfg01_msxaudio`）。
 - `layered`：FM に変換可能な音源について OPM と OPNA 両方の演奏データを格納し、SFG-01 と Makoto が同じパートを重ねて演奏します。デチューンとも違う、MSX ならではのお遊び機能です。
+- `scc_sfg01`：SCC のパートを実 SCC で鳴らしながら、同じパートを OPM の FM でも重ねます。他のパートは `scc` の付かない構成と同じです。
+- `scc_makoto`：SCC のパートを実 SCC で鳴らしながら、同じパートを OPNA の FM でも重ねます。他のパートは `scc` の付かない構成と同じです。
+- `scc_layered`：SCC のパートを実 SCC で鳴らしながら、同じパートを OPM と OPNA の両方の FM でも重ねます。他のパートは `scc` の付かない構成と同じです。
 - PCM は 256KiB の容量に収まるよう、重複するサンプルの共有や代表への置き換えで自動的に調整されます。
 - 再生は MSX 実機の VGMPlay や、Mami-VSIF Pro 経由の MAmidiMEmo などでどうぞ。実機がなくても、VGM プレーヤーで再生できます。
 
