@@ -64,6 +64,8 @@ Blueprintは通常のMML/MGS生成とは独立しており、MGSへの変換が�
 | PSG／SSG（AY系） | ○ | ○ | ○ |
 | OPLL（YM2413） | ○ | ○ | ○ |
 | SCC | ○ | ○ | ○ |
+| DCSG（SN76489） | ― | ○ | ○ |
+| DCSGx2 | ― | ○ | ○ |
 | HuC6280 | △ | ○ | △ |
 | NES APU | ○ | ○ | ○ |
 | FDS | ○ | ○ | ○ |
@@ -133,17 +135,18 @@ MML 生成用に構築した音楽情報を、MSX のサウンドカートリッ
 
 生成物は `vgm-variants/<プロファイル名>/<曲名>.vgm` に出力されます。生成できない構成は理由とともにスキップされ、診断が `_diagnostics` に残ります。
 
-入力音源ごとに生成されるプロファイルの一覧です（○：生成される、—：生成されない）。
+入力音源ごとに生成されるプロファイルの一覧です（○：生成される、△：制限あり・未変換部分あり、—：生成されない）。
 
-| プロファイル | psg | psg_scc | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 |
-|---|---|---|---|---|---|---|---|---|---|
-| sfg01 | ○ | ○ | ○ | ○ | ○ | ○ | ○ | — | — |
-| makoto | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○ |
-| sfg01_makoto | — | — | — | — | — | ○ | — | ○ | ○ |
-| layered | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○ |
-| scc_sfg01 | — | ○ | — | — | — | — | — | — | — |
-| scc_makoto | — | ○ | — | — | — | — | — | — | — |
-| scc_layered | — | ○ | — | — | — | — | — | — | — |
+| プロファイル | psg | psg_scc | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| sfg01 | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ | △ |
+| makoto | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
+| sfg01_makoto | — | — | — | — | — | — | — | ○ | — | ○ | ○ |
+| sfg01_msxaudio | — | — | — | — | — | — | — | — | — | ○ | ○ |
+| layered | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
+| scc_sfg01 | — | ○ | — | — | — | — | — | — | — | — | — |
+| scc_makoto | — | ○ | — | — | — | — | — | — | — | — | — |
+| scc_layered | — | ○ | — | — | — | — | — | — | — | — | — |
 
 - `makoto`：各音源を OPNA の FM 向けに変換します。複数の音源が混在する場合は優先順位があります。PCM は OPNA の ADPCM-B へ変換します。
 - `sfg01`：各音源を OPM の FM 向けに変換します。こちらも音源の優先順位があります。PCM の再生には Makoto または MSX-AUDIO を併用できます（`sfg01_makoto` / `sfg01_msxaudio`）。
@@ -253,6 +256,8 @@ The `--force` option does not guarantee successful conversion of every input. It
 | PSG / SSG (AY family) | Yes | Yes | Yes |
 | OPLL (YM2413) | Yes | Yes | Yes |
 | SCC | Yes | Yes | Yes |
+| DCSG (SN76489) | No | Yes | Yes |
+| DCSGx2 | No | Yes | Yes |
 | HuC6280 | Approximate | Yes | Approximate |
 | NES APU | Yes | Yes | Yes |
 | FDS | Yes | Yes | Yes |
