@@ -359,22 +359,28 @@ def publication_targets(files, source_root, output, psg_part):
         owned = previous.get('published', {})
         if not isinstance(owned, dict):
             raise ValueError(f'Invalid listening manifest: {manifest}')
-        for name in owned:
-            allowed_products = {target.relative_to(package).as_posix() for target in targets}
-            allowed_products.add((package / 'tracks' / (path.stem + '.vgm')).relative_to(package).as_posix())
-            allowed_products.add((package / 'tracks' / (path.stem + '.target.vgm')).relative_to(package).as_posix())
-            allowed_products.add((package / 'tracks' / (path.stem + '.layer.target.vgm')).relative_to(package).as_posix())
-            for sd_name in (f'{path.stem}/makoto/{path.stem}.vgm',
-                            f'{path.stem}/sfg01/dac_makoto/{path.stem}.vgm',
-                            f'{path.stem}/sfg01/dac_y8950/{path.stem}.vgm',
-                            f'{path.stem}/layered/{path.stem}.vgm',
-                            f'{path.stem}/opm4mhz/{path.stem}.vgm'):
-                allowed_products.add(sd_name)
-            allowed_products.update(variant_publication_names(path.stem))
-            allowed_products.add(blueprint.relative_to(package).as_posix())
-            if name not in allowed_products and not (Path(name).parent.as_posix() == 'blueprint'
-                    and blueprint_artifact_name(Path(name).name, path.stem)):
-                raise ValueError(f'Unexpected published path in manifest: {name}')
+        allowed_products = {target.relative_to(package).as_posix() for target in targets}
+        allowed_products.add((package / 'tracks' / (path.stem + '.vgm')).relative_to(package).as_posix())
+        allowed_products.add((package / 'tracks' / (path.stem + '.target.vgm')).relative_to(package).as_posix())
+        allowed_products.add((package / 'tracks' / (path.stem + '.layer.target.vgm')).relative_to(package).as_posix())
+        for sd_name in (f'{path.stem}/makoto/{path.stem}.vgm',
+                        f'{path.stem}/sfg01/dac_makoto/{path.stem}.vgm',
+                        f'{path.stem}/sfg01/dac_y8950/{path.stem}.vgm',
+                        f'{path.stem}/layered/{path.stem}.vgm',
+                        f'{path.stem}/opm4mhz/{path.stem}.vgm'):
+            allowed_products.add(sd_name)
+        allowed_products.update(variant_publication_names(path.stem))
+        allowed_products.add(blueprint.relative_to(package).as_posix())
+        # Blueprint products live under blueprint/ and blueprint/ndp/ alike;
+        # prepare_blueprints records both, so both are current products here.
+        # Any other recorded name is a product of an older layout the current
+        # code no longer produces: stale, not corruption. Conversion is
+        # deterministic, so the run replaces such products instead of
+        # refusing to start; the batch loop drops them from the manifest
+        # and removes their files.
+        stale = [name for name in owned
+                 if name not in allowed_products and not (Path(name).parent.as_posix() in ('blueprint', 'blueprint/ndp')
+                        and blueprint_artifact_name(Path(name).name, path.stem))]
         # A hand-edited template protects that optional product, not the main conversion.
         for target in (*targets, reference):
             if target.exists():
@@ -385,10 +391,10 @@ def publication_targets(files, source_root, output, psg_part):
             recorded = previous.get('staged_sha256')
             if not staged.is_file() or recorded != file_digest(staged):
                 raise ValueError(f'Staged source is unowned or modified: {staged}')
-        routes.append((path, relative, folder, targets, manifest))
+        routes.append((path, relative, folder, targets, manifest, stale))
     artifacts = {}
     directories = set()
-    for path, _, folder, targets, manifest in routes:
+    for path, _, folder, targets, manifest, _stale in routes:
         package = manifest.parent
         variants = tuple(package / name for name in variant_publication_names(path.stem))
         for item in (*targets, *variants, targets[0].with_suffix('.vgm'), package / 'blueprint' / (path.stem + '.mml'),
@@ -533,7 +539,7 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
         if keyon_setup_error:
             print('KEYON comparison unavailable: ' + keyon_setup_error, file=sys.stderr)
     rows = []
-    for path, relative, folder, (final_mml, final_mgs), manifest in routes:
+    for path, relative, folder, (final_mml, final_mgs), manifest, stale_products in routes:
         folder.mkdir(parents=True, exist_ok=True)
         mml, mgs = folder / (path.stem+'.mml'), folder / (path.stem+'.mgs')
         package = final_mml.parent.parent
@@ -690,6 +696,17 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
                         (folder / 'keyon.log').write_text(str(error), encoding='utf-8')
         previous_state=json.loads(json.dumps(state))
         products = dict(previous.get('published', {}))
+        # Replace stale products recorded by an older layout (collected in
+        # publication_targets): drop them from the manifest and remove their
+        # files. Conversion is deterministic, so nothing is lost by this.
+        for name in stale_products:
+            products.pop(name, None)
+            stale_file = package / name
+            if stale_file.is_file() and stale_file.resolve().is_relative_to(output):
+                stale_file.unlink()
+                print(f"{relative}: replaced stale published product: {name}", flush=True)
+        if stale_products:
+            entry.update(published=products)
         # Keep a previously complete listening pair when a later attempt fails.
         listening_names = {target.relative_to(package).as_posix() for target in (final_mml, final_mgs)}
         publish = row['status'] == 'success' or (converted and not listening_names.intersection(products))
