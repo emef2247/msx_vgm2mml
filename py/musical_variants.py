@@ -92,7 +92,7 @@ def _project_fm_layer(performance, chip, clock, *, force):
         losses=dict(losses))
 
 
-def project_variant(performance, profile, *, force=False, dcsg_gain=.5, opna_law=False):
+def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_law=False):
     from musical_pcm_target import project_pcm
     if profile not in PROFILES:raise ValueError('Unknown cartridge profile')
     real_scc=profile in SCC_PROFILES
@@ -120,14 +120,9 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.5, opna_law
     fm_performance=performance
     scc_plan=None
     if real_scc:
-        from dataclasses import replace
         from musical_scc_target import project_scc
         scc_rows,scc_losses,scc_plan=project_scc(performance)
         rows.extend(scc_rows);losses.update(scc_losses)
-        scc_devices={d.device_id for d in performance.devices if d.chip=='scc'}
-        fm_performance=replace(performance,units=tuple(replace(u,
-            volume_curve=tuple((at,level*.5) for at,level in u.volume_curve))
-            if u.device_id in scc_devices else u for u in performance.units))
     for target_chip,target_clock in targets:
         fm,fm_losses,layer_plan=_project_fm_layer(fm_performance,target_chip,target_clock,force=force)
         rows.extend(fm);losses.update(fm_losses)
@@ -199,7 +194,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.5, opna_law
     return rows,prefix,dict(losses),plan
 
 
-def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.5, opna_law=False):
+def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, opna_law=False):
     root=Path(outdir);root.mkdir(parents=True,exist_ok=True);results={}
     has_pcm=bool(getattr(performance,'pcm_assets',()) or any(p.chip in ('opna','msm6258') for p in performance.pcm_packets))
     native_rhythm=any(e.device_id in {d.device_id for d in performance.devices if d.chip=='opna'} for e in performance.percussion)

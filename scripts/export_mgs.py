@@ -78,10 +78,10 @@ def build_parser():
                              'variants that do not apply to a source are recorded '
                              'unavailable with a reason). '
                              'Rerunning without this flag removes the variants')
-    parser.add_argument('--dcsg-gain', type=float, default=0.5,
+    parser.add_argument('--dcsg-gain', type=float, default=0.25,
                         help='Level gain for the DCSG lanes (PSG/SSG) in OPN2 target '
-                             'and variant VGMs (default 0.5, the level settled by '
-                             'real-hardware listening 2026-11-07; 1.0 = no shift, '
+                             'and variant VGMs (default 0.25, the level settled by '
+                             'real-hardware listening 2026-11-08; 1.0 = no shift, '
                              'e.g. 0.036 matches the x68k PCM balance)')
     parser.add_argument('--opna-law', action='store_true',
                         help='Apply the measured OPN2>OPNA conversion law to the '

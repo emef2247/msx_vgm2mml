@@ -56,7 +56,7 @@ class MusicalVariantPublicationTests(unittest.TestCase):
         self.assertEqual(row['status'], 'success')
         self.build.assert_called_once_with(self.source, self.output / '_diagnostics/song/vgm_variants/native', 'song')
         self.render.assert_called_once_with(self.performance, self.output / '_diagnostics/song/vgm_variants',
-                                            'song', force=False, dcsg_gain=.5, opna_law=False)
+                                            'song', force=False, dcsg_gain=.25, opna_law=False)
         products = batch.package_manifest(self.output)['entries']['song.vgm']['published']
         self.assertEqual(set(products), {f'vgm-variants/{p}/song.vgm' for p in export_mgs.VARIANT_PROFILES})
         for name in products:

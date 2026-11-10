@@ -117,7 +117,7 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False):
                 emit(at,0x30+target,kf,'musical pitch fraction')
                 for bank,(harmonic,amplitude) in enumerate(zip(spectrum.harmonics,spectrum.amplitudes)):
                     offset=target+bank*8
-                    for reg,value in ((0x40,harmonic),(0x60,carrier_tl(.125*level*amplitude)),
+                    for reg,value in ((0x40,harmonic),(0x60,carrier_tl(level*amplitude)),
                                       (0x80,31),(0xa0,0),(0xc0,0),(0xe0,15)):
                         emit(at,reg+offset,value,'wave spectrum and musical volume')
                 if not started:emit(at,8,0x78|target,'musical gate start')
@@ -131,7 +131,7 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False):
                 emit(at,0xa0+ch,fnum&255,'musical pitch low commit',port)
                 for bank,(harmonic,amplitude) in enumerate(zip(spectrum.harmonics,spectrum.amplitudes)):
                     offset=ch+bank*4
-                    for reg,value in ((0x30,harmonic),(0x40,carrier_tl(.125*level*amplitude)),
+                    for reg,value in ((0x30,harmonic),(0x40,carrier_tl(level*amplitude)),
                                       (0x50,31),(0x60,0),(0x70,0),(0x80,15),(0x90,0)):
                         emit(at,reg+offset,value,'wave spectrum and musical volume',port)
                 if not started:emit(at,0x28,0xf0|ch|(4 if port else 0),'musical gate start')
@@ -150,7 +150,7 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False):
     return rows,losses,allocation
 
 
-def project_psg_opll(performance, *, dcsg_gain=.5, opna=False, force=False):
+def project_psg_opll(performance, *, dcsg_gain=.25, opna=False, force=False):
     """Render native PSG/SSG/OPLL units, plus DCSG's AY approximation."""
     from native_registers import encode_control
     devices={d.device_id:d for d in performance.devices}

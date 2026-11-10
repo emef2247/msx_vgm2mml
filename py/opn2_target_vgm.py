@@ -462,7 +462,7 @@ def project_opm_from_analysis(analysis, *, clock_raw, pitch_policy='clamp',
 
 
 def project_dcsg(analysis, *, loop_start=None, loop_event_id=None,
-                 dcsg_gain=0.5):
+                 dcsg_gain=0.25):
     """Project native DCSG Segments to AY (instance 0) + SSG (instance 1) rows.
 
     Split, designed for this pair: each DCSG chip keeps its three
@@ -1685,7 +1685,7 @@ def write_vgm(rows, path, *, end, loop_start=None, loop_event_id=None, prefix=b'
 
 
 def convert(source, outdir, *, force=False, layered=False, target='makoto',
-            dac='opna', dcsg_gain=0.5, opna_law=False):
+            dac='opna', dcsg_gain=0.25, opna_law=False):
     """Analyze one OPN2 VGM and emit its target VGM.
 
     Native evidence (registers/states/segments CSVs and the source

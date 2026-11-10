@@ -31,7 +31,7 @@ class SccLayeredTests(unittest.TestCase):
                 self.assertTrue(any(e.command==0xd2 and e.vgmticks==1000 and raw[e.address+1:e.address+4]==bytes((3,0,0)) for e in events))
                 self.assertEqual(sum(e.command==0xa0 and raw[e.address+1]==8 and raw[e.address+2]==15 for e in events),1)
             self.assertEqual(p.units[0].volume_curve,((0,15),))
-            self.assertEqual(result['scc_layered']['plan']['real_scc']['fm_companion_gain'],.5)
+            self.assertEqual(result['scc_layered']['plan']['real_scc']['fm_companion_gain'],1.0)
 
     def test_scc_curves_and_voice_are_authoritative(self):
         p=performance();wave='00'*16+'ff'*16
@@ -47,7 +47,7 @@ class SccLayeredTests(unittest.TestCase):
         plain,_,_,_=project_variant(p,'sfg01',force=True)
         layered,_,_,_=project_variant(p,'scc_sfg01',force=True)
         tl=lambda rr:next(r['command'][2] for r in rr if r['command'][:2]==bytes((0x54,0x60)))
-        self.assertGreater(tl(layered),tl(plain))
+        self.assertEqual(tl(layered),tl(plain))
 
     def test_shared_wave_changes_at_same_sample_and_conflicts(self):
         p=performance();v=replace(p.voices[0],voice_id='new',parameters=(('waveform_hex','01'*32),))

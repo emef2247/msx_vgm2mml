@@ -82,4 +82,4 @@ def project_scc(performance):
         mask |= 1<<ch;emit(3,0,mask,'SCC musical gate enable')
     return rows,{},dict(clock_hz=device.clock_hz,scc_plus=plus,
         channels=sorted({u.channel for u in units}),input_representation='NativePerformance',
-        fm_companion_gain=0.5)
+        fm_companion_gain=1.0)
