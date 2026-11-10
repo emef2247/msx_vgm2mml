@@ -133,16 +133,17 @@ MML 生成用に構築した音楽情報を、MSX のサウンドカートリッ
 
 生成物は `vgm-variants/<プロファイル名>/<曲名>.vgm` に出力されます。生成できない構成は理由とともにスキップされ、診断が `_diagnostics` に残ります。
 
-| プロファイル | 必要なもの | FM | PCM |
-|---|---|---|---|
-| sfg01 | SFG-01 | OPM（YM2151） | なし（PCM を含む曲は生成されません） |
-| makoto | Makoto（OPNA カートリッジ） | OPNA（YM2608） | OPNA の ADPCM-B（最大 256KiB） |
-| sfg01_makoto | SFG-01 + Makoto | OPM | OPNA の ADPCM-B |
-| sfg01_msxaudio | SFG-01 + MSX-AUDIO | OPM | Y8950 の ADPCM（最大 256KiB） |
-| layered | SFG-01 + Makoto | OPM と OPNA の両方を重ねて再生 | OPNA の ADPCM-B |
-| scc_sfg01 | SFG-01 | SCC パートを OPM で補完 | 元の構成に従う |
-| scc_makoto | Makoto | SCC パートを OPNA で補完 | 元の構成に従う |
-| scc_layered | SFG-01 + Makoto | SCC パートを OPM と OPNA で補完 | 元の構成に従う |
+入力音源ごとに生成されるプロファイルの一覧です（○：生成される、—：生成されない）。
+
+| プロファイル | psg | psg_scc | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 |
+|---|---|---|---|---|---|---|---|---|---|
+| sfg01 | ○ | ○ | ○ | ○ | ○ | ○ | ○ | — | — |
+| makoto | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○ |
+| sfg01_makoto | — | — | — | — | — | ○ | — | ○ | ○ |
+| layered | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○ |
+| scc_sfg01 | — | ○ | — | — | — | — | — | — | — |
+| scc_makoto | — | ○ | — | — | — | — | — | — | — |
+| scc_layered | — | ○ | — | — | — | — | — | — | — |
 
 - `makoto`：各音源を OPNA の FM 向けに変換します。複数の音源が混在する場合は優先順位があります。PCM は OPNA の ADPCM-B へ変換します。
 - `sfg01`：各音源を OPM の FM 向けに変換します。こちらも音源の優先順位があります。PCM の再生には Makoto または MSX-AUDIO を併用できます（`sfg01_makoto` / `sfg01_msxaudio`）。
