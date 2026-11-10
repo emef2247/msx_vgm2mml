@@ -316,6 +316,38 @@ MGSDRV itself handles performance data over 16 KB, but some players have their o
 
 Beyond a player's limit, playback may glitch partway through, never terminate, or silently refuse to play. If real-hardware playback matters, edit or split the MML so the MGS stays within 16,384 bytes.
 
+## Playing on Various Sound Cartridges
+
+In addition to the standard output, adding `--vgm-variants` also generates VGM files for each sound cartridge configuration. This feature lets you play converted songs as they are on cartridges such as SFG-01 (OPM) and Makoto (OPNA).
+
+The musical information built for MML generation is assigned to other sound chips mounted on MSX sound cartridges. The current targets are SFG-01 (OPM) and Makoto (OPNA).
+
+    python scripts/export_mgs.py <input.vgm> --outdir <output> --vgm-variants --force
+
+Output goes to `vgm-variants/<profile>/<song>.vgm`. Configurations that cannot be generated are skipped with a reason, and diagnostics remain in `_diagnostics`.
+
+Profiles generated for each source type (Yes: generated, Approximate: limited or partially unconverted, No: not generated).
+
+| Profile | psg | psg_scc | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| sfg01 | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ | △ |
+| makoto | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
+| sfg01_makoto | — | — | — | — | — | — | — | ○ | — | ○ | ○ |
+| sfg01_msxaudio | — | — | — | — | — | — | — | — | — | ○ | ○ |
+| layered | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
+| scc_sfg01 | — | ○ | — | — | — | — | — | — | — | — | — |
+| scc_makoto | — | ○ | — | — | — | — | — | — | — | — | — |
+| scc_layered | — | ○ | — | — | — | — | — | — | — | — | — |
+
+- `makoto`: Converts each source for OPNA FM. When several sources are mixed, priorities apply. PCM is converted to OPNA ADPCM-B.
+- `sfg01`: Converts each source for OPM FM. Priorities apply here as well. For PCM playback, Makoto or MSX-AUDIO can be combined (`sfg01_makoto` / `sfg01_msxaudio`).
+- `layered`: For sources that can be converted to FM, performance data for both OPM and OPNA is stored, and SFG-01 and Makoto play the same part layered together. Unlike detune, this is a playful feature only possible on MSX.
+- `scc_sfg01`: Plays the SCC part on real SCC while layering the same part on OPM FM. The other parts are the same as the configuration without `scc`.
+- `scc_makoto`: Plays the SCC part on real SCC while layering the same part on OPNA FM. The other parts are the same as the configuration without `scc`.
+- `scc_layered`: Plays the SCC part on real SCC while layering the same part on both OPM and OPNA FM. The other parts are the same as the configuration without `scc`.
+- PCM is automatically adjusted to fit within the 256 KiB capacity, by sharing duplicated samples and substituting representatives.
+- For playback, use VGMPlay on real MSX hardware, or MAmidiMEmo via Mami-VSIF Pro. Even without real hardware, you can play them in a VGM player.
+
 ## Project Structure
 
 - `vgm2mml.py`: Analyze individual VGM files and generate MML and VGM output
