@@ -326,18 +326,18 @@ The musical information built for MML generation is assigned to other sound chip
 
 Output goes to `vgm-variants/<profile>/<song>.vgm`. Configurations that cannot be generated are skipped with a reason, and diagnostics remain in `_diagnostics`.
 
-Profiles generated for each source type (Yes: generated, Approximate: limited or partially unconverted, No: not generated).
+Profiles generated for each source type.
 
 | Profile | psg | psg_scc | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| sfg01 | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ | △ |
-| makoto | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
-| sfg01_makoto | — | — | — | — | — | — | — | ○ | — | ○ | ○ |
-| sfg01_msxaudio | — | — | — | — | — | — | — | — | — | ○ | ○ |
-| layered | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
-| scc_sfg01 | — | ○ | — | — | — | — | — | — | — | — | — |
-| scc_makoto | — | ○ | — | — | — | — | — | — | — | — | — |
-| scc_layered | — | ○ | — | — | — | — | — | — | — | — | — |
+| sfg01 | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Approximate | Approximate |
+| makoto | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Yes | Yes |
+| sfg01_makoto | No | No | No | No | No | No | No | Yes | No | Yes | Yes |
+| sfg01_msxaudio | No | No | No | No | No | No | No | No | No | Yes | Yes |
+| layered | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Yes | Yes |
+| scc_sfg01 | No | Yes | No | No | No | No | No | No | No | No | No |
+| scc_makoto | No | Yes | No | No | No | No | No | No | No | No | No |
+| scc_layered | No | Yes | No | No | No | No | No | No | No | No | No |
 
 - `makoto`: Converts each source for OPNA FM. When several sources are mixed, priorities apply. PCM is converted to OPNA ADPCM-B.
 - `sfg01`: Converts each source for OPM FM. Priorities apply here as well. For PCM playback, Makoto or MSX-AUDIO can be combined (`sfg01_makoto` / `sfg01_msxaudio`).
