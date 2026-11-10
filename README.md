@@ -142,9 +142,6 @@ MGSDRV本体は16KBを超える演奏データも処理できますが、プレ�
 | scc_makoto | Makoto | SCC パートを OPNA で補完 | 元の構成に従う |
 | scc_layered | SFG-01 + Makoto | SCC パートを OPM と OPNA で補完 | 元の構成に従う |
 
-- `makoto` では OPLL と内蔵 PSG（AY）も併用します。
-- `layered` は同じ FM パートを OPM と OPNA の両方へ射影し、同時に鳴らします。PCM・PSG などは二重にはなりません。
-- SCC 由来の FM 補完も、実 SCC と同じ音量で重ねます。
 - PCM は 256KiB の容量に収まるよう、重複するサンプルの共有や代表への置き換えで自動的に調整されます。
 - 再生は MSX 実機の VGMPlay や、Mami-VSIF Pro 経由の MAmidiMEmo などでどうぞ。
 

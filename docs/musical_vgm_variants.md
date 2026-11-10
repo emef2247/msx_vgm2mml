@@ -40,9 +40,9 @@ reasons in `_diagnostics/<stem>/vgm_variants.json`.
 | sfg01_makoto | YM2151 FM, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
 | sfg01_msxaudio | YM2151 FM, Y8950 Delta-T, YM2413 and PSG |
 | layered | YM2151 and YM2608 FM in parallel, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
-| scc_sfg01 | Real SCC plus the sfg01 composition; SCC-derived FM at half amplitude |
-| scc_makoto | Real SCC plus the makoto composition; SCC-derived FM at half amplitude |
-| scc_layered | Real SCC plus both FM layers; each SCC-derived FM at half amplitude |
+| scc_sfg01 | Real SCC plus the sfg01 composition |
+| scc_makoto | Real SCC plus the makoto composition |
+| scc_layered | Real SCC plus both FM layers |
 
 ## Layered FM
 
@@ -65,8 +65,7 @@ SCC-bearing sources additionally publish `scc_sfg01`, `scc_makoto`, and
 `scc_layered`: real SCC plus respectively OPM, OPNA, or both FM approximations.
 The real SCC lane is reconstructed from the same NativePerformance pitch,
 volume and waveform curves, without reopening the source file. Its original
-clock/level are retained. Only SCC-derived FM companions have a fixed 0.5
-linear-amplitude gain; existing profiles and other source voices are unchanged.
+clock/level are retained.
 PSG, OPLL, noise and PCM are not duplicated. Makoto-containing compositions
 retain their existing single PCM bank and 256 KiB budget.
 
