@@ -167,17 +167,17 @@ class AdditivePlan:
 
 
 def project(psg, scc, *, psg_clock, scc_clock, end_vgmticks, psg_gain=None,
-            scc_gain=.125, psg_model='additive', pitch_policy=None):
+            scc_gain=1.0, psg_model='additive', pitch_policy=None):
     if psg_model not in ('fm', 'additive'):
         raise ValueError('PSG model must be fm or additive')
     pitch_policy = pitch_policy or ('clamp' if psg_model == 'fm' else 'error')
     if pitch_policy not in ('clamp', 'error'):
         raise ValueError('Pitch policy must be clamp or error')
-    psg_gain = (1. if psg_model == 'fm' else .125) if psg_gain is None else psg_gain
-    if not math.isfinite(psg_gain) or not 0 < psg_gain <= (1. if psg_model == 'fm' else .5):
+    psg_gain = 1. if psg_gain is None else psg_gain
+    if not math.isfinite(psg_gain) or not 0 < psg_gain <= 1.:
         raise ValueError('PSG gain exceeds the selected model range')
-    if not math.isfinite(scc_gain) or not 0 < scc_gain <= .5:
-        raise ValueError('SCC gain must be positive and at most 0.5')
+    if not math.isfinite(scc_gain) or not 0 < scc_gain <= 1.:
+        raise ValueError('SCC gain must be positive and at most 1.0')
     plan = AdditivePlan([], [], {}, end_vgmticks,
                         dict(psg_clock=psg_clock, scc_clock=scc_clock, target_clock=OPM_CLOCK,
                              psg_gain=psg_gain, scc_gain=scc_gain, psg_model=psg_model,

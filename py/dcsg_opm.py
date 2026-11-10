@@ -191,7 +191,7 @@ def musical_units(analysis):
     return source, notes, membership(notes)
 
 
-def project(analysis, *, force=False, pitch_policy='clamp', gain=.125, terminate=True,
+def project(analysis, *, force=False, pitch_policy='clamp', gain=1.0, terminate=True,
             opm_clock=OPM_CLOCK):
     """Return an inspectable PerformancePlan; native source evidence is untouched.
 
@@ -201,8 +201,8 @@ def project(analysis, *, force=False, pitch_policy='clamp', gain=.125, terminate
     """
     if pitch_policy not in ('clamp', 'error'):
         raise ValueError('DCSG OPM pitch policy must be clamp or error')
-    if not math.isfinite(gain) or not 0 < gain <= .5:
-        raise ValueError('DCSG additive gain must be positive and at most 0.5')
+    if not math.isfinite(gain) or not 0 < gain <= 1.:
+        raise ValueError('DCSG additive gain must be positive and at most 1.0')
     if any(i['code'] == 'undeclared_dcsg_instance' for i in analysis.issues):
         raise ValueError('DCSG projection requires declared source clock and chip instances')
     source, notes, note_membership = musical_units(analysis)
