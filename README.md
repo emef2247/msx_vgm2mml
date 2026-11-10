@@ -59,17 +59,18 @@ Blueprintは通常のMML/MGS生成とは独立しており、MGSへの変換が�
 
 ## 対応する音源
 
-| VGMの音源 | MGS変換 | Blueprint |
-| --- | :---: | :---: |
-| PSG／SSG（AY系） | ○ | ○ |
-| OPLL（YM2413） | ○ | ○ |
-| SCC | ○ | ○ |
-| HuC6280 | △ | ○ |
-| NES APU | ○ | ○ |
-| FDS | ○ | ○ |
-| OPM（YM2151） | ― | ○ |
-| OPNA（YM2608） | ― | ○ |
-| OPN2（YM2612） | ― | ○ |
+| VGMの音源 | MGS変換 | Blueprint | vgm-variants |
+| --- | :---: | :---: | :---: |
+| PSG／SSG（AY系） | ○ | ○ | ○ |
+| OPLL（YM2413） | ○ | ○ | ○ |
+| SCC | ○ | ○ | ○ |
+| HuC6280 | △ | ○ | △ |
+| NES APU | ○ | ○ | ○ |
+| FDS | ○ | ○ | ○ |
+| OPM（YM2151） | ― | ○ | ○ |
+| OPM＋MSM6258 | ― | ― | ○ |
+| OPNA（YM2608） | ― | ○ | ○ |
+| OPN2（YM2612） | ― | ○ | ○ |
 
 ○：対応　△：近似変換　―：非対応
 
@@ -216,17 +217,18 @@ The `--force` option does not guarantee successful conversion of every input. It
 
 ## Supported Sound Chips
 
-| VGM Sound Chip | MGS Conversion | Blueprint |
-| --- | :---: | :---: |
-| PSG / SSG (AY family) | Yes | Yes |
-| OPLL (YM2413) | Yes | Yes |
-| SCC | Yes | Yes |
-| HuC6280 | Approximate | Yes |
-| NES APU | Yes | Yes |
-| FDS | Yes | Yes |
-| OPM (YM2151) | No | Yes |
-| OPNA (YM2608) | No | Yes |
-| OPN2 (YM2612) | No | Yes |
+| VGM Sound Chip | MGS Conversion | Blueprint | VGM Variants |
+| --- | :---: | :---: | :---: |
+| PSG / SSG (AY family) | Yes | Yes | Yes |
+| OPLL (YM2413) | Yes | Yes | Yes |
+| SCC | Yes | Yes | Yes |
+| HuC6280 | Approximate | Yes | Approximate |
+| NES APU | Yes | Yes | Yes |
+| FDS | Yes | Yes | Yes |
+| OPM (YM2151) | No | Yes | Yes |
+| OPM + MSM6258 | No | No | Yes |
+| OPNA (YM2608) | No | Yes | Yes |
+| OPN2 (YM2612) | No | Yes | Yes |
 
 ### MGS Conversion
 
