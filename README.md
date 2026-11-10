@@ -123,6 +123,31 @@ MGSDRV本体は16KBを超える演奏データも処理できますが、プレ�
 
 上限を超えると、途中で音がおかしくなったり、曲が終了しなくなったり、無言で再生されなかったりします。実機再生が前提の場合は、MGSが16,384バイト以下に収まるようMMLを編集または分割してください。
 
+## いろんなサウンドカートリッジで鳴らしてみる
+
+通常の出力に加えて、`--vgm-variants` を付けて実行すると、サウンドカートリッジの構成ごとの VGM を別途生成します。SFG-01（OPM）や Makoto（OPNA）といったカートリッジで、変換した曲をそのまま鳴らすための機能です。
+
+    python scripts/export_mgs.py <入力.vgm> --outdir <出力先> --vgm-variants --force
+
+生成物は `vgm-variants/<プロファイル名>/<曲名>.vgm` に出力されます。生成できない構成は理由とともにスキップされ、診断が `_diagnostics` に残ります。
+
+| プロファイル | 必要なもの | FM | PCM |
+|---|---|---|---|
+| sfg01 | SFG-01 | OPM（YM2151） | なし（PCM を含む曲は生成されません） |
+| makoto | Makoto（OPNA カートリッジ） | OPNA（YM2608） | OPNA の ADPCM-B（最大 256KiB） |
+| sfg01_makoto | SFG-01 + Makoto | OPM | OPNA の ADPCM-B |
+| sfg01_msxaudio | SFG-01 + MSX-AUDIO | OPM | Y8950 の ADPCM（最大 256KiB） |
+| layered | SFG-01 + Makoto | OPM と OPNA の両方を重ねて再生 | OPNA の ADPCM-B |
+| scc_sfg01 | SFG-01 | SCC パートを OPM で補完 | 元の構成に従う |
+| scc_makoto | Makoto | SCC パートを OPNA で補完 | 元の構成に従う |
+| scc_layered | SFG-01 + Makoto | SCC パートを OPM と OPNA で補完 | 元の構成に従う |
+
+- `makoto` では OPLL と内蔵 PSG（AY）も併用します。
+- `layered` は同じ FM パートを OPM と OPNA の両方へ射影し、同時に鳴らします。PCM・PSG などは二重にはなりません。
+- SCC 由来の FM 補完も、実 SCC と同じ音量で重ねます。
+- PCM は 256KiB の容量に収まるよう、重複するサンプルの共有や代表への置き換えで自動的に調整されます。
+- 再生は MSX 実機の VGMPlay や、Mami-VSIF Pro 経由の MAmidiMEmo などでどうぞ。
+
 ## 構成
 
 - `vgm2mml.py`：単体VGMの解析とMML・VGM生成
