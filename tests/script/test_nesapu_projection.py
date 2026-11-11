@@ -24,11 +24,11 @@ class NesApuBalanceGainTests(unittest.TestCase):
         gained_controls = [r for r in gained.controls
                            if r['source_channel'] == 0]
         self.assertEqual(plain_controls[0]['target_volume'], 8)
-        self.assertEqual(gained_controls[0]['target_volume'], 10)  # 8 * 1.3
+        self.assertEqual(gained_controls[0]['target_volume'], 8)  # 8 * 1.0
         self.assertEqual(plain.summary['mapping_gains'], {})
-        self.assertEqual(gained.summary['mapping_gains']['pulse'], 1.3)
+        self.assertEqual(gained.summary['mapping_gains']['pulse'], 1.0)
 
-    def test_triangle_gain_lowers_target_volume(self):
+    def test_triangle_gain_keeps_target_volume(self):
         note = (write(21, 4) + write(8, 0xff) + write(10, 0x7e) +
                 write(11, 0xf8))
         raw = make_vgm(note + wait(7350))
@@ -37,7 +37,7 @@ class NesApuBalanceGainTests(unittest.TestCase):
                    for c in commands_by_type(gained.vgm)[0xd2]
                    if gained.vgm[c.address + 1] == 2
                    and gained.vgm[c.address + 2] == 2]
-        self.assertEqual(volumes, [11])  # 15 * 0.75
+        self.assertEqual(volumes, [15])  # 15 * 1.0
 
     def test_noise_gain_scales_psg_volume(self):
         raw = make_vgm(write(21, 8) + write(12, 0x1a) + write(14, 0x03) +
@@ -46,8 +46,8 @@ class NesApuBalanceGainTests(unittest.TestCase):
         amplitudes = [gained.vgm[c.address + 2]
                       for c in commands_by_type(gained.vgm)[0xa0]
                       if gained.vgm[c.address + 1] == 10]
-        self.assertIn(8, amplitudes)  # 10 * 0.8
-        self.assertNotIn(10, amplitudes)
+        self.assertIn(10, amplitudes)  # 10 * 1.0
+        self.assertNotIn(8, amplitudes)
 
 
 def commands_by_type(raw):

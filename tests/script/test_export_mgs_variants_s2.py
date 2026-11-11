@@ -92,7 +92,7 @@ class ExportMgsVgmVariantsS2Tests(unittest.TestCase):
             out = root / 'out'
             rows = variant_pass(source, out, force=force)
             self.assertEqual(rows[0]['status'], 'success', rows)
-            check(out, assert_profiles(self, out, ('sfg01', 'makoto')))
+            check(out, assert_profiles(self, out, ('sfg01', 'makoto', 'layered')))
 
     def test_opna_fm_and_ssg_publish_both_base_profiles(self):
         def check(out, report):

@@ -59,17 +59,20 @@ Blueprintは通常のMML/MGS生成とは独立しており、MGSへの変換が�
 
 ## 対応する音源
 
-| VGMの音源 | MGS変換 | Blueprint |
-| --- | :---: | :---: |
-| PSG／SSG（AY系） | ○ | ○ |
-| OPLL（YM2413） | ○ | ○ |
-| SCC | ○ | ○ |
-| HuC6280 | △ | ○ |
-| NES APU | ○ | ○ |
-| FDS | ○ | ○ |
-| OPM（YM2151） | ― | ○ |
-| OPNA（YM2608） | ― | ○ |
-| OPN2（YM2612） | ― | ○ |
+| VGMの音源 | MGS変換 | Blueprint | vgm-variants |
+| --- | :---: | :---: | :---: |
+| PSG／SSG（AY系） | ○ | ○ | ○ |
+| OPLL（YM2413） | ○ | ○ | ○ |
+| SCC | ○ | ○ | ○ |
+| DCSG（SN76489） | ― | ○ | ○ |
+| DCSGx2 | ― | ○ | ○ |
+| HuC6280 | △ | ○ | △ |
+| NES APU | ○ | ○ | ○ |
+| FDS | ○ | ○ | ○ |
+| OPM（YM2151） | ― | ○ | ○ |
+| OPM＋MSM6258 | ― | ― | ○ |
+| OPNA（YM2608） | ― | ○ | ○ |
+| OPN2（YM2612） | ― | ○ | ○ |
 
 ○：対応　△：近似変換　―：非対応
 
@@ -121,6 +124,38 @@ MGSDRV本体は16KBを超える演奏データも処理できますが、プレ�
 - MultiPlay-X V1.13: おそらく20,480バイト（0x5000）まで
 
 上限を超えると、途中で音がおかしくなったり、曲が終了しなくなったり、無言で再生されなかったりします。実機再生が前提の場合は、MGSが16,384バイト以下に収まるようMMLを編集または分割してください。
+
+## いろんなサウンドカートリッジで鳴らしてみる
+
+通常の出力に加えて、`--vgm-variants` を付けて実行すると、サウンドカートリッジの構成ごとの VGM を別途生成します。SFG-01（OPM）や Makoto（OPNA）といったカートリッジで、変換した曲をそのまま鳴らすための機能です。
+
+MML 生成用に構築した音楽情報を、MSX のサウンドカートリッジに搭載された別の音源へ割り当ててみる機能です。現在の対象は SFG-01（OPM）と Makoto（OPNA）です。
+
+    python scripts/export_mgs.py <入力.vgm> --outdir <出力先> --vgm-variants --force
+
+生成物は `vgm-variants/<プロファイル名>/<曲名>.vgm` に出力されます。生成できない構成は理由とともにスキップされ、診断が `_diagnostics` に残ります。
+
+入力音源ごとに生成されるプロファイルの一覧です（○：生成される、△：制限あり・未変換部分あり、—：生成されない）。
+
+| プロファイル | psg | psg_scc | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| sfg01 | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ | △ |
+| makoto | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
+| sfg01_makoto | — | — | — | — | — | — | — | ○ | — | ○ | ○ |
+| sfg01_msxaudio | — | — | — | — | — | — | — | — | — | ○ | ○ |
+| layered | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
+| scc_sfg01 | — | ○ | — | — | — | — | — | — | — | — | — |
+| scc_makoto | — | ○ | — | — | — | — | — | — | — | — | — |
+| scc_layered | — | ○ | — | — | — | — | — | — | — | — | — |
+
+- `makoto`：各音源を OPNA の FM 向けに変換します。複数の音源が混在する場合は優先順位があります。PCM は OPNA の ADPCM-B へ変換します。
+- `sfg01`：各音源を OPM の FM 向けに変換します。こちらも音源の優先順位があります。PCM の再生には Makoto または MSX-AUDIO を併用できます（`sfg01_makoto` / `sfg01_msxaudio`）。
+- `layered`：FM に変換可能な音源について OPM と OPNA 両方の演奏データを格納し、SFG-01 と Makoto が同じパートを重ねて演奏します。デチューンとも違う、MSX ならではのお遊び機能です。
+- `scc_sfg01`：SCC のパートを実 SCC で鳴らしながら、同じパートを OPM の FM でも重ねます。他のパートは `scc` の付かない構成と同じです。
+- `scc_makoto`：SCC のパートを実 SCC で鳴らしながら、同じパートを OPNA の FM でも重ねます。他のパートは `scc` の付かない構成と同じです。
+- `scc_layered`：SCC のパートを実 SCC で鳴らしながら、同じパートを OPM と OPNA の両方の FM でも重ねます。他のパートは `scc` の付かない構成と同じです。
+- PCM は 256KiB の容量に収まるよう、重複するサンプルの共有や代表への置き換えで自動的に調整されます。
+- 再生は MSX 実機の VGMPlay や、Mami-VSIF Pro 経由の MAmidiMEmo などでどうぞ。実機がなくても、VGM プレーヤーで再生できます。
 
 ## 構成
 
@@ -216,17 +251,20 @@ The `--force` option does not guarantee successful conversion of every input. It
 
 ## Supported Sound Chips
 
-| VGM Sound Chip | MGS Conversion | Blueprint |
-| --- | :---: | :---: |
-| PSG / SSG (AY family) | Yes | Yes |
-| OPLL (YM2413) | Yes | Yes |
-| SCC | Yes | Yes |
-| HuC6280 | Approximate | Yes |
-| NES APU | Yes | Yes |
-| FDS | Yes | Yes |
-| OPM (YM2151) | No | Yes |
-| OPNA (YM2608) | No | Yes |
-| OPN2 (YM2612) | No | Yes |
+| VGM Sound Chip | MGS Conversion | Blueprint | VGM Variants |
+| --- | :---: | :---: | :---: |
+| PSG / SSG (AY family) | Yes | Yes | Yes |
+| OPLL (YM2413) | Yes | Yes | Yes |
+| SCC | Yes | Yes | Yes |
+| DCSG (SN76489) | No | Yes | Yes |
+| DCSGx2 | No | Yes | Yes |
+| HuC6280 | Approximate | Yes | Approximate |
+| NES APU | Yes | Yes | Yes |
+| FDS | Yes | Yes | Yes |
+| OPM (YM2151) | No | Yes | Yes |
+| OPM + MSM6258 | No | No | Yes |
+| OPNA (YM2608) | No | Yes | Yes |
+| OPN2 (YM2612) | No | Yes | Yes |
 
 ### MGS Conversion
 
@@ -277,6 +315,38 @@ MGSDRV itself handles performance data over 16 KB, but some players have their o
 - MultiPlay-X V1.13: probably up to 20,480 bytes (0x5000)
 
 Beyond a player's limit, playback may glitch partway through, never terminate, or silently refuse to play. If real-hardware playback matters, edit or split the MML so the MGS stays within 16,384 bytes.
+
+## Playing on Various Sound Cartridges
+
+In addition to the standard output, adding `--vgm-variants` also generates VGM files for each sound cartridge configuration. This feature lets you play converted songs as they are on cartridges such as SFG-01 (OPM) and Makoto (OPNA).
+
+The musical information built for MML generation is assigned to other sound chips mounted on MSX sound cartridges. The current targets are SFG-01 (OPM) and Makoto (OPNA).
+
+    python scripts/export_mgs.py <input.vgm> --outdir <output> --vgm-variants --force
+
+Output goes to `vgm-variants/<profile>/<song>.vgm`. Configurations that cannot be generated are skipped with a reason, and diagnostics remain in `_diagnostics`.
+
+Profiles generated for each source type.
+
+| Profile | psg | psg_scc | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| sfg01 | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Approximate | Approximate |
+| makoto | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Yes | Yes |
+| sfg01_makoto | No | No | No | No | No | No | No | Yes | No | Yes | Yes |
+| sfg01_msxaudio | No | No | No | No | No | No | No | No | No | Yes | Yes |
+| layered | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Yes | Yes |
+| scc_sfg01 | No | Yes | No | No | No | No | No | No | No | No | No |
+| scc_makoto | No | Yes | No | No | No | No | No | No | No | No | No |
+| scc_layered | No | Yes | No | No | No | No | No | No | No | No | No |
+
+- `makoto`: Converts each source for OPNA FM. When several sources are mixed, priorities apply. PCM is converted to OPNA ADPCM-B.
+- `sfg01`: Converts each source for OPM FM. Priorities apply here as well. For PCM playback, Makoto or MSX-AUDIO can be combined (`sfg01_makoto` / `sfg01_msxaudio`).
+- `layered`: For sources that can be converted to FM, performance data for both OPM and OPNA is stored, and SFG-01 and Makoto play the same part layered together. Unlike detune, this is a playful feature only possible on MSX.
+- `scc_sfg01`: Plays the SCC part on real SCC while layering the same part on OPM FM. The other parts are the same as the configuration without `scc`.
+- `scc_makoto`: Plays the SCC part on real SCC while layering the same part on OPNA FM. The other parts are the same as the configuration without `scc`.
+- `scc_layered`: Plays the SCC part on real SCC while layering the same part on both OPM and OPNA FM. The other parts are the same as the configuration without `scc`.
+- PCM is automatically adjusted to fit within the 256 KiB capacity, by sharing duplicated samples and substituting representatives.
+- For playback, use VGMPlay on real MSX hardware, or MAmidiMEmo via Mami-VSIF Pro. Even without real hardware, you can play them in a VGM player.
 
 ## Project Structure
 

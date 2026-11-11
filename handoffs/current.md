@@ -1,3 +1,104 @@
+# OPM + MSM6258 musical cartridge variants (2026-11-09)
+
+Implemented target checkpoint e4d6cfa and source connection 9d308fd on
+codex/layered-vgm-calibration-guide. Ordinary MML and the OPN2 fast path are
+unchanged. Decoded NativePCM is the input to Makoto, SFG01+Makoto,
+SFG01+MSX-Audio and layered variants. Use the existing --vgm-variants flag;
+--force permits explicit representative replacement for a bank above 256 KiB.
+One cartridge budget, no PDX 96-slot limit. Every eligible playback remains
+scheduled; mapping, delta-N saturation and endpoint errors are inspectable.
+
+Primary known-reset ADPCM4 / 10-bit output only. ADPCM3, 12-bit output,
+unknown reset/rate/cadence, mid-play pan changes and larger finite exhaustion
+overruns are unresolved, not silently decoded. Force may omit unresolved
+source assets with loss diagnostics; invalid assets are never projected.
+Up to one VGM tick of exhaustion rounding is clipped down with exact rational
+exhaustion and original end preserved. No held-tail invention. Raw commands,
+encoded source bytes, pan, rates and provenance remain intact.
+
+112 related authored/public tests passed, no failures/errors/skips. Actual
+source-to-publication integration publishes all four PCM-capable profiles.
+Inspected native PCM CSV/JSON and four target write CSVs under ignored
+outputs/diagnostics/msm6258_variants_20261109/. Authored source 0..256 ticks,
+Makoto bank 64 bytes / MSX-Audio 32 bytes; tests exercise padded capacity,
+force-only reuse, pan/mute, finite coverage, loop offsets and rate saturation.
+No private fixtures, listening or hardware verification. Owner owns these
+regressions and push. README and unrelated legacy knowledge file untouched.
+
+Next allowed action: owner regression with --force --vgm-variants on OPM+
+MSM6258 input. Inspect native decisions when PCM is unresolved; do not weaken
+source evidence checks merely to obtain success. Extend source modes/pan
+changes only with verified semantics. Do not infer acoustic equivalence from
+passing tests or repurpose the unused second cartridge as a 512 KiB pool.
+
+# Real SCC plus FM companions (2026-11-08)
+
+Added scc_sfg01 / scc_makoto / scc_layered to --vgm-variants. Existing five
+profiles and production MML defaults are unchanged. NativePerformance curves
+feed both a real SCC projector and OPM/OPNA approximation; no source reopening.
+Real SCC preserves native clock/level, FM companions derived from SCC use 0.5
+linear gain. PSG/OPLL/noise/PCM remain single projections, existing PCM policy.
+No HuC/APU/FDS-to-SCC projection added by this scoped request.
+
+One primary SCC cartridge only; SCC+ flag/independent banks are retained.
+Ordinary SCC4/5 shared-wave incompatibility and extended test/phase controls
+have explicit unavailable reasons. Gate/curve state and loop-boundary mask
+restoration are emitted on original integer samples. Source evidence untouched.
+Profile inventories in projection, export and batch collision checks include
+all eight; ownership, cleanup and rollback remain enforced. README untouched.
+
+55 related authored/public tests passed, no failures/errors/skips. One initial
+failure was an accidentally expanded OPN2 success expectation; corrected it
+rather than making SCC-free inputs publish SCC variants. Authored source VGM
+was ingested and published through the actual variants pass. Inspected native
+and target artifacts under outputs/diagnostics/scc_layered_20261108/ (ignored).
+No local_only regression, listening or hardware accuracy claim. Owner retains
+these checks; listen for gain balance and inherited FM spectral approximation.
+User's untracked docs/project_knowledge_legacy_2026_11-08.md is untouched.
+
+---
+
+# Checkpoint: calibration guide, variant visibility, layered FM (2026-11-08)
+
+Branch: codex/layered-vgm-calibration-guide, from main a45e497; use G: only.
+Owner assigns overall architecture/integration to Codex and focused calibration
+to Muse.ai. docs/calibration_collaboration.md is the shareable working guide;
+it complements existing rules and does not grant unrelated redesign authority.
+
+The saved BRNKL02 run now has three successful PCM-capable variants, matching
+manifest hashes. MGS conversion_failed / 0-of-1 describes the MGS route, not all
+outputs. Log ends in vgm variants success. Ownership preflight errors can occur
+but were not evidenced in this saved run. Added a flushed variants-start message
+and visible preflight/publication exceptions without weakening overwrite guards.
+Guide/display checkpoint committed as c0ba784.
+
+Added vgm-variants/layered/<stem>.vgm under --vgm-variants. The same retained
+NativePerformance projects FM and waveform-derived FM independently to SFG01
+(3579545 Hz) and Makoto (8000000 Hz). PSG/OPLL/rhythm/PCM project once; PCM uses
+Makoto's existing 256 KiB path. No automatic gain reduction. Per-chip allocations
+and losses are in plan.fm_layers. OPNA still has six FM channels, OPM eight;
+force allows explicit per-layer capacity omission, not source-data mutation.
+OPNA law correction only affects the OPNA layer. Publication/migration/disabled
+cleanup now recognize the fifth profile. Ordinary MML defaults are unchanged.
+
+Verification: 79 related authored/public checks passed, no failures/errors/skips.
+Inspected persisted native/target CSV and JSON from authored OPN2 FM+DAC under
+outputs/diagnostics/layered_variants_20261108: both FM clocks and keys, single
+Makoto PCM encoding (32 bytes of 262144), 78 planned writes. A prior check run's
+seven failures were old two-profile success-set expectations; updated only those
+expectations for the requested layered addition. No private fixture reconversion
+or listening performed. Owner retains broad regression and hardware audition.
+
+Published code checkpoint: 684a27e; guide/display checkpoint: c0ba784.
+Both are pushed to origin/codex/layered-vgm-calibration-guide.
+Next: owner/Muse regression, listening, and review before merging.
+Keep private outputs untracked and user edits protected. Do not combine cartridge
+PCM budgets, retune shared source evidence, change production defaults, or claim
+acoustic equivalence from these checks. External notes are committed separately;
+no external-notes push is authorized.
+
+---
+
 # PSG HW drum checkpoint (2026-10-30)
 
 - User SALAMD03 audition is hybrid legacy+score-guided. Extra HW shape resets confirmed in actual playback.

@@ -31,12 +31,16 @@ SLICE_PERIOD = round(2 * TARGET_CLOCK / (32 * 60)) - 1
 DUTY_HIGH_STEPS = (4, 8, 16, 24)
 # Per-kind volume gains for the NES -> SCC/PSG mapping. The source
 # segments stay exact; these factors only restyle how the mapping
-# expresses them, compensating the NES mixer's relative channel gains
-# (pulses capped at 10 in much game data, triangle fixed full, noise
-# bursts near full) against the SCC/PSG mix. Selected with
-# --nes-balance; individual factors can be overridden.
-BALANCE_GAINS = {'pulse': 1.3, 'triangle': 0.75, 'noise': 0.8,
-                 'dpcm': 1.25, 'fds': 1.0}
+# expresses them. Selected with --nes-balance; individual factors
+# can be overridden. Until 2026-11-10 the preset compensated the
+# NES mixer's relative channel gains (pulse 1.3, triangle 0.75,
+# noise 0.8, dpcm 1.25); the owner had already auditioned the
+# mapping with DQ3, found the overall volume lacking, and set
+# every factor to full (1.0), under the same full-level standard
+# as the waveform-synthesis routes. If the result feels too loud,
+# lower factors then, by listening.
+BALANCE_GAINS = {'pulse': 1.0, 'triangle': 1.0, 'noise': 1.0,
+                 'dpcm': 1.0, 'fds': 1.0}
 TRIANGLE_LEVELS = tuple(15 - i if i < 16 else i - 16 for i in range(32))
 
 

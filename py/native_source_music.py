@@ -486,6 +486,9 @@ def build_native_performance(source,outdir,stem=None,legacy_performances=(),lega
     if any(d.chip=='opn2' for d in builder.devices.values()):
         from native_pcm import add_opn2_pcm
         add_opn2_pcm(builder)
+    if any(d.chip=='msm6258' for d in builder.devices.values()):
+        from native_msm6258_pcm import add_msm6258_pcm
+        add_msm6258_pcm(builder)
     builder.dcsg()
     performances,_=_legacy_performances(bundle,root,stem,legacy_performances,legacy_opll_segments,bundle['raw'])
     _legacy_units(builder,performances);_opll(builder);_opna_aux(builder)

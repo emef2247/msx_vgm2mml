@@ -308,18 +308,18 @@ class Opn2DcsgTargetTests(unittest.TestCase):
         self.assertIn((1, 1), ssg_period)
         ay_volumes = [int(r['target_data']) for r in rows
                       if r['target_device'] == 'ay' and int(r['target_register']) == 8]
-        self.assertEqual(ay_volumes, [0, 13, 10])
+        self.assertEqual(ay_volumes, [0, 11, 8])
         # leading 0: attenuation unknown until the first source write;
-        # then attenuation 0 -> 13 and 5 -> 10 on the dB-matched
-        # table at the default gain 0.5 (-6.02 dB, settled by
-        # real-hardware listening 2026-11-07)
-        self.assertEqual(summary['dcsg_gain'], 0.5)
+        # then attenuation 0 -> 11 and 5 -> 8 on the dB-matched
+        # table at the default gain 0.25 (-12.04 dB; the 0.25 default
+        # was settled 2026-11-08, superseding the 2026-11-07 0.5)
+        self.assertEqual(summary['dcsg_gain'], 0.25)
         mixers = {int(r['target_data']) for r in rows
                   if r['target_device'] == 'ay' and int(r['target_register']) == 7}
         self.assertIn(0x18, mixers)  # noise audible on channel C
         c_volumes = {int(r['target_data']) for r in rows
                      if r['target_device'] == 'ay' and int(r['target_register']) == 10}
-        self.assertIn(12, c_volumes)  # noise attenuation 2 -> 12 while audible
+        self.assertIn(10, c_volumes)  # noise attenuation 2 -> 10 while audible
         # The same source with an explicit lane gain of 0.036 (the
         # x68k PCM balance) shifts every DCSG volume down the ladder.
         gained, gained_out = self.convert(dual_vgm(PHRASE + DCSG_PHRASE),

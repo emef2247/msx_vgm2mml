@@ -20,12 +20,16 @@ vgm-variants/sfg01/<stem>.vgm
 vgm-variants/makoto/<stem>.vgm
 vgm-variants/sfg01_makoto/<stem>.vgm
 vgm-variants/sfg01_msxaudio/<stem>.vgm
+vgm-variants/layered/<stem>.vgm
+vgm-variants/scc_sfg01/<stem>.vgm
+vgm-variants/scc_makoto/<stem>.vgm
+vgm-variants/scc_layered/<stem>.vgm
 _diagnostics/<stem>/vgm_variants/
 ```
 
-Only applicable, successful profiles are published. PCM-free sources normally
-need only sfg01 and makoto. PCM-bearing sources use makoto and the two auxiliary
-SFG01 compositions; plain sfg01 cannot play their PCM. Native OPNA rhythm can
+Only applicable, successful profiles are published. PCM-free sources can use
+sfg01, makoto, and layered. PCM-bearing sources can use makoto, layered, and the
+two auxiliary SFG01 compositions; plain sfg01 cannot play their PCM. Native OPNA rhythm can
 also use the Makoto auxiliary composition. Unsupported profiles have explicit
 reasons in `_diagnostics/<stem>/vgm_variants.json`.
 
@@ -35,6 +39,45 @@ reasons in `_diagnostics/<stem>/vgm_variants.json`.
 | makoto | YM2608 at 8 MHz, plus native YM2413 and AY PSG |
 | sfg01_makoto | YM2151 FM, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
 | sfg01_msxaudio | YM2151 FM, Y8950 Delta-T, YM2413 and PSG |
+| layered | YM2151 and YM2608 FM in parallel, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
+| scc_sfg01 | Real SCC plus the sfg01 composition |
+| scc_makoto | Real SCC plus the makoto composition |
+| scc_layered | Real SCC plus both FM layers |
+
+## Layered FM
+
+`layered` projects the same musical FM voices independently to SFG01 at
+3,579,545 Hz and Makoto at 8 MHz. Waveform voices approximated by FM also use
+both targets. Each chip has its own allocation and approximation diagnostics
+under `plan.fm_layers`; the Makoto layer retains its six-channel limit even
+though SFG01 has eight. Without force, a required capacity omission blocks the
+profile; with force, omissions are reported separately for each FM layer.
+
+PSG, OPLL, native rhythm, and PCM are projected once. PCM uses Makoto's existing
+256 KiB ADPCM-B path, including representative reuse where supported. There is
+no additional MSX-Audio bank or automatic FM gain reduction in this profile.
+Both FM layers retain the ordinary mapping levels, so listening balance may
+differ from a single-chip profile. Song timing and loop positions are shared.
+
+## Real SCC with FM companions
+
+SCC-bearing sources additionally publish `scc_sfg01`, `scc_makoto`, and
+`scc_layered`: real SCC plus respectively OPM, OPNA, or both FM approximations.
+The real SCC lane is reconstructed from the same NativePerformance pitch,
+volume and waveform curves, without reopening the source file. Its original
+clock/level are retained.
+PSG, OPLL, noise and PCM are not duplicated. Makoto-containing compositions
+retain their existing single PCM bank and 256 KiB budget.
+
+The additional profiles require sounding SCC units on one primary cartridge.
+Ordinary SCC channel 4/5 wave sharing is checked; incompatible simultaneous
+waveforms are unavailable rather than silently overwritten. SCC+ independent
+wave banks retain the native chip-type flag. Extended test/phase controls,
+unknown waveforms or unrepresentable pitch also yield explicit unavailable
+reasons. This does not add HuC/APU/FDS-to-SCC mapping. Musical time is unchanged;
+the SCC loop boundary reasserts its enable mask and active voice state.
+Per-profile write CSVs and `plan.real_scc` make the additional lane inspectable.
+No detune is added and relative loudness still needs user listening checks.
 
 ## Representation boundary
 
@@ -128,3 +171,42 @@ features are capacity heuristics, not a claim of perceptual equivalence. No
 source PCM content or event time is changed. If no feasible audible
 representative exists, the failure is explicit rather than silently dropping
 playbacks. The generic NES/HuC renderer has not yet adopted this policy.
+
+## MSM6258 musical PCM
+
+Eligible primary MSM6258 ADPCM4 / 10-bit-output playback is decoded into source-native signed16
+assets before cartridge projection. Encoded bytes, original controls, timing,
+reset evidence and source identities remain available in native diagnostics.
+ADPCM3, 12-bit output, mid-play pan changes, unknown reset/rate and incomplete supply remain explicit
+source decisions; they must not silently become FM-only success.
+
+OPM + MSM6258 inputs use the existing Makoto, SFG01 + Makoto,
+SFG01 + MSX-Audio and layered profiles. PCM is re-encoded as target ADPCM-B,
+with one 256 KiB budget per cartridge. Standalone SFG01 has no PCM destination.
+Exact encoded payloads are shared first. Capacity windows and song-loop cuts
+preserve the source sample origin and scheduled playback endpoints. Padding
+is included in the budget. There is no MDX/PDX 96-slot constraint.
+
+When the bank exceeds capacity, `--force` enables the existing representative
+selection policy. Every eligible playback receives a sample; substitutions,
+source/representative identities, rate changes and any rate clamping are
+reported in projection JSON alongside the target write CSV. Source assets
+are unchanged. This is lossy capacity fitting, not perceptual equivalence.
+Without force, over-budget banks and unresolved source evidence are rejected.
+Force can omit unresolved source assets, with explicit loss counts.
+
+MSM pan and mute are retained per playback, independently of payload sharing.
+MSX-Audio folds stereo routing to mono with a loss record. Overlapping MSM
+assets or a mixture with another decoded PCM family require an explicit mix
+policy and currently fail. Fresh target predictors at packaging cuts,
+linear resampling and finite decoded coverage are reported limitations.
+Hardware playback and private-fixture regression remain separate validation.
+
+The first source decoder uses the established x68k 10-bit MSM transition,
+low nibble first, known reset predictor -2/index 0 and signed16 scaling.
+The 12-bit output mode is explicitly unresolved, not silently decoded as 10-bit.
+Blocking native analysis issues conservatively invalidate all its decoded assets;
+observations do not. At most one VGM tick of fractional finite-exhaustion
+rounding can be clipped downward, with exact rational exhaustion and the
+original gate endpoint retained in asset metadata and source decisions. Larger
+overruns remain unresolved; no extra samples or last-value hold are invented.

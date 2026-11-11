@@ -169,7 +169,7 @@ class ExportMgsOpmVariantsTests(unittest.TestCase):
 
     def test_opm_publishes_base_profiles_without_redundant_auxiliaries(self):
         def check(out, report):
-            assert_profiles(self, out, ('sfg01', 'makoto'))
+            assert_profiles(self, out, ('sfg01', 'makoto', 'layered'))
             makoto = (out / 'vgm-variants/makoto/song.vgm').read_bytes()
             sfg01 = (out / 'vgm-variants/sfg01/song.vgm').read_bytes()
             self.assertEqual(_stamp(makoto, 0x48), 8000000)
@@ -195,7 +195,7 @@ class ExportMgsOpmVariantsTests(unittest.TestCase):
 
     def test_opm_eight_channels_record_omissions_under_force(self):
         def check(out, report):
-            assert_profiles(self, out, ('sfg01', 'makoto'))
+            assert_profiles(self, out, ('sfg01', 'makoto', 'layered'))
             self.assertEqual(report['summaries']['makoto']['losses']['fm_units_omitted_capacity'], 2)
         self.render(_opm_song(channels=8), check, force=True)
 

@@ -45,6 +45,47 @@ class BatchMgs(unittest.TestCase):
                     self.assertEqual(next(csv.DictReader(stream))['error_code'],'timeout')
 
     @patch('batch_vgm_to_mgs.shutil.which', return_value='/usr/local/bin/mgsc')
+    def test_stale_manifest_products_are_replaced_not_fatal(self, _which):
+        with tempfile.TemporaryDirectory() as tmp:
+            source, out = Path(tmp)/'input', Path(tmp)/'out'
+            source.mkdir()
+            (source/'a.vgm').write_bytes(b'fixture')
+            out.mkdir()
+            stale = out/'blueprint'/'old'/'a.mml'
+            stale.parent.mkdir(parents=True)
+            stale.write_text('old layout')
+            (out/'listening_manifest.json').write_text(json.dumps(
+                dict(schema_version=1, entries={'a.vgm': dict(
+                    published={'blueprint/old/a.mml': 'stale-digest'})})))
+            def run(command, **kwargs):
+                if '--outdir' in command:
+                    folder = Path(command[command.index('--outdir') + 1])
+                    (folder / (Path(command[2]).stem + '.mml')).write_text('1 c4')
+                if command[0] == '/usr/local/bin/mgsc':
+                    Path(command[2]).write_bytes(b'MGS')
+                return subprocess.CompletedProcess(command, 0, b'', b'')
+            with patch('batch_vgm_to_mgs.subprocess.run', side_effect=run):
+                rows = run_batch(source, out, keyon=False, timeout=17)
+            self.assertEqual([r['status'] for r in rows], ['success'])
+            self.assertFalse(stale.exists())
+            published = json.loads((out/'listening_manifest.json').read_text())['entries']['a.vgm']['published']
+            self.assertNotIn('blueprint/old/a.mml', published)
+
+    def test_ndp_blueprint_products_are_current_not_stale(self):
+        from batch_vgm_to_mgs import publication_targets
+        with tempfile.TemporaryDirectory() as tmp:
+            source, out = Path(tmp)/'input', Path(tmp)/'out'
+            source.mkdir()
+            (source/'a.vgm').write_bytes(b'fixture')
+            out.mkdir()
+            (out/'listening_manifest.json').write_text(json.dumps(
+                dict(schema_version=1, entries={'a.vgm': dict(published={
+                    'blueprint/ndp/a.mml': 'digest',
+                    'blueprint/old/a.mml': 'digest'})})))
+            _diagnostics, routes = publication_targets([source/'a.vgm'], source, out, 'all')
+            self.assertEqual(routes[0][5], ['blueprint/old/a.mml'])
+
+    @patch('batch_vgm_to_mgs.shutil.which', return_value='/usr/local/bin/mgsc')
     def test_keyon_timeout_does_not_change_successful_compile(self, _which):
         with tempfile.TemporaryDirectory() as tmp:
             source, out = Path(tmp)/'input', Path(tmp)/'out'
