@@ -26,9 +26,10 @@ sys.path.insert(0, str(ROOT / 'scripts'))
 sys.path.insert(0, str(ROOT / 'py'))
 
 import export_mgs
-from batch_vgm_to_mgs import (KEYON_FIELDS, discover_inputs, file_digest,
-                              package_manifest, publish_bundle, run_batch,
-                              save_json, save_package_results)
+from batch_vgm_to_mgs import (KEYON_FIELDS, discard_output_diagnostics,
+                              discover_inputs, file_digest, package_manifest,
+                              publish_bundle, run_batch, save_json,
+                              save_package_results)
 from mgs_conversion_config import sample_threshold
 from native_imports import inspect_source
 from opn2_target_vgm import convert as convert_target_vgm
@@ -98,7 +99,8 @@ def _run_mgs(args, macro_budget, source, outdir):
                      macro_definition_budget=macro_budget,
                      nes_balance=args.nes_balance, nes_gain=args.nes_gain,
                      psg_state_ms=None, scc_state_ms=None,
-                     curve_volume_error=None, curve_mean_error=None)
+                     curve_volume_error=None, curve_mean_error=None,
+                     retain_diagnostics=args.debug or args.dump_passes)
 
 
 def _exit_code(rows):
@@ -352,18 +354,22 @@ def _export_unavailable(path, relative, output, adjacent, args, detail):
                         {}, publication)
 
 
-def _write_combined_results(output, rows):
-    diagnostics = output / '_diagnostics'
-    diagnostics.mkdir(parents=True, exist_ok=True)
-    fields = list(dict.fromkeys(key for row in rows for key in row))
-    with (diagnostics / 'results.csv').open('w', encoding='utf-8', newline='') as stream:
-        writer = csv.DictWriter(stream, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(rows)
-    (diagnostics / 'results.json').write_text(json.dumps(rows, indent=2) + '\n',
-                                              encoding='utf-8')
-    print(f"{sum(row['status'] == 'success' for row in rows)}/{len(rows)} exported; "
-          f"results: {diagnostics / 'results.csv'}", flush=True)
+def _write_combined_results(output, rows, retain_diagnostics=True):
+    if retain_diagnostics:
+        diagnostics = output / '_diagnostics'
+        diagnostics.mkdir(parents=True, exist_ok=True)
+        fields = list(dict.fromkeys(key for row in rows for key in row))
+        with (diagnostics / 'results.csv').open('w', encoding='utf-8', newline='') as stream:
+            writer = csv.DictWriter(stream, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(rows)
+        (diagnostics / 'results.json').write_text(json.dumps(rows, indent=2) + '\n',
+                                                  encoding='utf-8')
+        print(f"{sum(row['status'] == 'success' for row in rows)}/{len(rows)} exported; "
+              f"results: {diagnostics / 'results.csv'}", flush=True)
+    else:
+        print(f"{sum(row['status'] == 'success' for row in rows)}/{len(rows)} exported",
+              flush=True)
 
 
 def main(argv=None):
@@ -421,7 +427,9 @@ def main(argv=None):
     except (RuntimeError, ValueError) as error:
         parser.exit(2, str(error) + '\n')
     rows.sort(key=lambda row: row['input'])
-    _write_combined_results(output, rows)
+    _write_combined_results(output, rows, args.debug or args.dump_passes)
+    if not (args.debug or args.dump_passes):
+        discard_output_diagnostics(output)
     return _exit_code(rows)
 
 

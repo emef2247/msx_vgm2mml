@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT / 'py'))
 from musical_conversion import build_plan, source_gd3
 from musical_vgm import write_vgm
 from mgs_conversion_config import sample_threshold, MgsOptions, add_curve_arguments, curve_option_values
-from batch_vgm_to_mgs import discover_inputs, file_digest, package_manifest, prepare_blueprints, publish_bundle, save_json
+from batch_vgm_to_mgs import discard_diagnostics, discover_inputs, file_digest, package_manifest, prepare_blueprints, publish_bundle, save_json
 
 
 def parser():
@@ -42,6 +42,7 @@ def parser():
                         help='Finite reconstructed performance, or validated declared source loop (default: none)')
     result.add_argument('--force', action='store_true', help='Apply reviewed unsupported-source omission rules')
     result.add_argument('--dump-passes', action='store_true', help='Also retain inherited analysis pass CSVs')
+    result.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
     result.add_argument('--_worker', type=Path, help=argparse.SUPPRESS)
     return result
 
@@ -103,7 +104,7 @@ def _flags(args):
     return result
 
 
-def run_export(args):
+def run_export(args, retain_diagnostics=True):
     source = args.input.resolve()
     if not source.exists():
         raise ValueError(f'Input does not exist: {source}')
@@ -119,6 +120,7 @@ def run_export(args):
     files = discover_inputs(source, adjacent=args.outdir is None)
     if not files:
         raise ValueError('No VGM/VGZ inputs found')
+    retain_diagnostics = retain_diagnostics or args.dump_passes
     mode = '' if args.psg_part == 'all' else 'psg_' + args.psg_part
     routes, seen = [], set()
     # All ownership checks precede the first publication or input copy.
@@ -213,8 +215,13 @@ def run_export(args):
             print('Blueprint update skipped: ' + blueprint_detail, flush=True)
         selected = [r for r in rows if (output / r['diagnostics']).parent.parent.parent == package]
         _results(package, selected)
-    _results(output / mode / '_diagnostics', rows)
-    print(f"{sum(row['status'] == 'success' for row in rows)}/{len(rows)} exported; results: {output / mode / '_diagnostics/results.csv'}")
+        if not retain_diagnostics and not any(folder.glob('publish_*/recovery.json')):
+            discard_diagnostics(folder, staged)
+    if retain_diagnostics:
+        _results(output / mode / '_diagnostics', rows)
+        print(f"{sum(row['status'] == 'success' for row in rows)}/{len(rows)} exported; results: {output / mode / '_diagnostics/results.csv'}")
+    else:
+        print(f"{sum(row['status'] == 'success' for row in rows)}/{len(rows)} exported")
     return rows
 
 
@@ -232,7 +239,7 @@ def main(argv=None):
     if args._worker:
         return _worker(args)
     try:
-        rows = run_export(args)
+        rows = run_export(args, retain_diagnostics=args.debug or args.dump_passes)
     except (OSError, ValueError) as error:
         print(str(error), file=sys.stderr)
         return 2

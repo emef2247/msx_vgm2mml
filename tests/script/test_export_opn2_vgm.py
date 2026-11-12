@@ -63,7 +63,8 @@ PLAIN_SONG = vgm(bytes((0x4f, 0x03, 0x61, 0x10, 0x00)))  # PSG only, no OPN2
 
 class ExportOpn2VgmTests(unittest.TestCase):
     def run_main(self, *argv):
-        return export_opn2_vgm.main([str(item) for item in argv])
+        # These tests inspect the diagnostics evidence; --debug retains it.
+        return export_opn2_vgm.main([str(item) for item in argv] + ['--debug'])
 
     def test_opn2_publishes_target_vgm_in_export_mgs_layout(self):
         with tempfile.TemporaryDirectory() as tmp:
