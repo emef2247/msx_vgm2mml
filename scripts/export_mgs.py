@@ -90,6 +90,7 @@ def build_parser():
                              'default off = register transcription)')
     parser.add_argument('--dump-passes', action='store_true',
                         help='Retain inspectable conversion passes')
+    parser.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
     macros=parser.add_mutually_exclusive_group()
     macros.add_argument('--macro-mode',choices=('v110','current','greedy'),default='v110',
         help='Production macros: v110 (default), current, or current greedy comparison')
@@ -278,15 +279,16 @@ def _write_combined_results(args, rows):
     source = args.input.resolve()
     source_root = source.parent if source.is_file() else source
     output = source_root if args.outdir is None else args.outdir.resolve()
-    diagnostics = output / '_diagnostics'
-    diagnostics.mkdir(parents=True, exist_ok=True)
-    fields = list(dict.fromkeys(key for row in rows for key in row))
-    with (diagnostics / 'results.csv').open('w', encoding='utf-8', newline='') as stream:
-        writer = csv.DictWriter(stream, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(rows)
-    (diagnostics / 'results.json').write_text(json.dumps(rows, indent=2) + '\n',
-                                              encoding='utf-8')
+    if args.debug or args.dump_passes:
+        diagnostics = output / '_diagnostics'
+        diagnostics.mkdir(parents=True, exist_ok=True)
+        fields = list(dict.fromkeys(key for row in rows for key in row))
+        with (diagnostics / 'results.csv').open('w', encoding='utf-8', newline='') as stream:
+            writer = csv.DictWriter(stream, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(rows)
+        (diagnostics / 'results.json').write_text(json.dumps(rows, indent=2) + '\n',
+                                                  encoding='utf-8')
     packages = {}
     for row in rows:
         if row.get('route') == 'vgm_variants':
@@ -346,7 +348,7 @@ def main(argv=None):
                          nes_balance=args.nes_balance, nes_gain=args.nes_gain,
                          psg_state_ms=None, scc_state_ms=None,
                          curve_volume_error=None, curve_mean_error=None,
-                         song_hook=_song_hook)
+                         song_hook=_song_hook, retain_diagnostics=args.debug or args.dump_passes)
     except (RuntimeError, ValueError) as error:
         parser.exit(2, str(error) + '\n')
     if variant_rows:
