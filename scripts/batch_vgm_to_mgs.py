@@ -202,6 +202,39 @@ def prepare_blueprints(report, folder, stem, package, products):
     return publications, deletions, updated, status, detail, [target for _, target in publications]
 
 
+def discard_diagnostics(folder, staged=None):
+    """Remove one song's diagnostics workspace and staged source copy.
+
+    Publication recovery directories are never discarded here: the caller
+    checks for a pending recovery before invoking this.
+    """
+    shutil.rmtree(folder, ignore_errors=True)
+    if staged is not None:
+        staged.unlink(missing_ok=True)
+        try:
+            staged.parent.rmdir()
+        except OSError:
+            pass
+    try:
+        folder.parent.rmdir()
+    except OSError:
+        pass
+
+
+def discard_output_diagnostics(output):
+    """Remove every diagnostics workspace and staged source below a root.
+
+    CLI-layer cleanup after a non-debug run whose stages kept their own
+    workspaces (the OPN2 target route). Trees holding a publication
+    recovery are kept.
+    """
+    for name in ('_diagnostics', '_source_inputs'):
+        for folder in sorted(output.rglob(name), reverse=True):
+            if name == '_diagnostics' and any(folder.glob('*/publish_*/recovery.json')):
+                continue
+            shutil.rmtree(folder, ignore_errors=True)
+
+
 def save_json(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(path.name + '.tmp')
@@ -481,7 +514,7 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
               psg_state_ms=None, scc_state_ms=None, curve_volume_error=None, curve_mean_error=None,
               score_normalize=False, score_tempo=225, blueprint_score_normalize=False,
               macro_mode=None, loop_mode=None, macro_definition_budget=None,
-              nes_balance=False, nes_gain=(), song_hook=None):
+              nes_balance=False, nes_gain=(), song_hook=None, retain_diagnostics=True):
     options = MgsOptions(normalize_lengths=normalize_lengths, normalization_ms=normalization_ms,
                          fm_state_ms=fm_state_ms, force=force, dump_passes=dump_passes, enhance_drums=enhance_drums, psg_part=psg_part,
                          software_volume_curves=software_volume_curves, score_guided_loops=score_guided_loops,
@@ -505,6 +538,11 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
     if not files:
         raise ValueError('No VGM files found')
     diagnostics, routes = publication_targets(files, source_root, output, psg_part)
+    # CLI entry points pass retain_diagnostics=False for a normal run:
+    # diagnostics trees and staged sources are user-facing only for
+    # debugging (an explicit --debug, or --dump-passes whose retained
+    # passes live in the same tree). Direct callers keep the trees.
+    retain_diagnostics = retain_diagnostics or dump_passes
     use_mgsexc = compiler == 'mgsexc'
     native = None if use_mgsexc else (shutil.which(str(mgsc)) if mgsc else (None if module else shutil.which('mgsc')))
     compiler_setup_error = f'Native MGSC executable not found: {mgsc}' if mgsc and not native and not use_mgsexc else ''
@@ -522,7 +560,8 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
             if setup.returncode:
                 compiler_setup_error = ('MGSC setup failed:\n' +
                     (setup.stdout+setup.stderr).decode('utf-8', errors='replace'))
-    diagnostics.mkdir(parents=True, exist_ok=True)
+    if retain_diagnostics:
+        diagnostics.mkdir(parents=True, exist_ok=True)
     keyon_setup_error = ''
     if keyon:
         check = [node, str(ROOT / 'scripts/mgs_to_vgm.mjs'), '--check', '-', '-']
@@ -535,7 +574,8 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
                 keyon_setup_error = keyon_setup_error or 'libkss setup failed'
         except (OSError, subprocess.TimeoutExpired) as error:
             keyon_setup_error = str(error)
-        (diagnostics / 'keyon_setup.log').write_text(keyon_setup_error or 'libkss available\n', encoding='utf-8')
+        if retain_diagnostics:
+            (diagnostics / 'keyon_setup.log').write_text(keyon_setup_error or 'libkss available\n', encoding='utf-8')
         if keyon_setup_error:
             print('KEYON comparison unavailable: ' + keyon_setup_error, file=sys.stderr)
     rows = []
@@ -819,10 +859,11 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
         (folder / 'report.txt').write_text('\n'.join(lines) + '\n', encoding='utf-8')
         rows.append(row)
         save_package_results(package, output, rows)
-        with (diagnostics/'results.csv').open('w', encoding='utf-8', newline='') as stream:
-            writer = csv.DictWriter(stream, fieldnames=list(row))
-            writer.writeheader(); writer.writerows(rows)
-        (diagnostics/'results.json').write_text(json.dumps(rows, indent=2)+'\n', encoding='utf-8')
+        if retain_diagnostics:
+            with (diagnostics/'results.csv').open('w', encoding='utf-8', newline='') as stream:
+                writer = csv.DictWriter(stream, fieldnames=list(row))
+                writer.writeheader(); writer.writerows(rows)
+            (diagnostics/'results.json').write_text(json.dumps(rows, indent=2)+'\n', encoding='utf-8')
         print(f"{relative}: {row['status']}" + (f": {row['detail']}" if row['detail'] else ''), flush=True)
         if row['blueprint_status'] == 'blocked':
             print('Blueprint update skipped: ' + row['blueprint_detail'], flush=True)
@@ -841,13 +882,20 @@ def run_batch(source, output=None, module=None, node='node', timeout=1200, mgsc=
         if source_projection.get('force_loop_approximation'):
             print('HuC6280 loop approximation: restore first-traversal state at loop entry; '
                   'native source evidence is unchanged', flush=True)
-            print('Projection details: ' + str(folder / (path.stem + '.huc6280.projection.json')), flush=True)
+            if retain_diagnostics:
+                print('Projection details: ' + str(folder / (path.stem + '.huc6280.projection.json')), flush=True)
         if row['force_summary']:
             print('Forced MGS projection: ' + row['force_summary'], flush=True)
-            print('Omission details: ' + str(force_data.get('csv_path', sidecar) if force_data else sidecar), flush=True)
+            if retain_diagnostics:
+                print('Omission details: ' + str(force_data.get('csv_path', sidecar) if force_data else sidecar), flush=True)
         if song_hook is not None:
             song_hook(path, relative, package, output)
-    print(f"{sum(row['status'] == 'success' for row in rows)}/{len(rows)} exported; results: {diagnostics / 'results.csv'}", flush=True)
+        if not retain_diagnostics and not any(folder.glob('publish_*/recovery.json')):
+            discard_diagnostics(folder, staged)
+    if retain_diagnostics:
+        print(f"{sum(row['status'] == 'success' for row in rows)}/{len(rows)} exported; results: {diagnostics / 'results.csv'}", flush=True)
+    else:
+        print(f"{sum(row['status'] == 'success' for row in rows)}/{len(rows)} exported", flush=True)
     return rows
 
 
@@ -883,6 +931,7 @@ def build_parser():
                        action='store_const', const='rhythm')
     parser.add_argument('--force', action='store_true', help='Apply only documented target omission rules')
     parser.add_argument('--dump-passes', action='store_true', help='Retain inspectable conversion passes')
+    parser.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--enhance-macros', action='store_true', default=True,
                         help='Enable enhanced macros (now the default)')
     parser.add_argument('--legacy-macros', dest='enhance_macros', action='store_false',
@@ -905,7 +954,7 @@ if __name__ == '__main__':
                             score_normalize=args.score_normalize,score_tempo=args.score_tempo,
                             blueprint_score_normalize=args.blueprint_score_normalize,
                             force=args.force, fm_state_ms=args.fm_state_ms, normalization_ms=args.normalization_ms,
-                            dump_passes=args.dump_passes, enhance_drums=args.enhance_drums, psg_part=args.psg_part,
+                            dump_passes=args.dump_passes, retain_diagnostics=args.debug or args.dump_passes, enhance_drums=args.enhance_drums, psg_part=args.psg_part,
                             software_volume_curves=args.software_volume_curves,
                             **curve_option_values(args))
     except (RuntimeError, ValueError) as error:
