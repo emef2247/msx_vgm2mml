@@ -45,7 +45,7 @@ class ExportVgmTests(unittest.TestCase):
             root=Path(temporary);inputs=root/'inputs';out=root/'out'
             self.source(inputs,'site/pack/one.vgm');self.source(inputs,'site/pack/two.vgm')
             environment=dict(os.environ,PATH='')
-            process=subprocess.run([sys.executable,str(ROOT/'scripts/export_vgm.py'),str(inputs),'--outdir',str(out)],
+            process=subprocess.run([sys.executable,str(ROOT/'scripts/export_vgm.py'),str(inputs),'--outdir',str(out),'--debug'],
                                    capture_output=True,timeout=90,env=environment)
             self.assertEqual(process.returncode,0,process.stdout+process.stderr)
             package=out/'site/pack'

@@ -92,7 +92,8 @@ def assert_profiles(test, out, expected, stem='song'):
 
 class ExportMgsVgmVariantsTests(unittest.TestCase):
     def run_main(self, *argv):
-        return export_mgs.main([str(item) for item in argv])
+        # These tests inspect the diagnostics evidence; --debug retains it.
+        return export_mgs.main([str(item) for item in argv] + ['--debug'])
 
     def test_opn2_pcm_publishes_auxiliary_and_layered_profiles(self):
         with tempfile.TemporaryDirectory() as tmp:

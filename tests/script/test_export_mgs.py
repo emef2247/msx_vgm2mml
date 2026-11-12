@@ -165,7 +165,7 @@ class ExportMgsTests(unittest.TestCase):
                 for suffix in ('json','decisions.csv'):
                     (diag/f'scale_rom1.{chip}.curve_approx.{suffix}').write_text('old run')
             result = subprocess.run([sys.executable, str(ROOT / 'scripts/export_mgs.py'),
-                                     str(fixture), '--outdir', folder, '--skip-keyon-counts'],
+                                     str(fixture), '--outdir', folder, '--skip-keyon-counts', '--debug'],
                                     capture_output=True, timeout=60)
             self.assertEqual(result.returncode, 0, result.stderr.decode())
             report = json.loads((Path(folder) / '_diagnostics/scale_rom1/report.json').read_text())
@@ -213,7 +213,7 @@ class AdjacentExportTests(unittest.TestCase):
         for entry in ('export_mgs.py','batch_vgm_to_mgs.py'):
             with self.subTest(entry=entry),tempfile.TemporaryDirectory() as tmp:
                 folder=Path(tmp);source=folder/'SONG01.vgm';source.write_bytes(original)
-                run=subprocess.run([sys.executable,str(ROOT/'scripts'/entry),str(source)],
+                run=subprocess.run([sys.executable,str(ROOT/'scripts'/entry),str(source),'--debug'],
                                    capture_output=True,timeout=120)
                 self.assertEqual(run.returncode,0,run.stdout+run.stderr)
                 self.assertEqual(source.read_bytes(),original)
@@ -225,6 +225,20 @@ class AdjacentExportTests(unittest.TestCase):
                 self.assertEqual(report['result']['reference_keyon'],report['result']['actual_keyon'])
                 self.assertGreater(report['result']['actual_keyon'],0)
                 self.assertEqual(report['result']['keyon_status'],'compared')
+
+    def test_default_run_omits_diagnostics_and_staged_sources(self):
+        fixture=ROOT/'tests/fixtures/public/opll/ym2413_retrigger/ym2413_retrigger.vgm'
+        original=fixture.read_bytes()
+        with tempfile.TemporaryDirectory() as tmp:
+            folder=Path(tmp);source=folder/'SONG01.vgm';source.write_bytes(original)
+            run=subprocess.run([sys.executable,str(ROOT/'scripts/export_mgs.py'),str(source),
+                                '--skip-keyon-counts'],
+                               capture_output=True,timeout=120)
+            self.assertEqual(run.returncode,0,run.stdout+run.stderr)
+            self.assertEqual(sorted(p.name for p in folder.iterdir()),
+                             ['SONG01.vgm','blueprint','listening_manifest.json','results.csv','results.json','tracks'])
+            self.assertTrue((folder/'tracks/SONG01.mgs').is_file())
+            self.assertTrue((folder/'blueprint/SONG01.mml').is_file())
 
 
 if __name__ == '__main__':
