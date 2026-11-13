@@ -51,7 +51,10 @@ def ks(op):
     return 2 if op['ksr'] else 0
 
 
-def four_op(voice, pms, ams, perc_rr=None):
+KSL_COMP = {0: 0, 1: 7, 2: 14, 3: 19}  # TL steps, A4 reference (see four_op)
+
+
+def four_op(voice, pms, ams, perc_rr=None, ksl_comp=False):
     """(fb, alg, pms, ams, [op x4]) in slot order M1, C1, M2, C2.
 
     PMS/AMS carry the bridged depth only when the voice actually
@@ -62,18 +65,28 @@ def four_op(voice, pms, ams, perc_rr=None):
     operators: a YM2413 percussive key-off is a fixed fast damp
     (~170 dB/s regardless of rr; measured 2026-11-13 on IKAOPLL),
     so the target RR is the register whose key-off rate matches
-    the damp, not rr+1.  YM2151: RR 8 (~219 dB/s)."""
-    def slot(op, tl):
+    the damp, not rr+1.  YM2151: RR 8 (~219 dB/s).
+    ksl_comp: YM2151 has no per-operator KSL, but on YM2413 the
+    modulator's KSL attenuates it (at A4: ksl 1/2/3 = 5.4/10.4/
+    14.6 dB; measured 2026-11-13 on IKAOPLL, small-index sideband
+    method).  When set, the modulator TL absorbs that attenuation
+    at the A4 reference pitch (KSL_COMP steps of 0.75 dB); the
+    pitch dependence (+-3 dB over A3..A5 for ksl 2) remains as a
+    recorded approximation of the static table."""
+    def slot(op, tl, is_mod=False):
         ar, d1r, d2r, rr = eg(op)
         if perc_rr is not None and not op['egt']:
             rr = perc_rr
+        if ksl_comp and is_mod:
+            tl = min(127, tl + KSL_COMP[op['ksl']])
         return (MUL_MAP[op['multi']], tl, ks(op), ar, d1r, d2r,
                 op['sl'], rr, 0, op['am'])
     silent = (1, 127, 0, 31, 0, 0, 0, 15, 0, 0)
     pms = pms if (voice['mod']['vib'] or voice['car']['vib']) else 0
     ams = ams if (voice['mod']['am'] or voice['car']['am']) else 0
     return (voice['fb'], 4, pms, ams,
-            [slot(voice['mod'], voice['mod']['tl']), slot(voice['car'], 0),
+            [slot(voice['mod'], voice['mod']['tl'], True),
+             slot(voice['car'], 0),
              silent, silent])
 
 
@@ -167,7 +180,7 @@ def main():
         lines.append(f' * {note} */')
         lines.append(f'static const unsigned char OPLL_PRESET_{chip}[15][4 + 4 * 10] = {{')
         for i, v in enumerate(mel):
-            lines.append(f'    {fmt_op4(four_op(v, pms, ams, 8 if chip == "OPM" else None))}, // {NAMES[i]}')
+            lines.append(f'    {fmt_op4(four_op(v, pms, ams, 8 if chip == "OPM" else None, chip == "OPM"))}, // {NAMES[i]}')
         lines.append('};')
     lines.append('')
     lines.append('#endif /* OPLL_PRESETS_ESTABLISHED_H */')
