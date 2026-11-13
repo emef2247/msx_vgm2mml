@@ -63,7 +63,7 @@ SILENT4 = (1, 127, 0, 31, 0, 0, 0, 15, 0, 0)
 
 def slot4(op, tl, is_mod=False, perc_rr=None, ksl_comp=False):
     ar, d1r, d2r, rr = eg(op)
-    if perc_rr is not None and not op['egt']:
+    if perc_rr is not None and not op['egt'] and not is_mod:
         rr = perc_rr
     if ksl_comp and is_mod:
         tl = min(127, tl + KSL_COMP[op['ksl']])
@@ -78,11 +78,17 @@ def four_op(voice, pms, ams, perc_rr=None, ksl_comp=False):
     uses vibrato / AM on some operator; otherwise 0 (the target
     chips gate AM per operator but PMS is channel-wide, so an
     ungated depth would add vibrato the source does not have).
-    perc_rr, when given, replaces RR for percussive (egt=0)
-    operators: a YM2413 percussive key-off is a fixed fast damp
-    (~170 dB/s regardless of rr; measured 2026-11-13 on IKAOPLL),
-    so the target RR is the register whose key-off rate matches
-    the damp, not rr+1.  YM2151: RR 8 (~219 dB/s).  YM2608: RR 8
+    perc_rr, when given, replaces RR for the percussive (egt=0)
+    CARRIER only: a YM2413 percussive carrier key-off is a fixed
+    fast damp (~170 dB/s regardless of rr; measured 2026-11-13 on
+    IKAOPLL), so the target RR is the register whose key-off rate
+    matches the damp, not rr+1.  The modulator is excluded: an
+    egt=0 modulator holds its level through key-off (sideband
+    ratio unchanged over 1 s at rr 0 and 1; measured 2026-11-14
+    on IKAOPLL), so it keeps the eg() law.  Carrier-only adopted
+    2026-11-14: an A/B render of the FMPAC pack (both scopes)
+    found no clear difference, and the measured behaviour is the
+    tiebreaker.  YM2151: RR 8 (~219 dB/s).  YM2608: RR 8
     as well (grid measurement 2026-11-13: percussive voices that
     never reached -20 dB with rr+1 land at ~91 ms with RR 8;
     SynthBass lands fast at ~19 ms and stays a listening item).
