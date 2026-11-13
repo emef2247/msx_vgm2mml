@@ -51,15 +51,22 @@ def ks(op):
     return 2 if op['ksr'] else 0
 
 
-def four_op(voice, pms, ams):
+def four_op(voice, pms, ams, perc_rr=None):
     """(fb, alg, pms, ams, [op x4]) in slot order M1, C1, M2, C2.
 
     PMS/AMS carry the bridged depth only when the voice actually
     uses vibrato / AM on some operator; otherwise 0 (the target
     chips gate AM per operator but PMS is channel-wide, so an
-    ungated depth would add vibrato the source does not have)."""
+    ungated depth would add vibrato the source does not have).
+    perc_rr, when given, replaces RR for percussive (egt=0)
+    operators: a YM2413 percussive key-off is a fixed fast damp
+    (~170 dB/s regardless of rr; measured 2026-11-13 on IKAOPLL),
+    so the target RR is the register whose key-off rate matches
+    the damp, not rr+1.  YM2151: RR 8 (~219 dB/s)."""
     def slot(op, tl):
         ar, d1r, d2r, rr = eg(op)
+        if perc_rr is not None and not op['egt']:
+            rr = perc_rr
         return (MUL_MAP[op['multi']], tl, ks(op), ar, d1r, d2r,
                 op['sl'], rr, 0, op['am'])
     silent = (1, 127, 0, 31, 0, 0, 0, 15, 0, 0)
@@ -160,7 +167,7 @@ def main():
         lines.append(f' * {note} */')
         lines.append(f'static const unsigned char OPLL_PRESET_{chip}[15][4 + 4 * 10] = {{')
         for i, v in enumerate(mel):
-            lines.append(f'    {fmt_op4(four_op(v, pms, ams))}, // {NAMES[i]}')
+            lines.append(f'    {fmt_op4(four_op(v, pms, ams, 8 if chip == "OPM" else None))}, // {NAMES[i]}')
         lines.append('};')
     lines.append('')
     lines.append('#endif /* OPLL_PRESETS_ESTABLISHED_H */')
