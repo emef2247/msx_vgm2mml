@@ -65,8 +65,11 @@ def four_op(voice, pms, ams, perc_rr=None, ksl_comp=False):
     operators: a YM2413 percussive key-off is a fixed fast damp
     (~170 dB/s regardless of rr; measured 2026-11-13 on IKAOPLL),
     so the target RR is the register whose key-off rate matches
-    the damp, not rr+1.  YM2151: RR 8 (~219 dB/s).
-    ksl_comp: YM2151 has no per-operator KSL, but on YM2413 the
+    the damp, not rr+1.  YM2151: RR 8 (~219 dB/s).  YM2608: RR 8
+    as well (grid measurement 2026-11-13: percussive voices that
+    never reached -20 dB with rr+1 land at ~91 ms with RR 8;
+    SynthBass lands fast at ~19 ms and stays a listening item).
+    ksl_comp: YM2151/YM2608 have no per-operator KSL, but on YM2413 the
     modulator's KSL attenuates it (at A4: ksl 1/2/3 = 5.4/10.4/
     14.6 dB; measured 2026-11-13 on IKAOPLL, small-index sideband
     method).  When set, the modulator TL absorbs that attenuation
@@ -180,7 +183,7 @@ def main():
         lines.append(f' * {note} */')
         lines.append(f'static const unsigned char OPLL_PRESET_{chip}[15][4 + 4 * 10] = {{')
         for i, v in enumerate(mel):
-            lines.append(f'    {fmt_op4(four_op(v, pms, ams, 8 if chip == "OPM" else None, chip == "OPM"))}, // {NAMES[i]}')
+            lines.append(f'    {fmt_op4(four_op(v, pms, ams, 8 if chip in ("OPM", "OPNA") else None, chip in ("OPM", "OPNA")))}, // {NAMES[i]}')
         lines.append('};')
     lines.append('')
     lines.append('#endif /* OPLL_PRESETS_ESTABLISHED_H */')
