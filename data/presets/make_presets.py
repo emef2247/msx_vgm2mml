@@ -68,15 +68,15 @@ KSL_COMP = {0: 0, 1: 7, 2: 14, 3: 19}  # TL steps, A4 reference (see four_op)
 # settings: Violin +5.2 dB, Organ +3.0, Harpsichord +3.3,
 # Synthesizer +6.5 (also mod ws=1; confirmed in song balance:
 # its share of the FMPAC02 mix was +4 to +6.5 dB high).
-# Trumpet -0.8 dB.  Synthesizer measured +6.46 dB = 8.6 steps,
-# rounded to 9, then set to 8 after the user's audition of
-# FMPAC02 (9 felt slightly too quiet, 2026-11-14).
+# Trumpet -0.8 dB.  Synthesizer measured +6.46 dB = 8.6 steps;
+# auditions of FMPAC02 settled it at 7 (9: slightly too quiet,
+# 8: still lacking pressure, 7: adopted, 2026-11-14).
 # Vibraphone is excluded: its offset is
 # window-dependent (-3.4 / -5.7 / -6.4 dB at 0.1 / 0.35 / 1 s),
 # an EG decay-shape difference, not a level offset.
 # OPNA trims are unmeasured; nothing is emitted for OPNA yet.
 LEVEL_TRIM_TL_OPM = {'Violin': 7, 'Trumpet': -1, 'Organ': 4,
-                     'Synthesizer': 8, 'Harpsichord': 4}
+                     'Synthesizer': 7, 'Harpsichord': 4}
 
 
 SILENT4 = (1, 127, 0, 31, 0, 0, 0, 15, 0, 0)
