@@ -57,6 +57,24 @@ def ks(op):
 
 KSL_COMP = {0: 0, 1: 7, 2: 14, 3: 19}  # TL steps, A4 reference (see four_op)
 
+# Per-voice output level trim for the OPM table, in carrier TL
+# steps, added by projections on top of the performance carrier
+# TL (source VOL << 2).  Measured 2026-11-14 on IKAOPLL /
+# IKAOPM: single A4 notes at VOL 0 (OPLL) vs carrier TL 0
+# (OPM), RMS over 50-350 ms, anchored to the median of the
+# ws=0 voices (+23.97 dB renderer offset).  The ws=1 carrier
+# voices render hot on OPM because the OPLL half-wave output
+# carries less power than the sine-based projection at equal
+# settings: Violin +5.2 dB, Organ +3.0, Harpsichord +3.3,
+# Synthesizer +6.5 (also mod ws=1; confirmed in song balance:
+# its share of the FMPAC02 mix was +4 to +6.5 dB high).
+# Trumpet -0.8 dB.  Vibraphone is excluded: its offset is
+# window-dependent (-3.4 / -5.7 / -6.4 dB at 0.1 / 0.35 / 1 s),
+# an EG decay-shape difference, not a level offset.
+# OPNA trims are unmeasured; nothing is emitted for OPNA yet.
+LEVEL_TRIM_TL_OPM = {'Violin': 7, 'Trumpet': -1, 'Organ': 4,
+                     'Synthesizer': 9, 'Harpsichord': 4}
+
 
 SILENT4 = (1, 127, 0, 31, 0, 0, 0, 15, 0, 0)
 
@@ -192,6 +210,9 @@ def main():
     lines.append(' * generated from the base set through the audited')
     lines.append(' * conversion laws (see make_presets.py). Carrier TL is')
     lines.append(' * a performance value (source VOL << 2); tables carry 0.')
+    lines.append(' * OPLL_OPM_LEVEL_TRIM carries the measured per-voice')
+    lines.append(' * output level correction (carrier TL steps) that')
+    lines.append(' * projections add on top of the performance value.')
     lines.append(' * Rhythm voices are in the base table; the OPM rhythm')
     lines.append(' * table at the end carries the drum preset codes.')
     lines.append(' */')
@@ -258,6 +279,14 @@ def main():
             lines.append(f'    {fmt_op4(four_op(v, pms, ams, 8 if chip in ("OPM", "OPNA") else None, chip in ("OPM", "OPNA")))}, // {NAMES[i]}')
         lines.append('};')
     lines.append('')
+    lines.append('')
+    lines.append('/* Per-voice output level trim for OPM projections:')
+    lines.append(' * carrier TL steps added to the performance carrier TL')
+    lines.append(' * (source VOL << 2).  Measured 2026-11-14 on')
+    lines.append(' * IKAOPLL / IKAOPM (see LEVEL_TRIM_TL_OPM in')
+    lines.append(' * make_presets.py for method and per-voice values). */')
+    lines.append('static const signed char OPLL_OPM_LEVEL_TRIM[15] = {')
+    lines.append('    ' + ', '.join(str(LEVEL_TRIM_TL_OPM.get(n, 0)) for n in NAMES) + ' };')
     lines.append('/* OPM rhythm: { FB, ALG, PMS, AMS, { op x4 } } preset codes')
     lines.append(' * for the five drum voices, plus HH/TC hardware-noise')
     lines.append(' * variants.  The companion table gives the reg 0x0F byte')
