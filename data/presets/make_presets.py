@@ -239,8 +239,10 @@ def main():
             ('OPN', 4, 2, 'YM2203: field law shared with OPNA; sounding EG/LFO '
                           'rates follow the 4 MHz clock, corrected at projection.'),
             ('OPNA', 4, 2, 'YM2608: law measured on this chip.'),
-            ('OPM', 2, 2, 'YM2151: LFO bridge depths PMD 86 / AMD 16 are '
-                          'chip-global constants of the projection.')):
+            ('OPM', 5, 2, 'YM2151: LFO bridge depths PMD 86 / AMD 16 are '
+                          'chip-global constants of the projection. PMS 5 '
+                          'measured on IKAOPM at +/-9 cents (the OPLL '
+                          'vibrato depth class); PMS 2 renders ~0.')):
         lines.append('')
         lines.append(f'/* {chip} version: {{ FB, ALG, PMS, AMS, '
                      '{ {MUL,TL,KS,AR,D1R,D2R,D1L,RR,DT,AM} x4 (M1,C1,M2,C2) } }')
