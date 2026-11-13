@@ -23,8 +23,12 @@ audited conversion laws:
 
 Carrier TL is a performance value (source VOL << 2); preset tables
 carry 0 for the carrier and the modulator TL from the set.
-Rhythm voices are carried in the base OPLL table only in v1:
-per-target drum mapping is a projection-time decision.
+Rhythm: the base table carries the OPLL entries; in addition the
+OPM table below carries the five drum voices as preset codes
+(measured candidates v1), with HH/TC also prepared as
+hardware-noise variants.  Which variant sounds, and on which
+channels, is a projection-time decision (the YM2151 noise source
+lives on channel 8).  OPNA uses its internal rhythm instead.
 """
 import json
 from pathlib import Path
@@ -54,6 +58,19 @@ def ks(op):
 KSL_COMP = {0: 0, 1: 7, 2: 14, 3: 19}  # TL steps, A4 reference (see four_op)
 
 
+SILENT4 = (1, 127, 0, 31, 0, 0, 0, 15, 0, 0)
+
+
+def slot4(op, tl, is_mod=False, perc_rr=None, ksl_comp=False):
+    ar, d1r, d2r, rr = eg(op)
+    if perc_rr is not None and not op['egt']:
+        rr = perc_rr
+    if ksl_comp and is_mod:
+        tl = min(127, tl + KSL_COMP[op['ksl']])
+    return (MUL_MAP[op['multi']], tl, ks(op), ar, d1r, d2r,
+            op['sl'], rr, 0, op['am'])
+
+
 def four_op(voice, pms, ams, perc_rr=None, ksl_comp=False):
     """(fb, alg, pms, ams, [op x4]) in slot order M1, C1, M2, C2.
 
@@ -76,21 +93,67 @@ def four_op(voice, pms, ams, perc_rr=None, ksl_comp=False):
     at the A4 reference pitch (KSL_COMP steps of 0.75 dB); the
     pitch dependence (+-3 dB over A3..A5 for ksl 2) remains as a
     recorded approximation of the static table."""
-    def slot(op, tl, is_mod=False):
-        ar, d1r, d2r, rr = eg(op)
-        if perc_rr is not None and not op['egt']:
-            rr = perc_rr
-        if ksl_comp and is_mod:
-            tl = min(127, tl + KSL_COMP[op['ksl']])
-        return (MUL_MAP[op['multi']], tl, ks(op), ar, d1r, d2r,
-                op['sl'], rr, 0, op['am'])
-    silent = (1, 127, 0, 31, 0, 0, 0, 15, 0, 0)
     pms = pms if (voice['mod']['vib'] or voice['car']['vib']) else 0
     ams = ams if (voice['mod']['am'] or voice['car']['am']) else 0
     return (voice['fb'], 4, pms, ams,
-            [slot(voice['mod'], voice['mod']['tl'], True),
-             slot(voice['car'], 0),
-             silent, silent])
+            [slot4(voice['mod'], voice['mod']['tl'], True, perc_rr, ksl_comp),
+             slot4(voice['car'], 0, False, perc_rr, ksl_comp),
+             SILENT4, SILENT4])
+
+
+# OPM rhythm preset codes.  Composition of the OPLL drum pairs
+# follows the v1 candidates measured on IKAOPM against IKAOPLL
+# references (2026-11-13): BD = bd pair; SD = hh.mod + sd.car;
+# TC = tom.mod + tc.car; HH = hh.mod solo on the carrier;
+# TOM = tom.mod solo on the carrier.  HH/TC also get a
+# hardware-noise variant (owner decision 2026-11-13: prepare
+# both; the projection chooses by channel availability, because
+# the noise source occupies channel 8).  In a noise row the
+# shaping operator sits on C2, whose output the noise generator
+# replaces when reg 0x0F NE=1; its EG is the same law applied to
+# the op that carries the FM variant's envelope (hh.mod / tc.car).
+# NFRQ 29 matched both references' spectra on IKAOPM renders
+# (centroids: ref HH 9397 Hz / TC 9820 Hz, NFRQ 29 -> 9402 Hz;
+# one noise generator serves the whole chip, so both share it).
+# The noise rows carry the same law EG as the FM variants.  Note
+# the measured residual: at equal register values the noise
+# path's envelope decays more slowly than an FM carrier's and
+# with a different (accelerating) curve shape -- identical on
+# IKAOPM and on the MAME YM2151 core, so it is chip behaviour,
+# not a renderer quirk (2026-11-13).  Decay-time matching of
+# the noise rows is an open calibration item; no rate
+# compensation is applied until it is measured properly.
+OPM_RHYTHM_NOISE_NFRQ = 29
+
+
+def rhythm_opm():
+    """[(name, four_op row, reg 0x0F value or 0)] for OPM drums."""
+    d = ROM['drums']
+
+    def pair(mod, car, fb):
+        return four_op({'mod': mod, 'car': car, 'fb': fb}, 0, 0,
+                       perc_rr=8, ksl_comp=True)
+
+    def solo(op):
+        return (0, 4, 0, 0,
+                [SILENT4, slot4(op, 0, perc_rr=8, ksl_comp=True),
+                 SILENT4, SILENT4])
+
+    def noise(op):
+        return (0, 4, 0, 0,
+                [SILENT4, SILENT4, SILENT4,
+                 slot4(op, 0, perc_rr=8, ksl_comp=True)])
+
+    nf = 0x80 | OPM_RHYTHM_NOISE_NFRQ
+    return [
+        ('BD', pair(d['bd']['mod'], d['bd']['car'], d['bd']['fb']), 0),
+        ('SD', pair(d['hh']['mod'], d['sd']['car'], d['hh']['fb']), 0),
+        ('TOM', solo(d['tom']['mod']), 0),
+        ('HH', solo(d['hh']['mod']), 0),
+        ('TC', pair(d['tom']['mod'], d['tc']['car'], d['tom']['fb']), 0),
+        ('HH (noise)', noise(d['hh']['mod']), nf),
+        ('TC (noise)', noise(d['tc']['car']), nf),
+    ]
 
 
 def opl_voice(voice):
@@ -123,7 +186,8 @@ def main():
     lines.append(' * generated from the base set through the audited')
     lines.append(' * conversion laws (see make_presets.py). Carrier TL is')
     lines.append(' * a performance value (source VOL << 2); tables carry 0.')
-    lines.append(' * Rhythm voices are in the base table only (v1).')
+    lines.append(' * Rhythm voices are in the base table; the OPM rhythm')
+    lines.append(' * table at the end carries the drum preset codes.')
     lines.append(' */')
     lines.append('')
     lines.append('/* Base set: YM2413 register bytes (regs 00..07), 15 melodic')
@@ -185,6 +249,21 @@ def main():
         for i, v in enumerate(mel):
             lines.append(f'    {fmt_op4(four_op(v, pms, ams, 8 if chip in ("OPM", "OPNA") else None, chip in ("OPM", "OPNA")))}, // {NAMES[i]}')
         lines.append('};')
+    lines.append('')
+    lines.append('/* OPM rhythm: { FB, ALG, PMS, AMS, { op x4 } } preset codes')
+    lines.append(' * for the five drum voices, plus HH/TC hardware-noise')
+    lines.append(' * variants.  The companion table gives the reg 0x0F byte')
+    lines.append(' * (NE | NFRQ) for noise rows and 0 for FM rows; a noise')
+    lines.append(' * row sounds on channel 8 (its C2 slot), so the projection')
+    lines.append(' * picks FM or noise per hit by channel availability. */')
+    lines.append('static const unsigned char OPLL_PRESET_OPM_RHYTHM[7][4 + 4 * 10] = {')
+    for name, row, _nf in rhythm_opm():
+        lines.append(f'    {fmt_op4(row)}, // {name}')
+    lines.append('};')
+    lines.append('static const unsigned char OPLL_PRESET_OPM_RHYTHM_NOISE[7] = {')
+    lines.append('    ' + ', '.join(f'0x{nf:02X}' if nf else '0'
+                                     for _name, _row, nf in rhythm_opm()))
+    lines.append('};')
     lines.append('')
     lines.append('#endif /* OPLL_PRESETS_ESTABLISHED_H */')
     OUT.write_text('\n'.join(lines) + '\n', encoding='utf-8')
