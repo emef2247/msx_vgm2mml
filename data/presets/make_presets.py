@@ -4,19 +4,23 @@ per-target preset table per chip family.
 
 Single source of truth: opll_presets.json (the established
 set by emef2247), kept beside this script. Every derived table is generated from it through the
-audited conversion laws, except the OPL targets (msxaudio / opl3),
-whose preset voices come from opl_derived.json, our own derivation
-fitted against the conversion table observed in commercial MSX
+audited conversion laws, except the msxaudio target, whose preset
+voices come from opl_derived.json, our own derivation fitted
+against the conversion table observed in commercial MSX
 dual-edition games (opl_commercial.json, kept as the calibration
 reference; owner's policy, 2026-11-14: learn from the commercial
 work, do not copy it - the derived values are an independent
-realisation of the same renders). The owner has since made the
-derived set the primary dataset (2026-11-14, evening): it is the
-least dependent origin and is to be established ahead of the
-tooling being opened, so it generates these tables; the
-commercial table remains the calibration reference, and its
-rhythm template still feeds the native rhythm unit (the
-derivation covered the melody voices only):
+realisation of the same renders). The opl3 target generated from
+the derived set through 2026-11-14, but the derived set failed
+its hardware audition that night (melody collapse on the real
+YMF289 that the ymfm fits did not predict), and the owner
+directed (2026-11-15) that opl3 be generated from the
+established set by field identity - the level OPM / OPNA
+already have - with per-voice OPL3 fitting as separate later
+work. The commercial table remains the calibration reference,
+and its rhythm template still feeds the native rhythm unit,
+overlaid with the derived rhythm voices (the melody derivation
+covered the melody voices only):
 
 - OPL (from the established set; retained for the C header):
   field identity (the canonical 2OP frame is OPL-native);
@@ -376,6 +380,46 @@ def _target_json(target, chip, clock, pms, ams, trims, rhythm):
     return doc
 
 
+def _established_opl_json(target, chip, clock):
+    # OPL two-op rows straight from the established set
+    # (opll_presets.json) by field identity - the same frame the
+    # OPL section of the header above and the custom-patch
+    # projection use: KSL re-framed ({0:0, 1:2, 2:1, 3:3}) so the
+    # physical key-scale rate is preserved, modulator TL from
+    # the set, carrier TL a performance value (source VOL << 2)
+    # carried as 0.  Adopted for the opl3 target by the owner
+    # (2026-11-15): the derived set failed its hardware audition
+    # (melody collapse the ymfm fits did not predict), so opl3
+    # first reaches the level the established set already has on
+    # OPM / OPNA; per-voice fitting for OPL3 is separate later
+    # work.  msxaudio keeps the derived table for now.
+    def op(o):
+        return {'am': o['am'], 'vib': o['vib'], 'egt': o['egt'],
+                'ksr': o['ksr'], 'mul': o['multi'],
+                'ksl': {0: 0, 1: 2, 2: 1, 3: 3}[o['ksl']],
+                'tl': o['tl'] or 0,
+                'ar': o['ar'], 'dr': o['dr'], 'sl': o['sl'],
+                'rr': o['rr']}
+    voices = []
+    for i in range(1, 16):
+        row = ROM['melodic'][str(i)]
+        voices.append({'index': i, 'name': row['name'],
+                       'fb': row['fb'],
+                       'ops': [op(row['mod']), op(row['car'])]})
+    return {'target': target, 'chip': chip, 'clock_hz': clock,
+            'source': 'opll_presets.json via make_presets.py; '
+                      'do not hand-edit',
+            'law': 'field identity from the established set '
+                   '(KSL re-framed); carrier TL = 4 * VOL',
+            'voices': voices,
+            'rhythm': {'kind': 'opl_native',
+                       'note': 'OPLL percussion projects to the target '
+                               'native rhythm unit with the composed '
+                               'voice template (derived voices over the '
+                               'commercial one; musical_opl_target / '
+                               'musical_opl3_target); no FM rows.'}}
+
+
 def _derived_opl_json(target, chip, clock):
     # OPL two-op rows from our own derived preset set
     # (opl_derived.json): fitted from the established set's
@@ -409,7 +453,7 @@ def write_target_jsons():
     docs = {
         'msxaudio/opll_to_y8950.json': _derived_opl_json(
             'msxaudio', 'y8950', 3579545),
-        'opl3/opll_to_opl3.json': _derived_opl_json(
+        'opl3/opll_to_opl3.json': _established_opl_json(
             'opl3', 'ymf262', 14318180),
         'sfg01/opll_to_opm.json': _target_json(
             'sfg01', 'ym2151', 3579545, 5, 2, LEVEL_TRIM_TL_OPM,
