@@ -347,12 +347,12 @@ def _target_json(target, chip, clock, pms, ams, trims, rhythm):
         if row['name'] == 'Synthesizer':
             # Modulator brightness-sustain fit, 2026-11-14:
             # probe trajectory error 15.5 -> 4.1 (OPM) and
-            # 12.75 -> 6.27 (OPNA) against IKAOPLL.  Provisional
-            # until the owner's audition of the countermeasure
-            # render settles it.
+            # 12.75 -> 6.27 (OPNA) against IKAOPLL.  Adopted by
+            # the owner's audition of the FMPAC02 countermeasure
+            # render the same day (sound pressure restored).
             voice['mod_eg_override'] = dict(
                 SYNTH_MOD_EG_OVERRIDE,
-                status='provisional, fitted 2026-11-14, audition pending')
+                status='adopted 2026-11-14 by owner audition (FMPAC02)')
         voices.append(voice)
     doc = {'target': target, 'chip': chip, 'clock_hz': clock,
            'source': 'opll_presets.json via make_presets.py; do not hand-edit',
