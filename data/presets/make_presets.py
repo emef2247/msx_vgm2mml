@@ -5,12 +5,15 @@ per-target preset table per chip family.
 Single source of truth: opll_presets.json (the established
 set by emef2247), kept beside this script. Every derived table is generated from it through the
 audited conversion laws, except the OPL targets (msxaudio / opl3),
-whose preset voices come from opl_derived.json, our own derivation
-fitted against the conversion table observed in commercial MSX
-dual-edition games (opl_commercial.json, kept as the calibration
-reference; owner's policy, 2026-11-14: learn from the commercial
-work, do not copy it - the derived values are an independent
-realisation of the same renders):
+whose preset voices come from opl_commercial.json, the conversion
+table observed in commercial MSX dual-edition games (owner's
+decision, 2026-11-14, to maximise use of the Y8950 analysis).
+An independently fitted candidate set, opl_derived.json, is kept
+beside it for reference: it fit the commercial renders closely on
+single-note probes but lost overwhelmingly in the owner's FMPAC02
+song-level listening comparison the same day, so it does not
+generate tables (field note
+2026-11-14_opll_to_y8950_commercial_table.md, follow-up 3):
 
 - OPL (from the established set; retained for the C header):
   field identity (the canonical 2OP frame is OPL-native);
@@ -370,20 +373,21 @@ def _target_json(target, chip, clock, pms, ams, trims, rhythm):
     return doc
 
 
-def _derived_opl_json(target, chip, clock):
-    # OPL two-op rows from our own derived preset set
-    # (opl_derived.json): fitted from the established set's
-    # identity frame against renders of the commercially observed
-    # reference voices (opl_commercial.json), NOT copied from
-    # them - per voice 6-13 of 23 fields differ from the reference
-    # values.  Y8950 and YMF262 share the two-op register frame,
-    # so one source feeds both targets.  Carrier TL is a
-    # performance value (source VOL << 2); the source carries 0.
-    doc = json.loads((HERE / 'opl_derived.json').read_text())
+def _commercial_opl_json(target, chip, clock):
+    # OPL two-op rows from the commercially observed conversion
+    # table (opl_commercial.json): the voicing Compile's MSX
+    # dual-edition games actually used for OPLL presets on the
+    # Y8950, adopted by the owner 2026-11-14 over the field-identity
+    # derivation from the established set (the two disagree in 160
+    # of 330 fields; the commercial table carries no ymfm lineage).
+    # Y8950 and YMF262 share the two-op register frame, so one
+    # source feeds both targets.  Carrier TL is a performance
+    # value (source VOL << 2); the source carries 0 for it.
+    doc = json.loads((HERE / 'opl_commercial.json').read_text())
     voices = [{'index': v['index'], 'name': v['name'], 'fb': v['fb'],
                'ops': v['ops']} for v in doc['voices']]
     return {'target': target, 'chip': chip, 'clock_hz': clock,
-            'source': 'opl_derived.json via make_presets.py; do not hand-edit',
+            'source': 'opl_commercial.json via make_presets.py; do not hand-edit',
             'law': doc['law'],
             'voices': voices,
             'rhythm': {'kind': 'opl_native',
@@ -401,9 +405,9 @@ def write_target_jsons():
                    'noise_reg': nf}
                   for name, row, nf in rhythm_opm()]
     docs = {
-        'msxaudio/opll_to_y8950.json': _derived_opl_json(
+        'msxaudio/opll_to_y8950.json': _commercial_opl_json(
             'msxaudio', 'y8950', 3579545),
-        'opl3/opll_to_opl3.json': _derived_opl_json(
+        'opl3/opll_to_opl3.json': _commercial_opl_json(
             'opl3', 'ymf262', 14318180),
         'sfg01/opll_to_opm.json': _target_json(
             'sfg01', 'ym2151', 3579545, 5, 2, LEVEL_TRIM_TL_OPM,
