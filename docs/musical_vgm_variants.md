@@ -47,6 +47,7 @@ instead of the IKAOPLL library.
 | makoto_rx21 | makoto with the RX21 hit library on ADPCM-B |
 | sfg01_makoto | YM2151 FM, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
 | sfg01_msxaudio | YM2151 FM, Y8950 Delta-T, YM2413 and PSG |
+| msxaudio | Y8950 FM as the main target: YM2413 projected to Y8950 FM and its native rhythm unit, native Y8950 retained, Y8950 Delta-T for PCM, plus PSG |
 | layered | YM2151 and YM2608 FM in parallel, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
 | scc_sfg01 | Real SCC plus the sfg01 composition |
 | scc_makoto | Real SCC plus the makoto composition |

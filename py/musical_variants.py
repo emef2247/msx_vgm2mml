@@ -13,7 +13,7 @@ from musical_wave_target import project_waves, project_psg_opll
 
 SCC_PROFILES = {'scc_sfg01':'sfg01', 'scc_makoto':'makoto', 'scc_layered':'layered'}
 PSG_PROFILES = {'psg_sfg01':'sfg01', 'psg_makoto':'makoto', 'psg_layered':'layered'}
-PROFILES = ('sfg01','sfg01_rx21','makoto','makoto_rx21','sfg01_makoto','sfg01_msxaudio','layered', *SCC_PROFILES, *PSG_PROFILES)
+PROFILES = ('sfg01','sfg01_rx21','makoto','makoto_rx21','sfg01_makoto','sfg01_msxaudio','msxaudio','layered', *SCC_PROFILES, *PSG_PROFILES)
 CLOCKS = {0x54:(0x30,3579545),0x56:(0x48,8000000),0x57:(0x48,8000000),
           0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545)}
 
@@ -53,7 +53,8 @@ def _write(performance, rows, prefix, path):
         else:raise ValueError('Unmapped source chip escaped into cartridge output')
         struct.pack_into('<I',header,offset,clock)
         reg=command[1]
-        state_only=(command[0]==0x54 and 0x20<=reg<=0xff or command[0] in (0x56,0x57) and (0x30<=reg<0x90 or 0xb0<=reg<=0xb6))
+        state_only=(command[0]==0x54 and 0x20<=reg<=0xff or command[0] in (0x56,0x57) and (0x30<=reg<0x90 or 0xb0<=reg<=0xb6)
+            or command[0]==0x5c and 0x20<=reg<=0xc8)
         key=(command[0],reg)
         row['emitted']=not (state_only and cache.get(key)==command[2])
         if row['emitted']:
@@ -99,6 +100,42 @@ def _project_fm_layer(performance, chip, clock, *, force, include_psg=False):
         losses=dict(losses))
 
 
+def _project_msxaudio(performance, *, force=False, dcsg_gain=.25):
+    """MSX-AUDIO profile: the Y8950 FM section is the primary target.
+
+    OPLL voices project to Y8950 FM through the established set's
+    OPL frame and OPLL percussion to the native rhythm unit; Y8950
+    sources re-emit natively; PCM rides the Y8950 Delta-T unit.
+    Source families whose Y8950 projection is not established yet
+    (4-op FM, waveform chips) make the profile unavailable.
+    """
+    from musical_opl_target import project_opl_fm
+    from musical_pcm_target import project_pcm
+    allowed={'y8950','opll','psg','dcsg','msm6258'}
+    bad=sorted({d.chip for d in performance.devices}-allowed)
+    if bad:raise ValueError('msxaudio profile has no projection for '+', '.join(bad))
+    msm_issues=[d for d in performance.decisions if d and d[0] in
+        ('msm6258_pcm_source_issue','msm6258_pcm_unresolved_playback')]
+    if msm_issues and not force:
+        raise ValueError('MSM6258 PCM source evidence is unresolved; inspect native decisions')
+    rows=[];prefix=b'';losses=Counter();pcm_stats={}
+    fm_rows,fm_losses,allocation=project_opl_fm(performance,force=force)
+    rows.extend(fm_rows);losses.update(fm_losses)
+    opll_device=next((d.device_id for d in performance.devices if d.chip=='opll'),None)
+    aux,aux_losses=project_psg_opll(performance,dcsg_gain=dcsg_gain,
+        opna=False,force=True,opll_fm_device=opll_device)
+    rows.extend(aux);losses.update(aux_losses)
+    assets=getattr(performance,'pcm_assets',())
+    if assets:
+        pcm,prefix,pcm_losses,pcm_stats=project_pcm(performance,'y8950',force=force)
+        if any(count for code,count in pcm_losses.items() if 'budget' in code and ('omitted' in code or 'dropped' in code)) and not force:
+            raise ValueError('PCM content exceeds cartridge DRAM (use --force for explicit omission)')
+        rows.extend(pcm);losses.update(pcm_losses)
+    if not rows and not prefix:raise ValueError('No mapped musical operations in source')
+    plan=dict(fm_allocation={str(k):v for k,v in allocation.items()},pcm=pcm_stats)
+    return rows,prefix,dict(losses),plan
+
+
 def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_law=False):
     from musical_pcm_target import project_pcm
     if profile not in PROFILES:raise ValueError('Unknown cartridge profile')
@@ -107,6 +144,8 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     real_psg=profile in PSG_PROFILES
     profile=PSG_PROFILES.get(profile,profile)
     if not 0<dcsg_gain<=1:raise ValueError('DCSG gain must be >0 and <=1')
+    if profile=='msxaudio':
+        return _project_msxaudio(performance,force=force,dcsg_gain=dcsg_gain)
     chip='opna' if profile in ('makoto','makoto_rx21') else 'opm'
     clock=8000000 if chip=='opna' else 3579545
     auxiliary='opna' if profile in ('makoto','makoto_rx21','sfg01_makoto','layered') else 'y8950' if profile=='sfg01_msxaudio' else None

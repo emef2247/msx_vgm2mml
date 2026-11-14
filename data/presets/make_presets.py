@@ -363,6 +363,31 @@ def _target_json(target, chip, clock, pms, ams, trims, rhythm):
     return doc
 
 
+def _opl_target_json():
+    # Y8950 (MSX-AUDIO) two-op rows in the OPL frame: field identity
+    # from the established set (opl_voice), the same derivation the
+    # C header's OPL table carries.  Carrier TL is a performance
+    # value (source VOL << 2), so the table carries 0 for it.
+    keys = ('am', 'vib', 'egt', 'ksr', 'mul', 'ksl', 'tl',
+            'ar', 'dr', 'sl', 'rr')
+    voices = []
+    for i in range(1, 16):
+        row = ROM['melodic'][str(i)]
+        fb, ops = opl_voice(row)
+        objs = [dict(zip(keys, op)) for op in ops]
+        objs[1]['tl'] = 0
+        voices.append({'index': i, 'name': row['name'], 'fb': fb,
+                       'ops': objs})
+    return {'target': 'msxaudio', 'chip': 'y8950', 'clock_hz': 3579545,
+            'source': 'opll_presets.json via make_presets.py; do not hand-edit',
+            'law': 'OPL field identity (KSL re-framed); carrier TL = source VOL << 2',
+            'voices': voices,
+            'rhythm': {'kind': 'y8950_native',
+                       'note': 'OPLL percussion projects to the Y8950 '
+                               'native rhythm unit (musical_opl_target); '
+                               'no FM rows.'}}
+
+
 def write_target_jsons():
     import json as _json
     opm_rhythm = [{'name': name, 'fb': row[0], 'alg': row[1],
@@ -370,6 +395,7 @@ def write_target_jsons():
                    'noise_reg': nf}
                   for name, row, nf in rhythm_opm()]
     docs = {
+        'msxaudio/opll_to_y8950.json': _opl_target_json(),
         'sfg01/opll_to_opm.json': _target_json(
             'sfg01', 'ym2151', 3579545, 5, 2, LEVEL_TRIM_TL_OPM,
             {'kind': 'fm_rows', 'rows': opm_rhythm}),
