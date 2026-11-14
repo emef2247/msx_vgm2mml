@@ -318,6 +318,72 @@ def main():
     lines.append('#endif /* OPLL_PRESETS_ESTABLISHED_H */')
     OUT.write_text('\n'.join(lines) + '\n', encoding='utf-8')
     print('wrote', OUT, OUT.stat().st_size, 'bytes')
+    write_target_jsons()
+
+
+# Per-target preset JSONs for the vgm-variants OPLL projection
+# (py/opll_fm_target.py).  Register-ready four-op rows from the
+# same laws as the C header; the projector applies them and
+# computes custom patches with a port of four_op().  LFO bridge:
+# the OPLL vibrato rate measured through the OPM bridge is
+# 5.76 Hz (LFRQ 0xCB at 3.579545 MHz, PMD 86 / AMD 16).
+SYNTH_MOD_EG_OVERRIDE = {'d1r': 11, 'd2r': 4, 'sl': 6}
+
+
+def _op_obj(op):
+    keys = ('mul', 'tl', 'ks', 'ar', 'd1r', 'd2r', 'sl', 'rr', 'dt', 'am')
+    return dict(zip(keys, op))
+
+
+def _target_json(target, chip, clock, pms, ams, trims, rhythm):
+    voices = []
+    for i in range(1, 16):
+        row = ROM['melodic'][str(i)]
+        fb, alg, _p, _a, ops = four_op(row, pms, ams, perc_rr=8,
+                                       ksl_comp=True)
+        voice = {'index': i, 'name': row['name'], 'fb': fb, 'alg': alg,
+                 'ops': [_op_obj(o) for o in ops],
+                 'level_trim_tl': trims.get(row['name'], 0)}
+        if row['name'] == 'Synthesizer':
+            # Modulator brightness-sustain fit, 2026-11-14:
+            # probe trajectory error 15.5 -> 4.1 (OPM) and
+            # 12.75 -> 6.27 (OPNA) against IKAOPLL.  Provisional
+            # until the owner's audition of the countermeasure
+            # render settles it.
+            voice['mod_eg_override'] = dict(
+                SYNTH_MOD_EG_OVERRIDE,
+                status='provisional, fitted 2026-11-14, audition pending')
+        voices.append(voice)
+    doc = {'target': target, 'chip': chip, 'clock_hz': clock,
+           'source': 'opll_presets.json via make_presets.py; do not hand-edit',
+           'lfo': {'hz': 5.76, 'pms': pms, 'ams': ams},
+           'voices': voices, 'rhythm': rhythm}
+    if target == 'sfg01':
+        doc['lfo'].update(pmd=86, amd=16, lfrq=0xCB)
+    return doc
+
+
+def write_target_jsons():
+    import json as _json
+    opm_rhythm = [{'name': name, 'fb': row[0], 'alg': row[1],
+                   'ops': [_op_obj(o) for o in row[4]],
+                   'noise_reg': nf}
+                  for name, row, nf in rhythm_opm()]
+    docs = {
+        'sfg01/opll_to_opm.json': _target_json(
+            'sfg01', 'ym2151', 3579545, 5, 2, LEVEL_TRIM_TL_OPM,
+            {'kind': 'fm_rows', 'rows': opm_rhythm}),
+        'makoto/opll_to_opna.json': _target_json(
+            'makoto', 'ym2608', 8000000, 4, 2, LEVEL_TRIM_TL_OPNA,
+            {'kind': 'opna_native',
+             'note': 'OPLL percussion projects to the OPNA native '
+                     'rhythm unit (project_rhythm); no FM rows.'}),
+    }
+    for rel, doc in docs.items():
+        path = HERE / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(_json.dumps(doc, indent=1) + '\n', encoding='utf-8')
+        print('wrote', path, path.stat().st_size, 'bytes')
 
 
 if __name__ == '__main__':
