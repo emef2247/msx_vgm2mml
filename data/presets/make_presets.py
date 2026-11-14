@@ -75,7 +75,6 @@ KSL_COMP = {0: 0, 1: 7, 2: 14, 3: 19}  # TL steps, A4 reference (see four_op)
 # Vibraphone is excluded: its offset is
 # window-dependent (-3.4 / -5.7 / -6.4 dB at 0.1 / 0.35 / 1 s),
 # an EG decay-shape difference, not a level offset.
-# OPNA trims are unmeasured; nothing is emitted for OPNA yet.
 LEVEL_TRIM_TL_OPM = {'Violin': 7, 'Trumpet': -1, 'Organ': 4,
                      'Synthesizer': 7, 'Harpsichord': 4}
 
@@ -339,9 +338,10 @@ def _target_json(target, chip, clock, pms, ams, trims, rhythm):
     voices = []
     for i in range(1, 16):
         row = ROM['melodic'][str(i)]
-        fb, alg, _p, _a, ops = four_op(row, pms, ams, perc_rr=8,
+        fb, alg, vp, va, ops = four_op(row, pms, ams, perc_rr=8,
                                        ksl_comp=True)
         voice = {'index': i, 'name': row['name'], 'fb': fb, 'alg': alg,
+                 'pms': vp, 'ams': va,
                  'ops': [_op_obj(o) for o in ops],
                  'level_trim_tl': trims.get(row['name'], 0)}
         if row['name'] == 'Synthesizer':

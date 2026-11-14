@@ -17,6 +17,8 @@
    "name": "Violin",
    "fb": 7,
    "alg": 4,
+   "pms": 5,
+   "ams": 0,
    "ops": [
     {
      "mul": 1,
@@ -74,6 +76,8 @@
    "name": "Guitar",
    "fb": 5,
    "alg": 4,
+   "pms": 5,
+   "ams": 0,
    "ops": [
     {
      "mul": 3,
@@ -131,6 +135,8 @@
    "name": "Piano",
    "fb": 0,
    "alg": 4,
+   "pms": 0,
+   "ams": 0,
    "ops": [
     {
      "mul": 3,
@@ -188,6 +194,8 @@
    "name": "Flute",
    "fb": 7,
    "alg": 4,
+   "pms": 5,
+   "ams": 0,
    "ops": [
     {
      "mul": 1,
@@ -245,6 +253,8 @@
    "name": "Clarinet",
    "fb": 6,
    "alg": 4,
+   "pms": 0,
+   "ams": 0,
    "ops": [
     {
      "mul": 2,
@@ -302,6 +312,8 @@
    "name": "Oboe",
    "fb": 5,
    "alg": 4,
+   "pms": 0,
+   "ams": 0,
    "ops": [
     {
      "mul": 1,
@@ -359,6 +371,8 @@
    "name": "Trumpet",
    "fb": 7,
    "alg": 4,
+   "pms": 5,
+   "ams": 0,
    "ops": [
     {
      "mul": 1,
@@ -416,6 +430,8 @@
    "name": "Organ",
    "fb": 3,
    "alg": 4,
+   "pms": 0,
+   "ams": 0,
    "ops": [
     {
      "mul": 3,
@@ -473,6 +489,8 @@
    "name": "Horn",
    "fb": 6,
    "alg": 4,
+   "pms": 5,
+   "ams": 0,
    "ops": [
     {
      "mul": 1,
@@ -530,6 +548,8 @@
    "name": "Synthesizer",
    "fb": 0,
    "alg": 4,
+   "pms": 5,
+   "ams": 0,
    "ops": [
     {
      "mul": 1,
@@ -593,6 +613,8 @@
    "name": "Harpsichord",
    "fb": 1,
    "alg": 4,
+   "pms": 0,
+   "ams": 0,
    "ops": [
     {
      "mul": 3,
@@ -650,6 +672,8 @@
    "name": "Vibraphone",
    "fb": 7,
    "alg": 4,
+   "pms": 5,
+   "ams": 2,
    "ops": [
     {
      "mul": 7,
@@ -707,6 +731,8 @@
    "name": "SynthBass",
    "fb": 5,
    "alg": 4,
+   "pms": 5,
+   "ams": 0,
    "ops": [
     {
      "mul": 1,
@@ -764,6 +790,8 @@
    "name": "AcoustBass",
    "fb": 3,
    "alg": 4,
+   "pms": 0,
+   "ams": 0,
    "ops": [
     {
      "mul": 1,
@@ -821,6 +849,8 @@
    "name": "ElecGuitar",
    "fb": 3,
    "alg": 4,
+   "pms": 5,
+   "ams": 0,
    "ops": [
     {
      "mul": 1,

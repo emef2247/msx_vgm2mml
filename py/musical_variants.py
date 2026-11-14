@@ -80,14 +80,19 @@ def _write(performance, rows, prefix, path):
 def _project_fm_layer(performance, chip, clock, *, force):
     from musical_fm_target import project_fm
     fm, losses, allocation = project_fm(performance, chip, clock, force=force)
+    from opll_fm_target import project_opll_fm
+    opll_rows, opll_losses, opll_allocation = project_opll_fm(
+        performance, chip, clock, reserved=set(allocation.values()), force=force)
     wave, wave_losses, wave_allocation = project_waves(performance, chip, clock,
-        set(allocation.values()), force=True)
+        set(allocation.values()) | set(opll_allocation.values()), force=True)
     if wave_losses.get('wave_channel_capacity_units_omitted') and not force:
         raise ValueError('Waveform voices exceed cartridge FM capacity (use --force for explicit omission)')
     losses = Counter(losses)
+    losses.update(opll_losses)
     losses.update(wave_losses)
-    return fm + wave, losses, dict(clock_hz=clock,
+    return fm + opll_rows + wave, losses, dict(clock_hz=clock,
         fm_allocation={str(k): v for k, v in allocation.items()},
+        opll_allocation={str(k): v for k, v in opll_allocation.items()},
         waveform_allocation={str(k): v for k, v in wave_allocation.items()},
         losses=dict(losses))
 
@@ -127,8 +132,10 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
         fm,fm_losses,layer_plan=_project_fm_layer(fm_performance,target_chip,target_clock,force=force)
         rows.extend(fm);losses.update(fm_losses)
         fm_layers[target_chip]=layer_plan
+    opll_fm_device=next((d.device_id for d in performance.devices if d.chip=='opll' and
+        any(u.device_id==d.device_id and u.section=='fm' for u in performance.units)),None)
     aux,aux_losses=project_psg_opll(performance,dcsg_gain=dcsg_gain,
-        opna=auxiliary=='opna',force=True)
+        opna=auxiliary=='opna',force=True,opll_fm_device=opll_fm_device)
     if any(aux_losses.get(k) for k in ('psg_channel_capacity_units_omitted','second_opll_device_omitted')) and not force:
         raise ValueError('Auxiliary voices exceed cartridge capacity (use --force for explicit omission)')
     rows.extend(aux);losses.update(aux_losses)

@@ -150,7 +150,7 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False):
     return rows,losses,allocation
 
 
-def project_psg_opll(performance, *, dcsg_gain=.25, opna=False, force=False):
+def project_psg_opll(performance, *, dcsg_gain=.25, opna=False, force=False, opll_fm_device=None):
     """Render native PSG/SSG/OPLL units, plus DCSG's AY approximation."""
     from native_registers import encode_control
     devices={d.device_id:d for d in performance.devices}
@@ -241,7 +241,7 @@ def project_psg_opll(performance, *, dcsg_gain=.25, opna=False, force=False):
     opll_devices=[d for d in performance.devices if d.chip=='opll']
     for device in opll_devices[:1]:
         if device.clock_raw & 0x80000000:losses['vrc7_patch_rom_approximated_by_opll']+=1
-        for u in (u for u in performance.units if u.device_id==device.device_id):
+        for u in (u for u in performance.units if u.device_id==device.device_id and device.device_id!=opll_fm_device):
             if not 0<=u.channel<9:continue
             ch=u.channel;last_pitch=0
             def emit(at,reg,v,why,order=0):rows.append(record(u,at,bytes((0x51,reg,v&255)),why,order))
