@@ -9,7 +9,8 @@ OPNA_BITS={'BD':1,'SD':2,'CYM':4,'HH':8,'TOM':16,'RIM':32}
 OPLL_LEVEL={'BD':(0x36,0),'SD':(0x37,0),'HH':(0x37,4),'TOM':(0x38,4),'CYM':(0x38,0)}
 
 
-def project_rhythm(performance, *, makoto=False, opll_pcm=False):
+def project_rhythm(performance, *, makoto=False, opll_pcm=False,
+                   opll_fm=False):
     devices={d.device_id:d for d in performance.devices}
     controls={c.control_id:c for c in performance.controls}
     rows=[];losses=Counter()
@@ -39,7 +40,7 @@ def project_rhythm(performance, *, makoto=False, opll_pcm=False):
             actions.extend((at,order(event,at)-.25,'level',event) for at,_ in event.volume_curve)
         # Shared total level, rhythm pitch and pan belong to musical effects;
         # original key masks/levels never override editable percussion events.
-        if device.chip=='opll' and opll_pcm:
+        if device.chip=='opll' and (opll_pcm or opll_fm):
             continue
         if device.chip=='opll':
             actions.extend((c.sample,c.order,'mode',c) for c in relevant if c.kind=='opll_rhythm')

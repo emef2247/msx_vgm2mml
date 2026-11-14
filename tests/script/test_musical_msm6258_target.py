@@ -110,7 +110,7 @@ class MusicalMsm6258TargetTests(unittest.TestCase):
             root=Path(tmp);source=root/'song.vgm';source.write_bytes(raw);out=root/'out'
             rows=variant_pass(source,out,force=True)
             self.assertEqual(rows[0]['status'],'success',rows)
-            report=assert_profiles(self,out,('makoto','sfg01_makoto','sfg01_msxaudio','layered'))
+            report=assert_profiles(self,out,('makoto','makoto_rx21','sfg01_makoto','sfg01_msxaudio','layered'))
             for profile in ('makoto','sfg01_makoto','sfg01_msxaudio','layered'):
                 pcm=report['summaries'][profile]['plan']['pcm']
                 self.assertEqual(pcm['encoder_path'],'decoded_msm6258_budget_bank')

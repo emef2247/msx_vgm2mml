@@ -1,0 +1,565 @@
+{
+ "kind": "fitted_rhythm_fm",
+ "target": "sfg01",
+ "clock_hz": 3579545,
+ "source": "OPM 1-channel voices fitted to reference hits with IKAOPM in the loop (rx21_fit/fit.py, 2026-11-14); see voice fit_distance per entry. Ops are in logical [M1, C1, M2, C2] order.",
+ "reference": "Yamaha RX21 factory hits recorded by the owner (44.1 kHz WAV)",
+ "tom_dominant_hz": {
+  "TOM1": 167,
+  "TOM2": 133,
+  "TOM3": 100
+ },
+ "opll_tom_nominal_hz": 95.2,
+ "opll_tom_osc_hz": 42.5,
+ "voices": [
+  {
+   "name": "BD",
+   "fb": 7,
+   "alg": 5,
+   "kc": 25,
+   "kf": 44,
+   "nominal_hz": 54.0,
+   "noise": null,
+   "gate_s": 0.12,
+   "fit_distance": 8.968,
+   "ops": [
+    {
+     "mul": 2,
+     "tl": 15,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 26,
+     "d2r": 9,
+     "sl": 3,
+     "rr": 6,
+     "dt": 5,
+     "am": 0
+    },
+    {
+     "mul": 2,
+     "tl": 117,
+     "ks": 1,
+     "ar": 31,
+     "d1r": 24,
+     "d2r": 2,
+     "sl": 9,
+     "rr": 14,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 3,
+     "tl": 70,
+     "ks": 0,
+     "ar": 21,
+     "d1r": 31,
+     "d2r": 29,
+     "sl": 5,
+     "rr": 9,
+     "dt": 5,
+     "am": 0
+    },
+    {
+     "mul": 3,
+     "tl": 54,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 17,
+     "d2r": 23,
+     "sl": 4,
+     "rr": 7,
+     "dt": 3,
+     "am": 0
+    }
+   ]
+  },
+  {
+   "name": "SD",
+   "fb": 3,
+   "alg": 4,
+   "kc": 46,
+   "kf": 60,
+   "nominal_hz": 138.1,
+   "noise": 13,
+   "gate_s": 0.12,
+   "fit_distance": 7.262,
+   "ops": [
+    {
+     "mul": 10,
+     "tl": 127,
+     "ks": 1,
+     "ar": 31,
+     "d1r": 28,
+     "d2r": 4,
+     "sl": 9,
+     "rr": 11,
+     "dt": 7,
+     "am": 0
+    },
+    {
+     "mul": 0,
+     "tl": 23,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 26,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 12,
+     "dt": 3,
+     "am": 0
+    },
+    {
+     "mul": 13,
+     "tl": 15,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 17,
+     "d2r": 5,
+     "sl": 6,
+     "rr": 13,
+     "dt": 4,
+     "am": 0
+    },
+    {
+     "mul": 2,
+     "tl": 109,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 24,
+     "d2r": 0,
+     "sl": 1,
+     "rr": 14,
+     "dt": 0,
+     "am": 0
+    }
+   ]
+  },
+  {
+   "name": "TOM1",
+   "fb": 0,
+   "alg": 0,
+   "kc": 33,
+   "kf": 20,
+   "nominal_hz": 74.8,
+   "noise": null,
+   "gate_s": 0.16,
+   "fit_distance": 10.647,
+   "ops": [
+    {
+     "mul": 8,
+     "tl": 38,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 23,
+     "d2r": 0,
+     "sl": 1,
+     "rr": 4,
+     "dt": 4,
+     "am": 0
+    },
+    {
+     "mul": 2,
+     "tl": 9,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 31,
+     "d2r": 9,
+     "sl": 1,
+     "rr": 11,
+     "dt": 3,
+     "am": 0
+    },
+    {
+     "mul": 6,
+     "tl": 33,
+     "ks": 1,
+     "ar": 24,
+     "d1r": 18,
+     "d2r": 17,
+     "sl": 3,
+     "rr": 11,
+     "dt": 1,
+     "am": 0
+    },
+    {
+     "mul": 3,
+     "tl": 64,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 22,
+     "d2r": 8,
+     "sl": 2,
+     "rr": 9,
+     "dt": 3,
+     "am": 0
+    }
+   ]
+  },
+  {
+   "name": "TOM2",
+   "fb": 3,
+   "alg": 0,
+   "kc": 30,
+   "kf": 0,
+   "nominal_hz": 65.4,
+   "noise": null,
+   "gate_s": 0.151,
+   "fit_distance": 10.089,
+   "ops": [
+    {
+     "mul": 1,
+     "tl": 9,
+     "ks": 1,
+     "ar": 30,
+     "d1r": 18,
+     "d2r": 1,
+     "sl": 5,
+     "rr": 5,
+     "dt": 4,
+     "am": 0
+    },
+    {
+     "mul": 3,
+     "tl": 0,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 24,
+     "d2r": 6,
+     "sl": 9,
+     "rr": 10,
+     "dt": 3,
+     "am": 0
+    },
+    {
+     "mul": 3,
+     "tl": 33,
+     "ks": 0,
+     "ar": 21,
+     "d1r": 17,
+     "d2r": 11,
+     "sl": 4,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 0,
+     "tl": 45,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 21,
+     "d2r": 0,
+     "sl": 4,
+     "rr": 10,
+     "dt": 3,
+     "am": 0
+    }
+   ]
+  },
+  {
+   "name": "TOM3",
+   "fb": 7,
+   "alg": 2,
+   "kc": 41,
+   "kf": 8,
+   "nominal_hz": 104.6,
+   "noise": null,
+   "gate_s": 0.156,
+   "fit_distance": 5.888,
+   "ops": [
+    {
+     "mul": 5,
+     "tl": 24,
+     "ks": 0,
+     "ar": 19,
+     "d1r": 29,
+     "d2r": 17,
+     "sl": 4,
+     "rr": 10,
+     "dt": 7,
+     "am": 0
+    },
+    {
+     "mul": 14,
+     "tl": 27,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 24,
+     "d2r": 0,
+     "sl": 9,
+     "rr": 15,
+     "dt": 2,
+     "am": 0
+    },
+    {
+     "mul": 2,
+     "tl": 0,
+     "ks": 1,
+     "ar": 29,
+     "d1r": 30,
+     "d2r": 14,
+     "sl": 10,
+     "rr": 15,
+     "dt": 4,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 23,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 14,
+     "d2r": 0,
+     "sl": 2,
+     "rr": 10,
+     "dt": 0,
+     "am": 0
+    }
+   ]
+  },
+  {
+   "name": "CLOSEHH",
+   "fb": 0,
+   "alg": 0,
+   "kc": 126,
+   "kf": 60,
+   "nominal_hz": 4418.9,
+   "noise": null,
+   "gate_s": 0.12,
+   "fit_distance": 7.998,
+   "ops": [
+    {
+     "mul": 3,
+     "tl": 14,
+     "ks": 1,
+     "ar": 31,
+     "d1r": 27,
+     "d2r": 23,
+     "sl": 10,
+     "rr": 10,
+     "dt": 6,
+     "am": 0
+    },
+    {
+     "mul": 8,
+     "tl": 20,
+     "ks": 1,
+     "ar": 25,
+     "d1r": 4,
+     "d2r": 14,
+     "sl": 2,
+     "rr": 8,
+     "dt": 4,
+     "am": 0
+    },
+    {
+     "mul": 12,
+     "tl": 0,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 13,
+     "d2r": 14,
+     "sl": 6,
+     "rr": 9,
+     "dt": 5,
+     "am": 0
+    },
+    {
+     "mul": 2,
+     "tl": 72,
+     "ks": 0,
+     "ar": 22,
+     "d1r": 16,
+     "d2r": 8,
+     "sl": 6,
+     "rr": 12,
+     "dt": 7,
+     "am": 0
+    }
+   ]
+  },
+  {
+   "name": "OPENHH",
+   "fb": 3,
+   "alg": 7,
+   "kc": 125,
+   "kf": 8,
+   "nominal_hz": 3979.7,
+   "noise": 30,
+   "gate_s": 0.398,
+   "fit_distance": 6.742,
+   "ops": [
+    {
+     "mul": 1,
+     "tl": 104,
+     "ks": 0,
+     "ar": 25,
+     "d1r": 18,
+     "d2r": 17,
+     "sl": 10,
+     "rr": 6,
+     "dt": 3,
+     "am": 0
+    },
+    {
+     "mul": 14,
+     "tl": 104,
+     "ks": 1,
+     "ar": 24,
+     "d1r": 9,
+     "d2r": 2,
+     "sl": 2,
+     "rr": 12,
+     "dt": 7,
+     "am": 0
+    },
+    {
+     "mul": 2,
+     "tl": 104,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 26,
+     "d2r": 24,
+     "sl": 10,
+     "rr": 6,
+     "dt": 4,
+     "am": 0
+    },
+    {
+     "mul": 5,
+     "tl": 0,
+     "ks": 1,
+     "ar": 31,
+     "d1r": 23,
+     "d2r": 5,
+     "sl": 7,
+     "rr": 8,
+     "dt": 0,
+     "am": 0
+    }
+   ]
+  },
+  {
+   "name": "CYM",
+   "fb": 0,
+   "alg": 4,
+   "kc": 85,
+   "kf": 4,
+   "nominal_hz": 701.0,
+   "noise": 31,
+   "gate_s": 0.65,
+   "fit_distance": 6.883,
+   "ops": [
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 104,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 0,
+     "ks": 0,
+     "ar": 30,
+     "d1r": 12,
+     "d2r": 12,
+     "sl": 5,
+     "rr": 8,
+     "dt": 0,
+     "am": 0
+    }
+   ]
+  },
+  {
+   "name": "CLAPS",
+   "fb": 0,
+   "alg": 4,
+   "kc": 100,
+   "kf": 52,
+   "nominal_hz": 1381.9,
+   "noise": 24,
+   "gate_s": 0.12,
+   "fit_distance": 7.737,
+   "ops": [
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 23,
+     "d2r": 5,
+     "sl": 7,
+     "rr": 8,
+     "dt": 3,
+     "am": 0
+    },
+    {
+     "mul": 7,
+     "tl": 104,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 21,
+     "d2r": 7,
+     "sl": 10,
+     "rr": 11,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 2,
+     "tl": 127,
+     "ks": 1,
+     "ar": 31,
+     "d1r": 23,
+     "d2r": 22,
+     "sl": 10,
+     "rr": 12,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 3,
+     "tl": 0,
+     "ks": 1,
+     "ar": 31,
+     "d1r": 16,
+     "d2r": 22,
+     "sl": 6,
+     "rr": 7,
+     "dt": 3,
+     "am": 0
+    }
+   ]
+  }
+ ]
+}

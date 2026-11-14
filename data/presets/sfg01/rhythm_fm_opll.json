@@ -1,0 +1,315 @@
+{
+ "kind": "fitted_rhythm_fm",
+ "target": "sfg01",
+ "clock_hz": 3579545,
+ "source": "OPM 1-channel voices fitted to reference hits with IKAOPM in the loop (rx21_fit/fit.py, 2026-11-14); see voice fit_distance per entry. Ops are in logical [M1, C1, M2, C2] order.",
+ "reference": "IKAOPLL rhythm hit library (data/presets/rhythm_pcm)",
+ "tom_osc_ref_hz": 42.5,
+ "voices": [
+  {
+   "name": "BD",
+   "fb": 5,
+   "alg": 4,
+   "kc": 40,
+   "kf": 60,
+   "nominal_hz": 103.5,
+   "noise": null,
+   "gate_s": 0.12,
+   "fit_distance": 1.721,
+   "ops": [
+    {
+     "mul": 0,
+     "tl": 19,
+     "ks": 0,
+     "ar": 29,
+     "d1r": 29,
+     "d2r": 26,
+     "sl": 3,
+     "rr": 11,
+     "dt": 7,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 44,
+     "ks": 0,
+     "ar": 30,
+     "d1r": 19,
+     "d2r": 31,
+     "sl": 6,
+     "rr": 8,
+     "dt": 3,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ]
+  },
+  {
+   "name": "SD",
+   "fb": 4,
+   "alg": 4,
+   "kc": 62,
+   "kf": 20,
+   "nominal_hz": 266.4,
+   "noise": 31,
+   "gate_s": 0.155,
+   "fit_distance": 10.376,
+   "ops": [
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 24,
+     "d2r": 24,
+     "sl": 0,
+     "rr": 8,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 14,
+     "tl": 20,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 18,
+     "d2r": 19,
+     "sl": 10,
+     "rr": 7,
+     "dt": 4,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 7,
+     "ks": 1,
+     "ar": 31,
+     "d1r": 7,
+     "d2r": 17,
+     "sl": 9,
+     "rr": 12,
+     "dt": 4,
+     "am": 0
+    },
+    {
+     "mul": 3,
+     "tl": 1,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 30,
+     "d2r": 21,
+     "sl": 4,
+     "rr": 7,
+     "dt": 3,
+     "am": 0
+    }
+   ]
+  },
+  {
+   "name": "TOM",
+   "fb": 4,
+   "alg": 2,
+   "kc": 38,
+   "kf": 32,
+   "nominal_hz": 95.2,
+   "noise": null,
+   "gate_s": 0.12,
+   "fit_distance": 11.454,
+   "ops": [
+    {
+     "mul": 3,
+     "tl": 80,
+     "ks": 1,
+     "ar": 31,
+     "d1r": 23,
+     "d2r": 14,
+     "sl": 10,
+     "rr": 8,
+     "dt": 2,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 35,
+     "ks": 0,
+     "ar": 30,
+     "d1r": 26,
+     "d2r": 5,
+     "sl": 0,
+     "rr": 14,
+     "dt": 2,
+     "am": 0
+    },
+    {
+     "mul": 0,
+     "tl": 32,
+     "ks": 1,
+     "ar": 31,
+     "d1r": 14,
+     "d2r": 1,
+     "sl": 2,
+     "rr": 14,
+     "dt": 2,
+     "am": 0
+    },
+    {
+     "mul": 2,
+     "tl": 29,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 25,
+     "d2r": 18,
+     "sl": 5,
+     "rr": 13,
+     "dt": 6,
+     "am": 0
+    }
+   ]
+  },
+  {
+   "name": "HH",
+   "fb": 1,
+   "alg": 2,
+   "kc": 44,
+   "kf": 60,
+   "nominal_hz": 123.0,
+   "noise": null,
+   "gate_s": 0.154,
+   "fit_distance": 6.05,
+   "ops": [
+    {
+     "mul": 5,
+     "tl": 4,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 14,
+     "d2r": 20,
+     "sl": 3,
+     "rr": 0,
+     "dt": 2,
+     "am": 0
+    },
+    {
+     "mul": 13,
+     "tl": 24,
+     "ks": 0,
+     "ar": 30,
+     "d1r": 30,
+     "d2r": 18,
+     "sl": 0,
+     "rr": 5,
+     "dt": 3,
+     "am": 0
+    },
+    {
+     "mul": 13,
+     "tl": 9,
+     "ks": 1,
+     "ar": 29,
+     "d1r": 7,
+     "d2r": 0,
+     "sl": 2,
+     "rr": 11,
+     "dt": 4,
+     "am": 0
+    },
+    {
+     "mul": 10,
+     "tl": 0,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 13,
+     "d2r": 18,
+     "sl": 0,
+     "rr": 9,
+     "dt": 4,
+     "am": 0
+    }
+   ]
+  },
+  {
+   "name": "CYM",
+   "fb": 7,
+   "alg": 4,
+   "kc": 41,
+   "kf": 48,
+   "nominal_hz": 108.4,
+   "noise": null,
+   "gate_s": 0.203,
+   "fit_distance": 7.846,
+   "ops": [
+    {
+     "mul": 6,
+     "tl": 35,
+     "ks": 0,
+     "ar": 25,
+     "d1r": 7,
+     "d2r": 2,
+     "sl": 9,
+     "rr": 15,
+     "dt": 4,
+     "am": 0
+    },
+    {
+     "mul": 3,
+     "tl": 19,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 26,
+     "d2r": 16,
+     "sl": 7,
+     "rr": 12,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 15,
+     "tl": 0,
+     "ks": 1,
+     "ar": 31,
+     "d1r": 5,
+     "d2r": 8,
+     "sl": 2,
+     "rr": 13,
+     "dt": 3,
+     "am": 0
+    },
+    {
+     "mul": 14,
+     "tl": 12,
+     "ks": 0,
+     "ar": 25,
+     "d1r": 18,
+     "d2r": 3,
+     "sl": 8,
+     "rr": 10,
+     "dt": 3,
+     "am": 0
+    }
+   ]
+  }
+ ]
+}

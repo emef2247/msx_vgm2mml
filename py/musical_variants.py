@@ -12,7 +12,7 @@ import struct
 from musical_wave_target import project_waves, project_psg_opll
 
 SCC_PROFILES = {'scc_sfg01':'sfg01', 'scc_makoto':'makoto', 'scc_layered':'layered'}
-PROFILES = ('sfg01','makoto','sfg01_makoto','sfg01_msxaudio','layered', *SCC_PROFILES)
+PROFILES = ('sfg01','sfg01_rx21','makoto','makoto_rx21','sfg01_makoto','sfg01_msxaudio','layered', *SCC_PROFILES)
 CLOCKS = {0x54:(0x30,3579545),0x56:(0x48,8000000),0x57:(0x48,8000000),
           0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545)}
 
@@ -103,9 +103,13 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     real_scc=profile in SCC_PROFILES
     profile=SCC_PROFILES.get(profile,profile)
     if not 0<dcsg_gain<=1:raise ValueError('DCSG gain must be >0 and <=1')
-    chip='opna' if profile=='makoto' else 'opm'
+    chip='opna' if profile in ('makoto','makoto_rx21') else 'opm'
     clock=8000000 if chip=='opna' else 3579545
-    auxiliary='opna' if profile in ('makoto','sfg01_makoto','layered') else 'y8950' if profile=='sfg01_msxaudio' else None
+    auxiliary='opna' if profile in ('makoto','makoto_rx21','sfg01_makoto','layered') else 'y8950' if profile=='sfg01_msxaudio' else None
+    # FM-only SFG01 compositions play OPLL rhythm as fitted FM
+    # one-shots; makoto_rx21 swaps the PCM hit library to the RX21.
+    fm_rhythm_table='opll' if profile=='sfg01' else 'rx21' if profile=='sfg01_rx21' else None
+    pcm_library='rx21' if profile=='makoto_rx21' else 'ika'
     losses=Counter();rows=[];prefix=b''
     supported={'opm','opna','opn2','psg','opll','scc','dcsg','huc6280','nesapu','msm6258'}
     for device in performance.devices:
@@ -145,7 +149,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     pcm_performance=performance
     if not assets and auxiliary in ('opna','y8950'):
         from opll_rhythm_pcm import build_rhythm_pcm_assets
-        derived,rhythm_pcm_losses=build_rhythm_pcm_assets(performance)
+        derived,rhythm_pcm_losses=build_rhythm_pcm_assets(performance,library=pcm_library)
         if derived:
             from dataclasses import replace
             pcm_performance=replace(performance,pcm_assets=derived)
@@ -182,9 +186,19 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
             else:raise ValueError('Native ADPCM stream transport needs decoded content before relocation')
         losses['native_opna_adpcm_clock_not_repitched']+=1
         pcm_stats.update(ram_budget_bytes=ADPCM_B_DRAM_BUDGET,ram_used_bytes=max((int.from_bytes(b[11:15],'little')+len(b)-15 for b in blocks),default=0),encoder_path='native_opna_packet_preservation')
+    rhythm_info={}
+    if fm_rhythm_table:
+        from opll_rhythm_fm import project_opll_rhythm_fm
+        reserved=set()
+        for layer_plan in fm_layers.values():
+            for key in ('fm_allocation','opll_allocation','waveform_allocation'):
+                reserved.update(int(v) for v in layer_plan[key].values())
+        fm_rhythm,fm_rhythm_losses,rhythm_info=project_opll_rhythm_fm(
+            performance,fm_rhythm_table,reserved,force=force)
+        rows.extend(fm_rhythm);losses.update(fm_rhythm_losses)
     from musical_rhythm_target import project_rhythm
     rhythm,rhythm_losses=project_rhythm(performance,makoto=auxiliary=='opna',
-        opll_pcm=rhythm_pcm)
+        opll_pcm=rhythm_pcm,opll_fm=bool(fm_rhythm_table))
     rows.extend(rhythm);losses.update(rhythm_losses)
     # The measured OPNA TL/decay law is applied to projected carrier values,
     # after native curve/voice recombination, never to source evidence.
@@ -207,6 +221,8 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     if not rows and not prefix:raise ValueError('No mapped musical operations in source')
     plan=dict(fm_allocation=fm_layers[chip]['fm_allocation'],
         waveform_allocation=fm_layers[chip]['waveform_allocation'],pcm=pcm_stats)
+    if rhythm_info:plan['opll_rhythm_fm']=rhythm_info
+    if rhythm_pcm:plan['opll_rhythm_pcm']=pcm_library
     if profile=='layered':plan['fm_layers']=fm_layers
     if real_scc:plan['real_scc']=scc_plan
     return rows,prefix,dict(losses),plan
@@ -224,7 +240,7 @@ def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, op
             input_representation='NativePerformance',source_file_consulted=False,
             sample_rate=44100,status='unavailable',source_decisions=performance.decisions)
         try:
-            if profile.startswith('sfg01_') and not (has_pcm or profile=='sfg01_makoto' and native_rhythm):
+            if profile in ('sfg01_makoto','sfg01_msxaudio') and not (has_pcm or profile=='sfg01_makoto' and native_rhythm):
                 raise ValueError('No PCM/native rhythm requiring this auxiliary cartridge; use sfg01')
             rows,prefix,losses,plan=project_variant(performance,profile,force=force,
                 dcsg_gain=dcsg_gain,opna_law=opna_law)
