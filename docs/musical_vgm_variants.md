@@ -51,6 +51,9 @@ instead of the IKAOPLL library.
 | scc_sfg01 | Real SCC plus the sfg01 composition |
 | scc_makoto | Real SCC plus the makoto composition |
 | scc_layered | Real SCC plus both FM layers |
+| psg_sfg01 | Native AY PSG plus an OPM doubling of the PSG voices |
+| psg_makoto | Native AY PSG plus an OPNA doubling of the PSG voices |
+| psg_layered | Native AY PSG plus both FM doublings |
 
 ## Layered FM
 
@@ -89,6 +92,18 @@ reasons. This does not add HuC/APU/FDS-to-SCC mapping. Musical time is unchanged
 the SCC loop boundary reasserts its enable mask and active voice state.
 Per-profile write CSVs and `plan.real_scc` make the additional lane inspectable.
 No detune is added and relative loudness still needs user listening checks.
+
+## Native PSG with FM companions
+
+PSG-only sources additionally publish `psg_sfg01`, `psg_makoto`, and
+`psg_layered`: the native AY lanes stay exactly as in the base profiles,
+and the PSG tone voices are doubled by the FM additive projection
+(square spectrum) on respectively OPM, OPNA, or both. Noise-only
+intervals rest on the FM side and stay on the native AY; a hardware
+envelope shape is not reproduced by the doubling. Both facts are
+recorded as losses. The profiles require a PSG-only source: any
+other sounding chip makes them unavailable. Per-profile write CSVs
+and `plan.psg_fm_doubling` make the additional lanes inspectable.
 
 ## Representation boundary
 

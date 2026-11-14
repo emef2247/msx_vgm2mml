@@ -12,7 +12,8 @@ import struct
 from musical_wave_target import project_waves, project_psg_opll
 
 SCC_PROFILES = {'scc_sfg01':'sfg01', 'scc_makoto':'makoto', 'scc_layered':'layered'}
-PROFILES = ('sfg01','sfg01_rx21','makoto','makoto_rx21','sfg01_makoto','sfg01_msxaudio','layered', *SCC_PROFILES)
+PSG_PROFILES = {'psg_sfg01':'sfg01', 'psg_makoto':'makoto', 'psg_layered':'layered'}
+PROFILES = ('sfg01','sfg01_rx21','makoto','makoto_rx21','sfg01_makoto','sfg01_msxaudio','layered', *SCC_PROFILES, *PSG_PROFILES)
 CLOCKS = {0x54:(0x30,3579545),0x56:(0x48,8000000),0x57:(0x48,8000000),
           0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545)}
 
@@ -77,14 +78,15 @@ def _write(performance, rows, prefix, path):
     return rows
 
 
-def _project_fm_layer(performance, chip, clock, *, force):
+def _project_fm_layer(performance, chip, clock, *, force, include_psg=False):
     from musical_fm_target import project_fm
     fm, losses, allocation = project_fm(performance, chip, clock, force=force)
     from opll_fm_target import project_opll_fm
     opll_rows, opll_losses, opll_allocation = project_opll_fm(
         performance, chip, clock, reserved=set(allocation.values()), force=force)
     wave, wave_losses, wave_allocation = project_waves(performance, chip, clock,
-        set(allocation.values()) | set(opll_allocation.values()), force=True)
+        set(allocation.values()) | set(opll_allocation.values()), force=True,
+        include_psg=include_psg)
     if wave_losses.get('wave_channel_capacity_units_omitted') and not force:
         raise ValueError('Waveform voices exceed cartridge FM capacity (use --force for explicit omission)')
     losses = Counter(losses)
@@ -102,6 +104,8 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     if profile not in PROFILES:raise ValueError('Unknown cartridge profile')
     real_scc=profile in SCC_PROFILES
     profile=SCC_PROFILES.get(profile,profile)
+    real_psg=profile in PSG_PROFILES
+    profile=PSG_PROFILES.get(profile,profile)
     if not 0<dcsg_gain<=1:raise ValueError('DCSG gain must be >0 and <=1')
     chip='opna' if profile in ('makoto','makoto_rx21') else 'opm'
     clock=8000000 if chip=='opna' else 3579545
@@ -121,6 +125,18 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     if msm_issues:
         if not force:raise ValueError('MSM6258 PCM source evidence is unresolved; inspect native decisions')
         losses['msm6258_pcm_unavailable_source_assets_omitted']+=len(msm_issues)
+    if real_psg:
+        # The PSG layered profiles stack FM doublings on the native AY
+        # lanes; they are defined for PSG-only sources (owner, 2026-11-14).
+        devices={d.device_id:d for d in performance.devices}
+        sounding={devices[u.device_id].chip for u in performance.units}
+        sounding|={devices[e.device_id].chip for e in performance.percussion}
+        sounding|={p.chip for p in performance.pcm_packets}
+        if not any(devices[u.device_id].chip=='psg' and u.section!='noise'
+                and u.role!='unpitched' for u in performance.units):
+            raise ValueError('No sounding PSG units for the PSG layered profile')
+        if sounding!={'psg'}:
+            raise ValueError('PSG layered profiles require a PSG-only source')
     # Inherent cross-chip waveform/LFO approximations are reported, not fatal.
     # Resource omissions still follow the caller's documented --force policy.
     targets=[(chip,clock)]
@@ -133,7 +149,8 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
         scc_rows,scc_losses,scc_plan=project_scc(performance)
         rows.extend(scc_rows);losses.update(scc_losses)
     for target_chip,target_clock in targets:
-        fm,fm_losses,layer_plan=_project_fm_layer(fm_performance,target_chip,target_clock,force=force)
+        fm,fm_losses,layer_plan=_project_fm_layer(fm_performance,target_chip,target_clock,force=force,
+            include_psg=real_psg)
         rows.extend(fm);losses.update(fm_losses)
         fm_layers[target_chip]=layer_plan
     opll_fm_device=next((d.device_id for d in performance.devices if d.chip=='opll' and
@@ -234,6 +251,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     if layered_opll:plan['native_opll_layer']=True
     if profile=='layered':plan['fm_layers']=fm_layers
     if real_scc:plan['real_scc']=scc_plan
+    if real_psg:plan['psg_fm_doubling']=True
     return rows,prefix,dict(losses),plan
 
 

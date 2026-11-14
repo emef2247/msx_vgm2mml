@@ -67,10 +67,11 @@ def _spectrum(device, voice, losses):
     return waveform_voice(bytes(max(-128,min(127,x)) & 255 for x in values).hex())
 
 
-def project_waves(performance, target_chip, clock, reserved=(), *, force=False):
+def project_waves(performance, target_chip, clock, reserved=(), *, force=False, include_psg=False):
     devices = {d.device_id:d for d in performance.devices}
     voices = {v.voice_id:v for v in performance.voices}
-    units = [u for u in performance.units if devices[u.device_id].chip in ('scc','huc6280','nesapu')
+    chips = ('scc','huc6280','nesapu','psg') if include_psg else ('scc','huc6280','nesapu')
+    units = [u for u in performance.units if devices[u.device_id].chip in chips
              and u.section not in ('pcm_dda','dpcm','noise') and u.role!='unpitched']
     lanes = sorted({(u.device_id,u.channel) for u in units})
     capacity = 8 if target_chip == 'opm' else 6
@@ -93,6 +94,10 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False):
         if dict(unit.parameters).get('lfo_pitch_phase_unmodeled'):
             losses['huc_lfo_base_pitch_approximation'] += 1
         losses['four_harmonic_phase_free_wave_approximation'] += 1
+        psg_noise_muted=False
+        if device.chip=='psg' and any(v in voices and dict(voices[v].parameters).get('hardware_envelope')
+                for _,v in unit.voice_curve):
+            losses['psg_hardware_envelope_shape_not_doubled'] += 1
         def emit(at,reg,val,reason,port=0):
             rows.append(record(unit,at,bytes((0x54 if target_chip=='opm' else 0x56+port,reg,val&255)),reason))
         started=False
@@ -102,6 +107,15 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False):
             if identity not in spectra:spectra[identity]=_spectrum(device,voice,losses)
             spectrum=spectra[identity]
             p=dict(voice.parameters) if voice else {}
+            if device.chip=='psg' and voice is not None and 'mode' in p and not p['mode']&1:
+                # A noise-only interval stays on the native AY; the FM
+                # layer rests instead of pitching it.
+                psg_noise_muted=True
+                if started:
+                    if target_chip=='opm': emit(at,8,target,'psg noise interval gate end')
+                    else: emit(at,0x28,target%3|(4 if target>=3 else 0),'psg noise interval gate end')
+                    started=False
+                continue
             hz=curve_value(unit.pitch_curve,at) or p.get('base_frequency_hz')
             if not hz or not math.isfinite(hz) or hz<=0:
                 losses['unknown_wave_pitch_intervals_muted'] += 1
@@ -139,12 +153,14 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False):
         if (unit.end_sample==performance.end_sample and performance.song_loop_sample is not None
             and dict(unit.parameters).get('termination','source_observation_end') in ('observation_end','source_observation_end')):
             continue
-        if target_chip=='opm':
-            emit(unit.end_sample,8,target,'musical gate end')
-        else:
-            emit(unit.end_sample,0x28,target%3|(4 if target>=3 else 0),'musical gate end')
-        # Same-source adjacent gates: stop precedes the next gate's setup/start.
-        rows[-1]['order']=-1 if unit.end_sample>unit.start_sample else 1
+        if device.chip!='psg' or started:
+            if target_chip=='opm':
+                emit(unit.end_sample,8,target,'musical gate end')
+            else:
+                emit(unit.end_sample,0x28,target%3|(4 if target>=3 else 0),'musical gate end')
+            # Same-source adjacent gates: stop precedes the next gate's setup/start.
+            rows[-1]['order']=-1 if unit.end_sample>unit.start_sample else 1
+        if psg_noise_muted:losses['psg_noise_only_intervals_not_doubled'] += 1
     if losses and not force:
         raise ValueError('Wave target requires approximation: '+', '.join(sorted(losses)))
     return rows,losses,allocation
