@@ -71,12 +71,20 @@ KSL_COMP = {0: 0, 1: 7, 2: 14, 3: 19}  # TL steps, A4 reference (see four_op)
 # Trumpet -0.8 dB.  Synthesizer measured +6.46 dB = 8.6 steps;
 # auditions of FMPAC02 settled it at 7 (9: slightly too quiet,
 # 8: still lacking pressure, 7: adopted, 2026-11-14).
+
 # Vibraphone is excluded: its offset is
 # window-dependent (-3.4 / -5.7 / -6.4 dB at 0.1 / 0.35 / 1 s),
 # an EG decay-shape difference, not a level offset.
 # OPNA trims are unmeasured; nothing is emitted for OPNA yet.
 LEVEL_TRIM_TL_OPM = {'Violin': 7, 'Trumpet': -1, 'Organ': 4,
                      'Synthesizer': 7, 'Harpsichord': 4}
+
+# OPNA (YM2608 @ 8 MHz, ymfm via opm_opna_study direct_render):
+# the same 15-voice level measurement matched the OPM table
+# within 0.1 dB for 13 of 15 voices (Harpsichord +3.39 vs +3.27;
+# Vibraphone window-dependent as on OPM), so the same trim
+# values apply.  Note direct_render writes 166666 Hz WAV.
+LEVEL_TRIM_TL_OPNA = dict(LEVEL_TRIM_TL_OPM)
 
 
 SILENT4 = (1, 127, 0, 31, 0, 0, 0, 15, 0, 0)
@@ -290,6 +298,8 @@ def main():
     lines.append(' * make_presets.py for method and per-voice values). */')
     lines.append('static const signed char OPLL_OPM_LEVEL_TRIM[15] = {')
     lines.append('    ' + ', '.join(str(LEVEL_TRIM_TL_OPM.get(n, 0)) for n in NAMES) + ' };')
+    lines.append('static const signed char OPLL_OPNA_LEVEL_TRIM[15] = {')
+    lines.append('    ' + ', '.join(str(LEVEL_TRIM_TL_OPNA.get(n, 0)) for n in NAMES) + ' };')
     lines.append('/* OPM rhythm: { FB, ALG, PMS, AMS, { op x4 } } preset codes')
     lines.append(' * for the five drum voices, plus HH/TC hardware-noise')
     lines.append(' * variants.  The companion table gives the reg 0x0F byte')
