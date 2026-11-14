@@ -21,7 +21,8 @@ import math
 from pathlib import Path
 
 from musical_fm_target import _at
-from musical_opl_target import _identity_op, _commercial_rhythm
+from musical_opl_target import _identity_op, _commercial_rhythm, \
+    composed_rhythm_template, rhythm_level, rhythm_fixed_pitches
 from opll_fm_target import _decode_patch
 
 _PRESET_DIR = Path(__file__).resolve().parent.parent / 'data' / 'presets'
@@ -350,7 +351,7 @@ def project_opl3_fm(performance, *, force=False):
 
 
 def _rhythm_template(emit, device_id):
-    template = _commercial_rhythm()
+    template = composed_rhythm_template()
     for ch in (6, 7, 8):
         entry = template[str(ch)]
         off = _OFFSETS[ch]
@@ -394,12 +395,22 @@ def _project_opll_rhythm(performance, device, emit, losses):
                 if level is None:
                     continue
                 emit(None, at, -0.5, 6, _RHYTHM_TL[e.instrument_family],
-                     min(63, int(level) << 2), 'OPL3 rhythm level',
-                     device_id=device.device_id)
+                     rhythm_level(e.instrument_family, level),
+                     'OPL3 rhythm level', device_id=device.device_id)
             if not e.volume_curve:
                 losses['opll_rhythm_level_unobserved'] += 1
+            fixed = rhythm_fixed_pitches(e.instrument_family)
+            for pch, fnum, block in fixed:
+                hz = fnum * 3579545 / 72 * 2 ** block / 2 ** 19
+                block2, fnum2 = _pitch(hz, 14318180)
+                emit(None, e.start_sample, -0.5, pch, 0xa0 + pch,
+                     fnum2 & 255, 'OPL3 rhythm pitch',
+                     device_id=device.device_id)
+                emit(None, e.start_sample, -0.5, pch, 0xb0 + pch,
+                     (block2 << 2) | (fnum2 >> 8), 'OPL3 rhythm pitch',
+                     device_id=device.device_id)
             ch = _RHYTHM_PITCH_CH.get(e.instrument_family)
-            if ch is not None:
+            if ch is not None and all(pch != ch for pch, _, _ in fixed):
                 state = {}
                 for at, snapshot in pitches:
                     if at > e.start_sample:

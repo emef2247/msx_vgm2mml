@@ -45,6 +45,66 @@ def _commercial_rhythm():
     return _cache['commercial_rhythm']
 
 
+def _derived_rhythm():
+    if 'derived_rhythm' not in _cache:
+        doc = json.loads((_PRESET_DIR / 'rhythm_opl_derived.json').read_text())
+        _cache['derived_rhythm'] = doc['voices']
+    return _cache['derived_rhythm']
+
+
+def composed_rhythm_template():
+    """Channel 6/7/8 rhythm setup: the observed commercial
+    template with the derived voices overlaid op by op.  SD has
+    no derived entry and keeps the commercial carrier."""
+    if 'composed_rhythm' not in _cache:
+        template = {ch: dict(entry)
+                    for ch, entry in _commercial_rhythm().items()}
+        for voice in _derived_rhythm().values():
+            entry = template[str(voice['channel'])]
+            for key in ('mod', 'car'):
+                if key in voice:
+                    entry[key] = voice[key]
+            if 'fb_cnt' in voice:
+                entry['fb_cnt'] = voice['fb_cnt']
+        _cache['composed_rhythm'] = template
+    return _cache['composed_rhythm']
+
+
+def rhythm_level(family, att):
+    """Per-hit TL for a rhythm voice.  A derived voice's fitted
+    TL is its value at the reference attenuation the fit was
+    measured at; the hit's attenuation shifts it by the same
+    4-per-step law as the plain voices."""
+    voice = _derived_rhythm().get(family)
+    if voice is None:
+        return min(63, int(att) << 2)
+    return max(0, min(63, voice['tl_base']
+                      + ((int(att) - voice['tl_att_ref']) << 2)))
+
+
+def rhythm_fixed_pitches(family):
+    """Fixed (channel, fnum, block) at the Y8950 clock that a hit
+    installs for the derived fixed-timbre voices (their OPLL
+    originals are pitch-invariant; only TOM tracks the source
+    pitch).  A partner pitch is channel 7, the OPL noise XOR
+    partner.  SD restores channel 7 to the unwritten state its
+    commercial voice was approved in, because HH and CYM hits
+    move that pitch."""
+    if family == 'SD':
+        return [(7, 0, 0)]
+    voice = _derived_rhythm().get(family)
+    if voice is None:
+        return []
+    out = []
+    if 'pitch' in voice:
+        fnum, block = voice['pitch']
+        out.append((voice['channel'], fnum, block))
+    if 'partner_pitch' in voice:
+        fnum, block = voice['partner_pitch']
+        out.append((7, fnum, block))
+    return out
+
+
 def _pitch(hz, clock):
     for block in range(8):
         fnum = round(hz * 144 * 2 ** (19 - block) / clock)
@@ -298,13 +358,12 @@ def _project_rhythm(performance, device, emit, losses):
 
 
 def _rhythm_template(device, emit):
-    """Commercially observed rhythm voices on channels 6/7/8.
-
-    The template bytes are the register setup the dual-edition
-    games install (identical in every game measured); the five
-    volume TL registers start muted and are set per hit.
+    """Rhythm voices on channels 6/7/8: the commercially observed
+    template with the derived voices overlaid (see
+    composed_rhythm_template).  The five volume TL registers
+    start muted and are set per hit.
     """
-    template = _commercial_rhythm()
+    template = composed_rhythm_template()
     for ch in (6, 7, 8):
         entry = template[str(ch)]
         off = _OFFSETS[ch]
@@ -347,17 +406,25 @@ def _opll_hit_setup(performance, device, emit, e, pitches, losses):
     for at, level in e.volume_curve:
         if level is None:
             continue
-        # Same dB law as the melody carriers: TL = att << 2.  No
-        # rhythm-specific offset is established (the one candidate
-        # reading rested on the wrong nibble of the shared volume
-        # register; see the Famista pairing notes).
+        # Same dB law as the melody carriers: TL = att << 2.
+        # Derived voices carry a fitted base TL instead (see
+        # rhythm_level; the earlier no-offset reading rested on
+        # the wrong nibble of the shared volume register, see the
+        # Famista pairing notes).
         emit(None, at, -0.5, _RHYTHM_TL[family],
-             min(63, int(level) << 2), 'OPL rhythm level',
+             rhythm_level(family, level), 'OPL rhythm level',
              device_id=device.device_id)
     if not e.volume_curve:
         losses['opll_rhythm_level_unobserved'] += 1
+    fixed = rhythm_fixed_pitches(family)
+    for pch, fnum, block in fixed:
+        emit(None, e.start_sample, -0.5, 0xa0 + pch, fnum & 255,
+             'OPL rhythm pitch', device_id=device.device_id)
+        emit(None, e.start_sample, -0.5, 0xb0 + pch,
+             (block << 2) | (fnum >> 8), 'OPL rhythm pitch',
+             device_id=device.device_id)
     ch = _RHYTHM_PITCH_CH.get(family)
-    if ch is not None:
+    if ch is not None and all(pch != ch for pch, _, _ in fixed):
         state = {}
         for sample, snapshot in pitches:
             if sample > e.start_sample:
