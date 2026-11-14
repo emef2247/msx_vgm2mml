@@ -380,6 +380,16 @@ def _target_json(target, chip, clock, pms, ams, trims, rhythm):
     return doc
 
 
+# OPL3 (YMF262): the same sine-projection cause as OPM - the
+# OPL frame carries no waveform, so ws=1 carriers render as
+# sine and come out hot by the same amounts (the ESE OPL3
+# recordings of FMPAC02 show Organ about +5 dB and Synthesizer
+# about +3 dB over the song's other voices, the same family).
+# Initial values carried from the OPM set; the owner's audition
+# may retune them per voice, as it did there (9 -> 8 -> 7).
+LEVEL_TRIM_TL_OPL3 = dict(LEVEL_TRIM_TL_OPM)
+
+
 def _established_opl_json(target, chip, clock):
     # OPL two-op rows straight from the established set
     # (opll_presets.json) by field identity - the same frame the
@@ -405,7 +415,9 @@ def _established_opl_json(target, chip, clock):
         row = ROM['melodic'][str(i)]
         voices.append({'index': i, 'name': row['name'],
                        'fb': row['fb'],
-                       'ops': [op(row['mod']), op(row['car'])]})
+                       'ops': [op(row['mod']), op(row['car'])],
+                       'level_trim_tl':
+                           LEVEL_TRIM_TL_OPL3.get(row['name'], 0)})
     return {'target': target, 'chip': chip, 'clock_hz': clock,
             'source': 'opll_presets.json via make_presets.py; '
                       'do not hand-edit',

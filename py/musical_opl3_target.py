@@ -264,6 +264,7 @@ def project_opl3_fm(performance, *, force=False):
             losses['second_opll_device_melody_not_fm_projected'] += 1
         _doc, table = _table()
         resolved = {}
+        trim_by_row = {}
 
         def resolve_opll(voice_id):
             if voice_id in resolved:
@@ -277,6 +278,7 @@ def project_opl3_fm(performance, *, force=False):
                 result = (entry['fb'],
                           [tuple(o[f] for f in _OP_FIELDS) + (0,) for o in entry['ops']],
                           entry.get('alg', 0), 1, 1)
+                trim_by_row[id(result)] = entry.get('level_trim_tl', 0)
             elif inst == 0:
                 patch = p.get('custom_patch') or ()
                 if any(b is None for b in patch):
@@ -294,12 +296,14 @@ def project_opl3_fm(performance, *, force=False):
             if slot == 0:
                 return op[6]
             level = 15 if level is None else max(0, min(15, int(level)))
-            return min(63, level << 2)
+            return max(0, min(63, (level << 2)
+                              + trim_by_row.get(id(row), 0)))
 
         def carrier_opll(unit, sample, ch, row, level, emit):
             level = 15 if level is None else max(0, min(15, int(level)))
             emit(unit, sample, -0.5, ch, 0x40 + _OFFSETS[ch % 9] + 3,
-                 (row[1][1][5] << 6) | min(63, level << 2), 'OPL3 carrier level')
+                 (row[1][1][5] << 6) | max(0, min(63, (level << 2)
+                              + trim_by_row.get(id(row), 0))), 'OPL3 carrier level')
 
         run_units(device,
                   [u for u in performance.units

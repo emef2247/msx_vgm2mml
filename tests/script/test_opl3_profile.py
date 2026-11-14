@@ -56,10 +56,12 @@ class Opl3ProfileTests(unittest.TestCase):
         unit=back.units[0]
         self.assertEqual((unit.section,unit.channel),('fm',0))
         self.assertAlmostEqual(unit.pitch_curve[0][1],440.0,delta=2.0)
-        self.assertEqual(unit.volume_curve[0][1],12)  # carrier TL = VOL << 2
+        # carrier TL = VOL << 2 plus the voice's level trim
+        # (established Trumpet carries -1; see LEVEL_TRIM_TL_OPL3)
+        self.assertEqual(unit.volume_curve[0][1],11)
         voice=dict(next(v for v in back.voices
             if v.voice_id==unit.voice_curve[0][1]).parameters)
-        self.assertEqual(voice['feedback'],7)         # commercial Trumpet
+        self.assertEqual(voice['feedback'],7)         # established Trumpet
         self.assertEqual(len(back.percussion),1)
         self.assertEqual(back.percussion[0].instrument_family,'SD')
         self.assertEqual(back.percussion[0].volume_curve[0][1],4)  # att << 2
