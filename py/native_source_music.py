@@ -27,7 +27,7 @@ STREAM_CHIPS = {0:'dcsg',1:'opll',2:'opn2',3:'opm',4:'segapcm',7:'opna',0x12:'ps
                 0x17:'msm6258',0x18:'msm6295',0x19:'scc',0x1c:'c140'}
 HEADER_OFFSETS = {'opm':0x30,'opna':0x48,'opn2':0x2c,'dcsg':0x0c,'msm6258':0x90,'msm6295':0x98,
                   'segapcm':0x38,'c140':0xa8,'psg':0x74,'scc':0x9c,'opll':0x10,'huc6280':0xa4,'nesapu':0x84,
-                  'y8950':0x58,'ymf262':0x64}
+                  'y8950':0x58,'ymf262':0x5c}
 CARRIERS = (8,8,8,8,12,14,14,15)  # Source register-bank order M1,M2,C1,C2.
 
 

@@ -39,7 +39,7 @@ class Ymf262SourceMusicTests(unittest.TestCase):
             write(0x23,0x02),write(0x43,0x0c),write(0x63,0xf2),write(0x83,0x21),
             write(0xc0,0x3e),write(0xa0,0x44),write(0xb0,0x32),
             b'\x62',write(0xb0,0x12)))
-        result=self.build(vgm(body,{0x64:14318180}))
+        result=self.build(vgm(body,{0x5c:14318180}))
         self.assertEqual(len(result.units),1)
         unit=result.units[0]
         self.assertEqual((unit.section,unit.channel),('fm',0))
@@ -65,7 +65,7 @@ class Ymf262SourceMusicTests(unittest.TestCase):
             write(0xc0,0x30),write(0xc1,0x30),
             write(0xa0,0x44),write(0xb0,0x32),
             b'\x62',write(0xb0,0x12)))
-        result=self.build(vgm(body,{0x64:14318180}))
+        result=self.build(vgm(body,{0x5c:14318180}))
         self.assertEqual(len(result.units),1)
         unit=result.units[0]
         self.assertEqual(unit.channel,0)
@@ -81,7 +81,7 @@ class Ymf262SourceMusicTests(unittest.TestCase):
             write(0x54,0x0c),
             write(0xbd,0x20),write(0xbd,0x28),   # rhythm mode, SD on
             b'\x62',write(0xbd,0x20)))
-        result=self.build(vgm(body,{0x64:14318180}))
+        result=self.build(vgm(body,{0x5c:14318180}))
         self.assertEqual(len(result.percussion),1)
         hit=result.percussion[0]
         self.assertEqual(hit.instrument_family,'SD')

@@ -39,10 +39,17 @@ class Opl3ProfileTests(unittest.TestCase):
             opll(0x0e,0x20),opll(0x0e,0x28), # rhythm mode, SD hit
             b'\x62',
             opll(0x0e,0x20),opll(0x20,0x09)))# SD off, gate end
-        performance,folder=self.build(vgm(body,{0x10:3579545,0x64:14318180}))
+        performance,folder=self.build(vgm(body,{0x10:3579545,0x5c:14318180}))
         results=self.export(performance,folder+'/out')
         result=results['opl3']
         self.assertEqual(result['status'],'success',result.get('reason'))
+        import struct
+        written=open(result['path'],'rb').read()
+        # The YMF262 clock belongs at header offset 0x5c per the VGM
+        # specification; 0x64 is the YMF271 field. A player that finds
+        # no clock at 0x5c treats the file as having no OPL3 chip.
+        self.assertEqual(struct.unpack_from('<I',written,0x5c)[0],14318180)
+        self.assertEqual(struct.unpack_from('<I',written,0x64)[0],0)
         self.assertEqual(results['scc_opl3']['status'],'unavailable')
         back,_=self.build(open(result['path'],'rb').read())
         self.assertEqual(len(back.units),1)
@@ -67,7 +74,7 @@ class Opl3ProfileTests(unittest.TestCase):
             ymf262(0xc0,0x30),ymf262(0xc1,0x30),
             ymf262(0xa0,0x44),ymf262(0xb0,0x32),
             b'\x62',ymf262(0xb0,0x12)))
-        performance,folder=self.build(vgm(body,{0x64:14318180}))
+        performance,folder=self.build(vgm(body,{0x5c:14318180}))
         result=self.export(performance,folder+'/out')['opl3']
         self.assertEqual(result['status'],'success',result.get('reason'))
         back,_=self.build(open(result['path'],'rb').read())
@@ -83,7 +90,7 @@ class Opl3ProfileTests(unittest.TestCase):
         body=b''.join((
             opm(0x20,0xc7),opm(0x38,0x00),opm(0x40,0x00),opm(0x60,0x00),
             opm(0x28,0x4a),opm(0x08,0x78),b'\x62',opm(0x08,0x00)))
-        performance,folder=self.build(vgm(body,{0x30:3579545,0x64:14318180}))
+        performance,folder=self.build(vgm(body,{0x30:3579545,0x5c:14318180}))
         result=self.export(performance,folder+'/out')['opl3']
         self.assertEqual(result['status'],'unavailable')
         self.assertIn('opm',result['reason'])
@@ -92,7 +99,7 @@ class Opl3ProfileTests(unittest.TestCase):
         body=b''.join((
             opll(0x30,0x73),opll(0x10,0x22),opll(0x20,0x19),
             b'\x62',opll(0x20,0x09)))
-        performance,folder=self.build(vgm(body,{0x10:3579545,0x64:14318180}))
+        performance,folder=self.build(vgm(body,{0x10:3579545,0x5c:14318180}))
         result=self.export(performance,folder+'/out')['psg_opl3']
         self.assertEqual(result['status'],'unavailable')
         self.assertIn('waveform',result['reason'])

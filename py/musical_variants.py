@@ -16,7 +16,7 @@ PSG_PROFILES = {'psg_sfg01':'sfg01', 'psg_makoto':'makoto', 'psg_layered':'layer
 PROFILES = ('sfg01','sfg01_rx21','makoto','makoto_rx21','sfg01_makoto','sfg01_msxaudio','msxaudio','opl3','layered', *SCC_PROFILES, *PSG_PROFILES)
 CLOCKS = {0x54:(0x30,3579545),0x56:(0x48,8000000),0x57:(0x48,8000000),
           0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545),
-          0x5e:(0x64,14318180),0x5f:(0x64,14318180)}
+          0x5e:(0x5c,14318180),0x5f:(0x5c,14318180)}
 
 
 def _write(performance, rows, prefix, path):
