@@ -295,8 +295,8 @@ def project_opll_fm(performance, target_chip, target_clock, reserved=(), *,
                                  reason='OPLL LFO bridge setup'))
         else:
             losses['opll_opna_lfo_depth_approximation'] += 1
-            for reg, value in ((0x22, 0x08 | _opna_lfo_rate(lfo['hz'],
-                                                             target_clock)),
+            rate = _opna_lfo_rate(lfo["hz"], target_clock)[0]
+            for reg, value in ((0x22, 0x08 | rate),
                                (0x24, 86), (0x25, 16)):
                 rows.append(dict(sample=0, order=-3,
                                  command=bytes((0x56, reg, value)),
