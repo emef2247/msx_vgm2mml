@@ -4,16 +4,14 @@
 /*
  * YM2413 (OPLL) Built-in Instrument ROM Table -- established set
  * --------------------------------------------------------------
- *   - Starting point: the Nuked-OPLL code set (the silicon-derived
- *     YM2413 parameter transcription in Nuked-OPLL by nukeykt).
- *   - This ROM set was collected, arranged and established by
+ *   - Starting point: MB14, the voice library bundled with
+ *     MoonSound Music Station (MS2) by spacemoai.
+ *   - This set was collected, arranged and established by
  *     emef2247 (emef2247@gmail.com) as an original compilation,
  *     curated in ym2413_voice_roms.h via eseopl3patcher.
  *   - It is the reference ROM set for the vgm2mml converter family.
  * Copyright (c) 2026 emef2247 (emef2247@gmail.com).
  * All rights reserved.
- * Signature: emef2247@gmail.com
- * Reference: ym2413_voice_roms.h
  *
  * Contents: the base YM2413 set (register bytes), plus
  * derived preset tables for OPL, OPN, OPNA and OPM,
