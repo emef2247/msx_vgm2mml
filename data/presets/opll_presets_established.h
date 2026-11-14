@@ -4,8 +4,9 @@
 /*
  * YM2413 (OPLL) Built-in Instrument ROM Table -- established set
  * --------------------------------------------------------------
- *   - Starting point: MB14, the voice library bundled with
- *     MoonSound Music Station (MS2) by spacemoai.
+ *   - Starting point: the copyright-free OPLL patches by
+ *     David Viens, independently investigated and calibrated
+ *     by emef2247 into this established set.
  *   - This set was collected, arranged and established by
  *     emef2247 (emef2247@gmail.com) as an original compilation,
  *     curated in ym2413_voice_roms.h via eseopl3patcher.
