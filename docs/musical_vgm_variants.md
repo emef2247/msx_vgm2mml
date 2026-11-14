@@ -120,6 +120,15 @@ the repeat rather than only in the introduction.
   hardware envelope controls remain distinct from the score's sounding gates.
   Native OPLL/OPNA percussion attacks, stops and levels come from percussion
   records; oscillator/global/pan effects remain separate controls.
+- On the PCM-capable compositions (Makoto ADPCM-B, MSX-Audio Delta-T and
+  their layered / SFG01 combinations) OPLL percussion is played as PCM:
+  the IKAOPLL-rendered hit library in `data/presets/rhythm_pcm/` becomes
+  one asset per percussion event, at the event's level.  Only the TOM
+  tracks its oscillator pitch (measured); the other four instruments
+  are fixed timbres.  Simultaneous hits are mixed and a later hit cuts
+  a tail still playing, matching the OPLL retrigger behaviour; repeated
+  hits deduplicate, so the DRAM cost is the song's unique hits.
+  Plain `sfg01` keeps the native YM2413 rhythm.
 - `NativePCM` retains decoded signed16 source content independently of opaque
   original PCM packets. OPN2 DAC, NES DPCM and HuC DDA are decoded. OPN2 uses
   the inherited shared decoded-supply renderer, including run splitting,
