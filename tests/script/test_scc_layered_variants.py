@@ -88,7 +88,7 @@ class SccLayeredTests(unittest.TestCase):
             self.assertEqual(result['scc_layered']['status'],'success',result['scc_layered'])
             from test_export_mgs_variants import variant_pass, assert_profiles
             out=Path(tmp)/'published';variant_pass(path,out,force=True)
-            assert_profiles(self,out,('sfg01','sfg01_rx21','makoto','makoto_rx21','layered','scc_sfg01','scc_makoto','scc_layered'),'source')
+            assert_profiles(self,out,('sfg01','sfg01_rx21','makoto','makoto_rx21','layered','scc_sfg01','scc_makoto','scc_layered','scc_opl3'),'source')
 
 
 if __name__=='__main__':unittest.main()

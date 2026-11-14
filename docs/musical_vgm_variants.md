@@ -47,14 +47,17 @@ instead of the IKAOPLL library.
 | makoto_rx21 | makoto with the RX21 hit library on ADPCM-B |
 | sfg01_makoto | YM2151 FM, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
 | sfg01_msxaudio | YM2151 FM, Y8950 Delta-T, YM2413 and PSG |
-| msxaudio | Y8950 FM as the main target: YM2413 projected to Y8950 FM and its native rhythm unit, native Y8950 retained, Y8950 Delta-T for PCM, plus PSG |
+| msxaudio | Y8950 FM as the main target: YM2413 projected to Y8950 FM (the commercially observed conversion table) and its native rhythm unit, native Y8950 retained, Y8950 Delta-T for PCM, plus PSG |
+| opl3 | YMF262 FM as the main target: YM2413 projected to OPL3 FM (the commercially observed conversion table) and its rhythm unit, native Y8950 and YMF262 retained (4-op pairs included), plus PSG. No PCM destination; the 4-op FM and waveform projections are not established yet, so those sources are unavailable |
 | layered | YM2151 and YM2608 FM in parallel, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
 | scc_sfg01 | Real SCC plus the sfg01 composition |
 | scc_makoto | Real SCC plus the makoto composition |
 | scc_layered | Real SCC plus both FM layers |
+| scc_opl3 | Real SCC plus the opl3 composition |
 | psg_sfg01 | Native AY PSG plus an OPM doubling of the PSG voices |
 | psg_makoto | Native AY PSG plus an OPNA doubling of the PSG voices |
 | psg_layered | Native AY PSG plus both FM doublings |
+| psg_opl3 | Native AY PSG plus an OPL3 doubling of the PSG voices (unavailable until the OPL3 waveform projection is established) |
 
 ## Layered FM
 

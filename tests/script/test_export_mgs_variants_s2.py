@@ -115,7 +115,7 @@ class ExportMgsVgmVariantsS2Tests(unittest.TestCase):
             self.assertEqual(_stamp((out / 'vgm-variants/sfg01/song.vgm').read_bytes(), 0x74), 1789773)
             self.assertEqual(_stamp((out / 'vgm-variants/makoto/song.vgm').read_bytes(), 0x74), 1789773)
             self.assertEqual(_stamp((out / 'vgm-variants/makoto/song.vgm').read_bytes(), 0x48), 0)
-        self.render(_dcsg_song(), check, extra=('msxaudio',))
+        self.render(_dcsg_song(), check, extra=('msxaudio', 'opl3'))
 
     def test_nes_pulse_has_musical_profiles_instead_of_deferred_route(self):
         def check(out, report):
