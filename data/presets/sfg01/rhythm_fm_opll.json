@@ -31,7 +31,7 @@
     },
     {
      "mul": 1,
-     "tl": 44,
+     "tl": 22,
      "ks": 0,
      "ar": 30,
      "d1r": 19,
@@ -65,7 +65,8 @@
      "dt": 0,
      "am": 0
     }
-   ]
+   ],
+   "level_trim_tl": 22
   },
   {
    "name": "SD",
@@ -92,7 +93,7 @@
     },
     {
      "mul": 14,
-     "tl": 20,
+     "tl": 16,
      "ks": 0,
      "ar": 31,
      "d1r": 18,
@@ -116,7 +117,7 @@
     },
     {
      "mul": 3,
-     "tl": 1,
+     "tl": 0,
      "ks": 0,
      "ar": 31,
      "d1r": 30,
@@ -126,7 +127,8 @@
      "dt": 3,
      "am": 0
     }
-   ]
+   ],
+   "level_trim_tl": 4
   },
   {
    "name": "TOM",
@@ -177,7 +179,7 @@
     },
     {
      "mul": 2,
-     "tl": 29,
+     "tl": 16,
      "ks": 0,
      "ar": 31,
      "d1r": 25,
@@ -187,7 +189,8 @@
      "dt": 6,
      "am": 0
     }
-   ]
+   ],
+   "level_trim_tl": 13
   },
   {
    "name": "HH",
@@ -275,7 +278,7 @@
     },
     {
      "mul": 3,
-     "tl": 19,
+     "tl": 10,
      "ks": 0,
      "ar": 31,
      "d1r": 26,
@@ -299,7 +302,7 @@
     },
     {
      "mul": 14,
-     "tl": 12,
+     "tl": 3,
      "ks": 0,
      "ar": 25,
      "d1r": 18,
@@ -309,7 +312,9 @@
      "dt": 3,
      "am": 0
     }
-   ]
+   ],
+   "level_trim_tl": 9
   }
- ]
+ ],
+ "level_calibration": "Carrier TL trims measured on FMPAC02 renders (band-energy spike vs the native render), 2026-11-14; see level_trim_tl per voice."
 }

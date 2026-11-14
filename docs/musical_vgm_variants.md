@@ -62,7 +62,10 @@ though SFG01 has eight. Without force, a required capacity omission blocks the
 profile; with force, omissions are reported separately for each FM layer.
 
 PSG, OPLL, native rhythm, and PCM are projected once. PCM uses Makoto's existing
-256 KiB ADPCM-B path, including representative reuse where supported. There is
+256 KiB ADPCM-B path, including representative reuse where supported. For an
+OPLL source the native YM2413 lane joins the stack as a third FM layer (owner,
+2026-11-14: every FM source is a layering target): its melody and its rhythm
+play natively, and the PCM rhythm substitute is not derived. There is
 no additional MSX-Audio bank or automatic FM gain reduction in this profile.
 Both FM layers retain the ordinary mapping levels, so listening balance may
 differ from a single-chip profile. Song timing and loop positions are shared.
@@ -129,9 +132,13 @@ the repeat rather than only in the introduction.
   Native OPLL/OPNA percussion attacks, stops and levels come from percussion
   records; oscillator/global/pan effects remain separate controls.
 - On the PCM-capable compositions (Makoto ADPCM-B, MSX-Audio Delta-T and
-  their layered / SFG01 combinations) OPLL percussion is played as PCM:
+  their SFG01 combinations) OPLL percussion is played as PCM:
   the IKAOPLL-rendered hit library in `data/presets/rhythm_pcm/` becomes
-  one asset per percussion event, at the event's level.  Only the TOM
+  one asset per percussion event, at the event's level.  The library is
+  staged with one uniform gain per library (loudest hit at -1 dBFS);
+  the raw IKAOPLL renders peak near -32 dBFS and left the PCM voice
+  buried under the FM lanes.  In `layered`, an OPLL source's rhythm
+  instead plays on the native YM2413 lane (see Layered FM).  Only the TOM
   tracks its oscillator pitch (measured); the other four instruments
   are fixed timbres.  Simultaneous hits are mixed and a later hit cuts
   a tail still playing, matching the OPLL retrigger behaviour; repeated

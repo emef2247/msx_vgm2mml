@@ -41,6 +41,18 @@ def _library(name='ika'):
                 samples = array('h')
                 samples.frombytes(w.readframes(w.getnframes()))
             hits[family] = tuple(samples)
+        # Uniform staging: the IKAOPLL renders peak near -32 dBFS,
+        # which left the cartridge PCM voice ~29 dB under the FM
+        # lanes on real hardware (owner's FMPAC02 recordings,
+        # 2026-11-14).  One gain per library preserves the
+        # inter-family balance; the loudest hit sits at -1 dBFS
+        # (render-checked against the native balance, 2026-11-14).
+        peak = max(abs(v) for samples in hits.values() for v in samples)
+        gain = (10 ** (-1.0 / 20) * 32767) / peak if peak else 1.0
+        if abs(gain - 1.0) > 0.01:
+            hits = {family: tuple(
+                max(-32768, min(32767, round(v * gain))) for v in samples)
+                for family, samples in hits.items()}
         _cache[name] = (manifest, hits)
     return _cache[name]
 
@@ -174,8 +186,14 @@ def build_rhythm_pcm_assets(performance, library='ika'):
                 right = min(left + 1, len(samples) - 1)
                 mixed[i] += round(samples[left] * (1 - (pos - int(pos)))
                                   + samples[right] * (pos - int(pos)))
-        hits_out.append((start, asset_rate,
-                         tuple(max(-32768, min(32767, v)) for v in mixed),
+        peak = max((abs(v) for v in mixed), default=0)
+        if peak > 32767:
+            # Scale the whole mix to fit instead of hard-clamping
+            # individual samples (the RX21 mixes clipped audibly).
+            scale = 32767 / peak
+            mixed = [round(v * scale) for v in mixed]
+            losses['opll_rhythm_pcm_mix_normalized'] += 1
+        hits_out.append((start, asset_rate, tuple(mixed),
                          '+'.join(sorted(g[2] for g in group))))
     for i, (start, asset_rate, samples, label) in enumerate(hits_out):
         end = start + math.ceil(len(samples) * 44100 / asset_rate)

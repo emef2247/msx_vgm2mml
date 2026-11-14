@@ -37,7 +37,7 @@
     },
     {
      "mul": 2,
-     "tl": 117,
+     "tl": 86,
      "ks": 1,
      "ar": 31,
      "d1r": 24,
@@ -49,7 +49,7 @@
     },
     {
      "mul": 3,
-     "tl": 70,
+     "tl": 39,
      "ks": 0,
      "ar": 21,
      "d1r": 31,
@@ -61,7 +61,7 @@
     },
     {
      "mul": 3,
-     "tl": 54,
+     "tl": 23,
      "ks": 0,
      "ar": 31,
      "d1r": 17,
@@ -71,7 +71,8 @@
      "dt": 3,
      "am": 0
     }
-   ]
+   ],
+   "level_trim_tl": 31
   },
   {
    "name": "SD",
@@ -98,7 +99,7 @@
     },
     {
      "mul": 0,
-     "tl": 23,
+     "tl": 11,
      "ks": 0,
      "ar": 31,
      "d1r": 26,
@@ -122,7 +123,7 @@
     },
     {
      "mul": 2,
-     "tl": 109,
+     "tl": 97,
      "ks": 0,
      "ar": 31,
      "d1r": 24,
@@ -132,7 +133,8 @@
      "dt": 0,
      "am": 0
     }
-   ]
+   ],
+   "level_trim_tl": 12
   },
   {
    "name": "TOM1",
@@ -183,7 +185,7 @@
     },
     {
      "mul": 3,
-     "tl": 64,
+     "tl": 17,
      "ks": 0,
      "ar": 31,
      "d1r": 22,
@@ -193,7 +195,8 @@
      "dt": 3,
      "am": 0
     }
-   ]
+   ],
+   "level_trim_tl": 47
   },
   {
    "name": "TOM2",
@@ -244,7 +247,7 @@
     },
     {
      "mul": 0,
-     "tl": 45,
+     "tl": 14,
      "ks": 0,
      "ar": 31,
      "d1r": 21,
@@ -254,7 +257,8 @@
      "dt": 3,
      "am": 0
     }
-   ]
+   ],
+   "level_trim_tl": 31
   },
   {
    "name": "TOM3",
@@ -305,7 +309,7 @@
     },
     {
      "mul": 1,
-     "tl": 23,
+     "tl": 18,
      "ks": 0,
      "ar": 31,
      "d1r": 14,
@@ -315,7 +319,8 @@
      "dt": 0,
      "am": 0
     }
-   ]
+   ],
+   "level_trim_tl": 5
   },
   {
    "name": "CLOSEHH",
@@ -366,7 +371,7 @@
     },
     {
      "mul": 2,
-     "tl": 72,
+     "tl": 0,
      "ks": 0,
      "ar": 22,
      "d1r": 16,
@@ -376,7 +381,8 @@
      "dt": 7,
      "am": 0
     }
-   ]
+   ],
+   "level_trim_tl": 73
   },
   {
    "name": "OPENHH",
@@ -391,7 +397,7 @@
    "ops": [
     {
      "mul": 1,
-     "tl": 104,
+     "tl": 91,
      "ks": 0,
      "ar": 25,
      "d1r": 18,
@@ -403,7 +409,7 @@
     },
     {
      "mul": 14,
-     "tl": 104,
+     "tl": 91,
      "ks": 1,
      "ar": 24,
      "d1r": 9,
@@ -415,7 +421,7 @@
     },
     {
      "mul": 2,
-     "tl": 104,
+     "tl": 91,
      "ks": 0,
      "ar": 31,
      "d1r": 26,
@@ -437,7 +443,8 @@
      "dt": 0,
      "am": 0
     }
-   ]
+   ],
+   "level_trim_tl": 13
   },
   {
    "name": "CYM",
@@ -464,7 +471,7 @@
     },
     {
      "mul": 1,
-     "tl": 104,
+     "tl": 91,
      "ks": 0,
      "ar": 31,
      "d1r": 0,
@@ -498,7 +505,8 @@
      "dt": 0,
      "am": 0
     }
-   ]
+   ],
+   "level_trim_tl": 13
   },
   {
    "name": "CLAPS",
@@ -525,7 +533,7 @@
     },
     {
      "mul": 7,
-     "tl": 104,
+     "tl": 91,
      "ks": 0,
      "ar": 31,
      "d1r": 21,
@@ -559,7 +567,9 @@
      "dt": 3,
      "am": 0
     }
-   ]
+   ],
+   "level_trim_tl": 13
   }
- ]
+ ],
+ "level_calibration": "Voice levels matched by solo-render peak to the calibrated OPLL rhythm table (BD/SD/TOM/CLOSEHH/CYM counterparts; CLAPS and OPENHH keep their library level relative to CYM), 2026-11-14; see level_trim_tl per voice."
 }

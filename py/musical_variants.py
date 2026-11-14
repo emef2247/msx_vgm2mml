@@ -138,8 +138,16 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
         fm_layers[target_chip]=layer_plan
     opll_fm_device=next((d.device_id for d in performance.devices if d.chip=='opll' and
         any(u.device_id==d.device_id and u.section=='fm' for u in performance.units)),None)
+    # Layered stacks every FM source (owner, 2026-11-14): when the
+    # source has an OPLL device, its native lane joins the OPM and
+    # OPNA FM projections instead of being consumed by them, and
+    # its rhythm plays natively rather than via the PCM substitute.
+    opll_ids={d.device_id for d in performance.devices if d.chip=='opll'}
+    layered_opll=profile=='layered' and bool(opll_ids)
+    opll_percussion=any(e.device_id in opll_ids for e in performance.percussion)
     aux,aux_losses=project_psg_opll(performance,dcsg_gain=dcsg_gain,
-        opna=auxiliary=='opna',force=True,opll_fm_device=opll_fm_device)
+        opna=auxiliary=='opna',force=True,
+        opll_fm_device=None if layered_opll else opll_fm_device)
     if any(aux_losses.get(k) for k in ('psg_channel_capacity_units_omitted','second_opll_device_omitted')) and not force:
         raise ValueError('Auxiliary voices exceed cartridge capacity (use --force for explicit omission)')
     rows.extend(aux);losses.update(aux_losses)
@@ -147,7 +155,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     pcm_stats={}
     rhythm_pcm=False
     pcm_performance=performance
-    if not assets and auxiliary in ('opna','y8950'):
+    if not assets and auxiliary in ('opna','y8950') and not (layered_opll and opll_percussion):
         from opll_rhythm_pcm import build_rhythm_pcm_assets
         derived,rhythm_pcm_losses=build_rhythm_pcm_assets(performance,library=pcm_library)
         if derived:
@@ -223,6 +231,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
         waveform_allocation=fm_layers[chip]['waveform_allocation'],pcm=pcm_stats)
     if rhythm_info:plan['opll_rhythm_fm']=rhythm_info
     if rhythm_pcm:plan['opll_rhythm_pcm']=pcm_library
+    if layered_opll:plan['native_opll_layer']=True
     if profile=='layered':plan['fm_layers']=fm_layers
     if real_scc:plan['real_scc']=scc_plan
     return rows,prefix,dict(losses),plan
