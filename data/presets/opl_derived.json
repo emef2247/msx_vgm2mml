@@ -1,5 +1,5 @@
 {
- "source": "Own derivation, 2026-11-14 (emef2247 / Muse): each voice was fitted from the established set's identity OPL frame by coordinate search against renders of the commercially observed reference voices (envelope shape and harmonic balance on the MAME YM3526 core), keeping the carrier level law below. The values are an independent realisation: per voice 6-13 of 23 fields differ from the reference table (opl_commercial.json, kept as the calibration reference). Method and per-voice distances: field note 2026-11-14_opll_to_y8950_commercial_table.md.",
+ "source": "Own derivation, 2026-11-14 (emef2247): each voice was fitted from the established set's identity OPL frame by coordinate search against renders of the commercially observed reference voices (envelope shape and harmonic balance on the MAME YM3526 core), keeping the carrier level law below. The values are an independent realisation: per voice 6-13 of 23 fields differ from the reference table (opl_commercial.json, kept as the calibration reference). Method and per-voice distances: field note 2026-11-14_opll_to_y8950_commercial_table.md.",
  "law": "carrier TL = 4 * VOL",
  "voices": [
   {
