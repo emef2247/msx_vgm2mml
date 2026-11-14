@@ -2,8 +2,8 @@
  "target": "msxaudio",
  "chip": "y8950",
  "clock_hz": 3579545,
- "source": "opll_presets.json via make_presets.py; do not hand-edit",
- "law": "OPL field identity (KSL re-framed); carrier TL = source VOL << 2",
+ "source": "opl_commercial.json via make_presets.py; do not hand-edit",
+ "law": "carrier TL = source VOL << 2; rhythm volume TL = attenuation << 2",
  "voices": [
   {
    "index": 1,
@@ -14,192 +14,192 @@
      "am": 0,
      "vib": 1,
      "egt": 1,
-     "ksr": 1,
-     "mul": 1,
-     "ksl": 0,
-     "tl": 30,
-     "ar": 13,
-     "dr": 0,
-     "sl": 0,
-     "rr": 0
-    },
-    {
-     "am": 0,
-     "vib": 1,
-     "egt": 1,
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
+     "tl": 20,
+     "ar": 15,
+     "dr": 15,
+     "sl": 2,
+     "rr": 4
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 1,
      "tl": 0,
-     "ar": 7,
-     "dr": 8,
+     "ar": 5,
+     "dr": 1,
      "sl": 1,
-     "rr": 7
+     "rr": 6
     }
    ]
   },
   {
    "index": 2,
    "name": "Guitar",
-   "fb": 5,
-   "ops": [
-    {
-     "am": 0,
-     "vib": 0,
-     "egt": 0,
-     "ksr": 1,
-     "mul": 3,
-     "ksl": 0,
-     "tl": 26,
-     "ar": 13,
-     "dr": 8,
-     "sl": 2,
-     "rr": 3
-    },
-    {
-     "am": 0,
-     "vib": 1,
-     "egt": 0,
-     "ksr": 0,
-     "mul": 1,
-     "ksl": 0,
-     "tl": 0,
-     "ar": 15,
-     "dr": 7,
-     "sl": 1,
-     "rr": 3
-    }
-   ]
-  },
-  {
-   "index": 3,
-   "name": "Piano",
-   "fb": 0,
-   "ops": [
-    {
-     "am": 0,
-     "vib": 0,
-     "egt": 0,
-     "ksr": 1,
-     "mul": 3,
-     "ksl": 1,
-     "tl": 25,
-     "ar": 15,
-     "dr": 2,
-     "sl": 2,
-     "rr": 1
-    },
-    {
-     "am": 0,
-     "vib": 0,
-     "egt": 0,
-     "ksr": 0,
-     "mul": 1,
-     "ksl": 0,
-     "tl": 0,
-     "ar": 13,
-     "dr": 4,
-     "sl": 2,
-     "rr": 3
-    }
-   ]
-  },
-  {
-   "index": 4,
-   "name": "Flute",
    "fb": 7,
    "ops": [
     {
      "am": 0,
      "vib": 0,
      "egt": 0,
+     "ksr": 0,
+     "mul": 3,
+     "ksl": 1,
+     "tl": 31,
+     "ar": 15,
+     "dr": 4,
+     "sl": 13,
+     "rr": 5
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 1,
+     "tl": 0,
+     "ar": 14,
+     "dr": 4,
+     "sl": 3,
+     "rr": 2
+    }
+   ]
+  },
+  {
+   "index": 3,
+   "name": "Piano",
+   "fb": 5,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 3,
+     "ksl": 1,
+     "tl": 36,
+     "ar": 13,
+     "dr": 3,
+     "sl": 14,
+     "rr": 1
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
      "ksr": 1,
      "mul": 1,
      "ksl": 0,
-     "tl": 14,
-     "ar": 8,
-     "dr": 13,
-     "sl": 7,
-     "rr": 0
+     "tl": 0,
+     "ar": 11,
+     "dr": 2,
+     "sl": 15,
+     "rr": 6
+    }
+   ]
+  },
+  {
+   "index": 4,
+   "name": "Flute",
+   "fb": 5,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 1,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 36,
+     "ar": 5,
+     "dr": 12,
+     "sl": 1,
+     "rr": 8
     },
     {
      "am": 0,
      "vib": 1,
      "egt": 1,
-     "ksr": 0,
+     "ksr": 1,
      "mul": 1,
      "ksl": 0,
      "tl": 0,
-     "ar": 6,
-     "dr": 4,
+     "ar": 4,
+     "dr": 3,
      "sl": 2,
-     "rr": 7
+     "rr": 6
     }
    ]
   },
   {
    "index": 5,
    "name": "Clarinet",
-   "fb": 6,
-   "ops": [
-    {
-     "am": 0,
-     "vib": 0,
-     "egt": 1,
-     "ksr": 1,
-     "mul": 2,
-     "ksl": 0,
-     "tl": 30,
-     "ar": 14,
-     "dr": 1,
-     "sl": 0,
-     "rr": 1
-    },
-    {
-     "am": 0,
-     "vib": 0,
-     "egt": 1,
-     "ksr": 0,
-     "mul": 1,
-     "ksl": 0,
-     "tl": 0,
-     "ar": 7,
-     "dr": 6,
-     "sl": 2,
-     "rr": 8
-    }
-   ]
-  },
-  {
-   "index": 6,
-   "name": "Oboe",
    "fb": 5,
    "ops": [
     {
      "am": 0,
      "vib": 0,
      "egt": 1,
-     "ksr": 1,
-     "mul": 1,
+     "ksr": 0,
+     "mul": 2,
      "ksl": 0,
-     "tl": 22,
-     "ar": 14,
-     "dr": 0,
+     "tl": 29,
+     "ar": 9,
+     "dr": 9,
      "sl": 0,
-     "rr": 0
+     "rr": 4
     },
     {
      "am": 0,
      "vib": 0,
      "egt": 1,
      "ksr": 0,
-     "mul": 2,
+     "mul": 1,
      "ksl": 0,
      "tl": 0,
-     "ar": 7,
-     "dr": 1,
+     "ar": 6,
+     "dr": 3,
      "sl": 1,
-     "rr": 8
+     "rr": 6
+    }
+   ]
+  },
+  {
+   "index": 6,
+   "name": "Oboe",
+   "fb": 2,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 1,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 8,
+     "ar": 7,
+     "dr": 10,
+     "sl": 3,
+     "rr": 15
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 1,
+     "mul": 3,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 5,
+     "dr": 2,
+     "sl": 1,
+     "rr": 10
     }
    ]
   },
@@ -210,49 +210,16 @@
    "ops": [
     {
      "am": 0,
-     "vib": 0,
-     "egt": 1,
-     "ksr": 0,
-     "mul": 1,
-     "ksl": 0,
-     "tl": 29,
-     "ar": 8,
-     "dr": 2,
-     "sl": 1,
-     "rr": 1
-    },
-    {
-     "am": 0,
      "vib": 1,
      "egt": 1,
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 0,
-     "ar": 8,
-     "dr": 1,
-     "sl": 0,
-     "rr": 7
-    }
-   ]
-  },
-  {
-   "index": 8,
-   "name": "Organ",
-   "fb": 3,
-   "ops": [
-    {
-     "am": 0,
-     "vib": 0,
-     "egt": 1,
-     "ksr": 1,
-     "mul": 3,
-     "ksl": 0,
-     "tl": 45,
-     "ar": 11,
-     "dr": 0,
-     "sl": 0,
-     "rr": 0
+     "tl": 28,
+     "ar": 7,
+     "dr": 3,
+     "sl": 1,
+     "rr": 6
     },
     {
      "am": 0,
@@ -263,9 +230,42 @@
      "ksl": 0,
      "tl": 0,
      "ar": 7,
-     "dr": 0,
+     "dr": 2,
      "sl": 0,
      "rr": 7
+    }
+   ]
+  },
+  {
+   "index": 8,
+   "name": "Organ",
+   "fb": 7,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 3,
+     "ksl": 1,
+     "tl": 37,
+     "ar": 15,
+     "dr": 10,
+     "sl": 0,
+     "rr": 8
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 1,
+     "tl": 0,
+     "ar": 6,
+     "dr": 1,
+     "sl": 0,
+     "rr": 6
     }
    ]
   },
@@ -281,10 +281,43 @@
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 27,
+     "tl": 26,
      "ar": 6,
-     "dr": 4,
+     "dr": 5,
      "sl": 1,
+     "rr": 0
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 1,
+     "tl": 0,
+     "ar": 7,
+     "dr": 2,
+     "sl": 0,
+     "rr": 9
+    }
+   ]
+  },
+  {
+   "index": 10,
+   "name": "Synthesizer",
+   "fb": 7,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 1,
+     "tl": 12,
+     "ar": 14,
+     "dr": 5,
+     "sl": 3,
      "rr": 0
     },
     {
@@ -295,43 +328,10 @@
      "mul": 1,
      "ksl": 0,
      "tl": 0,
-     "ar": 6,
-     "dr": 5,
+     "ar": 9,
+     "dr": 4,
      "sl": 1,
-     "rr": 7
-    }
-   ]
-  },
-  {
-   "index": 10,
-   "name": "Synthesizer",
-   "fb": 0,
-   "ops": [
-    {
-     "am": 0,
-     "vib": 1,
-     "egt": 0,
-     "ksr": 0,
-     "mul": 1,
-     "ksl": 0,
-     "tl": 11,
-     "ar": 8,
-     "dr": 5,
-     "sl": 8,
-     "rr": 1
-    },
-    {
-     "am": 0,
-     "vib": 1,
-     "egt": 1,
-     "ksr": 0,
-     "mul": 1,
-     "ksl": 0,
-     "tl": 0,
-     "ar": 15,
-     "dr": 0,
-     "sl": 0,
-     "rr": 7
+     "rr": 6
     }
    ]
   },
@@ -343,14 +343,14 @@
     {
      "am": 0,
      "vib": 0,
-     "egt": 1,
+     "egt": 0,
      "ksr": 1,
      "mul": 3,
      "ksl": 1,
-     "tl": 3,
-     "ar": 14,
-     "dr": 10,
-     "sl": 1,
+     "tl": 8,
+     "ar": 15,
+     "dr": 0,
+     "sl": 15,
      "rr": 0
     },
     {
@@ -358,12 +358,12 @@
      "vib": 0,
      "egt": 0,
      "ksr": 0,
-     "mul": 1,
-     "ksl": 0,
+     "mul": 2,
+     "ksl": 1,
      "tl": 0,
      "ar": 14,
-     "dr": 15,
-     "sl": 0,
+     "dr": 4,
+     "sl": 12,
      "rr": 4
     }
    ]
@@ -371,33 +371,33 @@
   {
    "index": 12,
    "name": "Vibraphone",
-   "fb": 7,
+   "fb": 2,
    "ops": [
     {
-     "am": 0,
+     "am": 1,
      "vib": 0,
-     "egt": 0,
+     "egt": 1,
      "ksr": 1,
-     "mul": 7,
+     "mul": 9,
      "ksl": 0,
-     "tl": 36,
+     "tl": 38,
      "ar": 15,
-     "dr": 8,
-     "sl": 2,
-     "rr": 2
+     "dr": 15,
+     "sl": 3,
+     "rr": 0
     },
     {
      "am": 1,
      "vib": 1,
      "egt": 0,
-     "ksr": 0,
+     "ksr": 1,
      "mul": 1,
      "ksl": 0,
      "tl": 0,
      "ar": 15,
-     "dr": 8,
-     "sl": 1,
-     "rr": 2
+     "dr": 1,
+     "sl": 14,
+     "rr": 1
     }
    ]
   },
@@ -409,15 +409,15 @@
     {
      "am": 0,
      "vib": 1,
-     "egt": 1,
-     "ksr": 0,
+     "egt": 0,
+     "ksr": 1,
      "mul": 1,
-     "ksl": 0,
-     "tl": 12,
-     "ar": 13,
-     "dr": 2,
-     "sl": 4,
-     "rr": 0
+     "ksl": 1,
+     "tl": 10,
+     "ar": 15,
+     "dr": 7,
+     "sl": 0,
+     "rr": 1
     },
     {
      "am": 0,
@@ -429,72 +429,72 @@
      "tl": 0,
      "ar": 15,
      "dr": 5,
-     "sl": 4,
-     "rr": 2
+     "sl": 3,
+     "rr": 3
     }
    ]
   },
   {
    "index": 14,
    "name": "AcoustBass",
-   "fb": 3,
+   "fb": 4,
    "ops": [
     {
      "am": 0,
      "vib": 0,
      "egt": 0,
-     "ksr": 0,
+     "ksr": 1,
      "mul": 1,
-     "ksl": 2,
-     "tl": 21,
-     "ar": 14,
-     "dr": 4,
-     "sl": 0,
-     "rr": 3
+     "ksl": 0,
+     "tl": 23,
+     "ar": 12,
+     "dr": 2,
+     "sl": 15,
+     "rr": 0
     },
     {
      "am": 0,
      "vib": 0,
      "egt": 0,
-     "ksr": 0,
+     "ksr": 1,
      "mul": 1,
      "ksl": 0,
      "tl": 0,
-     "ar": 9,
-     "dr": 0,
-     "sl": 0,
-     "rr": 2
+     "ar": 12,
+     "dr": 1,
+     "sl": 5,
+     "rr": 1
     }
    ]
   },
   {
    "index": 15,
    "name": "ElecGuitar",
-   "fb": 3,
+   "fb": 2,
    "ops": [
     {
      "am": 0,
      "vib": 1,
-     "egt": 0,
+     "egt": 1,
      "ksr": 0,
      "mul": 1,
-     "ksl": 1,
-     "tl": 9,
-     "ar": 15,
-     "dr": 1,
-     "sl": 12,
-     "rr": 0
+     "ksl": 0,
+     "tl": 20,
+     "ar": 14,
+     "dr": 3,
+     "sl": 5,
+     "rr": 12
     },
     {
      "am": 0,
      "vib": 1,
      "egt": 0,
      "ksr": 0,
-     "mul": 1,
+     "mul": 5,
      "ksl": 0,
      "tl": 0,
-     "ar": 14,
-     "dr": 4,
+     "ar": 13,
+     "dr": 13,
      "sl": 1,
      "rr": 3
     }
@@ -502,7 +502,7 @@
   }
  ],
  "rhythm": {
-  "kind": "y8950_native",
-  "note": "OPLL percussion projects to the Y8950 native rhythm unit (musical_opl_target); no FM rows."
+  "kind": "opl_native",
+  "note": "OPLL percussion projects to the target native rhythm unit with the commercially observed voice template (musical_opl_target / musical_opl3_target); no FM rows."
  }
 }

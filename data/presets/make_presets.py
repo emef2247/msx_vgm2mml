@@ -4,9 +4,13 @@ per-target preset table per chip family.
 
 Single source of truth: opll_presets.json (the established
 set by emef2247), kept beside this script. Every derived table is generated from it through the
-audited conversion laws:
+audited conversion laws, except the OPL targets (msxaudio / opl3),
+whose preset voices come from opl_commercial.json, the conversion
+table observed in commercial MSX dual-edition games (owner's
+decision, 2026-11-14, to maximise use of the Y8950 analysis):
 
-- OPL: field identity (the canonical 2OP frame is OPL-native);
+- OPL (from the established set; retained for the C header):
+  field identity (the canonical 2OP frame is OPL-native);
   KSL values are re-framed (YM2413 frame 1<->2 swapped) so the
   physical key-scale rate is preserved; waveform flag -> WS 1.
 - OPN / OPNA: the measured OPLL>OPNA law -- ALG 4 pair (M1->C1),
@@ -363,28 +367,28 @@ def _target_json(target, chip, clock, pms, ams, trims, rhythm):
     return doc
 
 
-def _opl_target_json():
-    # Y8950 (MSX-AUDIO) two-op rows in the OPL frame: field identity
-    # from the established set (opl_voice), the same derivation the
-    # C header's OPL table carries.  Carrier TL is a performance
-    # value (source VOL << 2), so the table carries 0 for it.
-    keys = ('am', 'vib', 'egt', 'ksr', 'mul', 'ksl', 'tl',
-            'ar', 'dr', 'sl', 'rr')
-    voices = []
-    for i in range(1, 16):
-        row = ROM['melodic'][str(i)]
-        fb, ops = opl_voice(row)
-        objs = [dict(zip(keys, op)) for op in ops]
-        objs[1]['tl'] = 0
-        voices.append({'index': i, 'name': row['name'], 'fb': fb,
-                       'ops': objs})
-    return {'target': 'msxaudio', 'chip': 'y8950', 'clock_hz': 3579545,
-            'source': 'opll_presets.json via make_presets.py; do not hand-edit',
-            'law': 'OPL field identity (KSL re-framed); carrier TL = source VOL << 2',
+def _commercial_opl_json(target, chip, clock):
+    # OPL two-op rows from the commercially observed conversion
+    # table (opl_commercial.json): the voicing Compile's MSX
+    # dual-edition games actually used for OPLL presets on the
+    # Y8950, adopted by the owner 2026-11-14 over the field-identity
+    # derivation from the established set (the two disagree in 160
+    # of 330 fields; the commercial table carries no ymfm lineage).
+    # Y8950 and YMF262 share the two-op register frame, so one
+    # source feeds both targets.  Carrier TL is a performance
+    # value (source VOL << 2); the source carries 0 for it.
+    doc = json.loads((HERE / 'opl_commercial.json').read_text())
+    voices = [{'index': v['index'], 'name': v['name'], 'fb': v['fb'],
+               'ops': v['ops']} for v in doc['voices']]
+    return {'target': target, 'chip': chip, 'clock_hz': clock,
+            'source': 'opl_commercial.json via make_presets.py; do not hand-edit',
+            'law': doc['law'],
             'voices': voices,
-            'rhythm': {'kind': 'y8950_native',
-                       'note': 'OPLL percussion projects to the Y8950 '
-                               'native rhythm unit (musical_opl_target); '
+            'rhythm': {'kind': 'opl_native',
+                       'note': 'OPLL percussion projects to the target '
+                               'native rhythm unit with the commercially '
+                               'observed voice template '
+                               '(musical_opl_target / musical_opl3_target); '
                                'no FM rows.'}}
 
 
@@ -395,7 +399,10 @@ def write_target_jsons():
                    'noise_reg': nf}
                   for name, row, nf in rhythm_opm()]
     docs = {
-        'msxaudio/opll_to_y8950.json': _opl_target_json(),
+        'msxaudio/opll_to_y8950.json': _commercial_opl_json(
+            'msxaudio', 'y8950', 3579545),
+        'opl3/opll_to_opl3.json': _commercial_opl_json(
+            'opl3', 'ymf262', 14318180),
         'sfg01/opll_to_opm.json': _target_json(
             'sfg01', 'ym2151', 3579545, 5, 2, LEVEL_TRIM_TL_OPM,
             {'kind': 'fm_rows', 'rows': opm_rhythm}),
