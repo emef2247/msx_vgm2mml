@@ -27,9 +27,12 @@ vgm-variants/scc_layered/<stem>.vgm
 _diagnostics/<stem>/vgm_variants/
 ```
 
-Only applicable, successful profiles are published. PCM-free sources can use
-sfg01, makoto, and layered. PCM-bearing sources can use makoto, layered, and the
-two auxiliary SFG01 compositions; plain sfg01 cannot play their PCM. Native OPNA rhythm can
+Only applicable, successful profiles are published. The two auxiliary SFG01
+compositions are OPM, or OPM + PCM when the source carries PCM: they are
+published whenever sfg01 is, even when the PCM lane is unused and the result
+matches sfg01, so the profile set does not depend on the song's content.
+PCM-bearing sources can use makoto, layered, and the two auxiliary SFG01
+compositions; plain sfg01 cannot play their PCM. Native OPNA rhythm can
 also use the Makoto auxiliary composition. Unsupported profiles have explicit
 reasons in `_diagnostics/<stem>/vgm_variants.json`.
 

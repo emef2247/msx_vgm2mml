@@ -339,9 +339,6 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
 
 def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, opna_law=False):
     root=Path(outdir);root.mkdir(parents=True,exist_ok=True);results={}
-    has_pcm=bool(getattr(performance,'pcm_assets',()) or any(p.chip in ('opna','msm6258') for p in performance.pcm_packets)
-        or any(e.device_id in {d.device_id for d in performance.devices if d.chip=='opll'} for e in performance.percussion))
-    native_rhythm=any(e.device_id in {d.device_id for d in performance.devices if d.chip=='opna'} for e in performance.percussion)
     for profile in PROFILES:
         folder=root/profile;folder.mkdir(parents=True,exist_ok=True)
         path=folder/(stem+'.vgm');path.unlink(missing_ok=True)
@@ -349,8 +346,11 @@ def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, op
             input_representation='NativePerformance',source_file_consulted=False,
             sample_rate=44100,status='unavailable',source_decisions=performance.decisions)
         try:
-            if profile in ('sfg01_makoto','sfg01_msxaudio') and not (has_pcm or profile=='sfg01_makoto' and native_rhythm):
-                raise ValueError('No PCM/native rhythm requiring this auxiliary cartridge; use sfg01')
+            # The auxiliary SFG01 compositions are "OPM, or OPM + PCM
+            # when the source carries PCM" (owner, 2026-11-15): they
+            # are published whenever sfg01 is, even when no PCM lane
+            # is needed and the result matches sfg01, so the profile
+            # set a user finds does not depend on the song's content.
             rows,prefix,losses,plan=project_variant(performance,profile,force=force,
                 dcsg_gain=dcsg_gain,opna_law=opna_law)
             rows=_write(performance,rows,prefix,path)
