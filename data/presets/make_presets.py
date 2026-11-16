@@ -102,6 +102,36 @@ LEVEL_TRIM_TL_OPM = {'Violin': 7, 'Trumpet': -1, 'Organ': 4,
 # values apply.  Note direct_render writes 166666 Hz WAV.
 LEVEL_TRIM_TL_OPNA = dict(LEVEL_TRIM_TL_OPM)
 
+# OPNA fit against the OPM set, 2026-11-16 (adopted by the owner
+# after audition): single-voice probes (C3/A4/C6) of the OPM table
+# rendered with IKAOPM as the reference, the OPNA table rendered
+# with ymfm, per-voice coordinate descent over modulator TL, FB,
+# DT and PMS on harmonic distance.  Level and envelope already
+# matched (offsets ~0.00 dB, envelope <= 0.7 dB), so the fit is
+# timbre-only: the dominant move is PMS 4 -> 2 on the vibrato
+# voices (the bridged LFO depth was too deep in this chain; the
+# LFO-rate coupling is not separated).  Harmonic distance
+# before -> after: SynthBass 5.73 -> 4.28, Horn 4.29 -> 3.68,
+# Guitar 2.62 -> 1.99, Synthesizer 2.76 -> 2.02, Flute 2.29 ->
+# 1.88.  Piano / Clarinet / Oboe / Harpsichord / AcoustBass took
+# no move.  Vibraphone's carrier SL/D2R moves come from a separate
+# envelope-weighted pass and stay provisional: its decay-shape
+# difference is structural (see the LEVEL_TRIM note above), the
+# pass only crept (envelope 9.53 -> 9.11).
+OPNA_FIT = {
+    'Violin': {'pms': 2},
+    'Guitar': {'pms': 3, 'ops': {0: {'dt': 6}, 1: {'dt': 6}}},
+    'Flute': {'pms': 2},
+    'Trumpet': {'pms': 2},
+    'Organ': {'ops': {0: {'dt': 5}}},
+    'Horn': {'pms': 2},
+    'Synthesizer': {'pms': 1},
+    'Vibraphone': {'pms': 3, 'ops': {0: {'dt': 6},
+                                     1: {'dt': 3, 'd2r': 9, 'sl': 4}}},
+    'SynthBass': {'ops': {0: {'dt': 1}}},
+    'ElecGuitar': {'pms': 2},
+}
+
 
 SILENT4 = (1, 127, 0, 31, 0, 0, 0, 15, 0, 0)
 
@@ -370,6 +400,12 @@ def _target_json(target, chip, clock, pms, ams, trims, rhythm):
             voice['mod_eg_override'] = dict(
                 SYNTH_MOD_EG_OVERRIDE,
                 status='adopted 2026-11-14 by owner audition (FMPAC02)')
+        if target == 'makoto' and row['name'] in OPNA_FIT:
+            fit = OPNA_FIT[row['name']]
+            if 'pms' in fit:
+                voice['pms'] = fit['pms']
+            for oi, fields in fit.get('ops', {}).items():
+                voice['ops'][oi].update(fields)
         voices.append(voice)
     doc = {'target': target, 'chip': chip, 'clock_hz': clock,
            'source': 'opll_presets.json via make_presets.py; do not hand-edit',
@@ -377,6 +413,11 @@ def _target_json(target, chip, clock, pms, ams, trims, rhythm):
            'voices': voices, 'rhythm': rhythm}
     if target == 'sfg01':
         doc['lfo'].update(pmd=86, amd=16, lfrq=0xCB)
+    if target == 'makoto':
+        doc['fit_note'] = ('Voices fitted 2026-11-16 against the OPM '
+                           'table (IKAOPM reference renders, ymfm '
+                           'candidates); see OPNA_FIT in '
+                           'make_presets.py.')
     return doc
 
 

@@ -14,7 +14,7 @@
    "name": "Violin",
    "fb": 7,
    "alg": 4,
-   "pms": 4,
+   "pms": 2,
    "ams": 0,
    "ops": [
     {
@@ -73,7 +73,7 @@
    "name": "Guitar",
    "fb": 5,
    "alg": 4,
-   "pms": 4,
+   "pms": 3,
    "ams": 0,
    "ops": [
     {
@@ -85,7 +85,7 @@
      "d2r": 9,
      "sl": 2,
      "rr": 4,
-     "dt": 0,
+     "dt": 6,
      "am": 0
     },
     {
@@ -97,7 +97,7 @@
      "d2r": 9,
      "sl": 1,
      "rr": 8,
-     "dt": 0,
+     "dt": 6,
      "am": 0
     },
     {
@@ -191,7 +191,7 @@
    "name": "Flute",
    "fb": 7,
    "alg": 4,
-   "pms": 4,
+   "pms": 2,
    "ams": 0,
    "ops": [
     {
@@ -368,7 +368,7 @@
    "name": "Trumpet",
    "fb": 7,
    "alg": 4,
-   "pms": 4,
+   "pms": 2,
    "ams": 0,
    "ops": [
     {
@@ -439,7 +439,7 @@
      "d2r": 0,
      "sl": 0,
      "rr": 0,
-     "dt": 0,
+     "dt": 5,
      "am": 0
     },
     {
@@ -486,7 +486,7 @@
    "name": "Horn",
    "fb": 6,
    "alg": 4,
-   "pms": 4,
+   "pms": 2,
    "ams": 0,
    "ops": [
     {
@@ -545,7 +545,7 @@
    "name": "Synthesizer",
    "fb": 0,
    "alg": 4,
-   "pms": 4,
+   "pms": 1,
    "ams": 0,
    "ops": [
     {
@@ -669,7 +669,7 @@
    "name": "Vibraphone",
    "fb": 7,
    "alg": 4,
-   "pms": 4,
+   "pms": 3,
    "ams": 2,
    "ops": [
     {
@@ -681,7 +681,7 @@
      "d2r": 7,
      "sl": 2,
      "rr": 3,
-     "dt": 0,
+     "dt": 6,
      "am": 0
     },
     {
@@ -690,10 +690,10 @@
      "ks": 0,
      "ar": 31,
      "d1r": 19,
-     "d2r": 7,
-     "sl": 1,
+     "d2r": 9,
+     "sl": 4,
      "rr": 8,
-     "dt": 0,
+     "dt": 3,
      "am": 1
     },
     {
@@ -740,7 +740,7 @@
      "d2r": 0,
      "sl": 4,
      "rr": 0,
-     "dt": 0,
+     "dt": 1,
      "am": 0
     },
     {
@@ -846,7 +846,7 @@
    "name": "ElecGuitar",
    "fb": 3,
    "alg": 4,
-   "pms": 4,
+   "pms": 2,
    "ams": 0,
    "ops": [
     {
@@ -904,5 +904,6 @@
  "rhythm": {
   "kind": "opna_native",
   "note": "OPLL percussion projects to the OPNA native rhythm unit (project_rhythm); no FM rows."
- }
+ },
+ "fit_note": "Voices fitted 2026-11-16 against the OPM table (IKAOPM reference renders, ymfm candidates); see OPNA_FIT in make_presets.py."
 }
