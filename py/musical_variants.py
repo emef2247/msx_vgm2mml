@@ -13,7 +13,7 @@ from musical_wave_target import project_waves, project_psg_opll
 
 SCC_PROFILES = {'scc_sfg01':'sfg01', 'scc_makoto':'makoto', 'scc_layered':'layered', 'scc_opl3':'opl3'}
 PSG_PROFILES = {'psg_sfg01':'sfg01', 'psg_makoto':'makoto', 'psg_layered':'layered', 'psg_opl3':'opl3'}
-PROFILES = ('sfg01','sfg01_rx21','sfg01_opllrhythm','makoto','makoto_rx21','sfg01_makoto','sfg01_msxaudio','msxaudio','opl3','layered', *SCC_PROFILES, *PSG_PROFILES)
+PROFILES = ('sfg01','sfg01_rx21','sfg01_opllrhythm','makoto','makoto_rx21','misato','sfg01_makoto','sfg01_msxaudio','sfg01_misato','msxaudio','opl3','layered', *SCC_PROFILES, *PSG_PROFILES)
 CLOCKS = {0x54:(0x30,3579545),0x56:(0x48,8000000),0x57:(0x48,8000000),
           0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545),
           0x5e:(0x5c,14318180),0x5f:(0x5c,14318180)}
@@ -194,9 +194,13 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     if profile=='opl3':
         return _project_opl3(performance,force=force,dcsg_gain=dcsg_gain,
             real_scc=real_scc,real_psg=real_psg)
-    chip='opna' if profile in ('makoto','makoto_rx21') else 'opm'
+    chip='opna' if profile in ('makoto','makoto_rx21','misato') else 'opm'
     clock=8000000 if chip=='opna' else 3579545
-    auxiliary='opna' if profile in ('makoto','makoto_rx21','sfg01_makoto','layered') else 'y8950' if profile=='sfg01_msxaudio' else None
+    # Misato is the Makoto composition on the OPN3 cartridge, which
+    # has no ADPCM unit (owner, 2026-11-16): PCM content has no
+    # destination there and percussion plays on the native YM2608
+    # rhythm unit instead of ADPCM-B samples.
+    auxiliary='opna' if profile in ('makoto','makoto_rx21','sfg01_makoto','layered') else 'misato' if profile in ('misato','sfg01_misato') else 'y8950' if profile=='sfg01_msxaudio' else None
     # FM-only SFG01 compositions play OPLL rhythm as fitted FM
     # one-shots; makoto_rx21 swaps the PCM hit library to the RX21.
     # sfg01_opllrhythm selects no table: its rhythm stays native.
@@ -251,7 +255,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     layered_opll=profile=='layered' and bool(opll_ids)
     opll_percussion=any(e.device_id in opll_ids for e in performance.percussion)
     aux,aux_losses=project_psg_opll(performance,dcsg_gain=dcsg_gain,
-        opna=auxiliary=='opna',force=True,
+        opna=auxiliary in ('opna','misato'),force=True,
         opll_fm_device=None if layered_opll else opll_fm_device)
     if any(aux_losses.get(k) for k in ('psg_channel_capacity_units_omitted','second_opll_device_omitted')) and not force:
         raise ValueError('Auxiliary voices exceed cartridge capacity (use --force for explicit omission)')
@@ -270,7 +274,10 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
             losses.update(rhythm_pcm_losses)
     missing_pcm=[decision for decision in performance.decisions if decision and decision[0] in ('nes_pcm_missing_sample_bytes','opn2_pcm_source_issue','opn2_pcm_direct_without_observed_enable')]
     if missing_pcm:losses['source_pcm_content_incomplete_diagnostics']+=len(missing_pcm)
-    if assets:
+    if assets and auxiliary=='misato':
+        if not force:raise ValueError('Misato has no ADPCM unit (use --force to omit the PCM content)')
+        losses['pcm_content_omitted_no_misato_destination']+=len(assets)
+    elif assets:
         if auxiliary is None:raise ValueError('PCM source requires sfg01_makoto or sfg01_msxaudio')
         pcm,prefix,pcm_losses,pcm_stats=project_pcm(pcm_performance,auxiliary,force=force)
         if any(count for code,count in pcm_losses.items() if 'budget' in code and ('omitted' in code or 'dropped' in code)) and not force:
@@ -285,6 +292,10 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
             if not force:raise ValueError('Native OPNA ADPCM exceeds the Makoto 256 KiB RAM budget; relocation required')
             losses['native_opna_adpcm_capacity_lane_omitted']+=1
             native_pcm=[]
+    if native_pcm and auxiliary=='misato':
+        if not force:raise ValueError('Misato has no ADPCM unit (use --force to omit native OPNA ADPCM content)')
+        losses['native_opna_adpcm_omitted_no_misato_destination']+=1
+        native_pcm=[]
     if native_pcm:
         if assets:raise ValueError('Native OPNA ADPCM and decoded PCM compete for one Delta-T unit')
         if auxiliary!='opna':raise ValueError('Native OPNA ADPCM requires Makoto auxiliary cartridge')
@@ -310,8 +321,9 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
             performance,fm_rhythm_table,reserved,force=force)
         rows.extend(fm_rhythm);losses.update(fm_rhythm_losses)
     from musical_rhythm_target import project_rhythm
-    rhythm,rhythm_losses=project_rhythm(performance,makoto=auxiliary=='opna',
-        opll_pcm=rhythm_pcm,opll_fm=bool(fm_rhythm_table))
+    rhythm,rhythm_losses=project_rhythm(performance,makoto=auxiliary in ('opna','misato'),
+        opll_pcm=rhythm_pcm,opll_fm=bool(fm_rhythm_table),
+        opna_rhythm=auxiliary=='misato')
     rows.extend(rhythm);losses.update(rhythm_losses)
     # The measured OPNA TL/decay law is applied to projected carrier values,
     # after native curve/voice recombination, never to source evidence.
@@ -338,6 +350,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     if rhythm_pcm:plan['opll_rhythm_pcm']=pcm_library
     if layered_opll:plan['native_opll_layer']=True
     if native_opll_rhythm:plan['native_opll_rhythm']=True
+    if auxiliary=='misato':plan['misato_no_adpcm']=True
     if profile=='layered':plan['fm_layers']=fm_layers
     if real_scc:plan['real_scc']=scc_plan
     if real_psg:plan['psg_fm_doubling']=True

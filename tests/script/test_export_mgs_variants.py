@@ -38,7 +38,7 @@ for _value in (0x80, 0xA0, 0xC0, 0xE0, 0xC0, 0xA0, 0x80, 0x60):
     BURST += bytes((0x52, 0x2a, _value, 0x61, 0x02, 0x00))
 OPN2_SONG = vgm(PHRASE + BURST)
 
-PROFILES = ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'makoto', 'makoto_rx21', 'sfg01_makoto', 'sfg01_msxaudio', 'msxaudio', 'opl3', 'layered', 'scc_sfg01', 'scc_makoto', 'scc_layered', 'scc_opl3', 'psg_sfg01', 'psg_makoto', 'psg_layered', 'psg_opl3')
+PROFILES = ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'makoto', 'makoto_rx21', 'misato', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'msxaudio', 'opl3', 'layered', 'scc_sfg01', 'scc_makoto', 'scc_layered', 'scc_opl3', 'psg_sfg01', 'psg_makoto', 'psg_layered', 'psg_opl3')
 VARIANT_NAMES = tuple(f'vgm-variants/{profile}/song.vgm' for profile in PROFILES)
 
 
@@ -125,7 +125,7 @@ class ExportMgsVgmVariantsTests(unittest.TestCase):
             out = Path(tmp) / 'out'
             result = self.run_main(fixture, '--outdir', out, '--vgm-variants', '--skip-keyon-counts', '--compiler', 'mgsexc')
             self.assertEqual(result, 0)
-            assert_profiles(self, out, ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'makoto', 'makoto_rx21', 'sfg01_makoto', 'sfg01_msxaudio', 'layered', 'psg_sfg01', 'psg_makoto', 'psg_layered'), 'scale_rom1')
+            assert_profiles(self, out, ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'makoto', 'makoto_rx21', 'misato', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'layered', 'psg_sfg01', 'psg_makoto', 'psg_layered'), 'scale_rom1')
             self.assertEqual(variant_rows(out)[0]['status'], 'success')
 
     def test_rerun_without_flag_removes_products_and_ownership(self):
