@@ -27,6 +27,13 @@ from psg_scc_opm import opm_pitch
 _PRESET_DIR = Path(__file__).resolve().parent.parent / 'data' / 'presets'
 _TABLES = {'opll': 'rhythm_fm_opll.json', 'rx21': 'rhythm_fm_rx21.json'}
 _cache = {}
+# The YM2151 noise does not decay while NE is on, so a noise hit is
+# emitted as a fixed-width pulse from its onset instead of ringing
+# until the next ch7 hit.  The width matches the source SD noise:
+# measured on IKAOPLL (isolated SD probe taken from a real song's
+# register setup), it falls to 25% of its peak at about 52 ms
+# (2026-11-15).
+_NOISE_PULSE_SAMPLES = int(0.052 * 44100)
 # Audible register slots per algorithm, measured with a
 # solo-carrier probe on IKAOPM (2026-11-14).
 _CARRIERS_REG = {0: {3}, 1: {3}, 2: {3}, 3: {3}, 4: {2, 3},
@@ -121,13 +128,24 @@ def project_opll_rhythm_fm(performance, table, reserved, *, force=False):
 
     busy = {}  # channel -> (start, end, event)
     noise_state = [None]
+    noise_due = [None]  # sample at which the running noise pulse ends
+    noise_event = [None]  # hit that started the running pulse
 
     def set_noise(event, sample, value):
         if noise_state[0] != value:
             noise_state[0] = value
             emit(event, sample, -0.7, 0x0F, value, 'OPM noise control')
 
+    def flush_noise(upto):
+        if noise_state[0] and noise_due[0] is not None \
+                and noise_due[0] <= upto:
+            due, on_event = noise_due[0], noise_event[0]
+            noise_state[0] = 0
+            noise_due[0] = None
+            emit(on_event, due, -0.7, 0x0F, 0, 'OPM noise pulse end')
+
     for event in hits:
+        flush_noise(event.start_sample)
         voice, pitch_scale = resolve(event)
         if voice is None:
             losses['opll_rhythm_fm_unsupported_family'] += 1
@@ -157,8 +175,13 @@ def project_opll_rhythm_fm(performance, table, reserved, *, force=False):
         else:
             ch = candidates[0]
         if ch == 7:
-            set_noise(event, start,
-                      (0x80 | voice['noise']) if use_noise else 0x00)
+            if use_noise:
+                set_noise(event, start, 0x80 | voice['noise'])
+                noise_due[0] = start + _NOISE_PULSE_SAMPLES
+                noise_event[0] = event
+            else:
+                set_noise(event, start, 0x00)
+                noise_due[0] = None
         ops = [tuple(o[f] for f in _OP_FIELDS) for o in voice['ops']]
         carriers = {logical for logical in range(4)
                     if _OPM_SLOTS[logical] in _CARRIERS_REG[voice['alg']]}
@@ -205,4 +228,7 @@ def project_opll_rhythm_fm(performance, table, reserved, *, force=False):
                      'OPLL rhythm FM carrier level curve')
         emit(event, end, 0.5, 8, ch, 'OPLL rhythm FM key off')
         busy[ch] = (start, end, event)
+    if noise_state[0] and noise_due[0] is not None:
+        emit(noise_event[0], min(noise_due[0], performance.end_sample),
+             -0.7, 0x0F, 0, 'OPM noise pulse end')
     return rows, losses, {'channels': channels, 'table': table}
