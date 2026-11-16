@@ -40,12 +40,15 @@ Two rhythm-timbre variants subdivide the base compositions: `sfg01_rx21`
 plays OPLL rhythm as FM voices fitted to the owner's RX21 recordings
 instead of the IKAOPLL-fitted voices of plain `sfg01`, and
 `makoto_rx21` plays the RX21 hit library through the Makoto ADPCM-B
-instead of the IKAOPLL library.
+instead of the IKAOPLL library. A third variant, `sfg01_opllrhythm`,
+keeps the plain `sfg01` melody projection but does not project the
+OPLL rhythm at all: the percussion stays on the native YM2413 lane.
 
 | Profile | FM / auxiliary sound hardware |
 | --- | --- |
 | sfg01 | YM2151 at 3,579,545 Hz, plus native YM2413 and AY PSG |
 | sfg01_rx21 | sfg01 with RX21-fitted FM rhythm voices |
+| sfg01_opllrhythm | sfg01 with the OPLL rhythm left native on the YM2413 |
 | makoto | YM2608 at 8 MHz, plus native YM2413 and AY PSG |
 | makoto_rx21 | makoto with the RX21 hit library on ADPCM-B |
 | sfg01_makoto | YM2151 FM, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
@@ -170,7 +173,10 @@ the repeat rather than only in the introduction.
   rhythm_fm_opll.json` table, fitted to the same IKAOPLL hits with
   IKAOPM in the loop) on at most two channels: at one instant the
   two loudest hits sound and a later hit cuts a ringing tail.
-  `sfg01_rx21` uses the RX21-fitted table instead, and
+  `sfg01_rx21` uses the RX21-fitted table instead,
+  `sfg01_opllrhythm` selects no FM rhythm table so the musical
+  rhythm projection emits the percussion on the native YM2413 lane
+  (mode, oscillator pitch, level curves and key masks), and
   `makoto_rx21` swaps the PCM hit library to
   `data/presets/rhythm_pcm_rx21/` (HH maps to CLOSEHH; the TOM
   picks the nearest-pitched of TOM1..3 with a residual rate

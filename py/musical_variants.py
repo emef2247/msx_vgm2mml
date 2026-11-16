@@ -13,7 +13,7 @@ from musical_wave_target import project_waves, project_psg_opll
 
 SCC_PROFILES = {'scc_sfg01':'sfg01', 'scc_makoto':'makoto', 'scc_layered':'layered', 'scc_opl3':'opl3'}
 PSG_PROFILES = {'psg_sfg01':'sfg01', 'psg_makoto':'makoto', 'psg_layered':'layered', 'psg_opl3':'opl3'}
-PROFILES = ('sfg01','sfg01_rx21','makoto','makoto_rx21','sfg01_makoto','sfg01_msxaudio','msxaudio','opl3','layered', *SCC_PROFILES, *PSG_PROFILES)
+PROFILES = ('sfg01','sfg01_rx21','sfg01_opllrhythm','makoto','makoto_rx21','sfg01_makoto','sfg01_msxaudio','msxaudio','opl3','layered', *SCC_PROFILES, *PSG_PROFILES)
 CLOCKS = {0x54:(0x30,3579545),0x56:(0x48,8000000),0x57:(0x48,8000000),
           0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545),
           0x5e:(0x5c,14318180),0x5f:(0x5c,14318180)}
@@ -183,6 +183,11 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     profile=SCC_PROFILES.get(profile,profile)
     real_psg=profile in PSG_PROFILES
     profile=PSG_PROFILES.get(profile,profile)
+    # sfg01_opllrhythm keeps the sfg01 OPM melody projection but leaves
+    # OPLL percussion on the native chip (owner, 2026-11-16): no FM
+    # rhythm table is selected for it below, so project_rhythm emits
+    # the percussion natively instead of skipping it.
+    native_opll_rhythm=profile=='sfg01_opllrhythm'
     if not 0<dcsg_gain<=1:raise ValueError('DCSG gain must be >0 and <=1')
     if profile=='msxaudio':
         return _project_msxaudio(performance,force=force,dcsg_gain=dcsg_gain)
@@ -194,6 +199,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     auxiliary='opna' if profile in ('makoto','makoto_rx21','sfg01_makoto','layered') else 'y8950' if profile=='sfg01_msxaudio' else None
     # FM-only SFG01 compositions play OPLL rhythm as fitted FM
     # one-shots; makoto_rx21 swaps the PCM hit library to the RX21.
+    # sfg01_opllrhythm selects no table: its rhythm stays native.
     fm_rhythm_table='opll' if profile=='sfg01' else 'rx21' if profile=='sfg01_rx21' else None
     pcm_library='rx21' if profile=='makoto_rx21' else 'ika'
     losses=Counter();rows=[];prefix=b''
@@ -331,6 +337,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     if rhythm_info:plan['opll_rhythm_fm']=rhythm_info
     if rhythm_pcm:plan['opll_rhythm_pcm']=pcm_library
     if layered_opll:plan['native_opll_layer']=True
+    if native_opll_rhythm:plan['native_opll_rhythm']=True
     if profile=='layered':plan['fm_layers']=fm_layers
     if real_scc:plan['real_scc']=scc_plan
     if real_psg:plan['psg_fm_doubling']=True
