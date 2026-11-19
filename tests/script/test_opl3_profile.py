@@ -31,13 +31,10 @@ class Opl3ProfileTests(unittest.TestCase):
     def export(self,performance,folder):
         return export_variants(performance,folder,'song')
 
-    def test_fitted_table_is_selectable_and_carries_realchip_ws(self):
+    def test_table_carries_realchip_ws(self):
         from musical_opl3_target import _table
-        _doc, current = _table('current')
-        _doc, fitted = _table('fitted')
-        by_name = {v['name']: v for v in fitted.values()}
-        self.assertTrue(all('ws' not in op for v in current.values()
-                            for op in v['ops']))
+        _doc, table = _table()
+        by_name = {v['name']: v for v in table.values()}
         self.assertEqual([op['ws'] for op in by_name['AcoustBass']['ops']],
                          [6, 2])
         self.assertEqual([op['ws'] for op in by_name['Clarinet']['ops']],
@@ -71,8 +68,8 @@ class Opl3ProfileTests(unittest.TestCase):
         self.assertEqual((unit.section,unit.channel),('fm',0))
         self.assertAlmostEqual(unit.pitch_curve[0][1],440.0,delta=2.0)
         # carrier TL = VOL << 2 plus the voice's level trim
-        # (established Trumpet carries -1; see LEVEL_TRIM_TL_OPL3)
-        self.assertEqual(unit.volume_curve[0][1],11)
+        # (the fitted Trumpet trim is 0; see OPL3_FIT)
+        self.assertEqual(unit.volume_curve[0][1],12)
         voice=dict(next(v for v in back.voices
             if v.voice_id==unit.voice_curve[0][1]).parameters)
         self.assertEqual(voice['feedback'],7)         # established Trumpet

@@ -480,9 +480,9 @@ def _established_opl_json(target, chip, clock):
 # select re-measured on the real chip 2026-11-20 (the emulator
 # picks moved on 9 of 15 voices).  The level trims are the
 # search's median-offset values; per-voice balance in songs is
-# not tuned yet.  This set is NOT the default table: it ships as
-# opll_to_opl3_fitted.json and is selected with
-# --opl3-table fitted.
+# not tuned yet.  Adopted as the standard opl3 table by the
+# owner 2026-11-20 after the listening comparison (the
+# established-frame table it replaces is not kept).
 OPL3_FIT = {
     'Violin': {'level_trim_tl': 5, 'ops': {0: {'tl': 26, 'ws': 0}, 1: {'vib': 0, 'sl': 0, 'ws': 0}}}, 'Guitar': {'level_trim_tl': 1, 'ops': {0: {'ksl': 1, 'ws': 2}, 1: {'ws': 3}}}, 'Piano': {'ops': {0: {'ksl': 0, 'ws': 1}, 1: {'dr': 3, 'ws': 5}}}, 'Flute': {'fb': 6, 'level_trim_tl': 2, 'ops': {0: {'ws': 3}, 1: {'ws': 2}}}, 'Clarinet': {'ops': {0: {'tl': 29, 'ws': 7}, 1: {'ws': 3}}}, 'Oboe': {'level_trim_tl': 2, 'ops': {0: {'tl': 23, 'ws': 3}, 1: {'ws': 4}}}, 'Trumpet': {'level_trim_tl': 0, 'ops': {0: {'tl': 25, 'ws': 6}, 1: {'ws': 3}}}, 'Organ': {'level_trim_tl': -1, 'ops': {0: {'vib': 1, 'ws': 4}, 1: {'ksl': 1, 'ws': 0}}}, 'Horn': {'level_trim_tl': 9, 'ops': {0: {'ar': 4, 'ws': 6}, 1: {'ws': 0}}}, 'Synthesizer': {'level_trim_tl': 8, 'ops': {0: {'vib': 0, 'sl': 9, 'ws': 6}, 1: {'ws': 3}}}, 'Harpsichord': {'level_trim_tl': 9, 'ops': {0: {'sl': 0, 'ws': 2}, 1: {'ws': 6}}}, 'Vibraphone': {'ops': {0: {'ksl': 1, 'rr': 3, 'ws': 5}, 1: {'rr': 4, 'ws': 3}}}, 'SynthBass': {'level_trim_tl': 6, 'ops': {0: {'ws': 3}, 1: {'rr': 3, 'ws': 6}}}, 'AcoustBass': {'fb': 2, 'ops': {0: {'tl': 15, 'ws': 6}, 1: {'ws': 2}}}, 'ElecGuitar': {'fb': 1, 'ops': {0: {'ws': 6}, 1: {'ws': 0}}}}
 
@@ -497,9 +497,9 @@ def _fitted_opl3_json():
                        'table (IKAOPM reference renders, '
                        'AdLibEmu candidates); waveform select '
                        're-measured on the real chip 2026-11-20; '
-                       'see OPL3_FIT in make_presets.py.  Not '
-                       'the default table; select with '
-                       '--opl3-table fitted.')
+                       'see OPL3_FIT in make_presets.py.  Adopted '
+                       'as the standard opl3 table by the owner '
+                       '2026-11-20.')
     for voice in doc['voices']:
         fit = OPL3_FIT[voice['name']]
         if 'fb' in fit:
@@ -543,9 +543,7 @@ def write_target_jsons():
     docs = {
         'msxaudio/opll_to_y8950.json': _derived_opl_json(
             'msxaudio', 'y8950', 3579545),
-        'opl3/opll_to_opl3.json': _established_opl_json(
-            'opl3', 'ymf262', 14318180),
-        'opl3/opll_to_opl3_fitted.json': _fitted_opl3_json(),
+        'opl3/opll_to_opl3.json': _fitted_opl3_json(),
         'sfg01/opll_to_opm.json': _target_json(
             'sfg01', 'ym2151', 3579545, 5, 2, LEVEL_TRIM_TL_OPM,
             {'kind': 'fm_rows', 'rows': opm_rhythm}),

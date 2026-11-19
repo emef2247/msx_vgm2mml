@@ -139,7 +139,7 @@ def _project_msxaudio(performance, *, force=False, dcsg_gain=.25):
     return rows,prefix,dict(losses),plan
 
 
-def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, real_psg=False, opl3_table='current'):
+def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, real_psg=False):
     """OPL3 profile: the YMF262 is the primary target.
 
     OPLL voices project through the commercially observed
@@ -161,7 +161,7 @@ def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, re
         from musical_scc_target import project_scc
         scc_rows,scc_losses,scc_plan=project_scc(performance)
         rows.extend(scc_rows);losses.update(scc_losses);plan['real_scc']=scc_plan
-    fm_rows,fm_losses,allocation=project_opl3_fm(performance,force=force,table_name=opl3_table)
+    fm_rows,fm_losses,allocation=project_opl3_fm(performance,force=force)
     rows.extend(fm_rows);losses.update(fm_losses)
     opll_device=next((d.device_id for d in performance.devices if d.chip=='opll'),None)
     aux,aux_losses=project_psg_opll(performance,dcsg_gain=dcsg_gain,
@@ -176,7 +176,7 @@ def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, re
     return rows,b'',dict(losses),plan
 
 
-def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_law=False, opl3_table='current'):
+def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_law=False):
     from musical_pcm_target import project_pcm
     if profile not in PROFILES:raise ValueError('Unknown cartridge profile')
     real_scc=profile in SCC_PROFILES
@@ -193,7 +193,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
         return _project_msxaudio(performance,force=force,dcsg_gain=dcsg_gain)
     if profile=='opl3':
         return _project_opl3(performance,force=force,dcsg_gain=dcsg_gain,
-            real_scc=real_scc,real_psg=real_psg,opl3_table=opl3_table)
+            real_scc=real_scc,real_psg=real_psg)
     chip='opna' if profile in ('makoto','makoto_rx21','misato') else 'opm'
     clock=8000000 if chip=='opna' else 3579545
     # Misato is the Makoto composition on the OPN3 cartridge, which
@@ -357,7 +357,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     return rows,prefix,dict(losses),plan
 
 
-def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, opna_law=False, opl3_table='current'):
+def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, opna_law=False):
     root=Path(outdir);root.mkdir(parents=True,exist_ok=True);results={}
     for profile in PROFILES:
         folder=root/profile;folder.mkdir(parents=True,exist_ok=True)
@@ -372,7 +372,7 @@ def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, op
             # is needed and the result matches sfg01, so the profile
             # set a user finds does not depend on the song's content.
             rows,prefix,losses,plan=project_variant(performance,profile,force=force,
-                dcsg_gain=dcsg_gain,opna_law=opna_law,opl3_table=opl3_table)
+                dcsg_gain=dcsg_gain,opna_law=opna_law)
             rows=_write(performance,rows,prefix,path)
             with (folder/(stem+'.writes.csv')).open('w',newline='',encoding='utf-8') as stream:
                 fields=['write_id','sample','order','device_id','unit_id','source_indices','reason','command_hex','target_address','emitted']
