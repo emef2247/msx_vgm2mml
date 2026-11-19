@@ -396,7 +396,7 @@ def _project_opll_rhythm(performance, device, emit, losses):
         if e.instrument_family not in bits:
             losses['opl3_rhythm_family_unmapped'] += 1
             continue
-        stop = e.stop_sample if e.stop_sample is not None else e.start_sample + 735
+        stop = e.stop_sample if e.stop_sample is not None else min(e.start_sample + 735, performance.end_sample)
         actions.append((e.start_sample, 1, e))
         actions.append((stop, 0, e))
     actions.sort(key=lambda row: (row[0], row[1]))
@@ -480,7 +480,7 @@ def _project_native_rhythm(performance, device, emit, losses):
         if e.instrument_family not in bits:
             losses['opl3_rhythm_family_unmapped'] += 1
             continue
-        stop = e.stop_sample if e.stop_sample is not None else e.start_sample + 735
+        stop = e.stop_sample if e.stop_sample is not None else min(e.start_sample + 735, performance.end_sample)
         actions.append((e.start_sample, 1, e))
         actions.append((stop, 0, e))
     actions.sort(key=lambda row: (row[0], row[1]))
