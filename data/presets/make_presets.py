@@ -473,6 +473,43 @@ def _established_opl_json(target, chip, clock):
                                'musical_opl3_target); no FM rows.'}}
 
 
+# OPL3 fitted set: the established frame plus the per-voice fit
+# explored 2026-11-16 against the OPM table (IKAOPM reference
+# renders, AdLibEmu candidate search over the OPL frame plus
+# waveform select, an axis OPM does not have), with the waveform
+# select re-measured on the real chip 2026-11-20 (the emulator
+# picks moved on 9 of 15 voices).  The level trims are the
+# search's median-offset values; per-voice balance in songs is
+# not tuned yet.  This set is NOT the default table: it ships as
+# opll_to_opl3_fitted.json and is selected with
+# --opl3-table fitted.
+OPL3_FIT = {
+    'Violin': {'level_trim_tl': 5, 'ops': {0: {'tl': 26, 'ws': 0}, 1: {'vib': 0, 'sl': 0, 'ws': 0}}}, 'Guitar': {'level_trim_tl': 1, 'ops': {0: {'ksl': 1, 'ws': 2}, 1: {'ws': 3}}}, 'Piano': {'ops': {0: {'ksl': 0, 'ws': 1}, 1: {'dr': 3, 'ws': 5}}}, 'Flute': {'fb': 6, 'level_trim_tl': 2, 'ops': {0: {'ws': 3}, 1: {'ws': 2}}}, 'Clarinet': {'ops': {0: {'tl': 29, 'ws': 7}, 1: {'ws': 3}}}, 'Oboe': {'level_trim_tl': 2, 'ops': {0: {'tl': 23, 'ws': 3}, 1: {'ws': 4}}}, 'Trumpet': {'level_trim_tl': 0, 'ops': {0: {'tl': 25, 'ws': 6}, 1: {'ws': 3}}}, 'Organ': {'level_trim_tl': -1, 'ops': {0: {'vib': 1, 'ws': 4}, 1: {'ksl': 1, 'ws': 0}}}, 'Horn': {'level_trim_tl': 9, 'ops': {0: {'ar': 4, 'ws': 6}, 1: {'ws': 0}}}, 'Synthesizer': {'level_trim_tl': 8, 'ops': {0: {'vib': 0, 'sl': 9, 'ws': 6}, 1: {'ws': 3}}}, 'Harpsichord': {'level_trim_tl': 9, 'ops': {0: {'sl': 0, 'ws': 2}, 1: {'ws': 6}}}, 'Vibraphone': {'ops': {0: {'ksl': 1, 'rr': 3, 'ws': 5}, 1: {'rr': 4, 'ws': 3}}}, 'SynthBass': {'level_trim_tl': 6, 'ops': {0: {'ws': 3}, 1: {'rr': 3, 'ws': 6}}}, 'AcoustBass': {'fb': 2, 'ops': {0: {'tl': 15, 'ws': 6}, 1: {'ws': 2}}}, 'ElecGuitar': {'fb': 1, 'ops': {0: {'ws': 6}, 1: {'ws': 0}}}}
+
+
+def _fitted_opl3_json():
+    import copy
+    doc = _established_opl_json('opl3', 'ymf262', 14318180)
+    doc['law'] = ('established frame plus the OPL3_FIT per-voice '
+                  'fit (OPM-reference search; waveform select '
+                  'from the real-chip calibration)')
+    doc['fit_note'] = ('Voices fitted 2026-11-16 against the OPM '
+                       'table (IKAOPM reference renders, '
+                       'AdLibEmu candidates); waveform select '
+                       're-measured on the real chip 2026-11-20; '
+                       'see OPL3_FIT in make_presets.py.  Not '
+                       'the default table; select with '
+                       '--opl3-table fitted.')
+    for voice in doc['voices']:
+        fit = OPL3_FIT[voice['name']]
+        if 'fb' in fit:
+            voice['fb'] = fit['fb']
+        if 'level_trim_tl' in fit:
+            voice['level_trim_tl'] = fit['level_trim_tl']
+        for oi, fields in fit.get('ops', {}).items():
+            voice['ops'][oi].update(fields)
+    return doc
+
 def _derived_opl_json(target, chip, clock):
     # OPL two-op rows from our own derived preset set
     # (opl_derived.json): fitted from the established set's
@@ -508,6 +545,7 @@ def write_target_jsons():
             'msxaudio', 'y8950', 3579545),
         'opl3/opll_to_opl3.json': _established_opl_json(
             'opl3', 'ymf262', 14318180),
+        'opl3/opll_to_opl3_fitted.json': _fitted_opl3_json(),
         'sfg01/opll_to_opm.json': _target_json(
             'sfg01', 'ym2151', 3579545, 5, 2, LEVEL_TRIM_TL_OPM,
             {'kind': 'fm_rows', 'rows': opm_rhythm}),

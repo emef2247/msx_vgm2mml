@@ -31,6 +31,20 @@ class Opl3ProfileTests(unittest.TestCase):
     def export(self,performance,folder):
         return export_variants(performance,folder,'song')
 
+    def test_fitted_table_is_selectable_and_carries_realchip_ws(self):
+        from musical_opl3_target import _table
+        _doc, current = _table('current')
+        _doc, fitted = _table('fitted')
+        by_name = {v['name']: v for v in fitted.values()}
+        self.assertTrue(all('ws' not in op for v in current.values()
+                            for op in v['ops']))
+        self.assertEqual([op['ws'] for op in by_name['AcoustBass']['ops']],
+                         [6, 2])
+        self.assertEqual([op['ws'] for op in by_name['Clarinet']['ops']],
+                         [7, 3])
+        self.assertEqual([op['ws'] for op in by_name['Violin']['ops']],
+                         [0, 0])
+
     def test_opll_melody_and_rhythm_project_to_opl3(self):
         body=b''.join((
             opll(0x30,0x73),                 # instrument 7, volume 3

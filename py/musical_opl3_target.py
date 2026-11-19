@@ -35,11 +35,17 @@ _RHYTHM_PITCH_CH = {'BD': 6, 'TOM': 8}
 _cache = {}
 
 
-def _table():
-    if 'opl3' not in _cache:
-        doc = json.loads((_PRESET_DIR / 'opl3' / 'opll_to_opl3.json').read_text())
-        _cache['opl3'] = (doc, {v['index']: v for v in doc['voices']})
-    return _cache['opl3']
+_TABLE_FILES = {'current': 'opll_to_opl3.json',
+                'fitted': 'opll_to_opl3_fitted.json'}
+
+
+def _table(name='current'):
+    if name not in _TABLE_FILES:
+        raise ValueError(f'unknown opl3 preset table: {name}')
+    if name not in _cache:
+        doc = json.loads((_PRESET_DIR / 'opl3' / _TABLE_FILES[name]).read_text())
+        _cache[name] = (doc, {v['index']: v for v in doc['voices']})
+    return _cache[name]
 
 
 def _pitch(hz, clock):
@@ -61,7 +67,7 @@ def _op_owner(ch, slot):
     return ch + 1, slot // 2
 
 
-def project_opl3_fm(performance, *, force=False):
+def project_opl3_fm(performance, *, force=False, table_name='current'):
     """Project OPLL, Y8950 and YMF262 sources to YMF262 writes.
 
     Returns (rows, losses, allocation).  Resolved voice rows are
@@ -262,7 +268,7 @@ def project_opl3_fm(performance, *, force=False):
         device = opll_devices[0]
         if len(opll_devices) > 1:
             losses['second_opll_device_melody_not_fm_projected'] += 1
-        _doc, table = _table()
+        _doc, table = _table(table_name)
         resolved = {}
         trim_by_row = {}
 
@@ -276,7 +282,7 @@ def project_opl3_fm(performance, *, force=False):
             if inst and inst in table:
                 entry = table[inst]
                 result = (entry['fb'],
-                          [tuple(o[f] for f in _OP_FIELDS) + (0,) for o in entry['ops']],
+                          [tuple(o[f] for f in _OP_FIELDS) + (o.get('ws') or 0,) for o in entry['ops']],
                           entry.get('alg', 0), 1, 1)
                 trim_by_row[id(result)] = entry.get('level_trim_tl', 0)
             elif inst == 0:

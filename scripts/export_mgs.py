@@ -88,6 +88,13 @@ def build_parser():
                              'OPNA FM lane of OPN2 target and variant VGMs '
                              '(carrier TL remap and decay-rate correction; '
                              'default off = register transcription)')
+    parser.add_argument('--opl3-table', choices=('current', 'fitted'),
+                        default='current',
+                        help='OPL3 preset table for the opl3 variant '
+                             'profiles (default current = the established '
+                             'set copied unchanged; fitted = the explored '
+                             'per-voice fit with the real-chip waveform '
+                             'select, not yet adopted as the default)')
     parser.add_argument('--dump-passes', action='store_true',
                         help='Retain inspectable conversion passes')
     parser.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
@@ -186,7 +193,8 @@ def _update_song_variants(path, relative, package, output, args):
         from musical_variants import export_variants
         performance = build_native_performance(path, stage_root / 'native', stem)
         summaries = export_variants(performance, stage_root, stem, force=args.force,
-                                   dcsg_gain=args.dcsg_gain, opna_law=args.opna_law)
+                                   dcsg_gain=args.dcsg_gain, opna_law=args.opna_law,
+                                   opl3_table=args.opl3_table)
         evidence['summaries'] = summaries
         for profile, name in zip(VARIANT_PROFILES, names):
             result = summaries[profile]
