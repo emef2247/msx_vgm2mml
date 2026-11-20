@@ -371,7 +371,7 @@ def _rhythm_template(emit, device_id):
                  device_id=device_id)
             emit(None, 0, -2, ch, 0x80 + o, b80, 'OPL3 rhythm voice',
                  device_id=device_id)
-        emit(None, 0, -2, ch, 0xc0 + ch, entry['fb_cnt'], 'OPL3 rhythm voice',
+        emit(None, 0, -2, ch, 0xc0 + ch, entry['fb_cnt'] | 0x30, 'OPL3 rhythm voice',
              device_id=device_id)
 
 
