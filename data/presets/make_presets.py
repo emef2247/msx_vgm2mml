@@ -524,7 +524,7 @@ OPL3_FIT = {
     'Vibraphone': {'level_trim_tl': 27, 'ops': {0: {'egt': 1, 'rr': 3, 'ws': 4}, 1: {'am': 0, 'rr': 3, 'ws': 6}}},
     'SynthBass': {'level_trim_tl': 29, 'ops': {0: {'am': 1, 'tl': 11, 'ar': 14, 'ws': 3}, 1: {'ws': 6}}},
     'AcoustBass': {'fb': 2, 'level_trim_tl': 26, 'ops': {0: {'tl': 23, 'dr': 2, 'ws': 6}, 1: {'ws': 2}}},
-    'ElecGuitar': {'level_trim_tl': 28, 'ops': {0: {'vib': 0, 'rr': 1, 'ws': 0}, 1: {'rr': 5, 'ws': 0}}},
+    'ElecGuitar': {'level_trim_tl': 12, 'ops': {0: {'vib': 0, 'rr': 1, 'ws': 0}, 1: {'rr': 5, 'ws': 0}}},
 }
 
 
