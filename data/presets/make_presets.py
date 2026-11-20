@@ -415,9 +415,18 @@ def _target_json(target, chip, clock, pms, ams, trims, rhythm):
         doc['lfo'].update(pmd=86, amd=16, lfrq=0xCB)
     if target == 'makoto':
         doc['fit_note'] = ('Voices fitted 2026-11-16 against the OPM '
-                           'table (IKAOPM reference renders, ymfm '
-                           'candidates); see OPNA_FIT in '
-                           'make_presets.py.')
+                       'table (IKAOPM reference renders, '
+                       'AdLibEmu candidates), waveform select '
+                       're-measured on the real chip 2026-11-20, '
+                       'then re-fitted 2026-11-20 against real '
+                       'YM2413 recordings of the probe set (Nuked '
+                       'candidates).  The extended re-fit (5 '
+                       'notes per voice, corrected probe pitch) '
+                       'supersedes the first re-fit, whose '
+                       'candidates sounded one octave low; mean '
+                       'distance 23.09 -> 9.37 under the corrected '
+                       'measurement; see OPL3_FIT in '
+                       'make_presets.py.')
     return doc
 
 
@@ -477,30 +486,34 @@ def _established_opl_json(target, chip, clock):
 # First fitted 2026-11-16 against the OPM table (IKAOPM reference
 # renders, AdLibEmu candidate search over the OPL frame plus
 # waveform select, an axis OPM does not have), with the waveform
-# select re-measured on the real chip 2026-11-20.  Re-fitted the
-# same day against a real YM2413 recording of the 15-voice probe
-# set (Nuked candidate renders, coordinate descent on the same
-# axes plus the level trims re-anchored to the recording's
-# per-voice balance): mean envelope+harmonic distance to the
-# real chip 14.48 -> 10.51.  Adopted as the standard opl3 table
-# by the owner 2026-11-20 after the listening comparison (the
-# established-frame table it replaces is not kept).
+# select re-measured on the real chip 2026-11-20.  Re-fitted
+# 2026-11-20 against real YM2413 recordings of the 15-voice
+# probe set (Nuked candidate renders, coordinate descent plus
+# level trims re-anchored to the recording's per-voice balance).
+# The first of those searches measured its candidates one
+# octave low (the probe generator used the Y8950-frame pitch
+# function), so its harmonic scores were biased; the extended
+# re-fit the same day (5 notes per voice: C3/A4/C6/A6/C7,
+# corrected probe pitch, each voice started from the better of
+# the two earlier tables, level held during the descent) is
+# what stands below: mean envelope+harmonic distance to the
+# real chip 23.09 -> 9.37 under the corrected measurement.
 OPL3_FIT = {
-    'Violin': {'level_trim_tl': 9, 'ops': {0: {'vib': 0, 'tl': 26, 'rr': 1, 'ws': 0}, 1: {'sl': 0, 'ws': 0}}},
-    'Guitar': {'ops': {0: {'ksl': 1, 'tl': 27, 'dr': 7, 'ws': 1}, 1: {'ws': 3}}},
-    'Piano': {'ops': {0: {'egt': 1, 'ksl': 0, 'ws': 1}, 1: {'ws': 3}}},
-    'Flute': {'fb': 6, 'level_trim_tl': 5, 'ops': {0: {'am': 1, 'ws': 4}, 1: {'ar': 7, 'ws': 2}}},
-    'Clarinet': {'level_trim_tl': -2, 'ops': {0: {'vib': 1, 'tl': 29, 'ws': 2}, 1: {'rr': 9, 'ws': 3}}},
-    'Oboe': {'level_trim_tl': -4, 'ops': {0: {'ws': 3}, 1: {'ar': 8, 'ws': 4}}},
-    'Trumpet': {'level_trim_tl': 3, 'ops': {0: {'dr': 1, 'ws': 6}, 1: {'vib': 0, 'ws': 3}}},
-    'Organ': {'level_trim_tl': 3, 'ops': {0: {'ws': 5}, 1: {'ksl': 1, 'ws': 2}}},
-    'Horn': {'level_trim_tl': 7, 'ops': {0: {'vib': 0, 'tl': 26, 'ar': 4, 'ws': 6}, 1: {'ar': 8, 'ws': 0}}},
-    'Synthesizer': {'level_trim_tl': 6, 'ops': {0: {'am': 1, 'vib': 0, 'tl': 13, 'sl': 9, 'ws': 2}, 1: {'ws': 3}}},
-    'Harpsichord': {'ops': {0: {'sl': 0, 'ws': 2}, 1: {'am': 1, 'vib': 1, 'ws': 1}}},
-    'Vibraphone': {'level_trim_tl': 4, 'ops': {0: {'ksl': 1, 'ws': 5}, 1: {'ws': 2}}},
-    'SynthBass': {'level_trim_tl': 6, 'ops': {0: {'am': 1, 'rr': 2, 'ws': 3}, 1: {'dr': 6, 'rr': 3, 'ws': 6}}},
-    'AcoustBass': {'level_trim_tl': 2, 'ops': {0: {'tl': 15, 'ws': 3}, 1: {'ws': 4}}},
-    'ElecGuitar': {'fb': 0, 'level_trim_tl': 7, 'ops': {0: {'vib': 0, 'ws': 6}, 1: {'ws': 6}}},
+    'Violin': {'level_trim_tl': 9, 'ops': {0: {'rr': 1, 'tl': 27, 'vib': 0, 'ws': 0}, 1: {'ksl': 1, 'sl': 0, 'ws': 6}}},
+    'Guitar': {'level_trim_tl': 7, 'ops': {0: {'dr': 7, 'ksl': 1, 'ksr': 0, 'rr': 1, 'tl': 27, 'ws': 1}, 1: {'ws': 6}}},
+    'Piano': {'level_trim_tl': 2, 'ops': {0: {'ksl': 0, 'rr': 0, 'ws': 7}, 1: {'dr': 3, 'vib': 1, 'ws': 5}}},
+    'Flute': {'fb': 5, 'level_trim_tl': 4, 'ops': {0: {'am': 1, 'tl': 16, 'ws': 4}, 1: {'ar': 7, 'ws': 0}}},
+    'Clarinet': {'level_trim_tl': 3, 'ops': {0: {'rr': 0, 'tl': 29, 'vib': 1, 'ws': 3}, 1: {'rr': 9, 'ws': 6}}},
+    'Oboe': {'level_trim_tl': -1, 'ops': {0: {'ws': 0}, 1: {'ar': 8, 'ws': 0}}},
+    'Trumpet': {'level_trim_tl': 4, 'ops': {0: {'tl': 25, 'ws': 1}, 1: {'vib': 0, 'ws': 0}}},
+    'Organ': {'level_trim_tl': -10, 'ops': {0: {'tl': 42, 'ws': 1}, 1: {'ksl': 1, 'ws': 1}}},
+    'Horn': {'level_trim_tl': 5, 'ops': {0: {'ar': 4, 'ksr': 1, 'ws': 6}, 1: {'sl': 2, 'ws': 2}}},
+    'Synthesizer': {'level_trim_tl': 6, 'ops': {0: {'sl': 9, 'vib': 0, 'ws': 1}, 1: {'vib': 0, 'ws': 1}}},
+    'Harpsichord': {'level_trim_tl': 3, 'ops': {0: {'sl': 0, 'tl': 6, 'ws': 0}, 1: {'am': 1, 'vib': 1, 'ws': 1}}},
+    'Vibraphone': {'ops': {0: {'egt': 1, 'rr': 3, 'ws': 5}, 1: {'rr': 4, 'ws': 6}}},
+    'SynthBass': {'level_trim_tl': 5, 'ops': {0: {'tl': 11, 'ws': 3}, 1: {'ws': 6}}},
+    'AcoustBass': {'fb': 2, 'level_trim_tl': 5, 'ops': {0: {'tl': 22, 'ws': 6}, 1: {'ws': 2}}},
+    'ElecGuitar': {'fb': 1, 'level_trim_tl': 8, 'ops': {0: {'rr': 1, 'vib': 0, 'ws': 0}, 1: {'ws': 6}}},
 }
 
 

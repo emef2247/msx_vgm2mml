@@ -17,7 +17,7 @@
      "ksr": 1,
      "mul": 1,
      "ksl": 0,
-     "tl": 26,
+     "tl": 27,
      "ar": 13,
      "dr": 0,
      "sl": 0,
@@ -30,13 +30,13 @@
      "egt": 1,
      "ksr": 0,
      "mul": 1,
-     "ksl": 0,
+     "ksl": 1,
      "tl": 0,
      "ar": 7,
      "dr": 8,
      "sl": 0,
      "rr": 7,
-     "ws": 0
+     "ws": 6
     }
    ],
    "level_trim_tl": 9
@@ -50,14 +50,14 @@
      "am": 0,
      "vib": 0,
      "egt": 0,
-     "ksr": 1,
+     "ksr": 0,
      "mul": 3,
      "ksl": 1,
      "tl": 27,
      "ar": 13,
      "dr": 7,
      "sl": 2,
-     "rr": 3,
+     "rr": 1,
      "ws": 1
     },
     {
@@ -72,10 +72,10 @@
      "dr": 7,
      "sl": 1,
      "rr": 3,
-     "ws": 3
+     "ws": 6
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 7
   },
   {
    "index": 3,
@@ -85,7 +85,7 @@
     {
      "am": 0,
      "vib": 0,
-     "egt": 1,
+     "egt": 0,
      "ksr": 1,
      "mul": 3,
      "ksl": 0,
@@ -93,30 +93,30 @@
      "ar": 15,
      "dr": 2,
      "sl": 2,
-     "rr": 1,
-     "ws": 1
+     "rr": 0,
+     "ws": 7
     },
     {
      "am": 0,
-     "vib": 0,
+     "vib": 1,
      "egt": 0,
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
      "tl": 0,
      "ar": 13,
-     "dr": 4,
+     "dr": 3,
      "sl": 2,
      "rr": 3,
-     "ws": 3
+     "ws": 5
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 2
   },
   {
    "index": 4,
    "name": "Flute",
-   "fb": 6,
+   "fb": 5,
    "ops": [
     {
      "am": 1,
@@ -125,7 +125,7 @@
      "ksr": 1,
      "mul": 1,
      "ksl": 0,
-     "tl": 14,
+     "tl": 16,
      "ar": 8,
      "dr": 13,
      "sl": 7,
@@ -144,10 +144,10 @@
      "dr": 4,
      "sl": 2,
      "rr": 7,
-     "ws": 2
+     "ws": 0
     }
    ],
-   "level_trim_tl": 5
+   "level_trim_tl": 4
   },
   {
    "index": 5,
@@ -165,8 +165,8 @@
      "ar": 14,
      "dr": 1,
      "sl": 0,
-     "rr": 1,
-     "ws": 2
+     "rr": 0,
+     "ws": 3
     },
     {
      "am": 0,
@@ -180,10 +180,10 @@
      "dr": 6,
      "sl": 2,
      "rr": 9,
-     "ws": 3
+     "ws": 6
     }
    ],
-   "level_trim_tl": -2
+   "level_trim_tl": 3
   },
   {
    "index": 6,
@@ -202,7 +202,7 @@
      "dr": 0,
      "sl": 0,
      "rr": 0,
-     "ws": 3
+     "ws": 0
     },
     {
      "am": 0,
@@ -216,10 +216,10 @@
      "dr": 1,
      "sl": 1,
      "rr": 8,
-     "ws": 4
+     "ws": 0
     }
    ],
-   "level_trim_tl": -4
+   "level_trim_tl": -1
   },
   {
    "index": 7,
@@ -233,12 +233,12 @@
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 29,
+     "tl": 25,
      "ar": 8,
-     "dr": 1,
+     "dr": 2,
      "sl": 1,
      "rr": 1,
-     "ws": 6
+     "ws": 1
     },
     {
      "am": 0,
@@ -252,10 +252,10 @@
      "dr": 1,
      "sl": 0,
      "rr": 7,
-     "ws": 3
+     "ws": 0
     }
    ],
-   "level_trim_tl": 3
+   "level_trim_tl": 4
   },
   {
    "index": 8,
@@ -269,12 +269,12 @@
      "ksr": 1,
      "mul": 3,
      "ksl": 0,
-     "tl": 45,
+     "tl": 42,
      "ar": 11,
      "dr": 0,
      "sl": 0,
      "rr": 0,
-     "ws": 5
+     "ws": 1
     },
     {
      "am": 0,
@@ -288,10 +288,10 @@
      "dr": 0,
      "sl": 0,
      "rr": 7,
-     "ws": 2
+     "ws": 1
     }
    ],
-   "level_trim_tl": 3
+   "level_trim_tl": -10
   },
   {
    "index": 9,
@@ -300,12 +300,12 @@
    "ops": [
     {
      "am": 0,
-     "vib": 0,
+     "vib": 1,
      "egt": 1,
-     "ksr": 0,
+     "ksr": 1,
      "mul": 1,
      "ksl": 0,
-     "tl": 26,
+     "tl": 27,
      "ar": 4,
      "dr": 4,
      "sl": 1,
@@ -320,14 +320,14 @@
      "mul": 1,
      "ksl": 0,
      "tl": 0,
-     "ar": 8,
+     "ar": 6,
      "dr": 5,
-     "sl": 1,
+     "sl": 2,
      "rr": 7,
-     "ws": 0
+     "ws": 2
     }
    ],
-   "level_trim_tl": 7
+   "level_trim_tl": 5
   },
   {
    "index": 10,
@@ -335,22 +335,22 @@
    "fb": 0,
    "ops": [
     {
-     "am": 1,
+     "am": 0,
      "vib": 0,
      "egt": 0,
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 13,
+     "tl": 11,
      "ar": 8,
      "dr": 5,
      "sl": 9,
      "rr": 1,
-     "ws": 2
+     "ws": 1
     },
     {
      "am": 0,
-     "vib": 1,
+     "vib": 0,
      "egt": 1,
      "ksr": 0,
      "mul": 1,
@@ -360,7 +360,7 @@
      "dr": 0,
      "sl": 0,
      "rr": 7,
-     "ws": 3
+     "ws": 1
     }
    ],
    "level_trim_tl": 6
@@ -377,12 +377,12 @@
      "ksr": 1,
      "mul": 3,
      "ksl": 1,
-     "tl": 3,
+     "tl": 6,
      "ar": 14,
      "dr": 10,
      "sl": 0,
      "rr": 0,
-     "ws": 2
+     "ws": 0
     },
     {
      "am": 1,
@@ -399,7 +399,7 @@
      "ws": 1
     }
    ],
-   "level_trim_tl": 4
+   "level_trim_tl": 3
   },
   {
    "index": 12,
@@ -409,15 +409,15 @@
     {
      "am": 0,
      "vib": 0,
-     "egt": 0,
+     "egt": 1,
      "ksr": 1,
      "mul": 7,
-     "ksl": 1,
+     "ksl": 0,
      "tl": 36,
      "ar": 15,
      "dr": 8,
      "sl": 2,
-     "rr": 2,
+     "rr": 3,
      "ws": 5
     },
     {
@@ -431,11 +431,11 @@
      "ar": 15,
      "dr": 8,
      "sl": 1,
-     "rr": 2,
-     "ws": 2
+     "rr": 4,
+     "ws": 6
     }
    ],
-   "level_trim_tl": 4
+   "level_trim_tl": 0
   },
   {
    "index": 13,
@@ -443,17 +443,17 @@
    "fb": 5,
    "ops": [
     {
-     "am": 1,
+     "am": 0,
      "vib": 1,
      "egt": 1,
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 12,
+     "tl": 11,
      "ar": 13,
      "dr": 2,
      "sl": 4,
-     "rr": 2,
+     "rr": 0,
      "ws": 3
     },
     {
@@ -465,18 +465,18 @@
      "ksl": 0,
      "tl": 0,
      "ar": 15,
-     "dr": 6,
+     "dr": 5,
      "sl": 4,
-     "rr": 3,
+     "rr": 2,
      "ws": 6
     }
    ],
-   "level_trim_tl": 6
+   "level_trim_tl": 5
   },
   {
    "index": 14,
    "name": "AcoustBass",
-   "fb": 3,
+   "fb": 2,
    "ops": [
     {
      "am": 0,
@@ -485,12 +485,12 @@
      "ksr": 0,
      "mul": 1,
      "ksl": 2,
-     "tl": 15,
+     "tl": 22,
      "ar": 14,
      "dr": 4,
      "sl": 0,
      "rr": 3,
-     "ws": 3
+     "ws": 6
     },
     {
      "am": 0,
@@ -504,15 +504,15 @@
      "dr": 0,
      "sl": 0,
      "rr": 2,
-     "ws": 4
+     "ws": 2
     }
    ],
-   "level_trim_tl": 2
+   "level_trim_tl": 5
   },
   {
    "index": 15,
    "name": "ElecGuitar",
-   "fb": 0,
+   "fb": 1,
    "ops": [
     {
      "am": 0,
@@ -525,8 +525,8 @@
      "ar": 15,
      "dr": 1,
      "sl": 12,
-     "rr": 0,
-     "ws": 6
+     "rr": 1,
+     "ws": 0
     },
     {
      "am": 0,
@@ -543,7 +543,7 @@
      "ws": 6
     }
    ],
-   "level_trim_tl": 7
+   "level_trim_tl": 8
   }
  ],
  "rhythm": {
