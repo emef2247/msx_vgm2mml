@@ -75,7 +75,9 @@ class Opl3ProfileTests(unittest.TestCase):
         self.assertEqual(voice['feedback'],7)         # established Trumpet
         self.assertEqual(len(back.percussion),1)
         self.assertEqual(back.percussion[0].instrument_family,'SD')
-        self.assertEqual(back.percussion[0].volume_curve[0][1],4)  # att << 2
+        # att << 2 plus the OPL3 rhythm re-anchor shift for SD (+2 TL;
+        # see _RHYTHM_TL_SHIFT in musical_opl3_target.py)
+        self.assertEqual(back.percussion[0].volume_curve[0][1],6)
 
     def test_ymf262_four_op_source_reemits(self):
         body=b''.join((
