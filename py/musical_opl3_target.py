@@ -415,7 +415,13 @@ def _project_opll_rhythm(performance, device, emit, losses):
                 losses['opll_rhythm_level_unobserved'] += 1
             fixed = rhythm_fixed_pitches(e.instrument_family)
             for pch, fnum, block in fixed:
-                hz = fnum * 3579545 / 72 * 2 ** block / 2 ** 19
+                # The fixed values are Y8950-frame register values
+                # (the Y8950 target emits them unconverted), so
+                # read them in the OPL frame (/144), not the OPLL
+                # frame (/72) used for source pitch snapshots
+                # below: the /72 reading put every fixed rhythm
+                # pitch one octave high ( metallic HH/CYM).
+                hz = fnum * 3579545 / 144 * 2 ** block / 2 ** 19
                 block2, fnum2 = _pitch(hz, 14318180)
                 emit(None, e.start_sample, -0.5, pch, 0xa0 + pch,
                      fnum2 & 255, 'OPL3 rhythm pitch',
