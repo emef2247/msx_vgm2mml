@@ -31,16 +31,17 @@ class Opl3ProfileTests(unittest.TestCase):
     def export(self,performance,folder):
         return export_variants(performance,folder,'song')
 
-    def test_table_carries_realchip_ws(self):
+    def test_table_loads_with_waveform_selects(self):
+        # The table's parameter values are a calibration result,
+        # not a specification: this checks only that the table
+        # loads and every operator carries a waveform select.
         from musical_opl3_target import _table
         _doc, table = _table()
-        by_name = {v['name']: v for v in table.values()}
-        self.assertEqual([op['ws'] for op in by_name['AcoustBass']['ops']],
-                         [6, 2])
-        self.assertEqual([op['ws'] for op in by_name['Clarinet']['ops']],
-                         [7, 3])
-        self.assertEqual([op['ws'] for op in by_name['Violin']['ops']],
-                         [0, 0])
+        self.assertEqual(len(table), 15)
+        for voice in table.values():
+            self.assertEqual(len(voice['ops']), 2)
+            for op in voice['ops']:
+                self.assertIn(op['ws'], range(8))
 
     def test_opll_melody_and_rhythm_project_to_opl3(self):
         body=b''.join((
@@ -67,9 +68,15 @@ class Opl3ProfileTests(unittest.TestCase):
         unit=back.units[0]
         self.assertEqual((unit.section,unit.channel),('fm',0))
         self.assertAlmostEqual(unit.pitch_curve[0][1],440.0,delta=2.0)
-        # carrier TL = VOL << 2 plus the voice's level trim
-        # (the fitted Trumpet trim is 0; see OPL3_FIT)
-        self.assertEqual(unit.volume_curve[0][1],12)
+        # carrier TL = VOL << 2 plus the voice's level trim;
+        # the trim itself is a calibration value, so read it
+        # from the table instead of pinning it here
+        from musical_opl3_target import _table
+        _doc, _table_by_id = _table()
+        _trumpet = next(v for v in _table_by_id.values()
+                        if v['name'] == 'Trumpet')
+        self.assertEqual(unit.volume_curve[0][1],
+                         12 + _trumpet.get('level_trim_tl', 0))
         voice=dict(next(v for v in back.voices
             if v.voice_id==unit.voice_curve[0][1]).parameters)
         self.assertEqual(voice['feedback'],7)         # established Trumpet

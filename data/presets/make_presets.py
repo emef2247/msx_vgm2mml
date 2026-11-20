@@ -473,30 +473,50 @@ def _established_opl_json(target, chip, clock):
                                'musical_opl3_target); no FM rows.'}}
 
 
-# OPL3 fitted set: the established frame plus the per-voice fit
-# explored 2026-11-16 against the OPM table (IKAOPM reference
+# OPL3 fitted set: the established frame plus a per-voice fit.
+# First fitted 2026-11-16 against the OPM table (IKAOPM reference
 # renders, AdLibEmu candidate search over the OPL frame plus
 # waveform select, an axis OPM does not have), with the waveform
-# select re-measured on the real chip 2026-11-20 (the emulator
-# picks moved on 9 of 15 voices).  The level trims are the
-# search's median-offset values; per-voice balance in songs is
-# not tuned yet.  Adopted as the standard opl3 table by the
-# owner 2026-11-20 after the listening comparison (the
+# select re-measured on the real chip 2026-11-20.  Re-fitted the
+# same day against a real YM2413 recording of the 15-voice probe
+# set (Nuked candidate renders, coordinate descent on the same
+# axes plus the level trims re-anchored to the recording's
+# per-voice balance): mean envelope+harmonic distance to the
+# real chip 14.48 -> 10.51.  Adopted as the standard opl3 table
+# by the owner 2026-11-20 after the listening comparison (the
 # established-frame table it replaces is not kept).
 OPL3_FIT = {
-    'Violin': {'level_trim_tl': 5, 'ops': {0: {'tl': 26, 'ws': 0}, 1: {'vib': 0, 'sl': 0, 'ws': 0}}}, 'Guitar': {'level_trim_tl': 1, 'ops': {0: {'ksl': 1, 'ws': 2}, 1: {'ws': 3}}}, 'Piano': {'ops': {0: {'ksl': 0, 'ws': 1}, 1: {'dr': 3, 'ws': 5}}}, 'Flute': {'fb': 6, 'level_trim_tl': 2, 'ops': {0: {'ws': 3}, 1: {'ws': 2}}}, 'Clarinet': {'ops': {0: {'tl': 29, 'ws': 7}, 1: {'ws': 3}}}, 'Oboe': {'level_trim_tl': 2, 'ops': {0: {'tl': 23, 'ws': 3}, 1: {'ws': 4}}}, 'Trumpet': {'level_trim_tl': 0, 'ops': {0: {'tl': 25, 'ws': 6}, 1: {'ws': 3}}}, 'Organ': {'level_trim_tl': -1, 'ops': {0: {'vib': 1, 'ws': 4}, 1: {'ksl': 1, 'ws': 0}}}, 'Horn': {'level_trim_tl': 9, 'ops': {0: {'ar': 4, 'ws': 6}, 1: {'ws': 0}}}, 'Synthesizer': {'level_trim_tl': 8, 'ops': {0: {'vib': 0, 'sl': 9, 'ws': 6}, 1: {'ws': 3}}}, 'Harpsichord': {'level_trim_tl': 9, 'ops': {0: {'sl': 0, 'ws': 2}, 1: {'ws': 6}}}, 'Vibraphone': {'ops': {0: {'ksl': 1, 'rr': 3, 'ws': 5}, 1: {'rr': 4, 'ws': 3}}}, 'SynthBass': {'level_trim_tl': 6, 'ops': {0: {'ws': 3}, 1: {'rr': 3, 'ws': 6}}}, 'AcoustBass': {'fb': 2, 'ops': {0: {'tl': 15, 'ws': 6}, 1: {'ws': 2}}}, 'ElecGuitar': {'fb': 1, 'ops': {0: {'ws': 6}, 1: {'ws': 0}}}}
+    'Violin': {'level_trim_tl': 9, 'ops': {0: {'vib': 0, 'tl': 26, 'rr': 1, 'ws': 0}, 1: {'sl': 0, 'ws': 0}}},
+    'Guitar': {'ops': {0: {'ksl': 1, 'tl': 27, 'dr': 7, 'ws': 1}, 1: {'ws': 3}}},
+    'Piano': {'ops': {0: {'egt': 1, 'ksl': 0, 'ws': 1}, 1: {'ws': 3}}},
+    'Flute': {'fb': 6, 'level_trim_tl': 5, 'ops': {0: {'am': 1, 'ws': 4}, 1: {'ar': 7, 'ws': 2}}},
+    'Clarinet': {'level_trim_tl': -2, 'ops': {0: {'vib': 1, 'tl': 29, 'ws': 2}, 1: {'rr': 9, 'ws': 3}}},
+    'Oboe': {'level_trim_tl': -4, 'ops': {0: {'ws': 3}, 1: {'ar': 8, 'ws': 4}}},
+    'Trumpet': {'level_trim_tl': 3, 'ops': {0: {'dr': 1, 'ws': 6}, 1: {'vib': 0, 'ws': 3}}},
+    'Organ': {'level_trim_tl': 3, 'ops': {0: {'ws': 5}, 1: {'ksl': 1, 'ws': 2}}},
+    'Horn': {'level_trim_tl': 7, 'ops': {0: {'vib': 0, 'tl': 26, 'ar': 4, 'ws': 6}, 1: {'ar': 8, 'ws': 0}}},
+    'Synthesizer': {'level_trim_tl': 6, 'ops': {0: {'am': 1, 'vib': 0, 'tl': 13, 'sl': 9, 'ws': 2}, 1: {'ws': 3}}},
+    'Harpsichord': {'ops': {0: {'sl': 0, 'ws': 2}, 1: {'am': 1, 'vib': 1, 'ws': 1}}},
+    'Vibraphone': {'level_trim_tl': 4, 'ops': {0: {'ksl': 1, 'ws': 5}, 1: {'ws': 2}}},
+    'SynthBass': {'level_trim_tl': 6, 'ops': {0: {'am': 1, 'rr': 2, 'ws': 3}, 1: {'dr': 6, 'rr': 3, 'ws': 6}}},
+    'AcoustBass': {'level_trim_tl': 2, 'ops': {0: {'tl': 15, 'ws': 3}, 1: {'ws': 4}}},
+    'ElecGuitar': {'fb': 0, 'level_trim_tl': 7, 'ops': {0: {'vib': 0, 'ws': 6}, 1: {'ws': 6}}},
+}
 
 
 def _fitted_opl3_json():
     import copy
     doc = _established_opl_json('opl3', 'ymf262', 14318180)
     doc['law'] = ('established frame plus the OPL3_FIT per-voice '
-                  'fit (OPM-reference search; waveform select '
-                  'from the real-chip calibration)')
+                  'fit (real-YM2413-recording search; see '
+                  'OPL3_FIT in make_presets.py)')
     doc['fit_note'] = ('Voices fitted 2026-11-16 against the OPM '
                        'table (IKAOPM reference renders, '
-                       'AdLibEmu candidates); waveform select '
-                       're-measured on the real chip 2026-11-20; '
+                       'AdLibEmu candidates), waveform select '
+                       're-measured on the real chip 2026-11-20, '
+                       'then re-fitted 2026-11-20 against a real '
+                       'YM2413 recording of the probe set (Nuked '
+                       'candidates; mean distance 14.48 -> 10.51); '
                        'see OPL3_FIT in make_presets.py.  Adopted '
                        'as the standard opl3 table by the owner '
                        '2026-11-20.')

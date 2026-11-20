@@ -3,7 +3,7 @@
  "chip": "ymf262",
  "clock_hz": 14318180,
  "source": "opll_presets.json via make_presets.py; do not hand-edit",
- "law": "established frame plus the OPL3_FIT per-voice fit (OPM-reference search; waveform select from the real-chip calibration)",
+ "law": "established frame plus the OPL3_FIT per-voice fit (real-YM2413-recording search; see OPL3_FIT in make_presets.py)",
  "voices": [
   {
    "index": 1,
@@ -12,7 +12,7 @@
    "ops": [
     {
      "am": 0,
-     "vib": 1,
+     "vib": 0,
      "egt": 1,
      "ksr": 1,
      "mul": 1,
@@ -21,12 +21,12 @@
      "ar": 13,
      "dr": 0,
      "sl": 0,
-     "rr": 0,
+     "rr": 1,
      "ws": 0
     },
     {
      "am": 0,
-     "vib": 0,
+     "vib": 1,
      "egt": 1,
      "ksr": 0,
      "mul": 1,
@@ -39,7 +39,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 5
+   "level_trim_tl": 9
   },
   {
    "index": 2,
@@ -53,12 +53,12 @@
      "ksr": 1,
      "mul": 3,
      "ksl": 1,
-     "tl": 26,
+     "tl": 27,
      "ar": 13,
-     "dr": 8,
+     "dr": 7,
      "sl": 2,
      "rr": 3,
-     "ws": 2
+     "ws": 1
     },
     {
      "am": 0,
@@ -75,7 +75,7 @@
      "ws": 3
     }
    ],
-   "level_trim_tl": 1
+   "level_trim_tl": 0
   },
   {
    "index": 3,
@@ -85,7 +85,7 @@
     {
      "am": 0,
      "vib": 0,
-     "egt": 0,
+     "egt": 1,
      "ksr": 1,
      "mul": 3,
      "ksl": 0,
@@ -105,10 +105,10 @@
      "ksl": 0,
      "tl": 0,
      "ar": 13,
-     "dr": 3,
+     "dr": 4,
      "sl": 2,
      "rr": 3,
-     "ws": 5
+     "ws": 3
     }
    ],
    "level_trim_tl": 0
@@ -119,7 +119,7 @@
    "fb": 6,
    "ops": [
     {
-     "am": 0,
+     "am": 1,
      "vib": 0,
      "egt": 0,
      "ksr": 1,
@@ -130,7 +130,7 @@
      "dr": 13,
      "sl": 7,
      "rr": 0,
-     "ws": 3
+     "ws": 4
     },
     {
      "am": 0,
@@ -140,14 +140,14 @@
      "mul": 1,
      "ksl": 0,
      "tl": 0,
-     "ar": 6,
+     "ar": 7,
      "dr": 4,
      "sl": 2,
      "rr": 7,
      "ws": 2
     }
    ],
-   "level_trim_tl": 2
+   "level_trim_tl": 5
   },
   {
    "index": 5,
@@ -156,7 +156,7 @@
    "ops": [
     {
      "am": 0,
-     "vib": 0,
+     "vib": 1,
      "egt": 1,
      "ksr": 1,
      "mul": 2,
@@ -166,7 +166,7 @@
      "dr": 1,
      "sl": 0,
      "rr": 1,
-     "ws": 7
+     "ws": 2
     },
     {
      "am": 0,
@@ -179,11 +179,11 @@
      "ar": 7,
      "dr": 6,
      "sl": 2,
-     "rr": 8,
+     "rr": 9,
      "ws": 3
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": -2
   },
   {
    "index": 6,
@@ -197,7 +197,7 @@
      "ksr": 1,
      "mul": 1,
      "ksl": 0,
-     "tl": 23,
+     "tl": 22,
      "ar": 14,
      "dr": 0,
      "sl": 0,
@@ -212,14 +212,14 @@
      "mul": 2,
      "ksl": 0,
      "tl": 0,
-     "ar": 7,
+     "ar": 8,
      "dr": 1,
      "sl": 1,
      "rr": 8,
      "ws": 4
     }
    ],
-   "level_trim_tl": 2
+   "level_trim_tl": -4
   },
   {
    "index": 7,
@@ -233,16 +233,16 @@
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 25,
+     "tl": 29,
      "ar": 8,
-     "dr": 2,
+     "dr": 1,
      "sl": 1,
      "rr": 1,
      "ws": 6
     },
     {
      "am": 0,
-     "vib": 1,
+     "vib": 0,
      "egt": 1,
      "ksr": 0,
      "mul": 1,
@@ -255,7 +255,7 @@
      "ws": 3
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 3
   },
   {
    "index": 8,
@@ -264,7 +264,7 @@
    "ops": [
     {
      "am": 0,
-     "vib": 1,
+     "vib": 0,
      "egt": 1,
      "ksr": 1,
      "mul": 3,
@@ -274,7 +274,7 @@
      "dr": 0,
      "sl": 0,
      "rr": 0,
-     "ws": 4
+     "ws": 5
     },
     {
      "am": 0,
@@ -288,10 +288,10 @@
      "dr": 0,
      "sl": 0,
      "rr": 7,
-     "ws": 0
+     "ws": 2
     }
    ],
-   "level_trim_tl": -1
+   "level_trim_tl": 3
   },
   {
    "index": 9,
@@ -300,12 +300,12 @@
    "ops": [
     {
      "am": 0,
-     "vib": 1,
+     "vib": 0,
      "egt": 1,
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 27,
+     "tl": 26,
      "ar": 4,
      "dr": 4,
      "sl": 1,
@@ -320,14 +320,14 @@
      "mul": 1,
      "ksl": 0,
      "tl": 0,
-     "ar": 6,
+     "ar": 8,
      "dr": 5,
      "sl": 1,
      "rr": 7,
      "ws": 0
     }
    ],
-   "level_trim_tl": 9
+   "level_trim_tl": 7
   },
   {
    "index": 10,
@@ -335,18 +335,18 @@
    "fb": 0,
    "ops": [
     {
-     "am": 0,
+     "am": 1,
      "vib": 0,
      "egt": 0,
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 11,
+     "tl": 13,
      "ar": 8,
      "dr": 5,
      "sl": 9,
      "rr": 1,
-     "ws": 6
+     "ws": 2
     },
     {
      "am": 0,
@@ -363,7 +363,7 @@
      "ws": 3
     }
    ],
-   "level_trim_tl": 8
+   "level_trim_tl": 6
   },
   {
    "index": 11,
@@ -385,8 +385,8 @@
      "ws": 2
     },
     {
-     "am": 0,
-     "vib": 0,
+     "am": 1,
+     "vib": 1,
      "egt": 0,
      "ksr": 0,
      "mul": 1,
@@ -396,10 +396,10 @@
      "dr": 15,
      "sl": 0,
      "rr": 4,
-     "ws": 6
+     "ws": 1
     }
    ],
-   "level_trim_tl": 9
+   "level_trim_tl": 4
   },
   {
    "index": 12,
@@ -417,7 +417,7 @@
      "ar": 15,
      "dr": 8,
      "sl": 2,
-     "rr": 3,
+     "rr": 2,
      "ws": 5
     },
     {
@@ -431,11 +431,11 @@
      "ar": 15,
      "dr": 8,
      "sl": 1,
-     "rr": 4,
-     "ws": 3
+     "rr": 2,
+     "ws": 2
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 4
   },
   {
    "index": 13,
@@ -443,7 +443,7 @@
    "fb": 5,
    "ops": [
     {
-     "am": 0,
+     "am": 1,
      "vib": 1,
      "egt": 1,
      "ksr": 0,
@@ -453,7 +453,7 @@
      "ar": 13,
      "dr": 2,
      "sl": 4,
-     "rr": 0,
+     "rr": 2,
      "ws": 3
     },
     {
@@ -465,7 +465,7 @@
      "ksl": 0,
      "tl": 0,
      "ar": 15,
-     "dr": 5,
+     "dr": 6,
      "sl": 4,
      "rr": 3,
      "ws": 6
@@ -476,7 +476,7 @@
   {
    "index": 14,
    "name": "AcoustBass",
-   "fb": 2,
+   "fb": 3,
    "ops": [
     {
      "am": 0,
@@ -490,7 +490,7 @@
      "dr": 4,
      "sl": 0,
      "rr": 3,
-     "ws": 6
+     "ws": 3
     },
     {
      "am": 0,
@@ -504,19 +504,19 @@
      "dr": 0,
      "sl": 0,
      "rr": 2,
-     "ws": 2
+     "ws": 4
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 2
   },
   {
    "index": 15,
    "name": "ElecGuitar",
-   "fb": 1,
+   "fb": 0,
    "ops": [
     {
      "am": 0,
-     "vib": 1,
+     "vib": 0,
      "egt": 0,
      "ksr": 0,
      "mul": 1,
@@ -540,15 +540,15 @@
      "dr": 4,
      "sl": 1,
      "rr": 3,
-     "ws": 0
+     "ws": 6
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 7
   }
  ],
  "rhythm": {
   "kind": "opl_native",
   "note": "OPLL percussion projects to the target native rhythm unit with the composed voice template (derived voices over the commercial one; musical_opl_target / musical_opl3_target); no FM rows."
  },
- "fit_note": "Voices fitted 2026-11-16 against the OPM table (IKAOPM reference renders, AdLibEmu candidates); waveform select re-measured on the real chip 2026-11-20; see OPL3_FIT in make_presets.py.  Adopted as the standard opl3 table by the owner 2026-11-20."
+ "fit_note": "Voices fitted 2026-11-16 against the OPM table (IKAOPM reference renders, AdLibEmu candidates), waveform select re-measured on the real chip 2026-11-20, then re-fitted 2026-11-20 against a real YM2413 recording of the probe set (Nuked candidates; mean distance 14.48 -> 10.51); see OPL3_FIT in make_presets.py.  Adopted as the standard opl3 table by the owner 2026-11-20."
 }
