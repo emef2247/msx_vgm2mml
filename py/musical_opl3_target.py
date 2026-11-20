@@ -31,6 +31,15 @@ _OP_FIELDS = ('am', 'vib', 'egt', 'ksr', 'mul', 'ksl', 'tl',
               'ar', 'dr', 'sl', 'rr')
 _RHYTHM_BITS = (('BD', 16), ('SD', 8), ('TOM', 4), ('CYM', 2), ('HH', 1))
 _RHYTHM_TL = {'BD': 0x53, 'SD': 0x54, 'TOM': 0x52, 'CYM': 0x55, 'HH': 0x51}
+# OPL3-only per-family level shift in TL steps (negative = louder),
+# re-anchoring the shared derived voices' levels to the YMF262: the
+# fits were scored peak-normalised on ymfm's Y8950, whose rhythm
+# level does not come from these TLs the way the OPL3's does, so BD,
+# HH and CYM landed near-silent and SD hot (measured per family
+# against IKAOPLL renders of FMPAC01 family stems, 2026-11-20, with
+# the overall level set from the owner's real-chip rhythm/melody
+# ratio).  The Y8950 target keeps the unshifted law.
+_RHYTHM_TL_SHIFT = {'BD': -49, 'SD': 2, 'TOM': -25, 'CYM': -52, 'HH': -40}
 _RHYTHM_PITCH_CH = {'BD': 6, 'TOM': 8}
 _cache = {}
 
@@ -399,7 +408,8 @@ def _project_opll_rhythm(performance, device, emit, losses):
                 if level is None:
                     continue
                 emit(None, at, -0.5, 6, _RHYTHM_TL[e.instrument_family],
-                     rhythm_level(e.instrument_family, level),
+                     max(0, min(63, rhythm_level(e.instrument_family, level)
+                                + _RHYTHM_TL_SHIFT.get(e.instrument_family, 0))),
                      'OPL3 rhythm level', device_id=device.device_id)
             if not e.volume_curve:
                 losses['opll_rhythm_level_unobserved'] += 1
