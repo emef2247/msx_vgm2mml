@@ -39,7 +39,31 @@ _RHYTHM_TL = {'BD': 0x53, 'SD': 0x54, 'TOM': 0x52, 'CYM': 0x55, 'HH': 0x51}
 # against IKAOPLL renders of FMPAC01 family stems, 2026-11-20, with
 # the overall level set from the owner's real-chip rhythm/melody
 # ratio).  The Y8950 target keeps the unshifted law.
-_RHYTHM_TL_SHIFT = {'BD': -49, 'SD': 2, 'TOM': -25, 'CYM': -52, 'HH': -40}
+# Re-anchored 2026-11-21 from per-hit peaks of the production
+# FMPAC02 rhythm stems against the IKAOPLL stems: TOM read
+# 11.9 dB under the original, HH 3.6 dB under, CYM 1.2 dB over;
+# SD and BD stood, so their shifts are unchanged.
+_RHYTHM_TL_SHIFT = {'BD': -49, 'SD': 2, 'TOM': -41, 'CYM': -50, 'HH': -45}
+# OPL3-only per-op field overrides on the shared composed rhythm
+# template, from the 2026-11-21 calibration against IKAOPLL
+# renders of the FMPAC02 rhythm stems (Nuked candidates, envelope
+# + band-spectrum distance): the shared fits were made against
+# ymfm's Y8950, whose EG rate realization differs from the
+# YMF262's, so several voices rang far longer here than the
+# original (SD 154 ms against 55 ms).  BD and TOM were fitted
+# a second time with 600 ms gates, because production holds
+# the rhythm bits far longer than a single hit and their
+# sustain tails only show under a held gate.  Keys are
+# (channel, slot); applied in _rhythm_template only, so the
+# Y8950 target keeps the shared template exactly as fitted.
+_RHYTHM_EG_OVERRIDE = {
+    (6, 'car'): {'mul': 0, 'rr': 11},   # BD
+    (6, 'mod'): {'rr': 5},              # BD
+    (7, 'mod'): {'sl': 5, 'rr': 7},     # HH
+    (7, 'car'): {'dr': 9, 'rr': 8},     # SD
+    (8, 'mod'): {'rr': 9},              # TOM
+    (8, 'car'): {'mul': 6, 'dr': 10},   # CYM
+}
 _RHYTHM_PITCH_CH = {'BD': 6, 'TOM': 8}
 _cache = {}
 
@@ -365,6 +389,18 @@ def project_opl3_fm(performance, *, force=False):
 
 def _rhythm_template(emit, device_id):
     template = composed_rhythm_template()
+    for (ch, key), fields in _RHYTHM_EG_OVERRIDE.items():
+        quad = list(template[str(ch)][key])
+        for field, value in fields.items():
+            if field == 'mul':
+                quad[0] = (quad[0] & 0xf0) | value
+            elif field == 'dr':
+                quad[2] = (quad[2] & 0xf0) | value
+            elif field == 'sl':
+                quad[3] = (quad[3] & 0x0f) | (value << 4)
+            elif field == 'rr':
+                quad[3] = (quad[3] & 0xf0) | value
+        template[str(ch)][key] = quad
     for ch in (6, 7, 8):
         entry = template[str(ch)]
         off = _OFFSETS[ch]
