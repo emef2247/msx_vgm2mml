@@ -279,7 +279,11 @@ def project_psg_opll(performance, *, dcsg_gain=.25, opna=False, force=False, opl
                 emit(at,0x20+ch,16|(32 if sustain else 0)|(b<<1)|(f>>8),'musical OPLL gate and pitch')
             emit(u.end_sample,0x20+ch,last_pitch,'musical OPLL gate end',-1 if u.end_sample>u.start_sample else 1)
         # Shared non-rhythm controls retain explicit typed semantics.
+        # A device consumed by an FM projection (opll_fm_device) has no
+        # native lane in the output, so its shared controls must not
+        # leak a native write into the target file either.
         for c in performance.controls:
+            if device.device_id==opll_fm_device:continue
             if c.device_id==device.device_id and (c.section=='shared' and c.kind!='opll_patch'):
                 rows.append(dict(sample=c.sample,order=c.order,command=encode_control(c,device),
                     unit_id='',device_id=device.device_id,source_indices=c.source_indices,reason='native OPLL rhythm/shared control'))

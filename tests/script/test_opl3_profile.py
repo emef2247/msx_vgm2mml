@@ -79,6 +79,27 @@ class Opl3ProfileTests(unittest.TestCase):
         # see _RHYTHM_TL_SHIFT in musical_opl3_target.py)
         self.assertEqual(back.percussion[0].volume_curve[0][1],6)
 
+    def test_opll_shared_control_does_not_leak_into_opl3(self):
+        # A source write to OPLL register 0x0F (a shared, non-musical
+        # control) belongs to the native lane; when the OPLL device is
+        # consumed by the OPL3 projection it must not appear in the
+        # output as a YM2413 (0x51) write.
+        body=b''.join((
+            opll(0x0f,0x00),
+            opll(0x30,0x73),opll(0x10,0x22),opll(0x20,0x19),
+            b'\x62',opll(0x20,0x09)))
+        performance,folder=self.build(vgm(body,{0x10:3579545,0x5c:14318180}))
+        result=self.export(performance,folder+'/out')['opl3']
+        self.assertEqual(result['status'],'success',result.get('reason'))
+        import csv, struct
+        written=open(result['path'],'rb').read()
+        self.assertEqual(struct.unpack_from('<I',written,0x10)[0],0)
+        writes_path=Path(result['path']).with_suffix('.writes.csv')
+        commands=[row['command_hex'] for row in
+                  csv.DictReader(writes_path.open())]
+        self.assertFalse(any(c.startswith('51') for c in commands),
+                         commands)
+
     def test_ymf262_four_op_source_reemits(self):
         body=b''.join((
             ymf262(0x05,0x01,1),ymf262(0x04,0x01,1),
