@@ -498,22 +498,33 @@ def _established_opl_json(target, chip, clock):
 # the two earlier tables, level held during the descent) is
 # what stands below: mean envelope+harmonic distance to the
 # real chip 23.09 -> 9.37 under the corrected measurement.
+# Re-fitted again 2026-11-21 against IKAOPLL RTL renders of a
+# low-extended probe set (8 notes per voice: A1/C2/A2/C3/A4/
+# C6/A6/C7), starting from the table above (the owner's
+# standing point; the low notes were added after FMPAC02's
+# ElecGuitar, a bass role centred on 55 Hz, proved to live
+# almost entirely below the old probe range).  The owner
+# holds IKAOPLL renders equivalent to real-chip recordings
+# as a reference (decap-based RTL), and the candidate side
+# stayed Nuked.  Mean score (harmonic + 0.5 envelope) under
+# the IKAOPLL measurement: 8.94 -> 7.19; Piano, Vibraphone,
+# AcoustBass and Guitar remain the least close voices.
 OPL3_FIT = {
-    'Violin': {'level_trim_tl': 9, 'ops': {0: {'rr': 1, 'tl': 27, 'vib': 0, 'ws': 0}, 1: {'ksl': 1, 'sl': 0, 'ws': 6}}},
-    'Guitar': {'level_trim_tl': 7, 'ops': {0: {'dr': 7, 'ksl': 1, 'ksr': 0, 'rr': 1, 'tl': 27, 'ws': 1}, 1: {'ws': 6}}},
-    'Piano': {'level_trim_tl': 2, 'ops': {0: {'ksl': 0, 'rr': 0, 'ws': 7}, 1: {'dr': 3, 'vib': 1, 'ws': 5}}},
-    'Flute': {'fb': 5, 'level_trim_tl': 4, 'ops': {0: {'am': 1, 'tl': 16, 'ws': 4}, 1: {'ar': 7, 'ws': 0}}},
-    'Clarinet': {'level_trim_tl': 3, 'ops': {0: {'rr': 0, 'tl': 29, 'vib': 1, 'ws': 3}, 1: {'rr': 9, 'ws': 6}}},
-    'Oboe': {'level_trim_tl': -1, 'ops': {0: {'ws': 0}, 1: {'ar': 8, 'ws': 0}}},
-    'Trumpet': {'level_trim_tl': 4, 'ops': {0: {'tl': 25, 'ws': 1}, 1: {'vib': 0, 'ws': 0}}},
-    'Organ': {'level_trim_tl': -10, 'ops': {0: {'tl': 42, 'ws': 1}, 1: {'ksl': 1, 'ws': 1}}},
-    'Horn': {'level_trim_tl': 5, 'ops': {0: {'ar': 4, 'ksr': 1, 'ws': 6}, 1: {'sl': 2, 'ws': 2}}},
-    'Synthesizer': {'level_trim_tl': 6, 'ops': {0: {'sl': 9, 'vib': 0, 'ws': 1}, 1: {'vib': 0, 'ws': 1}}},
-    'Harpsichord': {'level_trim_tl': 3, 'ops': {0: {'sl': 0, 'tl': 6, 'ws': 0}, 1: {'am': 1, 'vib': 1, 'ws': 1}}},
-    'Vibraphone': {'ops': {0: {'egt': 1, 'rr': 3, 'ws': 5}, 1: {'rr': 4, 'ws': 6}}},
-    'SynthBass': {'level_trim_tl': 5, 'ops': {0: {'tl': 11, 'ws': 3}, 1: {'ws': 6}}},
-    'AcoustBass': {'fb': 2, 'level_trim_tl': 5, 'ops': {0: {'tl': 22, 'ws': 6}, 1: {'ws': 2}}},
-    'ElecGuitar': {'fb': 1, 'level_trim_tl': 8, 'ops': {0: {'rr': 1, 'vib': 0, 'ws': 0}, 1: {'ws': 6}}},
+    'Violin': {'level_trim_tl': 1, 'ops': {0: {'vib': 0, 'tl': 28, 'rr': 1, 'ws': 5}, 1: {'ksl': 1, 'sl': 0, 'ws': 4}}},
+    'Guitar': {'fb': 4, 'level_trim_tl': 8, 'ops': {0: {'ksr': 0, 'ksl': 1, 'tl': 25, 'dr': 7, 'rr': 1, 'ws': 1}, 1: {'ws': 6}}},
+    'Piano': {'level_trim_tl': -1, 'ops': {0: {'vib': 1, 'ksl': 0, 'tl': 24, 'rr': 0, 'ws': 7}, 1: {'vib': 1, 'ws': 5}}},
+    'Flute': {'fb': 5, 'level_trim_tl': -7, 'ops': {0: {'am': 1, 'vib': 1, 'tl': 16, 'ws': 5}, 1: {'ksl': 1, 'ar': 7, 'ws': 0}}},
+    'Clarinet': {'level_trim_tl': 6, 'ops': {0: {'tl': 29, 'rr': 0, 'ws': 7}, 1: {'ar': 9, 'rr': 9, 'ws': 6}}},
+    'Oboe': {'level_trim_tl': -9, 'ops': {0: {'rr': 1, 'ws': 0}, 1: {'ksl': 1, 'ar': 8, 'ws': 0}}},
+    'Trumpet': {'fb': 6, 'level_trim_tl': 4, 'ops': {0: {'tl': 25, 'ar': 6, 'rr': 0, 'ws': 1}, 1: {'vib': 0, 'ws': 0}}},
+    'Organ': {'level_trim_tl': -6, 'ops': {0: {'tl': 44, 'rr': 1, 'ws': 1}, 1: {'ws': 1}}},
+    'Horn': {'level_trim_tl': 5, 'ops': {0: {'ksr': 1, 'ar': 5, 'dr': 5, 'ws': 6}, 1: {'dr': 7, 'sl': 2, 'ws': 2}}},
+    'Synthesizer': {'level_trim_tl': 4, 'ops': {0: {'vib': 0, 'sl': 7, 'ws': 1}, 1: {'ws': 1}}},
+    'Harpsichord': {'level_trim_tl': -10, 'ops': {0: {'tl': 7, 'sl': 0, 'ws': 0}, 1: {'am': 1, 'ksl': 1, 'ws': 1}}},
+    'Vibraphone': {'level_trim_tl': 8, 'ops': {0: {'egt': 1, 'rr': 3, 'ws': 4}, 1: {'am': 0, 'rr': 3, 'ws': 6}}},
+    'SynthBass': {'level_trim_tl': 7, 'ops': {0: {'am': 1, 'tl': 11, 'ar': 14, 'ws': 3}, 1: {'ws': 6}}},
+    'AcoustBass': {'fb': 2, 'level_trim_tl': 6, 'ops': {0: {'tl': 23, 'dr': 2, 'ws': 6}, 1: {'ws': 2}}},
+    'ElecGuitar': {'level_trim_tl': 8, 'ops': {0: {'vib': 0, 'rr': 1, 'ws': 0}, 1: {'ws': 6}}},
 }
 
 
@@ -521,18 +532,18 @@ def _fitted_opl3_json():
     import copy
     doc = _established_opl_json('opl3', 'ymf262', 14318180)
     doc['law'] = ('established frame plus the OPL3_FIT per-voice '
-                  'fit (real-YM2413-recording search; see '
+                  'fit (IKAOPLL-reference search; see '
                   'OPL3_FIT in make_presets.py)')
     doc['fit_note'] = ('Voices fitted 2026-11-16 against the OPM '
                        'table (IKAOPM reference renders, '
-                       'AdLibEmu candidates), waveform select '
-                       're-measured on the real chip 2026-11-20, '
-                       'then re-fitted 2026-11-20 against a real '
-                       'YM2413 recording of the probe set (Nuked '
-                       'candidates; mean distance 14.48 -> 10.51); '
-                       'see OPL3_FIT in make_presets.py.  Adopted '
-                       'as the standard opl3 table by the owner '
-                       '2026-11-20.')
+                       'AdLibEmu candidates), re-fitted '
+                       '2026-11-20 against real YM2413 recordings '
+                       '(Nuked candidates), then re-fitted '
+                       '2026-11-21 against IKAOPLL renders of a '
+                       'low-extended 8-note probe set starting '
+                       'from the 2026-11-20 table (mean score '
+                       '8.94 -> 7.19); see OPL3_FIT in '
+                       'make_presets.py.')
     for voice in doc['voices']:
         fit = OPL3_FIT[voice['name']]
         if 'fb' in fit:

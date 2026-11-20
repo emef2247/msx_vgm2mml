@@ -3,7 +3,7 @@
  "chip": "ymf262",
  "clock_hz": 14318180,
  "source": "opll_presets.json via make_presets.py; do not hand-edit",
- "law": "established frame plus the OPL3_FIT per-voice fit (real-YM2413-recording search; see OPL3_FIT in make_presets.py)",
+ "law": "established frame plus the OPL3_FIT per-voice fit (IKAOPLL-reference search; see OPL3_FIT in make_presets.py)",
  "voices": [
   {
    "index": 1,
@@ -17,12 +17,12 @@
      "ksr": 1,
      "mul": 1,
      "ksl": 0,
-     "tl": 27,
+     "tl": 28,
      "ar": 13,
      "dr": 0,
      "sl": 0,
      "rr": 1,
-     "ws": 0
+     "ws": 5
     },
     {
      "am": 0,
@@ -36,15 +36,15 @@
      "dr": 8,
      "sl": 0,
      "rr": 7,
-     "ws": 6
+     "ws": 4
     }
    ],
-   "level_trim_tl": 9
+   "level_trim_tl": 1
   },
   {
    "index": 2,
    "name": "Guitar",
-   "fb": 5,
+   "fb": 4,
    "ops": [
     {
      "am": 0,
@@ -53,7 +53,7 @@
      "ksr": 0,
      "mul": 3,
      "ksl": 1,
-     "tl": 27,
+     "tl": 25,
      "ar": 13,
      "dr": 7,
      "sl": 2,
@@ -75,7 +75,7 @@
      "ws": 6
     }
    ],
-   "level_trim_tl": 7
+   "level_trim_tl": 8
   },
   {
    "index": 3,
@@ -84,12 +84,12 @@
    "ops": [
     {
      "am": 0,
-     "vib": 0,
+     "vib": 1,
      "egt": 0,
      "ksr": 1,
      "mul": 3,
      "ksl": 0,
-     "tl": 25,
+     "tl": 24,
      "ar": 15,
      "dr": 2,
      "sl": 2,
@@ -105,13 +105,13 @@
      "ksl": 0,
      "tl": 0,
      "ar": 13,
-     "dr": 3,
+     "dr": 4,
      "sl": 2,
      "rr": 3,
      "ws": 5
     }
    ],
-   "level_trim_tl": 2
+   "level_trim_tl": -1
   },
   {
    "index": 4,
@@ -120,7 +120,7 @@
    "ops": [
     {
      "am": 1,
-     "vib": 0,
+     "vib": 1,
      "egt": 0,
      "ksr": 1,
      "mul": 1,
@@ -130,7 +130,7 @@
      "dr": 13,
      "sl": 7,
      "rr": 0,
-     "ws": 4
+     "ws": 5
     },
     {
      "am": 0,
@@ -138,7 +138,7 @@
      "egt": 1,
      "ksr": 0,
      "mul": 1,
-     "ksl": 0,
+     "ksl": 1,
      "tl": 0,
      "ar": 7,
      "dr": 4,
@@ -147,7 +147,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 4
+   "level_trim_tl": -7
   },
   {
    "index": 5,
@@ -156,7 +156,7 @@
    "ops": [
     {
      "am": 0,
-     "vib": 1,
+     "vib": 0,
      "egt": 1,
      "ksr": 1,
      "mul": 2,
@@ -166,7 +166,7 @@
      "dr": 1,
      "sl": 0,
      "rr": 0,
-     "ws": 3
+     "ws": 7
     },
     {
      "am": 0,
@@ -176,14 +176,14 @@
      "mul": 1,
      "ksl": 0,
      "tl": 0,
-     "ar": 7,
+     "ar": 9,
      "dr": 6,
      "sl": 2,
      "rr": 9,
      "ws": 6
     }
    ],
-   "level_trim_tl": 3
+   "level_trim_tl": 6
   },
   {
    "index": 6,
@@ -201,7 +201,7 @@
      "ar": 14,
      "dr": 0,
      "sl": 0,
-     "rr": 0,
+     "rr": 1,
      "ws": 0
     },
     {
@@ -210,7 +210,7 @@
      "egt": 1,
      "ksr": 0,
      "mul": 2,
-     "ksl": 0,
+     "ksl": 1,
      "tl": 0,
      "ar": 8,
      "dr": 1,
@@ -219,12 +219,12 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": -1
+   "level_trim_tl": -9
   },
   {
    "index": 7,
    "name": "Trumpet",
-   "fb": 7,
+   "fb": 6,
    "ops": [
     {
      "am": 0,
@@ -234,10 +234,10 @@
      "mul": 1,
      "ksl": 0,
      "tl": 25,
-     "ar": 8,
+     "ar": 6,
      "dr": 2,
      "sl": 1,
-     "rr": 1,
+     "rr": 0,
      "ws": 1
     },
     {
@@ -269,11 +269,11 @@
      "ksr": 1,
      "mul": 3,
      "ksl": 0,
-     "tl": 42,
+     "tl": 44,
      "ar": 11,
      "dr": 0,
      "sl": 0,
-     "rr": 0,
+     "rr": 1,
      "ws": 1
     },
     {
@@ -282,7 +282,7 @@
      "egt": 1,
      "ksr": 0,
      "mul": 1,
-     "ksl": 1,
+     "ksl": 0,
      "tl": 0,
      "ar": 7,
      "dr": 0,
@@ -291,7 +291,7 @@
      "ws": 1
     }
    ],
-   "level_trim_tl": -10
+   "level_trim_tl": -6
   },
   {
    "index": 9,
@@ -306,8 +306,8 @@
      "mul": 1,
      "ksl": 0,
      "tl": 27,
-     "ar": 4,
-     "dr": 4,
+     "ar": 5,
+     "dr": 5,
      "sl": 1,
      "rr": 0,
      "ws": 6
@@ -321,7 +321,7 @@
      "ksl": 0,
      "tl": 0,
      "ar": 6,
-     "dr": 5,
+     "dr": 7,
      "sl": 2,
      "rr": 7,
      "ws": 2
@@ -344,13 +344,13 @@
      "tl": 11,
      "ar": 8,
      "dr": 5,
-     "sl": 9,
+     "sl": 7,
      "rr": 1,
      "ws": 1
     },
     {
      "am": 0,
-     "vib": 0,
+     "vib": 1,
      "egt": 1,
      "ksr": 0,
      "mul": 1,
@@ -363,7 +363,7 @@
      "ws": 1
     }
    ],
-   "level_trim_tl": 6
+   "level_trim_tl": 4
   },
   {
    "index": 11,
@@ -377,7 +377,7 @@
      "ksr": 1,
      "mul": 3,
      "ksl": 1,
-     "tl": 6,
+     "tl": 7,
      "ar": 14,
      "dr": 10,
      "sl": 0,
@@ -386,11 +386,11 @@
     },
     {
      "am": 1,
-     "vib": 1,
+     "vib": 0,
      "egt": 0,
      "ksr": 0,
      "mul": 1,
-     "ksl": 0,
+     "ksl": 1,
      "tl": 0,
      "ar": 14,
      "dr": 15,
@@ -399,7 +399,7 @@
      "ws": 1
     }
    ],
-   "level_trim_tl": 3
+   "level_trim_tl": -10
   },
   {
    "index": 12,
@@ -418,10 +418,10 @@
      "dr": 8,
      "sl": 2,
      "rr": 3,
-     "ws": 5
+     "ws": 4
     },
     {
-     "am": 1,
+     "am": 0,
      "vib": 1,
      "egt": 0,
      "ksr": 0,
@@ -431,11 +431,11 @@
      "ar": 15,
      "dr": 8,
      "sl": 1,
-     "rr": 4,
+     "rr": 3,
      "ws": 6
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 8
   },
   {
    "index": 13,
@@ -443,14 +443,14 @@
    "fb": 5,
    "ops": [
     {
-     "am": 0,
+     "am": 1,
      "vib": 1,
      "egt": 1,
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
      "tl": 11,
-     "ar": 13,
+     "ar": 14,
      "dr": 2,
      "sl": 4,
      "rr": 0,
@@ -471,7 +471,7 @@
      "ws": 6
     }
    ],
-   "level_trim_tl": 5
+   "level_trim_tl": 7
   },
   {
    "index": 14,
@@ -485,9 +485,9 @@
      "ksr": 0,
      "mul": 1,
      "ksl": 2,
-     "tl": 22,
+     "tl": 23,
      "ar": 14,
-     "dr": 4,
+     "dr": 2,
      "sl": 0,
      "rr": 3,
      "ws": 6
@@ -507,12 +507,12 @@
      "ws": 2
     }
    ],
-   "level_trim_tl": 5
+   "level_trim_tl": 6
   },
   {
    "index": 15,
    "name": "ElecGuitar",
-   "fb": 1,
+   "fb": 3,
    "ops": [
     {
      "am": 0,
@@ -550,5 +550,5 @@
   "kind": "opl_native",
   "note": "OPLL percussion projects to the target native rhythm unit with the composed voice template (derived voices over the commercial one; musical_opl_target / musical_opl3_target); no FM rows."
  },
- "fit_note": "Voices fitted 2026-11-16 against the OPM table (IKAOPM reference renders, AdLibEmu candidates), waveform select re-measured on the real chip 2026-11-20, then re-fitted 2026-11-20 against a real YM2413 recording of the probe set (Nuked candidates; mean distance 14.48 -> 10.51); see OPL3_FIT in make_presets.py.  Adopted as the standard opl3 table by the owner 2026-11-20."
+ "fit_note": "Voices fitted 2026-11-16 against the OPM table (IKAOPM reference renders, AdLibEmu candidates), re-fitted 2026-11-20 against real YM2413 recordings (Nuked candidates), then re-fitted 2026-11-21 against IKAOPLL renders of a low-extended 8-note probe set starting from the 2026-11-20 table (mean score 8.94 -> 7.19); see OPL3_FIT in make_presets.py."
 }
