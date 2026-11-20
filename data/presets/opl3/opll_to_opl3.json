@@ -39,7 +39,7 @@
      "ws": 4
     }
    ],
-   "level_trim_tl": 26
+   "level_trim_tl": 27
   },
   {
    "index": 2,
@@ -147,7 +147,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 24
+   "level_trim_tl": 25
   },
   {
    "index": 5,
@@ -363,7 +363,7 @@
      "ws": 1
     }
    ],
-   "level_trim_tl": 24
+   "level_trim_tl": 25
   },
   {
    "index": 11,
@@ -399,7 +399,7 @@
      "ws": 1
     }
    ],
-   "level_trim_tl": 23
+   "level_trim_tl": 21
   },
   {
    "index": 12,
@@ -435,7 +435,7 @@
      "ws": 6
     }
    ],
-   "level_trim_tl": 27
+   "level_trim_tl": 28
   },
   {
    "index": 13,
@@ -471,7 +471,7 @@
      "ws": 6
     }
    ],
-   "level_trim_tl": 29
+   "level_trim_tl": 27
   },
   {
    "index": 14,
@@ -543,7 +543,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 12
+   "level_trim_tl": 22
   }
  ],
  "rhythm": {
