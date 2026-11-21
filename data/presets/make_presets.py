@@ -123,6 +123,34 @@ LEVEL_TRIM_TL_OPNA = {'Violin': 6, 'Guitar': 2, 'Piano': 2,
                       'Harpsichord': 11, 'SynthBass': 13,
                       'AcoustBass': -1, 'ElecGuitar': 4}
 
+# SoundCore SLOT EXG anchor (2026-11-21): the same voices with the
+# level trims re-anchored from the IKAOPLL render to the owner's
+# real YM2413 recording through the SoundCore SLOT EXG - the anchor
+# the OPL3 table's final levels already use, so the FM targets
+# agree when layered.  Residual per voice = (real target - real
+# OPLL) - (model target - IKAOPLL model) over the v2 probe set
+# (IKAOPM / ymfm renders, transient-aligned lags), applied to the
+# IKAOPLL-anchored trims above: median -23.1 dB (OPM), -25.9 dB
+# (OPNA), per-voice spread under 2 dB.  Stored unclamped: at low
+# VOL the carrier TL saturates at 0, the physical ceiling, the
+# same saturation the OPL3 maximum lift reaches at trim 0.
+LEVEL_TRIM_TL_OPM_SOUNDCORE = {'Violin': -26, 'Guitar': -28,
+                               'Piano': -30, 'Flute': -30,
+                               'Clarinet': -31, 'Oboe': -35,
+                               'Trumpet': -39, 'Organ': -30,
+                               'Horn': -32, 'Synthesizer': -28,
+                               'Harpsichord': -21, 'Vibraphone': -31,
+                               'SynthBass': -15, 'AcoustBass': -33,
+                               'ElecGuitar': -27}
+LEVEL_TRIM_TL_OPNA_SOUNDCORE = {'Violin': -29, 'Guitar': -33,
+                                'Piano': -35, 'Flute': -33,
+                                'Clarinet': -33, 'Oboe': -38,
+                                'Trumpet': -41, 'Organ': -32,
+                                'Horn': -34, 'Synthesizer': -31,
+                                'Harpsichord': -23, 'Vibraphone': -34,
+                                'SynthBass': -23, 'AcoustBass': -36,
+                                'ElecGuitar': -31}
+
 # OPNA fit against the OPM set, 2026-11-16 (adopted by the owner
 # after audition): single-voice probes (C3/A4/C6) of the OPM table
 # rendered with IKAOPM as the reference, the OPNA table rendered
@@ -643,7 +671,23 @@ def write_target_jsons():
             {'kind': 'opna_native',
              'note': 'OPLL percussion projects to the OPNA native '
                      'rhythm unit (project_rhythm); no FM rows.'}),
+        'sfg01/opll_to_opm_soundcore.json': _target_json(
+            'sfg01', 'ym2151', 3579545, 5, 2,
+            LEVEL_TRIM_TL_OPM_SOUNDCORE,
+            {'kind': 'fm_rows', 'rows': opm_rhythm}),
+        'makoto/opll_to_opna_soundcore.json': _target_json(
+            'makoto', 'ym2608', 8000000, 4, 2,
+            LEVEL_TRIM_TL_OPNA_SOUNDCORE,
+            {'kind': 'opna_native',
+             'note': 'OPLL percussion projects to the OPNA native '
+                     'rhythm unit (project_rhythm); no FM rows.'}),
     }
+    for rel in ('sfg01/opll_to_opm_soundcore.json',
+                'makoto/opll_to_opna_soundcore.json'):
+        docs[rel]['source'] += (
+            ' Level trims anchored to the owner\'s real YM2413 '
+            'recording through the SoundCore SLOT EXG (2026-11-21); '
+            'see LEVEL_TRIM_TL_*_SOUNDCORE in make_presets.py.')
     for rel, doc in docs.items():
         path = HERE / rel
         path.parent.mkdir(parents=True, exist_ok=True)

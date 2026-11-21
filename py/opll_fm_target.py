@@ -22,6 +22,11 @@ from psg_scc_opm import opm_pitch
 _PRESET_DIR = Path(__file__).resolve().parent.parent / 'data' / 'presets'
 _TARGET_FILES = {'opm': ('sfg01', 'opll_to_opm.json'),
                  'opna': ('makoto', 'opll_to_opna.json')}
+# Level-anchor variant: identical voices, level trims anchored to
+# the owner's real YM2413 recording through the SoundCore SLOT EXG
+# instead of the IKAOPLL render (see make_presets.py).
+_SOUNDCORE_FILES = {'opm': ('sfg01', 'opll_to_opm_soundcore.json'),
+                    'opna': ('makoto', 'opll_to_opna_soundcore.json')}
 _cache = {}
 
 MUL_MAP = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 12, 12, 15, 15]
@@ -83,17 +88,19 @@ def _decode_patch(p):
     return {'fb': p[3] & 7, 'mod': mod, 'car': car}
 
 
-def _table(target_chip):
-    if target_chip not in _cache:
-        folder, name = _TARGET_FILES[target_chip]
+def _table(target_chip, soundcore=False):
+    key = (target_chip, soundcore)
+    if key not in _cache:
+        files = _SOUNDCORE_FILES if soundcore else _TARGET_FILES
+        folder, name = files[target_chip]
         doc = json.loads((_PRESET_DIR / folder / name).read_text())
         voices = {v['index']: v for v in doc['voices']}
-        _cache[target_chip] = (doc, voices)
-    return _cache[target_chip]
+        _cache[key] = (doc, voices)
+    return _cache[key]
 
 
 def project_opll_fm(performance, target_chip, target_clock, reserved=(), *,
-                    force=False):
+                    force=False, soundcore_levels=False):
     """Project OPLL melody units to OPM/OPNA FM writes.
 
     Returns (rows, losses, allocation).  Only the first OPLL
@@ -103,7 +110,7 @@ def project_opll_fm(performance, target_chip, target_clock, reserved=(), *,
     """
     if target_chip not in _TARGET_FILES:
         raise ValueError('OPLL FM projection targets OPM or OPNA')
-    doc, voices = _table(target_chip)
+    doc, voices = _table(target_chip, soundcore_levels)
     devices = {d.device_id: d for d in performance.devices}
     voice_by_id = {v.voice_id: v for v in performance.voices}
     opll_devices = [d for d in performance.devices if d.chip == 'opll']

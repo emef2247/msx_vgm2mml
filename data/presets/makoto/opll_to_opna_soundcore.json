@@ -1,0 +1,909 @@
+{
+ "target": "makoto",
+ "chip": "ym2608",
+ "clock_hz": 8000000,
+ "source": "opll_presets.json via make_presets.py; do not hand-edit Level trims anchored to the owner's real YM2413 recording through the SoundCore SLOT EXG (2026-11-21); see LEVEL_TRIM_TL_*_SOUNDCORE in make_presets.py.",
+ "lfo": {
+  "hz": 5.76,
+  "pms": 4,
+  "ams": 2
+ },
+ "voices": [
+  {
+   "index": 1,
+   "name": "Violin",
+   "fb": 7,
+   "alg": 4,
+   "pms": 2,
+   "ams": 0,
+   "ops": [
+    {
+     "mul": 1,
+     "tl": 30,
+     "ks": 2,
+     "ar": 30,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 0,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 0,
+     "ks": 0,
+     "ar": 18,
+     "d1r": 19,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 7,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ],
+   "level_trim_tl": -29
+  },
+  {
+   "index": 2,
+   "name": "Guitar",
+   "fb": 5,
+   "alg": 4,
+   "pms": 3,
+   "ams": 0,
+   "ops": [
+    {
+     "mul": 3,
+     "tl": 27,
+     "ks": 2,
+     "ar": 28,
+     "d1r": 15,
+     "d2r": 9,
+     "sl": 2,
+     "rr": 4,
+     "dt": 6,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 0,
+     "ks": 0,
+     "ar": 18,
+     "d1r": 9,
+     "d2r": 9,
+     "sl": 1,
+     "rr": 8,
+     "dt": 6,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ],
+   "level_trim_tl": -33
+  },
+  {
+   "index": 3,
+   "name": "Piano",
+   "fb": 0,
+   "alg": 4,
+   "pms": 0,
+   "ams": 0,
+   "ops": [
+    {
+     "mul": 3,
+     "tl": 39,
+     "ks": 2,
+     "ar": 24,
+     "d1r": 7,
+     "d2r": 5,
+     "sl": 1,
+     "rr": 2,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 0,
+     "ks": 0,
+     "ar": 26,
+     "d1r": 9,
+     "d2r": 5,
+     "sl": 2,
+     "rr": 8,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ],
+   "level_trim_tl": -35
+  },
+  {
+   "index": 4,
+   "name": "Flute",
+   "fb": 7,
+   "alg": 4,
+   "pms": 2,
+   "ams": 0,
+   "ops": [
+    {
+     "mul": 1,
+     "tl": 14,
+     "ks": 0,
+     "ar": 20,
+     "d1r": 23,
+     "d2r": 0,
+     "sl": 7,
+     "rr": 0,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 0,
+     "ks": 0,
+     "ar": 16,
+     "d1r": 7,
+     "d2r": 0,
+     "sl": 1,
+     "rr": 9,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ],
+   "level_trim_tl": -33
+  },
+  {
+   "index": 5,
+   "name": "Clarinet",
+   "fb": 6,
+   "alg": 4,
+   "pms": 0,
+   "ams": 0,
+   "ops": [
+    {
+     "mul": 2,
+     "tl": 30,
+     "ks": 0,
+     "ar": 16,
+     "d1r": 5,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 2,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 0,
+     "ks": 0,
+     "ar": 22,
+     "d1r": 11,
+     "d2r": 0,
+     "sl": 1,
+     "rr": 9,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ],
+   "level_trim_tl": -33
+  },
+  {
+   "index": 6,
+   "name": "Oboe",
+   "fb": 5,
+   "alg": 4,
+   "pms": 0,
+   "ams": 0,
+   "ops": [
+    {
+     "mul": 1,
+     "tl": 22,
+     "ks": 0,
+     "ar": 30,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 0,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 2,
+     "tl": 0,
+     "ks": 0,
+     "ar": 18,
+     "d1r": 5,
+     "d2r": 0,
+     "sl": 5,
+     "rr": 8,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ],
+   "level_trim_tl": -38
+  },
+  {
+   "index": 7,
+   "name": "Trumpet",
+   "fb": 7,
+   "alg": 4,
+   "pms": 2,
+   "ams": 0,
+   "ops": [
+    {
+     "mul": 1,
+     "tl": 29,
+     "ks": 0,
+     "ar": 22,
+     "d1r": 7,
+     "d2r": 0,
+     "sl": 1,
+     "rr": 2,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 0,
+     "ks": 0,
+     "ar": 20,
+     "d1r": 5,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 7,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ],
+   "level_trim_tl": -41
+  },
+  {
+   "index": 8,
+   "name": "Organ",
+   "fb": 4,
+   "alg": 4,
+   "pms": 0,
+   "ams": 0,
+   "ops": [
+    {
+     "mul": 3,
+     "tl": 45,
+     "ks": 0,
+     "ar": 26,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 0,
+     "dt": 5,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 0,
+     "ks": 0,
+     "ar": 18,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 7,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ],
+   "level_trim_tl": -32
+  },
+  {
+   "index": 9,
+   "name": "Horn",
+   "fb": 6,
+   "alg": 4,
+   "pms": 2,
+   "ams": 0,
+   "ops": [
+    {
+     "mul": 1,
+     "tl": 27,
+     "ks": 0,
+     "ar": 16,
+     "d1r": 11,
+     "d2r": 0,
+     "sl": 1,
+     "rr": 0,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 0,
+     "ks": 0,
+     "ar": 16,
+     "d1r": 13,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 7,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ],
+   "level_trim_tl": -34
+  },
+  {
+   "index": 10,
+   "name": "Synthesizer",
+   "fb": 1,
+   "alg": 4,
+   "pms": 1,
+   "ams": 0,
+   "ops": [
+    {
+     "mul": 1,
+     "tl": 11,
+     "ks": 0,
+     "ar": 22,
+     "d1r": 13,
+     "d2r": 5,
+     "sl": 7,
+     "rr": 2,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 0,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 8,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ],
+   "level_trim_tl": -31,
+   "mod_eg_override": {
+    "d1r": 11,
+    "d2r": 4,
+    "sl": 6,
+    "status": "adopted 2026-11-14 by owner audition (FMPAC02)"
+   }
+  },
+  {
+   "index": 11,
+   "name": "Harpsichord",
+   "fb": 1,
+   "alg": 4,
+   "pms": 0,
+   "ams": 0,
+   "ops": [
+    {
+     "mul": 3,
+     "tl": 17,
+     "ks": 2,
+     "ar": 26,
+     "d1r": 19,
+     "d2r": 0,
+     "sl": 1,
+     "rr": 0,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 0,
+     "ks": 0,
+     "ar": 22,
+     "d1r": 31,
+     "d2r": 7,
+     "sl": 0,
+     "rr": 8,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ],
+   "level_trim_tl": -23
+  },
+  {
+   "index": 12,
+   "name": "Vibraphone",
+   "fb": 7,
+   "alg": 4,
+   "pms": 3,
+   "ams": 2,
+   "ops": [
+    {
+     "mul": 7,
+     "tl": 36,
+     "ks": 2,
+     "ar": 26,
+     "d1r": 19,
+     "d2r": 7,
+     "sl": 2,
+     "rr": 3,
+     "dt": 6,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 0,
+     "ks": 0,
+     "ar": 30,
+     "d1r": 9,
+     "d2r": 9,
+     "sl": 4,
+     "rr": 8,
+     "dt": 3,
+     "am": 1
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ],
+   "level_trim_tl": -34
+  },
+  {
+   "index": 13,
+   "name": "SynthBass",
+   "fb": 5,
+   "alg": 4,
+   "pms": 4,
+   "ams": 2,
+   "ops": [
+    {
+     "mul": 1,
+     "tl": 5,
+     "ks": 0,
+     "ar": 18,
+     "d1r": 7,
+     "d2r": 0,
+     "sl": 2,
+     "rr": 0,
+     "dt": 1,
+     "am": 1
+    },
+    {
+     "mul": 0,
+     "tl": 0,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 11,
+     "d2r": 0,
+     "sl": 9,
+     "rr": 3,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ],
+   "level_trim_tl": -23
+  },
+  {
+   "index": 14,
+   "name": "AcoustBass",
+   "fb": 3,
+   "alg": 4,
+   "pms": 0,
+   "ams": 0,
+   "ops": [
+    {
+     "mul": 1,
+     "tl": 28,
+     "ks": 0,
+     "ar": 24,
+     "d1r": 11,
+     "d2r": 9,
+     "sl": 0,
+     "rr": 4,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 0,
+     "ks": 0,
+     "ar": 22,
+     "d1r": 0,
+     "d2r": 5,
+     "sl": 0,
+     "rr": 8,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ],
+   "level_trim_tl": -36
+  },
+  {
+   "index": 15,
+   "name": "ElecGuitar",
+   "fb": 3,
+   "alg": 4,
+   "pms": 2,
+   "ams": 0,
+   "ops": [
+    {
+     "mul": 1,
+     "tl": 23,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 5,
+     "d2r": 0,
+     "sl": 12,
+     "rr": 0,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 0,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 7,
+     "d2r": 9,
+     "sl": 1,
+     "rr": 8,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    },
+    {
+     "mul": 1,
+     "tl": 127,
+     "ks": 0,
+     "ar": 31,
+     "d1r": 0,
+     "d2r": 0,
+     "sl": 0,
+     "rr": 15,
+     "dt": 0,
+     "am": 0
+    }
+   ],
+   "level_trim_tl": -31
+  }
+ ],
+ "rhythm": {
+  "kind": "opna_native",
+  "note": "OPLL percussion projects to the OPNA native rhythm unit (project_rhythm); no FM rows."
+ },
+ "fit_note": "Voices fitted 2026-11-16 against the OPM table (IKAOPM reference renders, AdLibEmu candidates), waveform select re-measured on the real chip 2026-11-20, then re-fitted 2026-11-20 against real YM2413 recordings of the probe set (Nuked candidates).  The extended re-fit (5 notes per voice, corrected probe pitch) supersedes the first re-fit, whose candidates sounded one octave low; mean distance 23.09 -> 9.37 under the corrected measurement; see OPL3_FIT in make_presets.py."
+}

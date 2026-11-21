@@ -81,12 +81,14 @@ def _write(performance, rows, prefix, path):
     return rows
 
 
-def _project_fm_layer(performance, chip, clock, *, force, include_psg=False):
+def _project_fm_layer(performance, chip, clock, *, force, include_psg=False,
+                      soundcore_levels=False):
     from musical_fm_target import project_fm
     fm, losses, allocation = project_fm(performance, chip, clock, force=force)
     from opll_fm_target import project_opll_fm
     opll_rows, opll_losses, opll_allocation = project_opll_fm(
-        performance, chip, clock, reserved=set(allocation.values()), force=force)
+        performance, chip, clock, reserved=set(allocation.values()), force=force,
+        soundcore_levels=soundcore_levels)
     wave, wave_losses, wave_allocation = project_waves(performance, chip, clock,
         set(allocation.values()) | set(opll_allocation.values()), force=True,
         include_psg=include_psg)
@@ -176,7 +178,8 @@ def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, re
     return rows,b'',dict(losses),plan
 
 
-def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_law=False):
+def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_law=False,
+                    soundcore_levels=False):
     from musical_pcm_target import project_pcm
     if profile not in PROFILES:raise ValueError('Unknown cartridge profile')
     real_scc=profile in SCC_PROFILES
@@ -242,7 +245,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
         rows.extend(scc_rows);losses.update(scc_losses)
     for target_chip,target_clock in targets:
         fm,fm_losses,layer_plan=_project_fm_layer(fm_performance,target_chip,target_clock,force=force,
-            include_psg=real_psg)
+            include_psg=real_psg,soundcore_levels=soundcore_levels)
         rows.extend(fm);losses.update(fm_losses)
         fm_layers[target_chip]=layer_plan
     opll_fm_device=next((d.device_id for d in performance.devices if d.chip=='opll' and
@@ -357,7 +360,8 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     return rows,prefix,dict(losses),plan
 
 
-def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, opna_law=False):
+def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, opna_law=False,
+                    soundcore_levels=False):
     root=Path(outdir);root.mkdir(parents=True,exist_ok=True);results={}
     for profile in PROFILES:
         folder=root/profile;folder.mkdir(parents=True,exist_ok=True)
@@ -372,7 +376,8 @@ def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, op
             # is needed and the result matches sfg01, so the profile
             # set a user finds does not depend on the song's content.
             rows,prefix,losses,plan=project_variant(performance,profile,force=force,
-                dcsg_gain=dcsg_gain,opna_law=opna_law)
+                dcsg_gain=dcsg_gain,opna_law=opna_law,
+                soundcore_levels=soundcore_levels)
             rows=_write(performance,rows,prefix,path)
             with (folder/(stem+'.writes.csv')).open('w',newline='',encoding='utf-8') as stream:
                 fields=['write_id','sample','order','device_id','unit_id','source_indices','reason','command_hex','target_address','emitted']
