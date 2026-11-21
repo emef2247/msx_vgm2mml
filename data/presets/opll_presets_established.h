@@ -141,9 +141,9 @@ static const unsigned char OPLL_PRESET_OPM[15][4 + 4 * 10] = {
  * IKAOPLL / IKAOPM (see LEVEL_TRIM_TL_OPM in
  * make_presets.py for method and per-voice values). */
 static const signed char OPLL_OPM_LEVEL_TRIM[15] = {
-    7, 0, 0, 0, 0, 0, -1, 4, 0, 7, 4, 0, 0, 0, 0 };
+    6, 2, 2, 1, 1, -3, -7, 0, 0, 2, 10, 0, 14, -1, 4 };
 static const signed char OPLL_OPNA_LEVEL_TRIM[15] = {
-    7, 0, 0, 0, 0, 0, -1, 4, 0, 7, 4, 0, 0, 0, 0 };
+    6, 2, 2, 1, 1, -3, -7, 0, 0, 2, 11, 0, 13, -1, 4 };
 /* OPM rhythm: { FB, ALG, PMS, AMS, { op x4 } } preset codes
  * for the five drum voices, plus HH/TC hardware-noise
  * variants.  The companion table gives the reg 0x0F byte

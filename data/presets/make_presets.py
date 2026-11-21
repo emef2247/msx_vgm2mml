@@ -92,15 +92,35 @@ KSL_COMP = {0: 0, 1: 7, 2: 14, 3: 19}  # TL steps, A4 reference (see four_op)
 # Vibraphone is excluded: its offset is
 # window-dependent (-3.4 / -5.7 / -6.4 dB at 0.1 / 0.35 / 1 s),
 # an EG decay-shape difference, not a level offset.
-LEVEL_TRIM_TL_OPM = {'Violin': 7, 'Trumpet': -1, 'Organ': 4,
-                     'Synthesizer': 7, 'Harpsichord': 4}
-
-# OPNA (YM2608 @ 8 MHz, ymfm via opm_opna_study direct_render):
-# the same 15-voice level measurement matched the OPM table
-# within 0.1 dB for 13 of 15 voices (Harpsichord +3.39 vs +3.27;
-# Vibraphone window-dependent as on OPM), so the same trim
-# values apply.  Note direct_render writes 166666 Hz WAV.
-LEVEL_TRIM_TL_OPNA = dict(LEVEL_TRIM_TL_OPM)
+#
+# Re-anchored 2026-11-21 from real-chip recordings of the
+# 15-voice probe set (C3/A4/C6, gate 1.0 s) generated from the
+# post-seed-swap tables: per-voice RMS over [onset+0.15,
+# onset+0.95] s against the IKAOPLL render, each voice's offset
+# taken relative to the 15-voice median (the recording chain's
+# common gain), converted at 0.75 dB per TL step and rounded to
+# the nearest step, applied per voice (no global shift).  The
+# seed swap moved several voices by multiple dB (SynthBass
+# +10.4 dB, Harpsichord +4.8, Trumpet -4.4, Synthesizer -4.1 on
+# OPM), so the 2026-11-13/14 values above do not carry over.
+# Synthesizer's 7 was an owner audition on the old seed; the
+# post-seed measurement reads -4.1 dB at trim 7, hence 2.
+# Vibraphone stays excluded on the decay-shape ground above:
+# the post-seed readings (OPM -6.5 dB in this window, OPNA
+# -1.3) are consistent with the window dependence, and its
+# treatment is the owner's call.  OPNA now carries its own
+# dict from its own recording; it differs from OPM only in
+# Harpsichord (+1 step) and SynthBass (-1 step).
+LEVEL_TRIM_TL_OPM = {'Violin': 6, 'Guitar': 2, 'Piano': 2,
+                     'Flute': 1, 'Clarinet': 1, 'Oboe': -3,
+                     'Trumpet': -7, 'Synthesizer': 2,
+                     'Harpsichord': 10, 'SynthBass': 14,
+                     'AcoustBass': -1, 'ElecGuitar': 4}
+LEVEL_TRIM_TL_OPNA = {'Violin': 6, 'Guitar': 2, 'Piano': 2,
+                      'Flute': 1, 'Clarinet': 1, 'Oboe': -3,
+                      'Trumpet': -7, 'Synthesizer': 2,
+                      'Harpsichord': 11, 'SynthBass': 13,
+                      'AcoustBass': -1, 'ElecGuitar': 4}
 
 # OPNA fit against the OPM set, 2026-11-16 (adopted by the owner
 # after audition): single-voice probes (C3/A4/C6) of the OPM table
@@ -437,7 +457,13 @@ def _target_json(target, chip, clock, pms, ams, trims, rhythm):
 # about +3 dB over the song's other voices, the same family).
 # Initial values carried from the OPM set; the owner's audition
 # may retune them per voice, as it did there (9 -> 8 -> 7).
-LEVEL_TRIM_TL_OPL3 = dict(LEVEL_TRIM_TL_OPM)
+# Pinned to the pre-2026-11-21 OPM values: OPL3's shipped
+# trims all come from OPL3_FIT below (absolute anchor against
+# the IKAOPLL render), so this base only fills voices a FIT
+# entry might omit; it must not follow the OPM/OPNA real-chip
+# re-anchor above.
+LEVEL_TRIM_TL_OPL3 = {'Violin': 7, 'Trumpet': -1, 'Organ': 4,
+                      'Synthesizer': 7, 'Harpsichord': 4}
 
 
 def _established_opl_json(target, chip, clock):

@@ -66,7 +66,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 7
+   "level_trim_tl": 6
   },
   {
    "index": 2,
@@ -125,7 +125,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 2
   },
   {
    "index": 3,
@@ -184,7 +184,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 2
   },
   {
    "index": 4,
@@ -243,7 +243,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 1
   },
   {
    "index": 5,
@@ -302,7 +302,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 1
   },
   {
    "index": 6,
@@ -361,7 +361,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": -3
   },
   {
    "index": 7,
@@ -420,7 +420,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -1
+   "level_trim_tl": -7
   },
   {
    "index": 8,
@@ -479,7 +479,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 4
+   "level_trim_tl": 0
   },
   {
    "index": 9,
@@ -597,7 +597,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 7,
+   "level_trim_tl": 2,
    "mod_eg_override": {
     "d1r": 11,
     "d2r": 4,
@@ -662,7 +662,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 4
+   "level_trim_tl": 11
   },
   {
    "index": 12,
@@ -780,7 +780,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 13
   },
   {
    "index": 14,
@@ -839,7 +839,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": -1
   },
   {
    "index": 15,
@@ -898,12 +898,12 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 4
   }
  ],
  "rhythm": {
   "kind": "opna_native",
   "note": "OPLL percussion projects to the OPNA native rhythm unit (project_rhythm); no FM rows."
  },
- "fit_note": "Voices fitted 2026-11-16 against the OPM table (IKAOPM reference renders, ymfm candidates); see OPNA_FIT in make_presets.py."
+ "fit_note": "Voices fitted 2026-11-16 against the OPM table (IKAOPM reference renders, AdLibEmu candidates), waveform select re-measured on the real chip 2026-11-20, then re-fitted 2026-11-20 against real YM2413 recordings of the probe set (Nuked candidates).  The extended re-fit (5 notes per voice, corrected probe pitch) supersedes the first re-fit, whose candidates sounded one octave low; mean distance 23.09 -> 9.37 under the corrected measurement; see OPL3_FIT in make_presets.py."
 }
