@@ -269,7 +269,8 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     pcm_performance=performance
     if not assets and auxiliary in ('opna','y8950') and not (layered_opll and opll_percussion):
         from opll_rhythm_pcm import build_rhythm_pcm_assets
-        derived,rhythm_pcm_losses=build_rhythm_pcm_assets(performance,library=pcm_library)
+        derived,rhythm_pcm_losses=build_rhythm_pcm_assets(performance,library=pcm_library,
+            soundcore_levels=soundcore_levels)
         if derived:
             from dataclasses import replace
             pcm_performance=replace(performance,pcm_assets=derived)
@@ -321,12 +322,14 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
             for key in ('fm_allocation','opll_allocation','waveform_allocation'):
                 reserved.update(int(v) for v in layer_plan[key].values())
         fm_rhythm,fm_rhythm_losses,rhythm_info=project_opll_rhythm_fm(
-            performance,fm_rhythm_table,reserved,force=force)
+            performance,fm_rhythm_table,reserved,force=force,
+            soundcore_levels=soundcore_levels)
         rows.extend(fm_rhythm);losses.update(fm_rhythm_losses)
     from musical_rhythm_target import project_rhythm
     rhythm,rhythm_losses=project_rhythm(performance,makoto=auxiliary in ('opna','misato'),
         opll_pcm=rhythm_pcm,opll_fm=bool(fm_rhythm_table),
-        opna_rhythm=auxiliary=='misato')
+        opna_rhythm=auxiliary=='misato',
+        soundcore_levels=soundcore_levels)
     rows.extend(rhythm);losses.update(rhythm_losses)
     # The measured OPNA TL/decay law is applied to projected carrier values,
     # after native curve/voice recombination, never to source evidence.

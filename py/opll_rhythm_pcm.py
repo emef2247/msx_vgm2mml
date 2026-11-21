@@ -82,7 +82,8 @@ def _pitch_at(performance, device):
     return snapshots
 
 
-def build_rhythm_pcm_assets(performance, library='ika'):
+def build_rhythm_pcm_assets(performance, library='ika', *,
+                            soundcore_levels=False):
     """Derived NativePCM assets for the first OPLL device's rhythm.
 
     Returns (assets, losses); empty when the performance has no
@@ -155,6 +156,11 @@ def build_rhythm_pcm_assets(performance, library='ika'):
             level = 0
             losses['opll_rhythm_pcm_level_unknown'] += 1
         gain = 10 ** (-3.01 * max(0, min(15, int(level))) / 20)
+        if soundcore_levels:
+            # SoundCore level mode (owner's decision, 2026-11-21):
+            # the PCM rhythm drops by the same ~11 dB as the other
+            # SoundCore-anchored lanes.
+            gain *= 10 ** (-11.25 / 20)
         samples = tuple(max(-32768, min(32767, round(v * gain)))
                         for v in hits[hit_key])
         raw.append((event.start_sample, rate * ratio, samples,

@@ -34,6 +34,12 @@ _cache = {}
 # register setup), it falls to 25% of its peak at about 52 ms
 # (2026-11-15).
 _NOISE_PULSE_SAMPLES = int(0.052 * 44100)
+# SoundCore level mode (owner's decision, 2026-11-21): alongside
+# the SoundCore-anchored melody tables, the FM rhythm drops by
+# the same ~11 dB the melody anchor was halved by, applied as
+# +15 carrier TL steps (0.75 dB each).  The fitted tables
+# themselves keep their IKAOPLL-anchored levels.
+_SOUNDCORE_TL_OFFSET = 15
 # Audible register slots per algorithm, measured with a
 # solo-carrier probe on IKAOPM (2026-11-14).
 _CARRIERS_REG = {0: {3}, 1: {3}, 2: {3}, 3: {3}, 4: {2, 3},
@@ -48,9 +54,11 @@ def _table(name):
     return _cache[name]
 
 
-def project_opll_rhythm_fm(performance, table, reserved, *, force=False):
+def project_opll_rhythm_fm(performance, table, reserved, *, force=False,
+                           soundcore_levels=False):
     """Returns (rows, losses, info)."""
     doc, voices = _table(table)
+    tl_offset = _SOUNDCORE_TL_OFFSET if soundcore_levels else 0
     rows, losses = [], Counter()
     devices = [d for d in performance.devices if d.chip == 'opll']
     if not devices:
@@ -193,7 +201,7 @@ def project_opll_rhythm_fm(performance, table, reserved, *, force=False):
         for logical, op in enumerate(ops):
             mul, tl, ks, ar, d1r, d2r, sl, rr, dt, am = op
             if logical in carriers:
-                tl = max(0, min(127, tl + (level << 2)))
+                tl = max(0, min(127, tl + (level << 2) + tl_offset))
             off = _OPM_SLOTS[logical] * 8 + ch
             for base, value in ((0x40, (dt << 4) | mul), (0x60, tl),
                                 (0x80, (ks << 6) | ar),
@@ -224,7 +232,7 @@ def project_opll_rhythm_fm(performance, table, reserved, *, force=False):
                     continue
                 off = _OPM_SLOTS[logical] * 8 + ch
                 emit(event, at, -0.1, 0x60 + off,
-                     max(0, min(127, op[1] + (vol << 2))),
+                     max(0, min(127, op[1] + (vol << 2) + tl_offset)),
                      'OPLL rhythm FM carrier level curve')
         emit(event, end, 0.5, 8, ch, 'OPLL rhythm FM key off')
         busy[ch] = (start, end, event)
