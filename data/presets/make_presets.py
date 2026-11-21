@@ -107,10 +107,11 @@ KSL_COMP = {0: 0, 1: 7, 2: 14, 3: 19}  # TL steps, A4 reference (see four_op)
 # post-seed measurement reads -4.1 dB at trim 7, hence 2.
 # Vibraphone stays excluded on the decay-shape ground above:
 # the post-seed readings (OPM -6.5 dB in this window, OPNA
-# -1.3) are consistent with the window dependence, and its
-# treatment is the owner's call.  OPNA now carries its own
-# dict from its own recording; it differs from OPM only in
-# Harpsichord (+1 step) and SynthBass (-1 step).
+# -1.3) are consistent with the window dependence, and the
+# owner confirmed the exclusion on 2026-11-21.  OPNA now
+# carries its own dict from its own recording; it differs
+# from OPM only in Harpsichord (+1 step) and SynthBass
+# (-1 step).
 LEVEL_TRIM_TL_OPM = {'Violin': 6, 'Guitar': 2, 'Piano': 2,
                      'Flute': 1, 'Clarinet': 1, 'Oboe': -3,
                      'Trumpet': -7, 'Synthesizer': 2,
