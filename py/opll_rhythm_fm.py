@@ -34,12 +34,15 @@ _cache = {}
 # register setup), it falls to 25% of its peak at about 52 ms
 # (2026-11-15).
 _NOISE_PULSE_SAMPLES = int(0.052 * 44100)
-# SoundCore level mode (owner's decisions, 2026-11-21): alongside
-# the SoundCore-anchored melody tables, the FM rhythm drops to
-# the same working level, applied as +30 carrier TL steps
-# (0.75 dB each, about -22.5 dB below the fitted level).  The
-# fitted tables themselves keep their IKAOPLL-anchored levels.
-_SOUNDCORE_TL_OFFSET = 30
+# Cartridge level correction (owner's decision, 2026-11-21): on
+# the real SFG-01 the fitted FM rhythm comes out far hotter than
+# the melody (ear-hurting on the default export of FMPAC02), so
+# the lane sits +30 carrier TL steps below the fitted level
+# (0.75 dB each, about -22.5 dB) in every level mode.  SoundCore
+# mode previously added this same +30 on top of the fitted level,
+# so folding it into the base leaves SoundCore output unchanged.
+# The fitted tables themselves keep their IKAOPLL-anchored levels.
+_BASE_TL_OFFSET = 30
 # Audible register slots per algorithm, measured with a
 # solo-carrier probe on IKAOPM (2026-11-14).
 _CARRIERS_REG = {0: {3}, 1: {3}, 2: {3}, 3: {3}, 4: {2, 3},
@@ -58,7 +61,9 @@ def project_opll_rhythm_fm(performance, table, reserved, *, force=False,
                            soundcore_levels=False):
     """Returns (rows, losses, info)."""
     doc, voices = _table(table)
-    tl_offset = _SOUNDCORE_TL_OFFSET if soundcore_levels else 0
+    # soundcore_levels no longer changes this lane: the cartridge
+    # correction above is part of the base level (2026-11-21).
+    tl_offset = _BASE_TL_OFFSET
     rows, losses = [], Counter()
     devices = [d for d in performance.devices if d.chip == 'opll']
     if not devices:
