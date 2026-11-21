@@ -39,7 +39,7 @@
      "ws": 4
     }
    ],
-   "level_trim_tl": 27
+   "level_trim_tl": 0
   },
   {
    "index": 2,
@@ -75,7 +75,7 @@
      "ws": 6
     }
    ],
-   "level_trim_tl": 32
+   "level_trim_tl": 2
   },
   {
    "index": 3,
@@ -111,7 +111,7 @@
      "ws": 5
     }
    ],
-   "level_trim_tl": 24
+   "level_trim_tl": 0
   },
   {
    "index": 4,
@@ -147,7 +147,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 28
+   "level_trim_tl": 0
   },
   {
    "index": 5,
@@ -183,7 +183,7 @@
      "ws": 6
     }
    ],
-   "level_trim_tl": 31
+   "level_trim_tl": 0
   },
   {
    "index": 6,
@@ -219,7 +219,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 24
+   "level_trim_tl": 0
   },
   {
    "index": 7,
@@ -255,7 +255,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 25
+   "level_trim_tl": 0
   },
   {
    "index": 8,
@@ -291,7 +291,7 @@
      "ws": 1
     }
    ],
-   "level_trim_tl": 24
+   "level_trim_tl": 0
   },
   {
    "index": 9,
@@ -327,7 +327,7 @@
      "ws": 2
     }
    ],
-   "level_trim_tl": 26
+   "level_trim_tl": 0
   },
   {
    "index": 10,
@@ -363,7 +363,7 @@
      "ws": 1
     }
    ],
-   "level_trim_tl": 25
+   "level_trim_tl": 0
   },
   {
    "index": 11,
@@ -399,7 +399,7 @@
      "ws": 1
     }
    ],
-   "level_trim_tl": 28
+   "level_trim_tl": 2
   },
   {
    "index": 12,
@@ -435,7 +435,7 @@
      "ws": 6
     }
    ],
-   "level_trim_tl": 32
+   "level_trim_tl": 0
   },
   {
    "index": 13,
@@ -471,7 +471,7 @@
      "ws": 6
     }
    ],
-   "level_trim_tl": 36
+   "level_trim_tl": 15
   },
   {
    "index": 14,
@@ -507,7 +507,7 @@
      "ws": 2
     }
    ],
-   "level_trim_tl": 28
+   "level_trim_tl": 0
   },
   {
    "index": 15,
@@ -543,7 +543,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 28
+   "level_trim_tl": 0
   }
  ],
  "rhythm": {
