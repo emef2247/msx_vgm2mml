@@ -123,46 +123,35 @@ LEVEL_TRIM_TL_OPNA = {'Violin': 6, 'Guitar': 2, 'Piano': 2,
                       'Harpsichord': 11, 'SynthBass': 13,
                       'AcoustBass': -1, 'ElecGuitar': 4}
 
-# SoundCore SLOT EXG anchor (2026-11-21): the same voices with the
-# level trims re-anchored from the IKAOPLL render to the owner's
-# real YM2413 recording through the SoundCore SLOT EXG - the anchor
-# the OPL3 table's final levels already use, so the FM targets
-# agree when layered.  Residual per voice = (real target - real
-# OPLL) - (model target - IKAOPLL model) over the v2 probe set
-# (IKAOPM / ymfm renders, transient-aligned lags), applied to the
-# IKAOPLL-anchored trims above: median -23.1 dB (OPM), -25.9 dB
-# (OPNA), per-voice spread under 2 dB.
+# SoundCore SLOT EXG anchor experiment (2026-11-21, retired the
+# same day - see below): the level trims were re-anchored from
+# the IKAOPLL render to the owner's real YM2413 recording through
+# the SoundCore SLOT EXG - the anchor the OPL3 table's final
+# levels already use, so the FM targets agree when layered.
+# Residual per voice = (real target - real OPLL) - (model target
+# - IKAOPLL model) over the v2 probe set (IKAOPM / ymfm renders,
+# transient-aligned lags), applied to the IKAOPLL-anchored trims
+# above: median -23.1 dB (OPM), -25.9 dB (OPNA), per-voice spread
+# under 2 dB.
 #
-# Applied well below the measured offset (owner's decisions,
-# 2026-11-21): at full compensation a real song (FMPAC02 on the
-# real SFG-01) saturates - every note with carrier-TL headroom is
-# lifted the full ~23-26 dB while VOL 0 notes stay pinned at TL 0,
-# so the dynamics crush into one loud band (recording RMS
-# -10.6 dBFS, 1 s windows within 2 dB of each other).  The first
-# application took the per-voice midpoints between the
-# IKAOPLL-anchored and full SoundCore trims; a second audition of
-# that version was still too loud, so the values below sit one
-# further ~11 dB step down (+15 TL steps from the midpoints),
-# roughly 22.5 dB below full compensation and close to the
-# IKAOPLL anchor.  The full-compensation values are in commit
-# 770fa65 and the residuals in the probe workdir
+# The lift was then walked back (owner's auditions, 2026-11-21):
+# at full compensation a real song (FMPAC02 on the real SFG-01)
+# saturates - every note with carrier-TL headroom is lifted the
+# full ~23-26 dB while VOL 0 notes stay pinned at TL 0, so the
+# dynamics crush into one loud band (recording RMS -10.6 dBFS,
+# 1 s windows within 2 dB of each other).  Two ~11 dB steps down
+# (midpoints, then one more step) brought the trims back to
+# within a few steps of the IKAOPLL anchor, at which point the
+# owner retired the separate melody tuning entirely: the melody
+# stays at the IKAOPLL anchor, with no half-adjusted variant
+# left to confuse later work.  The SoundCore tables below are
+# therefore generated with the default trims; --soundcore-levels
+# now changes only the OPNA rhythm lanes (Misato unit level,
+# Makoto ADPCM-B gain).  The full-compensation values are in
+# commit 770fa65 and the residuals in the probe workdir
 # (opm_opna_level_probes/exg_residuals.json).
-LEVEL_TRIM_TL_OPM_SOUNDCORE = {'Violin': 5, 'Guitar': 2,
-                               'Piano': 1, 'Flute': 1,
-                               'Clarinet': 0, 'Oboe': -4,
-                               'Trumpet': -8, 'Organ': 0,
-                               'Horn': -1, 'Synthesizer': 2,
-                               'Harpsichord': 9, 'Vibraphone': -1,
-                               'SynthBass': 15, 'AcoustBass': -2,
-                               'ElecGuitar': 3}
-LEVEL_TRIM_TL_OPNA_SOUNDCORE = {'Violin': 3, 'Guitar': -1,
-                                'Piano': -1, 'Flute': -1,
-                                'Clarinet': -1, 'Oboe': -5,
-                                'Trumpet': -9, 'Organ': -1,
-                                'Horn': -2, 'Synthesizer': 1,
-                                'Harpsichord': 9, 'Vibraphone': -2,
-                                'SynthBass': 10, 'AcoustBass': -3,
-                                'ElecGuitar': 1}
+LEVEL_TRIM_TL_OPM_SOUNDCORE = LEVEL_TRIM_TL_OPM
+LEVEL_TRIM_TL_OPNA_SOUNDCORE = LEVEL_TRIM_TL_OPNA
 
 # OPNA fit against the OPM set, 2026-11-16 (adopted by the owner
 # after audition): single-voice probes (C3/A4/C6) of the OPM table
@@ -698,12 +687,11 @@ def write_target_jsons():
     for rel in ('sfg01/opll_to_opm_soundcore.json',
                 'makoto/opll_to_opna_soundcore.json'):
         docs[rel]['source'] += (
-            ' Level trims anchored to the owner\'s real YM2413 '
-            'recording through the SoundCore SLOT EXG (2026-11-21), '
-            'applied about 22.5 dB below the full measured offset '
-            '(full compensation saturated real songs; lowered in '
-            'two audition steps); see LEVEL_TRIM_TL_*_SOUNDCORE '
-            'in make_presets.py.')
+            ' Melody level trims are the IKAOPLL-anchored values, '
+            'identical to the default table (owner\'s decision, '
+            '2026-11-21: the SoundCore level lift was retired '
+            'after audition; --soundcore-levels now affects only '
+            'the rhythm lanes).')
     for rel, doc in docs.items():
         path = HERE / rel
         path.parent.mkdir(parents=True, exist_ok=True)

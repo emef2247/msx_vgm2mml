@@ -2,7 +2,7 @@
  "target": "sfg01",
  "chip": "ym2151",
  "clock_hz": 3579545,
- "source": "opll_presets.json via make_presets.py; do not hand-edit Level trims anchored to the owner's real YM2413 recording through the SoundCore SLOT EXG (2026-11-21), applied about 22.5 dB below the full measured offset (full compensation saturated real songs; lowered in two audition steps); see LEVEL_TRIM_TL_*_SOUNDCORE in make_presets.py.",
+ "source": "opll_presets.json via make_presets.py; do not hand-edit Melody level trims are the IKAOPLL-anchored values, identical to the default table (owner's decision, 2026-11-21: the SoundCore level lift was retired after audition; --soundcore-levels now affects only the rhythm lanes).",
  "lfo": {
   "hz": 5.76,
   "pms": 5,
@@ -69,7 +69,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 5
+   "level_trim_tl": 6
   },
   {
    "index": 2,
@@ -187,7 +187,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 1
+   "level_trim_tl": 2
   },
   {
    "index": 4,
@@ -305,7 +305,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 1
   },
   {
    "index": 6,
@@ -364,7 +364,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -4
+   "level_trim_tl": -3
   },
   {
    "index": 7,
@@ -423,7 +423,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -8
+   "level_trim_tl": -7
   },
   {
    "index": 8,
@@ -541,7 +541,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -1
+   "level_trim_tl": 0
   },
   {
    "index": 10,
@@ -665,7 +665,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 9
+   "level_trim_tl": 10
   },
   {
    "index": 12,
@@ -724,7 +724,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -1
+   "level_trim_tl": 0
   },
   {
    "index": 13,
@@ -783,7 +783,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 15
+   "level_trim_tl": 14
   },
   {
    "index": 14,
@@ -842,7 +842,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -2
+   "level_trim_tl": -1
   },
   {
    "index": 15,
@@ -901,7 +901,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": 3
+   "level_trim_tl": 4
   }
  ],
  "rhythm": {

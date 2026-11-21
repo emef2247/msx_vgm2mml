@@ -156,11 +156,11 @@ def build_rhythm_pcm_assets(performance, library='ika', *,
             level = 0
             losses['opll_rhythm_pcm_level_unknown'] += 1
         gain = 10 ** (-3.01 * max(0, min(15, int(level))) / 20)
-        if soundcore_levels:
-            # SoundCore level mode (owner's decisions, 2026-11-21):
-            # the PCM rhythm drops to the same working level as
-            # the other SoundCore-anchored lanes (about -22.5 dB).
-            gain *= 10 ** (-22.5 / 20)
+        # Cartridge level correction (owner's decision, 2026-11-21):
+        # the PCM rhythm sits about -22.5 dB below the fitted level
+        # in every level mode.  The SoundCore mode's extra drop was
+        # folded into this base, so its output is unchanged.
+        gain *= 10 ** (-22.5 / 20)
         samples = tuple(max(-32768, min(32767, round(v * gain)))
                         for v in hits[hit_key])
         raw.append((event.start_sample, rate * ratio, samples,
