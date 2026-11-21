@@ -75,7 +75,7 @@
      "ws": 6
     }
    ],
-   "level_trim_tl": 2
+   "level_trim_tl": 0
   },
   {
    "index": 3,
@@ -399,7 +399,7 @@
      "ws": 1
     }
    ],
-   "level_trim_tl": 2
+   "level_trim_tl": 0
   },
   {
    "index": 12,
