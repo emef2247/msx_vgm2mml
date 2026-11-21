@@ -482,7 +482,7 @@ def _established_opl_json(target, chip, clock):
                                'musical_opl3_target); no FM rows.'}}
 
 
-# OPL3 fitted set: the established frame plus a per-voice fit.
+# OPL3 fitted set: per-voice fit against IKAOPLL WAV output.
 # First fitted 2026-11-16 against the OPM table (IKAOPM reference
 # renders, AdLibEmu candidate search over the OPL frame plus
 # waveform select, an axis OPM does not have), with the waveform
@@ -540,18 +540,20 @@ OPL3_FIT = {
 def _fitted_opl3_json():
     import copy
     doc = _established_opl_json('opl3', 'ymf262', 14318180)
-    doc['law'] = ('established frame plus the OPL3_FIT per-voice '
-                  'fit (IKAOPLL-reference search; see '
-                  'OPL3_FIT in make_presets.py)')
-    doc['fit_note'] = ('Voices fitted 2026-11-16 against the OPM '
-                       'table (IKAOPM reference renders, '
-                       'AdLibEmu candidates), re-fitted '
-                       '2026-11-20 against real YM2413 recordings '
-                       '(Nuked candidates), then re-fitted '
-                       '2026-11-21 against IKAOPLL renders of a '
-                       'low-extended 8-note probe set starting '
-                       'from the 2026-11-20 table (mean score '
-                       '8.94 -> 7.19); see OPL3_FIT in '
+    doc['law'] = ('fitted per voice against IKAOPLL WAV output '
+                  '(YM2413 reference renders by the decap-based '
+                  'IKAOPLL RTL simulation); this set holds OPL3 '
+                  'parameters only and no OPLL preset data; see '
+                  'OPL3_FIT in make_presets.py')
+    doc['fit_note'] = ('Voices fitted against IKAOPLL renders '
+                       'of a low-extended 8-note probe set, most '
+                       'recently 2026-11-21 (mean score 8.94 -> '
+                       '7.19), with level trims re-checked '
+                       'against the IKAOPLL renders the same '
+                       'day. Earlier passes (2026-11-16 against '
+                       'the OPM table, 2026-11-20 against real '
+                       'YM2413 recordings) were intermediate '
+                       'stages toward this fit; see OPL3_FIT in '
                        'make_presets.py.')
     for voice in doc['voices']:
         fit = OPL3_FIT[voice['name']]
