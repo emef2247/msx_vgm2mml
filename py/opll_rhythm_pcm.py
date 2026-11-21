@@ -83,7 +83,7 @@ def _pitch_at(performance, device):
 
 
 def build_rhythm_pcm_assets(performance, library='ika', *,
-                            soundcore_levels=False):
+                            soundcore_levels=False, rhythm_tl_offset=30):
     """Derived NativePCM assets for the first OPLL device's rhythm.
 
     Returns (assets, losses); empty when the performance has no
@@ -159,8 +159,10 @@ def build_rhythm_pcm_assets(performance, library='ika', *,
         # Cartridge level correction (owner's decision, 2026-11-21):
         # the PCM rhythm sits about -22.5 dB below the fitted level
         # in every level mode.  The SoundCore mode's extra drop was
-        # folded into this base, so its output is unchanged.
-        gain *= 10 ** (-22.5 / 20)
+        # folded into this base, so its output is unchanged.  The
+        # drop is rhythm_tl_offset TL steps of 0.75 dB (the
+        # --v-offset-opna-rhythm value, default 30).
+        gain *= 10 ** (-0.75 * rhythm_tl_offset / 20)
         samples = tuple(max(-32768, min(32767, round(v * gain)))
                         for v in hits[hit_key])
         raw.append((event.start_sample, rate * ratio, samples,

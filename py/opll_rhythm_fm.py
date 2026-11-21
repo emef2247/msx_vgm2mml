@@ -42,6 +42,7 @@ _NOISE_PULSE_SAMPLES = int(0.052 * 44100)
 # mode previously added this same +30 on top of the fitted level,
 # so folding it into the base leaves SoundCore output unchanged.
 # The fitted tables themselves keep their IKAOPLL-anchored levels.
+# This value is the default of the --v-offset-opm-rhythm option.
 _BASE_TL_OFFSET = 30
 # Audible register slots per algorithm, measured with a
 # solo-carrier probe on IKAOPM (2026-11-14).
@@ -58,12 +59,11 @@ def _table(name):
 
 
 def project_opll_rhythm_fm(performance, table, reserved, *, force=False,
-                           soundcore_levels=False):
+                           soundcore_levels=False, tl_offset=_BASE_TL_OFFSET):
     """Returns (rows, losses, info)."""
     doc, voices = _table(table)
     # soundcore_levels no longer changes this lane: the cartridge
     # correction above is part of the base level (2026-11-21).
-    tl_offset = _BASE_TL_OFFSET
     rows, losses = [], Counter()
     devices = [d for d in performance.devices if d.chip == 'opll']
     if not devices:

@@ -93,6 +93,14 @@ def build_parser():
                              'for the OPLL>OPM/OPNA preset tables '
                              '(opll_to_*_soundcore.json) instead of the '
                              'IKAOPLL anchored ones (default)')
+    parser.add_argument('--v-offset-opm-melody', type=int, default=0,
+                        help=argparse.SUPPRESS)
+    parser.add_argument('--v-offset-opm-rhythm', type=int, default=30,
+                        help=argparse.SUPPRESS)
+    parser.add_argument('--v-offset-opna-melody', type=int, default=0,
+                        help=argparse.SUPPRESS)
+    parser.add_argument('--v-offset-opna-rhythm', type=int, default=30,
+                        help=argparse.SUPPRESS)
     parser.add_argument('--dump-passes', action='store_true',
                         help='Retain inspectable conversion passes')
     parser.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
@@ -192,7 +200,12 @@ def _update_song_variants(path, relative, package, output, args):
         performance = build_native_performance(path, stage_root / 'native', stem)
         summaries = export_variants(performance, stage_root, stem, force=args.force,
                                    dcsg_gain=args.dcsg_gain, opna_law=args.opna_law,
-                                   soundcore_levels=args.soundcore_levels)
+                                   soundcore_levels=args.soundcore_levels,
+                                   volume_offsets=dict(
+                                       opm_melody=args.v_offset_opm_melody,
+                                       opm_rhythm=args.v_offset_opm_rhythm,
+                                       opna_melody=args.v_offset_opna_melody,
+                                       opna_rhythm=args.v_offset_opna_rhythm))
         evidence['summaries'] = summaries
         for profile, name in zip(VARIANT_PROFILES, names):
             result = summaries[profile]

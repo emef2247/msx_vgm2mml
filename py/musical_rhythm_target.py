@@ -11,7 +11,7 @@ OPLL_LEVEL={'BD':(0x36,0),'SD':(0x37,0),'HH':(0x37,4),'TOM':(0x38,4),'CYM':(0x38
 
 def project_rhythm(performance, *, makoto=False, opll_pcm=False,
                    opll_fm=False, opna_rhythm=False,
-                   soundcore_levels=False):
+                   soundcore_levels=False, opna_rhythm_tl_offset=30):
     devices={d.device_id:d for d in performance.devices}
     controls={c.control_id:c for c in performance.controls}
     rows=[];losses=Counter()
@@ -69,11 +69,12 @@ def project_rhythm(performance, *, makoto=False, opll_pcm=False,
             # steps of 0.75 dB (about -22.5 dB) below the
             # no-attenuation value in every level mode.  The
             # SoundCore mode's extra drop was folded into this
-            # base, so its output is unchanged.
-            total=0x3F-30
+            # base, so its output is unchanged.  The step count is
+            # the --v-offset-opna-rhythm value (default 30).
+            total=max(0,min(0x3F,0x3F-opna_rhythm_tl_offset))
             rows.append(dict(sample=0,order=-1,command=bytes((0x56,0x11,total)),
                 unit_id='',device_id=device.device_id,source_indices=(),
-                reason='OPNA rhythm total level (Misato: -30 steps)'))
+                reason=f'OPNA rhythm total level (Misato: -{opna_rhythm_tl_offset} steps)'))
         mask=0;mode=True;levels={0x36:0,0x37:0,0x38:0}
         for at,rank,kind,event in sorted(actions,key=lambda a:(a[0],a[1],a[2]=='start')):
             if kind=='mode':

@@ -6,7 +6,8 @@ make_presets.py (measured on IKAOPLL / IKAOPM / ymfm, 2026-11-13
 in data/presets/<target>/ and are never hand-edited.  Custom
 patches are converted with the same law at projection time.
 Carrier TL is the performance value (source VOL << 2) plus the
-per-voice measured level trim from the JSON.  OPLL percussion
+per-voice measured level trim from the JSON, plus the caller's
+optional variant melody offset (TL steps, default 0).  OPLL percussion
 is not handled here: project_rhythm routes it to the native
 OPLL rhythm unit or the OPNA native rhythm unit.
 """
@@ -100,7 +101,7 @@ def _table(target_chip, soundcore=False):
 
 
 def project_opll_fm(performance, target_chip, target_clock, reserved=(), *,
-                    force=False, soundcore_levels=False):
+                    force=False, soundcore_levels=False, melody_tl_offset=0):
     """Project OPLL melody units to OPM/OPNA FM writes.
 
     Returns (rows, losses, allocation).  Only the first OPLL
@@ -207,7 +208,8 @@ def project_opll_fm(performance, target_chip, target_clock, reserved=(), *,
             for logical, op in enumerate(ops):
                 mul, tl, ks, ar, d1r, d2r, sl, rr, dt, am = op
                 if logical == 1:
-                    tl = max(0, min(127, (level << 2) + trim))
+                    tl = max(0, min(127, (level << 2) + trim
+                                         + melody_tl_offset))
                 if target_chip == 'opm':
                     off = _OPM_SLOTS[logical] * 8 + ch
                     for base, value in ((0x40, (dt << 4) | mul), (0x60, tl),
@@ -227,7 +229,7 @@ def project_opll_fm(performance, target_chip, target_clock, reserved=(), *,
 
         def emit_carrier_tl(sample, order, row, level):
             trim = row[5]
-            tl = max(0, min(127, (level << 2) + trim))
+            tl = max(0, min(127, (level << 2) + trim + melody_tl_offset))
             if target_chip == 'opm':
                 emit(unit, sample, order, 0x60 + _OPM_SLOTS[1] * 8 + ch, tl,
                      'OPLL carrier level')

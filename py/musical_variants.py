@@ -17,6 +17,17 @@ PROFILES = ('sfg01','sfg01_rx21','sfg01_opllrhythm','makoto','makoto_rx21','misa
 CLOCKS = {0x54:(0x30,3579545),0x56:(0x48,8000000),0x57:(0x48,8000000),
           0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545),
           0x5e:(0x5c,14318180),0x5f:(0x5c,14318180)}
+# Variant volume offsets in TL steps (0.75 dB each, positive =
+# quieter), set by the hidden --v-offset-* export options.  The
+# rhythm defaults carry the owner's cartridge level correction of
+# 2026-11-21 (30 steps, about -22.5 dB); the fitted preset JSONs
+# are never edited for level adjustments.
+DEFAULT_VOLUME_OFFSETS = {'opm_melody': 0, 'opm_rhythm': 30,
+                          'opna_melody': 0, 'opna_rhythm': 30}
+
+
+def _volume_offsets(volume_offsets):
+    return {**DEFAULT_VOLUME_OFFSETS, **(volume_offsets or {})}
 
 
 def _write(performance, rows, prefix, path):
@@ -82,13 +93,13 @@ def _write(performance, rows, prefix, path):
 
 
 def _project_fm_layer(performance, chip, clock, *, force, include_psg=False,
-                      soundcore_levels=False):
+                      soundcore_levels=False, melody_tl_offset=0):
     from musical_fm_target import project_fm
     fm, losses, allocation = project_fm(performance, chip, clock, force=force)
     from opll_fm_target import project_opll_fm
     opll_rows, opll_losses, opll_allocation = project_opll_fm(
         performance, chip, clock, reserved=set(allocation.values()), force=force,
-        soundcore_levels=soundcore_levels)
+        soundcore_levels=soundcore_levels, melody_tl_offset=melody_tl_offset)
     wave, wave_losses, wave_allocation = project_waves(performance, chip, clock,
         set(allocation.values()) | set(opll_allocation.values()), force=True,
         include_psg=include_psg)
@@ -179,7 +190,8 @@ def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, re
 
 
 def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_law=False,
-                    soundcore_levels=False):
+                    soundcore_levels=False, volume_offsets=None):
+    offsets = _volume_offsets(volume_offsets)
     from musical_pcm_target import project_pcm
     if profile not in PROFILES:raise ValueError('Unknown cartridge profile')
     real_scc=profile in SCC_PROFILES
@@ -245,7 +257,8 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
         rows.extend(scc_rows);losses.update(scc_losses)
     for target_chip,target_clock in targets:
         fm,fm_losses,layer_plan=_project_fm_layer(fm_performance,target_chip,target_clock,force=force,
-            include_psg=real_psg,soundcore_levels=soundcore_levels)
+            include_psg=real_psg,soundcore_levels=soundcore_levels,
+            melody_tl_offset=offsets[target_chip+'_melody'])
         rows.extend(fm);losses.update(fm_losses)
         fm_layers[target_chip]=layer_plan
     opll_fm_device=next((d.device_id for d in performance.devices if d.chip=='opll' and
@@ -270,7 +283,8 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     if not assets and auxiliary in ('opna','y8950') and not (layered_opll and opll_percussion):
         from opll_rhythm_pcm import build_rhythm_pcm_assets
         derived,rhythm_pcm_losses=build_rhythm_pcm_assets(performance,library=pcm_library,
-            soundcore_levels=soundcore_levels)
+            soundcore_levels=soundcore_levels,
+            rhythm_tl_offset=offsets['opna_rhythm'])
         if derived:
             from dataclasses import replace
             pcm_performance=replace(performance,pcm_assets=derived)
@@ -323,13 +337,15 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
                 reserved.update(int(v) for v in layer_plan[key].values())
         fm_rhythm,fm_rhythm_losses,rhythm_info=project_opll_rhythm_fm(
             performance,fm_rhythm_table,reserved,force=force,
-            soundcore_levels=soundcore_levels)
+            soundcore_levels=soundcore_levels,
+            tl_offset=offsets['opm_rhythm'])
         rows.extend(fm_rhythm);losses.update(fm_rhythm_losses)
     from musical_rhythm_target import project_rhythm
     rhythm,rhythm_losses=project_rhythm(performance,makoto=auxiliary in ('opna','misato'),
         opll_pcm=rhythm_pcm,opll_fm=bool(fm_rhythm_table),
         opna_rhythm=auxiliary=='misato',
-        soundcore_levels=soundcore_levels)
+        soundcore_levels=soundcore_levels,
+        opna_rhythm_tl_offset=offsets['opna_rhythm'])
     rows.extend(rhythm);losses.update(rhythm_losses)
     # The measured OPNA TL/decay law is applied to projected carrier values,
     # after native curve/voice recombination, never to source evidence.
@@ -364,7 +380,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
 
 
 def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, opna_law=False,
-                    soundcore_levels=False):
+                    soundcore_levels=False, volume_offsets=None):
     root=Path(outdir);root.mkdir(parents=True,exist_ok=True);results={}
     for profile in PROFILES:
         folder=root/profile;folder.mkdir(parents=True,exist_ok=True)
@@ -380,7 +396,8 @@ def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, op
             # set a user finds does not depend on the song's content.
             rows,prefix,losses,plan=project_variant(performance,profile,force=force,
                 dcsg_gain=dcsg_gain,opna_law=opna_law,
-                soundcore_levels=soundcore_levels)
+                soundcore_levels=soundcore_levels,
+                volume_offsets=volume_offsets)
             rows=_write(performance,rows,prefix,path)
             with (folder/(stem+'.writes.csv')).open('w',newline='',encoding='utf-8') as stream:
                 fields=['write_id','sample','order','device_id','unit_id','source_indices','reason','command_hex','target_address','emitted']
