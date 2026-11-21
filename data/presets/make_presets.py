@@ -131,25 +131,34 @@ LEVEL_TRIM_TL_OPNA = {'Violin': 6, 'Guitar': 2, 'Piano': 2,
 # OPLL) - (model target - IKAOPLL model) over the v2 probe set
 # (IKAOPM / ymfm renders, transient-aligned lags), applied to the
 # IKAOPLL-anchored trims above: median -23.1 dB (OPM), -25.9 dB
-# (OPNA), per-voice spread under 2 dB.  Stored unclamped: at low
-# VOL the carrier TL saturates at 0, the physical ceiling, the
-# same saturation the OPL3 maximum lift reaches at trim 0.
-LEVEL_TRIM_TL_OPM_SOUNDCORE = {'Violin': -26, 'Guitar': -28,
-                               'Piano': -30, 'Flute': -30,
-                               'Clarinet': -31, 'Oboe': -35,
-                               'Trumpet': -39, 'Organ': -30,
-                               'Horn': -32, 'Synthesizer': -28,
-                               'Harpsichord': -21, 'Vibraphone': -31,
-                               'SynthBass': -15, 'AcoustBass': -33,
-                               'ElecGuitar': -27}
-LEVEL_TRIM_TL_OPNA_SOUNDCORE = {'Violin': -29, 'Guitar': -33,
-                                'Piano': -35, 'Flute': -33,
-                                'Clarinet': -33, 'Oboe': -38,
-                                'Trumpet': -41, 'Organ': -32,
-                                'Horn': -34, 'Synthesizer': -31,
-                                'Harpsichord': -23, 'Vibraphone': -34,
-                                'SynthBass': -23, 'AcoustBass': -36,
-                                'ElecGuitar': -31}
+# (OPNA), per-voice spread under 2 dB.
+#
+# Applied at HALF the measured offset (owner's decision,
+# 2026-11-21): at full compensation a real song (FMPAC02 on the
+# real SFG-01) saturates - every note with carrier-TL headroom is
+# lifted the full ~23-26 dB while VOL 0 notes stay pinned at TL 0,
+# so the dynamics crush into one loud band (recording RMS
+# -10.6 dBFS, 1 s windows within 2 dB of each other).  The values
+# below are the per-voice midpoints between the IKAOPLL-anchored
+# trims and the full SoundCore trims; the full-compensation values
+# are in commit 770fa65 and the residuals in the probe workdir
+# (opm_opna_level_probes/exg_residuals.json).
+LEVEL_TRIM_TL_OPM_SOUNDCORE = {'Violin': -10, 'Guitar': -13,
+                               'Piano': -14, 'Flute': -14,
+                               'Clarinet': -15, 'Oboe': -19,
+                               'Trumpet': -23, 'Organ': -15,
+                               'Horn': -16, 'Synthesizer': -13,
+                               'Harpsichord': -6, 'Vibraphone': -16,
+                               'SynthBass': 0, 'AcoustBass': -17,
+                               'ElecGuitar': -12}
+LEVEL_TRIM_TL_OPNA_SOUNDCORE = {'Violin': -12, 'Guitar': -16,
+                                'Piano': -16, 'Flute': -16,
+                                'Clarinet': -16, 'Oboe': -20,
+                                'Trumpet': -24, 'Organ': -16,
+                                'Horn': -17, 'Synthesizer': -14,
+                                'Harpsichord': -6, 'Vibraphone': -17,
+                                'SynthBass': -5, 'AcoustBass': -18,
+                                'ElecGuitar': -14}
 
 # OPNA fit against the OPM set, 2026-11-16 (adopted by the owner
 # after audition): single-voice probes (C3/A4/C6) of the OPM table
@@ -686,8 +695,10 @@ def write_target_jsons():
                 'makoto/opll_to_opna_soundcore.json'):
         docs[rel]['source'] += (
             ' Level trims anchored to the owner\'s real YM2413 '
-            'recording through the SoundCore SLOT EXG (2026-11-21); '
-            'see LEVEL_TRIM_TL_*_SOUNDCORE in make_presets.py.')
+            'recording through the SoundCore SLOT EXG (2026-11-21), '
+            'applied at half the measured offset (full compensation '
+            'saturated real songs); see LEVEL_TRIM_TL_*_SOUNDCORE '
+            'in make_presets.py.')
     for rel, doc in docs.items():
         path = HERE / rel
         path.parent.mkdir(parents=True, exist_ok=True)

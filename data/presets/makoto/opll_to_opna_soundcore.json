@@ -2,7 +2,7 @@
  "target": "makoto",
  "chip": "ym2608",
  "clock_hz": 8000000,
- "source": "opll_presets.json via make_presets.py; do not hand-edit Level trims anchored to the owner's real YM2413 recording through the SoundCore SLOT EXG (2026-11-21); see LEVEL_TRIM_TL_*_SOUNDCORE in make_presets.py.",
+ "source": "opll_presets.json via make_presets.py; do not hand-edit Level trims anchored to the owner's real YM2413 recording through the SoundCore SLOT EXG (2026-11-21), applied at half the measured offset (full compensation saturated real songs); see LEVEL_TRIM_TL_*_SOUNDCORE in make_presets.py.",
  "lfo": {
   "hz": 5.76,
   "pms": 4,
@@ -66,7 +66,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -29
+   "level_trim_tl": -12
   },
   {
    "index": 2,
@@ -125,7 +125,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -33
+   "level_trim_tl": -16
   },
   {
    "index": 3,
@@ -184,7 +184,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -35
+   "level_trim_tl": -16
   },
   {
    "index": 4,
@@ -243,7 +243,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -33
+   "level_trim_tl": -16
   },
   {
    "index": 5,
@@ -302,7 +302,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -33
+   "level_trim_tl": -16
   },
   {
    "index": 6,
@@ -361,7 +361,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -38
+   "level_trim_tl": -20
   },
   {
    "index": 7,
@@ -420,7 +420,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -41
+   "level_trim_tl": -24
   },
   {
    "index": 8,
@@ -479,7 +479,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -32
+   "level_trim_tl": -16
   },
   {
    "index": 9,
@@ -538,7 +538,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -34
+   "level_trim_tl": -17
   },
   {
    "index": 10,
@@ -597,7 +597,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -31,
+   "level_trim_tl": -14,
    "mod_eg_override": {
     "d1r": 11,
     "d2r": 4,
@@ -662,7 +662,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -23
+   "level_trim_tl": -6
   },
   {
    "index": 12,
@@ -721,7 +721,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -34
+   "level_trim_tl": -17
   },
   {
    "index": 13,
@@ -780,7 +780,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -23
+   "level_trim_tl": -5
   },
   {
    "index": 14,
@@ -839,7 +839,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -36
+   "level_trim_tl": -18
   },
   {
    "index": 15,
@@ -898,7 +898,7 @@
      "am": 0
     }
    ],
-   "level_trim_tl": -31
+   "level_trim_tl": -14
   }
  ],
  "rhythm": {
