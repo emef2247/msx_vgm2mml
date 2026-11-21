@@ -67,10 +67,11 @@ def _spectrum(device, voice, losses):
     return waveform_voice(bytes(max(-128,min(127,x)) & 255 for x in values).hex())
 
 
-def project_waves(performance, target_chip, clock, reserved=(), *, force=False):
+def project_waves(performance, target_chip, clock, reserved=(), *, force=False, include_psg=False):
     devices = {d.device_id:d for d in performance.devices}
     voices = {v.voice_id:v for v in performance.voices}
-    units = [u for u in performance.units if devices[u.device_id].chip in ('scc','huc6280','nesapu')
+    chips = ('scc','huc6280','nesapu','psg') if include_psg else ('scc','huc6280','nesapu')
+    units = [u for u in performance.units if devices[u.device_id].chip in chips
              and u.section not in ('pcm_dda','dpcm','noise') and u.role!='unpitched']
     lanes = sorted({(u.device_id,u.channel) for u in units})
     capacity = 8 if target_chip == 'opm' else 6
@@ -93,6 +94,10 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False):
         if dict(unit.parameters).get('lfo_pitch_phase_unmodeled'):
             losses['huc_lfo_base_pitch_approximation'] += 1
         losses['four_harmonic_phase_free_wave_approximation'] += 1
+        psg_noise_muted=False
+        if device.chip=='psg' and any(v in voices and dict(voices[v].parameters).get('hardware_envelope')
+                for _,v in unit.voice_curve):
+            losses['psg_hardware_envelope_shape_not_doubled'] += 1
         def emit(at,reg,val,reason,port=0):
             rows.append(record(unit,at,bytes((0x54 if target_chip=='opm' else 0x56+port,reg,val&255)),reason))
         started=False
@@ -102,6 +107,15 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False):
             if identity not in spectra:spectra[identity]=_spectrum(device,voice,losses)
             spectrum=spectra[identity]
             p=dict(voice.parameters) if voice else {}
+            if device.chip=='psg' and voice is not None and 'mode' in p and not p['mode']&1:
+                # A noise-only interval stays on the native AY; the FM
+                # layer rests instead of pitching it.
+                psg_noise_muted=True
+                if started:
+                    if target_chip=='opm': emit(at,8,target,'psg noise interval gate end')
+                    else: emit(at,0x28,target%3|(4 if target>=3 else 0),'psg noise interval gate end')
+                    started=False
+                continue
             hz=curve_value(unit.pitch_curve,at) or p.get('base_frequency_hz')
             if not hz or not math.isfinite(hz) or hz<=0:
                 losses['unknown_wave_pitch_intervals_muted'] += 1
@@ -139,18 +153,20 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False):
         if (unit.end_sample==performance.end_sample and performance.song_loop_sample is not None
             and dict(unit.parameters).get('termination','source_observation_end') in ('observation_end','source_observation_end')):
             continue
-        if target_chip=='opm':
-            emit(unit.end_sample,8,target,'musical gate end')
-        else:
-            emit(unit.end_sample,0x28,target%3|(4 if target>=3 else 0),'musical gate end')
-        # Same-source adjacent gates: stop precedes the next gate's setup/start.
-        rows[-1]['order']=-1 if unit.end_sample>unit.start_sample else 1
+        if device.chip!='psg' or started:
+            if target_chip=='opm':
+                emit(unit.end_sample,8,target,'musical gate end')
+            else:
+                emit(unit.end_sample,0x28,target%3|(4 if target>=3 else 0),'musical gate end')
+            # Same-source adjacent gates: stop precedes the next gate's setup/start.
+            rows[-1]['order']=-1 if unit.end_sample>unit.start_sample else 1
+        if psg_noise_muted:losses['psg_noise_only_intervals_not_doubled'] += 1
     if losses and not force:
         raise ValueError('Wave target requires approximation: '+', '.join(sorted(losses)))
     return rows,losses,allocation
 
 
-def project_psg_opll(performance, *, dcsg_gain=.25, opna=False, force=False):
+def project_psg_opll(performance, *, dcsg_gain=.25, opna=False, force=False, opll_fm_device=None):
     """Render native PSG/SSG/OPLL units, plus DCSG's AY approximation."""
     from native_registers import encode_control
     devices={d.device_id:d for d in performance.devices}
@@ -241,7 +257,7 @@ def project_psg_opll(performance, *, dcsg_gain=.25, opna=False, force=False):
     opll_devices=[d for d in performance.devices if d.chip=='opll']
     for device in opll_devices[:1]:
         if device.clock_raw & 0x80000000:losses['vrc7_patch_rom_approximated_by_opll']+=1
-        for u in (u for u in performance.units if u.device_id==device.device_id):
+        for u in (u for u in performance.units if u.device_id==device.device_id and device.device_id!=opll_fm_device):
             if not 0<=u.channel<9:continue
             ch=u.channel;last_pitch=0
             def emit(at,reg,v,why,order=0):rows.append(record(u,at,bytes((0x51,reg,v&255)),why,order))
@@ -263,7 +279,11 @@ def project_psg_opll(performance, *, dcsg_gain=.25, opna=False, force=False):
                 emit(at,0x20+ch,16|(32 if sustain else 0)|(b<<1)|(f>>8),'musical OPLL gate and pitch')
             emit(u.end_sample,0x20+ch,last_pitch,'musical OPLL gate end',-1 if u.end_sample>u.start_sample else 1)
         # Shared non-rhythm controls retain explicit typed semantics.
+        # A device consumed by an FM projection (opll_fm_device) has no
+        # native lane in the output, so its shared controls must not
+        # leak a native write into the target file either.
         for c in performance.controls:
+            if device.device_id==opll_fm_device:continue
             if c.device_id==device.device_id and (c.section=='shared' and c.kind!='opll_patch'):
                 rows.append(dict(sample=c.sample,order=c.order,command=encode_control(c,device),
                     unit_id='',device_id=device.device_id,source_indices=c.source_indices,reason='native OPLL rhythm/shared control'))

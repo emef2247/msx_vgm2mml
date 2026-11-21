@@ -9,7 +9,9 @@ OPNA_BITS={'BD':1,'SD':2,'CYM':4,'HH':8,'TOM':16,'RIM':32}
 OPLL_LEVEL={'BD':(0x36,0),'SD':(0x37,0),'HH':(0x37,4),'TOM':(0x38,4),'CYM':(0x38,0)}
 
 
-def project_rhythm(performance, *, makoto=False):
+def project_rhythm(performance, *, makoto=False, opll_pcm=False,
+                   opll_fm=False, opna_rhythm=False,
+                   soundcore_levels=False, opna_rhythm_tl_offset=30):
     devices={d.device_id:d for d in performance.devices}
     controls={c.control_id:c for c in performance.controls}
     rows=[];losses=Counter()
@@ -39,7 +41,12 @@ def project_rhythm(performance, *, makoto=False):
             actions.extend((at,order(event,at)-.25,'level',event) for at,_ in event.volume_curve)
         # Shared total level, rhythm pitch and pan belong to musical effects;
         # original key masks/levels never override editable percussion events.
-        if device.chip=='opll':
+        if device.chip=='opll' and (opll_pcm or opll_fm):
+            continue
+        # Misato targets: OPLL percussion plays on the YM2608 rhythm
+        # unit (no ADPCM unit on that cartridge).
+        to_opna=opna_rhythm and device.chip=='opll'
+        if device.chip=='opll' and not to_opna:
             actions.extend((c.sample,c.order,'mode',c) for c in relevant if c.kind=='opll_rhythm')
             for c in relevant:
                 p=dict(c.parameters)
@@ -47,7 +54,7 @@ def project_rhythm(performance, *, makoto=False):
                 if mode_at and c.channel is not None and c.channel>=6 and c.kind in ('opll_pitch_low','opll_pitch_high'):
                     rows.append(dict(sample=c.sample,order=c.order,command=encode_control(c,device),
                         unit_id='',device_id=device.device_id,source_indices=c.source_indices,reason='native rhythm oscillator frequency'))
-        else:
+        elif device.chip=='opna':
             for c in relevant:
                 if c.kind=='opna_rhythm_total_level':
                     rows.append(dict(sample=c.sample,order=c.order,command=encode_control(c,device),
@@ -56,6 +63,18 @@ def project_rhythm(performance, *, makoto=False):
                     for event in events:
                         if dict(c.parameters)['register']==0x18+list(OPNA_BITS).index(event.instrument_family) and event.start_sample<=c.sample and (event.stop_sample is None or c.sample<event.stop_sample):
                             actions.append((c.sample,c.order,'level',event))
+        if to_opna:
+            # Cartridge level correction (owner's decision,
+            # 2026-11-21): the rhythm unit sits 30 total-level
+            # steps of 0.75 dB (about -22.5 dB) below the
+            # no-attenuation value in every level mode.  The
+            # SoundCore mode's extra drop was folded into this
+            # base, so its output is unchanged.  The step count is
+            # the --v-offset-opna-rhythm value (default 30).
+            total=max(0,min(0x3F,0x3F-opna_rhythm_tl_offset))
+            rows.append(dict(sample=0,order=-1,command=bytes((0x56,0x11,total)),
+                unit_id='',device_id=device.device_id,source_indices=(),
+                reason=f'OPNA rhythm total level (Misato: -{opna_rhythm_tl_offset} steps)'))
         mask=0;mode=True;levels={0x36:0,0x37:0,0x38:0}
         for at,rank,kind,event in sorted(actions,key=lambda a:(a[0],a[1],a[2]=='start')):
             if kind=='mode':
@@ -68,7 +87,17 @@ def project_rhythm(performance, *, makoto=False):
             level=curve_value(event.volume_curve,at)
             if kind in ('level','start') and level is not None:
                 level=max(0,min(15 if device.chip=='opll' else 31,int(level)))
-                if device.chip=='opll':
+                if to_opna:
+                    # OPLL rhythm attenuation is 3.01 dB per step; the
+                    # OPNA rhythm instrument level steps 0.75 dB
+                    # (measured on the rendering core, 2026-11-16), so
+                    # IL = 31 - 4 * att, the same x4-per-step law as
+                    # musical_opl_target.rhythm_level.  Attenuations
+                    # past IL 0 (att >= 8) saturate at the floor.
+                    reg=0x18+list(OPNA_BITS).index(family)
+                    emit(event,at,rank-.1,0x56,reg,0xC0|max(0,31-4*level),
+                        'OPLL percussion level on the OPNA rhythm unit')
+                elif device.chip=='opll':
                     reg,shift=OPLL_LEVEL[family];levels[reg]=(levels[reg]&~(15<<shift))|(level<<shift)
                     emit(event,at,rank-.1,0x51,reg,levels[reg],'native percussion level curve')
                 else:
@@ -76,8 +105,8 @@ def project_rhythm(performance, *, makoto=False):
                     pan=next((dict(c.parameters) for c in reversed(relevant) if c.kind=='opna_rhythm_instrument' and c.sample<=at and dict(c.parameters)['register']==reg),{})
                     emit(event,at,rank-.1,0x56,reg,(pan.get('left',1)<<7)|(pan.get('right',1)<<6)|level,'native percussion level/pan curve')
             if kind=='level':continue
-            bit=(OPLL_BITS if device.chip=='opll' else OPNA_BITS)[family]
-            if device.chip=='opll':
+            bit=(OPLL_BITS if device.chip=='opll' and not to_opna else OPNA_BITS)[family]
+            if device.chip=='opll' and not to_opna:
                 if kind=='start':mask|=bit
                 else:mask&=~bit
                 emit(event,at,rank,0x51,14,(32 if mode else 0)|mask,'musical percussion '+kind)

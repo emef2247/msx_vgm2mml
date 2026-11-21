@@ -27,22 +27,45 @@ vgm-variants/scc_layered/<stem>.vgm
 _diagnostics/<stem>/vgm_variants/
 ```
 
-Only applicable, successful profiles are published. PCM-free sources can use
-sfg01, makoto, and layered. PCM-bearing sources can use makoto, layered, and the
-two auxiliary SFG01 compositions; plain sfg01 cannot play their PCM. Native OPNA rhythm can
+Only applicable, successful profiles are published. The two auxiliary SFG01
+compositions are OPM, or OPM + PCM when the source carries PCM: they are
+published whenever sfg01 is, even when the PCM lane is unused and the result
+matches sfg01, so the profile set does not depend on the song's content.
+PCM-bearing sources can use makoto, layered, and the two auxiliary SFG01
+compositions; plain sfg01 cannot play their PCM. Native OPNA rhythm can
 also use the Makoto auxiliary composition. Unsupported profiles have explicit
 reasons in `_diagnostics/<stem>/vgm_variants.json`.
+
+Two rhythm-timbre variants subdivide the base compositions: `sfg01_rx21`
+plays OPLL rhythm as FM voices fitted to the owner's RX21 recordings
+instead of the IKAOPLL-fitted voices of plain `sfg01`, and
+`makoto_rx21` plays the RX21 hit library through the Makoto ADPCM-B
+instead of the IKAOPLL library. A third variant, `sfg01_opllrhythm`,
+keeps the plain `sfg01` melody projection but does not project the
+OPLL rhythm at all: the percussion stays on the native YM2413 lane.
 
 | Profile | FM / auxiliary sound hardware |
 | --- | --- |
 | sfg01 | YM2151 at 3,579,545 Hz, plus native YM2413 and AY PSG |
+| sfg01_rx21 | sfg01 with RX21-fitted FM rhythm voices |
+| sfg01_opllrhythm | sfg01 with the OPLL rhythm left native on the YM2413 |
 | makoto | YM2608 at 8 MHz, plus native YM2413 and AY PSG |
+| makoto_rx21 | makoto with the RX21 hit library on ADPCM-B |
+| misato | The makoto composition on the Misato (OPN3) cartridge: YM2608 at 8 MHz with no ADPCM unit, so PCM content has no destination and percussion plays on the native rhythm unit, plus native YM2413 and AY PSG |
 | sfg01_makoto | YM2151 FM, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
 | sfg01_msxaudio | YM2151 FM, Y8950 Delta-T, YM2413 and PSG |
+| sfg01_misato | YM2151 FM, YM2608 native rhythm and SSG on Misato (no ADPCM-B), YM2413 and PSG |
+| msxaudio | Y8950 FM as the main target: YM2413 projected to Y8950 FM (the commercially observed conversion table) and its native rhythm unit, native Y8950 retained, Y8950 Delta-T for PCM, plus PSG |
+| opl3 | YMF262 FM as the main target: YM2413 projected to OPL3 FM (the commercially observed conversion table) and its rhythm unit, native Y8950 and YMF262 retained (4-op pairs included), plus PSG. No PCM destination; the 4-op FM and waveform projections are not established yet, so those sources are unavailable |
 | layered | YM2151 and YM2608 FM in parallel, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
 | scc_sfg01 | Real SCC plus the sfg01 composition |
 | scc_makoto | Real SCC plus the makoto composition |
 | scc_layered | Real SCC plus both FM layers |
+| scc_opl3 | Real SCC plus the opl3 composition |
+| psg_sfg01 | Native AY PSG plus an OPM doubling of the PSG voices |
+| psg_makoto | Native AY PSG plus an OPNA doubling of the PSG voices |
+| psg_layered | Native AY PSG plus both FM doublings |
+| psg_opl3 | Native AY PSG plus an OPL3 doubling of the PSG voices (unavailable until the OPL3 waveform projection is established) |
 
 ## Layered FM
 
@@ -54,7 +77,10 @@ though SFG01 has eight. Without force, a required capacity omission blocks the
 profile; with force, omissions are reported separately for each FM layer.
 
 PSG, OPLL, native rhythm, and PCM are projected once. PCM uses Makoto's existing
-256 KiB ADPCM-B path, including representative reuse where supported. There is
+256 KiB ADPCM-B path, including representative reuse where supported. For an
+OPLL source the native YM2413 lane joins the stack as a third FM layer (owner,
+2026-11-14: every FM source is a layering target): its melody and its rhythm
+play natively, and the PCM rhythm substitute is not derived. There is
 no additional MSX-Audio bank or automatic FM gain reduction in this profile.
 Both FM layers retain the ordinary mapping levels, so listening balance may
 differ from a single-chip profile. Song timing and loop positions are shared.
@@ -78,6 +104,18 @@ reasons. This does not add HuC/APU/FDS-to-SCC mapping. Musical time is unchanged
 the SCC loop boundary reasserts its enable mask and active voice state.
 Per-profile write CSVs and `plan.real_scc` make the additional lane inspectable.
 No detune is added and relative loudness still needs user listening checks.
+
+## Native PSG with FM companions
+
+PSG-only sources additionally publish `psg_sfg01`, `psg_makoto`, and
+`psg_layered`: the native AY lanes stay exactly as in the base profiles,
+and the PSG tone voices are doubled by the FM additive projection
+(square spectrum) on respectively OPM, OPNA, or both. Noise-only
+intervals rest on the FM side and stay on the native AY; a hardware
+envelope shape is not reproduced by the doubling. Both facts are
+recorded as losses. The profiles require a PSG-only source: any
+other sounding chip makes them unavailable. Per-profile write CSVs
+and `plan.psg_fm_doubling` make the additional lanes inspectable.
 
 ## Representation boundary
 
@@ -120,6 +158,31 @@ the repeat rather than only in the introduction.
   hardware envelope controls remain distinct from the score's sounding gates.
   Native OPLL/OPNA percussion attacks, stops and levels come from percussion
   records; oscillator/global/pan effects remain separate controls.
+- On the PCM-capable compositions (Makoto ADPCM-B, MSX-Audio Delta-T and
+  their SFG01 combinations) OPLL percussion is played as PCM:
+  the IKAOPLL-rendered hit library in `data/presets/rhythm_pcm/` becomes
+  one asset per percussion event, at the event's level.  The library is
+  staged with one uniform gain per library (loudest hit at -1 dBFS);
+  the raw IKAOPLL renders peak near -32 dBFS and left the PCM voice
+  buried under the FM lanes.  In `layered`, an OPLL source's rhythm
+  instead plays on the native YM2413 lane (see Layered FM).  Only the TOM
+  tracks its oscillator pitch (measured); the other four instruments
+  are fixed timbres.  Simultaneous hits are mixed and a later hit cuts
+  a tail still playing, matching the OPLL retrigger behaviour; repeated
+  hits deduplicate, so the DRAM cost is the song's unique hits.
+  Plain `sfg01` has no PCM lane, so its OPLL rhythm is projected to
+  fitted OPM FM one-shot voices (the `data/presets/sfg01/
+  rhythm_fm_opll.json` table, fitted to the same IKAOPLL hits with
+  IKAOPM in the loop) on at most two channels: at one instant the
+  two loudest hits sound and a later hit cuts a ringing tail.
+  `sfg01_rx21` uses the RX21-fitted table instead,
+  `sfg01_opllrhythm` selects no FM rhythm table so the musical
+  rhythm projection emits the percussion on the native YM2413 lane
+  (mode, oscillator pitch, level curves and key masks), and
+  `makoto_rx21` swaps the PCM hit library to
+  `data/presets/rhythm_pcm_rx21/` (HH maps to CLOSEHH; the TOM
+  picks the nearest-pitched of TOM1..3 with a residual rate
+  ratio; CLAPS has no OPLL counterpart and is unused).
 - `NativePCM` retains decoded signed16 source content independently of opaque
   original PCM packets. OPN2 DAC, NES DPCM and HuC DDA are decoded. OPN2 uses
   the inherited shared decoded-supply renderer, including run splitting,

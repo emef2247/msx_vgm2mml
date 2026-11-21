@@ -1,0 +1,554 @@
+{
+ "target": "opl3",
+ "chip": "ymf262",
+ "clock_hz": 14318180,
+ "source": "opll_presets.json via make_presets.py; do not hand-edit",
+ "law": "fitted per voice against IKAOPLL WAV output (YM2413 reference renders by the decap-based IKAOPLL RTL simulation); this set holds OPL3 parameters only and no OPLL preset data; see OPL3_FIT in make_presets.py",
+ "voices": [
+  {
+   "index": 1,
+   "name": "Violin",
+   "fb": 7,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 1,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 28,
+     "ar": 13,
+     "dr": 0,
+     "sl": 0,
+     "rr": 1,
+     "ws": 5
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 2,
+     "tl": 0,
+     "ar": 7,
+     "dr": 8,
+     "sl": 0,
+     "rr": 6,
+     "ws": 4
+    }
+   ],
+   "level_trim_tl": 0
+  },
+  {
+   "index": 2,
+   "name": "Guitar",
+   "fb": 4,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 3,
+     "ksl": 1,
+     "tl": 25,
+     "ar": 12,
+     "dr": 7,
+     "sl": 2,
+     "rr": 1,
+     "ws": 1
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 7,
+     "dr": 3,
+     "sl": 1,
+     "rr": 3,
+     "ws": 6
+    }
+   ],
+   "level_trim_tl": 0
+  },
+  {
+   "index": 3,
+   "name": "Piano",
+   "fb": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 0,
+     "ksr": 1,
+     "mul": 3,
+     "ksl": 0,
+     "tl": 24,
+     "ar": 10,
+     "dr": 2,
+     "sl": 1,
+     "rr": 0,
+     "ws": 7
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 11,
+     "dr": 3,
+     "sl": 2,
+     "rr": 1,
+     "ws": 5
+    }
+   ],
+   "level_trim_tl": 0
+  },
+  {
+   "index": 4,
+   "name": "Flute",
+   "fb": 5,
+   "ops": [
+    {
+     "am": 1,
+     "vib": 1,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 16,
+     "ar": 8,
+     "dr": 10,
+     "sl": 7,
+     "rr": 0,
+     "ws": 5
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 7,
+     "dr": 2,
+     "sl": 1,
+     "rr": 8,
+     "ws": 0
+    }
+   ],
+   "level_trim_tl": 0
+  },
+  {
+   "index": 5,
+   "name": "Clarinet",
+   "fb": 6,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 2,
+     "ksl": 0,
+     "tl": 29,
+     "ar": 6,
+     "dr": 1,
+     "sl": 0,
+     "rr": 0,
+     "ws": 7
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 9,
+     "dr": 4,
+     "sl": 1,
+     "rr": 9,
+     "ws": 6
+    }
+   ],
+   "level_trim_tl": 0
+  },
+  {
+   "index": 6,
+   "name": "Oboe",
+   "fb": 5,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 22,
+     "ar": 13,
+     "dr": 0,
+     "sl": 0,
+     "rr": 1,
+     "ws": 0
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 2,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 8,
+     "dr": 1,
+     "sl": 5,
+     "rr": 7,
+     "ws": 0
+    }
+   ],
+   "level_trim_tl": 0
+  },
+  {
+   "index": 7,
+   "name": "Trumpet",
+   "fb": 6,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 25,
+     "ar": 6,
+     "dr": 2,
+     "sl": 1,
+     "rr": 0,
+     "ws": 1
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 8,
+     "dr": 1,
+     "sl": 0,
+     "rr": 6,
+     "ws": 0
+    }
+   ],
+   "level_trim_tl": 0
+  },
+  {
+   "index": 8,
+   "name": "Organ",
+   "fb": 4,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 3,
+     "ksl": 0,
+     "tl": 44,
+     "ar": 11,
+     "dr": 0,
+     "sl": 0,
+     "rr": 1,
+     "ws": 1
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 7,
+     "dr": 0,
+     "sl": 0,
+     "rr": 6,
+     "ws": 1
+    }
+   ],
+   "level_trim_tl": 0
+  },
+  {
+   "index": 9,
+   "name": "Horn",
+   "fb": 6,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 1,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 27,
+     "ar": 5,
+     "dr": 5,
+     "sl": 1,
+     "rr": 0,
+     "ws": 6
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 6,
+     "dr": 7,
+     "sl": 2,
+     "rr": 6,
+     "ws": 2
+    }
+   ],
+   "level_trim_tl": 0
+  },
+  {
+   "index": 10,
+   "name": "Synthesizer",
+   "fb": 1,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 11,
+     "ar": 9,
+     "dr": 5,
+     "sl": 7,
+     "rr": 1,
+     "ws": 1
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 15,
+     "dr": 0,
+     "sl": 0,
+     "rr": 7,
+     "ws": 1
+    }
+   ],
+   "level_trim_tl": 0
+  },
+  {
+   "index": 11,
+   "name": "Harpsichord",
+   "fb": 1,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 1,
+     "mul": 3,
+     "ksl": 1,
+     "tl": 7,
+     "ar": 11,
+     "dr": 8,
+     "sl": 0,
+     "rr": 0,
+     "ws": 0
+    },
+    {
+     "am": 1,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 9,
+     "dr": 15,
+     "sl": 0,
+     "rr": 2,
+     "ws": 1
+    }
+   ],
+   "level_trim_tl": 0
+  },
+  {
+   "index": 12,
+   "name": "Vibraphone",
+   "fb": 7,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 1,
+     "mul": 7,
+     "ksl": 0,
+     "tl": 36,
+     "ar": 11,
+     "dr": 8,
+     "sl": 2,
+     "rr": 3,
+     "ws": 4
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 13,
+     "dr": 3,
+     "sl": 1,
+     "rr": 3,
+     "ws": 6
+    }
+   ],
+   "level_trim_tl": 0
+  },
+  {
+   "index": 13,
+   "name": "SynthBass",
+   "fb": 5,
+   "ops": [
+    {
+     "am": 1,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 11,
+     "ar": 14,
+     "dr": 2,
+     "sl": 2,
+     "rr": 0,
+     "ws": 3
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 0,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 15,
+     "dr": 4,
+     "sl": 9,
+     "rr": 2,
+     "ws": 6
+    }
+   ],
+   "level_trim_tl": 15
+  },
+  {
+   "index": 14,
+   "name": "AcoustBass",
+   "fb": 2,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 2,
+     "tl": 23,
+     "ar": 10,
+     "dr": 2,
+     "sl": 0,
+     "rr": 3,
+     "ws": 6
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 9,
+     "dr": 0,
+     "sl": 0,
+     "rr": 1,
+     "ws": 2
+    }
+   ],
+   "level_trim_tl": 0
+  },
+  {
+   "index": 15,
+   "name": "ElecGuitar",
+   "fb": 3,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 1,
+     "tl": 9,
+     "ar": 15,
+     "dr": 1,
+     "sl": 12,
+     "rr": 1,
+     "ws": 0
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 15,
+     "dr": 2,
+     "sl": 1,
+     "rr": 5,
+     "ws": 0
+    }
+   ],
+   "level_trim_tl": 0
+  }
+ ],
+ "rhythm": {
+  "kind": "opl_native",
+  "note": "OPLL percussion projects to the target native rhythm unit with the composed voice template (derived voices over the commercial one; musical_opl_target / musical_opl3_target); no FM rows."
+ },
+ "fit_note": "Voices fitted against IKAOPLL renders of a low-extended 8-note probe set, most recently 2026-11-21 (mean score 8.94 -> 7.19), with level trims re-checked against the IKAOPLL renders the same day. Earlier passes (2026-11-16 against the OPM table, 2026-11-20 against real YM2413 recordings) were intermediate stages toward this fit; see OPL3_FIT in make_presets.py."
+}

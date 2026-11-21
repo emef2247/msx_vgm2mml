@@ -167,9 +167,9 @@ class ExportMgsOpmVariantsTests(unittest.TestCase):
             self.assertEqual(rows[0]['status'], 'success', rows)
             check(out, _evidence(out, 'song'))
 
-    def test_opm_publishes_base_profiles_without_redundant_auxiliaries(self):
+    def test_opm_publishes_base_profiles_and_auxiliaries(self):
         def check(out, report):
-            assert_profiles(self, out, ('sfg01', 'makoto', 'layered'))
+            assert_profiles(self, out, ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'makoto', 'makoto_rx21', 'misato', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'layered'))
             makoto = (out / 'vgm-variants/makoto/song.vgm').read_bytes()
             sfg01 = (out / 'vgm-variants/sfg01/song.vgm').read_bytes()
             self.assertEqual(_stamp(makoto, 0x48), 8000000)
@@ -189,13 +189,13 @@ class ExportMgsOpmVariantsTests(unittest.TestCase):
 
     def test_opm_eight_channels_keep_sfg_and_refuse_makoto_capacity_loss(self):
         def check(out, report):
-            assert_profiles(self, out, ('sfg01',))
+            assert_profiles(self, out, ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato'))
             self.assertIn('capacity', report['summaries']['makoto']['reason'])
         self.render(_opm_song(channels=8), check)
 
     def test_opm_eight_channels_record_omissions_under_force(self):
         def check(out, report):
-            assert_profiles(self, out, ('sfg01', 'makoto', 'layered'))
+            assert_profiles(self, out, ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'makoto', 'makoto_rx21', 'misato', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'layered'))
             self.assertEqual(report['summaries']['makoto']['losses']['fm_units_omitted_capacity'], 2)
         self.render(_opm_song(channels=8), check, force=True)
 

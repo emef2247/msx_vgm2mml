@@ -11,10 +11,23 @@ import struct
 
 from musical_wave_target import project_waves, project_psg_opll
 
-SCC_PROFILES = {'scc_sfg01':'sfg01', 'scc_makoto':'makoto', 'scc_layered':'layered'}
-PROFILES = ('sfg01','makoto','sfg01_makoto','sfg01_msxaudio','layered', *SCC_PROFILES)
+SCC_PROFILES = {'scc_sfg01':'sfg01', 'scc_makoto':'makoto', 'scc_layered':'layered', 'scc_opl3':'opl3'}
+PSG_PROFILES = {'psg_sfg01':'sfg01', 'psg_makoto':'makoto', 'psg_layered':'layered', 'psg_opl3':'opl3'}
+PROFILES = ('sfg01','sfg01_rx21','sfg01_opllrhythm','makoto','makoto_rx21','misato','sfg01_makoto','sfg01_msxaudio','sfg01_misato','msxaudio','opl3','layered', *SCC_PROFILES, *PSG_PROFILES)
 CLOCKS = {0x54:(0x30,3579545),0x56:(0x48,8000000),0x57:(0x48,8000000),
-          0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545)}
+          0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545),
+          0x5e:(0x5c,14318180),0x5f:(0x5c,14318180)}
+# Variant volume offsets in TL steps (0.75 dB each, positive =
+# quieter), set by the hidden --v-offset-* export options.  The
+# rhythm defaults carry the owner's cartridge level correction of
+# 2026-11-21 (30 steps, about -22.5 dB); the fitted preset JSONs
+# are never edited for level adjustments.
+DEFAULT_VOLUME_OFFSETS = {'opm_melody': 0, 'opm_rhythm': 30,
+                          'opna_melody': 0, 'opna_rhythm': 30}
+
+
+def _volume_offsets(volume_offsets):
+    return {**DEFAULT_VOLUME_OFFSETS, **(volume_offsets or {})}
 
 
 def _write(performance, rows, prefix, path):
@@ -52,7 +65,9 @@ def _write(performance, rows, prefix, path):
         else:raise ValueError('Unmapped source chip escaped into cartridge output')
         struct.pack_into('<I',header,offset,clock)
         reg=command[1]
-        state_only=(command[0]==0x54 and 0x20<=reg<=0xff or command[0] in (0x56,0x57) and (0x30<=reg<0x90 or 0xb0<=reg<=0xb6))
+        state_only=(command[0]==0x54 and 0x20<=reg<=0xff or command[0] in (0x56,0x57) and (0x30<=reg<0x90 or 0xb0<=reg<=0xb6)
+            or command[0]==0x5c and 0x20<=reg<=0xc8
+            or command[0] in (0x5e,0x5f) and 0x20<=reg<=0xf5)
         key=(command[0],reg)
         row['emitted']=not (state_only and cache.get(key)==command[2])
         if row['emitted']:
@@ -77,30 +92,135 @@ def _write(performance, rows, prefix, path):
     return rows
 
 
-def _project_fm_layer(performance, chip, clock, *, force):
+def _project_fm_layer(performance, chip, clock, *, force, include_psg=False,
+                      soundcore_levels=False, melody_tl_offset=0):
     from musical_fm_target import project_fm
     fm, losses, allocation = project_fm(performance, chip, clock, force=force)
+    from opll_fm_target import project_opll_fm
+    opll_rows, opll_losses, opll_allocation = project_opll_fm(
+        performance, chip, clock, reserved=set(allocation.values()), force=force,
+        soundcore_levels=soundcore_levels, melody_tl_offset=melody_tl_offset)
     wave, wave_losses, wave_allocation = project_waves(performance, chip, clock,
-        set(allocation.values()), force=True)
+        set(allocation.values()) | set(opll_allocation.values()), force=True,
+        include_psg=include_psg)
     if wave_losses.get('wave_channel_capacity_units_omitted') and not force:
         raise ValueError('Waveform voices exceed cartridge FM capacity (use --force for explicit omission)')
     losses = Counter(losses)
+    losses.update(opll_losses)
     losses.update(wave_losses)
-    return fm + wave, losses, dict(clock_hz=clock,
+    return fm + opll_rows + wave, losses, dict(clock_hz=clock,
         fm_allocation={str(k): v for k, v in allocation.items()},
+        opll_allocation={str(k): v for k, v in opll_allocation.items()},
         waveform_allocation={str(k): v for k, v in wave_allocation.items()},
         losses=dict(losses))
 
 
-def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_law=False):
+def _project_msxaudio(performance, *, force=False, dcsg_gain=.25):
+    """MSX-AUDIO profile: the Y8950 FM section is the primary target.
+
+    OPLL voices project to Y8950 FM through the commercially
+    observed conversion table and OPLL percussion to the native
+    rhythm unit; Y8950 sources re-emit natively; PCM rides the
+    Y8950 Delta-T unit.  Source families whose Y8950 projection is
+    not established yet (4-op FM, waveform chips) make the profile
+    unavailable.
+    """
+    from musical_opl_target import project_opl_fm
+    from musical_pcm_target import project_pcm
+    allowed={'y8950','opll','psg','dcsg','msm6258'}
+    bad=sorted({d.chip for d in performance.devices}-allowed)
+    if bad:raise ValueError('msxaudio profile has no projection for '+', '.join(bad))
+    msm_issues=[d for d in performance.decisions if d and d[0] in
+        ('msm6258_pcm_source_issue','msm6258_pcm_unresolved_playback')]
+    if msm_issues and not force:
+        raise ValueError('MSM6258 PCM source evidence is unresolved; inspect native decisions')
+    rows=[];prefix=b'';losses=Counter();pcm_stats={}
+    fm_rows,fm_losses,allocation=project_opl_fm(performance,force=force)
+    rows.extend(fm_rows);losses.update(fm_losses)
+    opll_device=next((d.device_id for d in performance.devices if d.chip=='opll'),None)
+    aux,aux_losses=project_psg_opll(performance,dcsg_gain=dcsg_gain,
+        opna=False,force=True,opll_fm_device=opll_device)
+    rows.extend(aux);losses.update(aux_losses)
+    assets=getattr(performance,'pcm_assets',())
+    if assets:
+        pcm,prefix,pcm_losses,pcm_stats=project_pcm(performance,'y8950',force=force)
+        if any(count for code,count in pcm_losses.items() if 'budget' in code and ('omitted' in code or 'dropped' in code)) and not force:
+            raise ValueError('PCM content exceeds cartridge DRAM (use --force for explicit omission)')
+        rows.extend(pcm);losses.update(pcm_losses)
+    if not rows and not prefix:raise ValueError('No mapped musical operations in source')
+    plan=dict(fm_allocation={str(k):v for k,v in allocation.items()},pcm=pcm_stats)
+    return rows,prefix,dict(losses),plan
+
+
+def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, real_psg=False):
+    """OPL3 profile: the YMF262 is the primary target.
+
+    OPLL voices project through the commercially observed
+    conversion table, Y8950 sources re-emit on the OPL3's OPL
+    banks and YMF262 sources re-emit natively (4-op pairs
+    included).  The chip has no PCM unit, and the 4-op FM and
+    waveform projections are not established yet; sources needing
+    them make the profile unavailable.
+    """
+    from musical_opl3_target import project_opl3_fm
+    if real_psg:
+        raise ValueError('psg_opl3 requires the OPL3 waveform projection (not yet established)')
+    allowed={'opll','y8950','ymf262','psg','dcsg'}
+    if real_scc:allowed.add('scc')
+    bad=sorted({d.chip for d in performance.devices}-allowed)
+    if bad:raise ValueError('opl3 profile has no projection for '+', '.join(bad))
+    rows=[];losses=Counter();plan={}
+    if real_scc:
+        from musical_scc_target import project_scc
+        scc_rows,scc_losses,scc_plan=project_scc(performance)
+        rows.extend(scc_rows);losses.update(scc_losses);plan['real_scc']=scc_plan
+    fm_rows,fm_losses,allocation=project_opl3_fm(performance,force=force)
+    rows.extend(fm_rows);losses.update(fm_losses)
+    opll_device=next((d.device_id for d in performance.devices if d.chip=='opll'),None)
+    aux,aux_losses=project_psg_opll(performance,dcsg_gain=dcsg_gain,
+        opna=False,force=True,opll_fm_device=opll_device)
+    rows.extend(aux);losses.update(aux_losses)
+    assets=getattr(performance,'pcm_assets',())
+    if assets:
+        if not force:raise ValueError('OPL3 has no PCM destination (use --force to omit the PCM content)')
+        losses['pcm_content_omitted_no_opl3_destination']+=len(assets)
+    if not rows:raise ValueError('No mapped musical operations in source')
+    plan['fm_allocation']={str(k):v for k,v in allocation.items()}
+    return rows,b'',dict(losses),plan
+
+
+def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_law=False,
+                    soundcore_levels=False, volume_offsets=None):
+    offsets = _volume_offsets(volume_offsets)
     from musical_pcm_target import project_pcm
     if profile not in PROFILES:raise ValueError('Unknown cartridge profile')
     real_scc=profile in SCC_PROFILES
     profile=SCC_PROFILES.get(profile,profile)
+    real_psg=profile in PSG_PROFILES
+    profile=PSG_PROFILES.get(profile,profile)
+    # sfg01_opllrhythm keeps the sfg01 OPM melody projection but leaves
+    # OPLL percussion on the native chip (owner, 2026-11-16): no FM
+    # rhythm table is selected for it below, so project_rhythm emits
+    # the percussion natively instead of skipping it.
+    native_opll_rhythm=profile=='sfg01_opllrhythm'
     if not 0<dcsg_gain<=1:raise ValueError('DCSG gain must be >0 and <=1')
-    chip='opna' if profile=='makoto' else 'opm'
+    if profile=='msxaudio':
+        return _project_msxaudio(performance,force=force,dcsg_gain=dcsg_gain)
+    if profile=='opl3':
+        return _project_opl3(performance,force=force,dcsg_gain=dcsg_gain,
+            real_scc=real_scc,real_psg=real_psg)
+    chip='opna' if profile in ('makoto','makoto_rx21','misato') else 'opm'
     clock=8000000 if chip=='opna' else 3579545
-    auxiliary='opna' if profile in ('makoto','sfg01_makoto','layered') else 'y8950' if profile=='sfg01_msxaudio' else None
+    # Misato is the Makoto composition on the OPN3 cartridge, which
+    # has no ADPCM unit (owner, 2026-11-16): PCM content has no
+    # destination there and percussion plays on the native YM2608
+    # rhythm unit instead of ADPCM-B samples.
+    auxiliary='opna' if profile in ('makoto','makoto_rx21','sfg01_makoto','layered') else 'misato' if profile in ('misato','sfg01_misato') else 'y8950' if profile=='sfg01_msxaudio' else None
+    # FM-only SFG01 compositions play OPLL rhythm as fitted FM
+    # one-shots; makoto_rx21 swaps the PCM hit library to the RX21.
+    # sfg01_opllrhythm selects no table: its rhythm stays native.
+    fm_rhythm_table='opll' if profile=='sfg01' else 'rx21' if profile=='sfg01_rx21' else None
+    pcm_library='rx21' if profile=='makoto_rx21' else 'ika'
     losses=Counter();rows=[];prefix=b''
     supported={'opm','opna','opn2','psg','opll','scc','dcsg','huc6280','nesapu','msm6258'}
     for device in performance.devices:
@@ -112,6 +232,18 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     if msm_issues:
         if not force:raise ValueError('MSM6258 PCM source evidence is unresolved; inspect native decisions')
         losses['msm6258_pcm_unavailable_source_assets_omitted']+=len(msm_issues)
+    if real_psg:
+        # The PSG layered profiles stack FM doublings on the native AY
+        # lanes; they are defined for PSG-only sources (owner, 2026-11-14).
+        devices={d.device_id:d for d in performance.devices}
+        sounding={devices[u.device_id].chip for u in performance.units}
+        sounding|={devices[e.device_id].chip for e in performance.percussion}
+        sounding|={p.chip for p in performance.pcm_packets}
+        if not any(devices[u.device_id].chip=='psg' and u.section!='noise'
+                and u.role!='unpitched' for u in performance.units):
+            raise ValueError('No sounding PSG units for the PSG layered profile')
+        if sounding!={'psg'}:
+            raise ValueError('PSG layered profiles require a PSG-only source')
     # Inherent cross-chip waveform/LFO approximations are reported, not fatal.
     # Resource omissions still follow the caller's documented --force policy.
     targets=[(chip,clock)]
@@ -124,21 +256,48 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
         scc_rows,scc_losses,scc_plan=project_scc(performance)
         rows.extend(scc_rows);losses.update(scc_losses)
     for target_chip,target_clock in targets:
-        fm,fm_losses,layer_plan=_project_fm_layer(fm_performance,target_chip,target_clock,force=force)
+        fm,fm_losses,layer_plan=_project_fm_layer(fm_performance,target_chip,target_clock,force=force,
+            include_psg=real_psg,soundcore_levels=soundcore_levels,
+            melody_tl_offset=offsets[target_chip+'_melody'])
         rows.extend(fm);losses.update(fm_losses)
         fm_layers[target_chip]=layer_plan
+    opll_fm_device=next((d.device_id for d in performance.devices if d.chip=='opll' and
+        any(u.device_id==d.device_id and u.section=='fm' for u in performance.units)),None)
+    # Layered stacks every FM source (owner, 2026-11-14): when the
+    # source has an OPLL device, its native lane joins the OPM and
+    # OPNA FM projections instead of being consumed by them, and
+    # its rhythm plays natively rather than via the PCM substitute.
+    opll_ids={d.device_id for d in performance.devices if d.chip=='opll'}
+    layered_opll=profile=='layered' and bool(opll_ids)
+    opll_percussion=any(e.device_id in opll_ids for e in performance.percussion)
     aux,aux_losses=project_psg_opll(performance,dcsg_gain=dcsg_gain,
-        opna=auxiliary=='opna',force=True)
+        opna=auxiliary in ('opna','misato'),force=True,
+        opll_fm_device=None if layered_opll else opll_fm_device)
     if any(aux_losses.get(k) for k in ('psg_channel_capacity_units_omitted','second_opll_device_omitted')) and not force:
         raise ValueError('Auxiliary voices exceed cartridge capacity (use --force for explicit omission)')
     rows.extend(aux);losses.update(aux_losses)
     assets=getattr(performance,'pcm_assets',())
     pcm_stats={}
+    rhythm_pcm=False
+    pcm_performance=performance
+    if not assets and auxiliary in ('opna','y8950') and not (layered_opll and opll_percussion):
+        from opll_rhythm_pcm import build_rhythm_pcm_assets
+        derived,rhythm_pcm_losses=build_rhythm_pcm_assets(performance,library=pcm_library,
+            soundcore_levels=soundcore_levels,
+            rhythm_tl_offset=offsets['opna_rhythm'])
+        if derived:
+            from dataclasses import replace
+            pcm_performance=replace(performance,pcm_assets=derived)
+            assets=derived;rhythm_pcm=True
+            losses.update(rhythm_pcm_losses)
     missing_pcm=[decision for decision in performance.decisions if decision and decision[0] in ('nes_pcm_missing_sample_bytes','opn2_pcm_source_issue','opn2_pcm_direct_without_observed_enable')]
     if missing_pcm:losses['source_pcm_content_incomplete_diagnostics']+=len(missing_pcm)
-    if assets:
+    if assets and auxiliary=='misato':
+        if not force:raise ValueError('Misato has no ADPCM unit (use --force to omit the PCM content)')
+        losses['pcm_content_omitted_no_misato_destination']+=len(assets)
+    elif assets:
         if auxiliary is None:raise ValueError('PCM source requires sfg01_makoto or sfg01_msxaudio')
-        pcm,prefix,pcm_losses,pcm_stats=project_pcm(performance,auxiliary,force=force)
+        pcm,prefix,pcm_losses,pcm_stats=project_pcm(pcm_performance,auxiliary,force=force)
         if any(count for code,count in pcm_losses.items() if 'budget' in code and ('omitted' in code or 'dropped' in code)) and not force:
             raise ValueError('PCM content exceeds cartridge DRAM (use --force for explicit omission)')
         rows.extend(pcm);losses.update(pcm_losses)
@@ -151,6 +310,10 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
             if not force:raise ValueError('Native OPNA ADPCM exceeds the Makoto 256 KiB RAM budget; relocation required')
             losses['native_opna_adpcm_capacity_lane_omitted']+=1
             native_pcm=[]
+    if native_pcm and auxiliary=='misato':
+        if not force:raise ValueError('Misato has no ADPCM unit (use --force to omit native OPNA ADPCM content)')
+        losses['native_opna_adpcm_omitted_no_misato_destination']+=1
+        native_pcm=[]
     if native_pcm:
         if assets:raise ValueError('Native OPNA ADPCM and decoded PCM compete for one Delta-T unit')
         if auxiliary!='opna':raise ValueError('Native OPNA ADPCM requires Makoto auxiliary cartridge')
@@ -165,8 +328,24 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
             else:raise ValueError('Native ADPCM stream transport needs decoded content before relocation')
         losses['native_opna_adpcm_clock_not_repitched']+=1
         pcm_stats.update(ram_budget_bytes=ADPCM_B_DRAM_BUDGET,ram_used_bytes=max((int.from_bytes(b[11:15],'little')+len(b)-15 for b in blocks),default=0),encoder_path='native_opna_packet_preservation')
+    rhythm_info={}
+    if fm_rhythm_table:
+        from opll_rhythm_fm import project_opll_rhythm_fm
+        reserved=set()
+        for layer_plan in fm_layers.values():
+            for key in ('fm_allocation','opll_allocation','waveform_allocation'):
+                reserved.update(int(v) for v in layer_plan[key].values())
+        fm_rhythm,fm_rhythm_losses,rhythm_info=project_opll_rhythm_fm(
+            performance,fm_rhythm_table,reserved,force=force,
+            soundcore_levels=soundcore_levels,
+            tl_offset=offsets['opm_rhythm'])
+        rows.extend(fm_rhythm);losses.update(fm_rhythm_losses)
     from musical_rhythm_target import project_rhythm
-    rhythm,rhythm_losses=project_rhythm(performance,makoto=auxiliary=='opna')
+    rhythm,rhythm_losses=project_rhythm(performance,makoto=auxiliary in ('opna','misato'),
+        opll_pcm=rhythm_pcm,opll_fm=bool(fm_rhythm_table),
+        opna_rhythm=auxiliary=='misato',
+        soundcore_levels=soundcore_levels,
+        opna_rhythm_tl_offset=offsets['opna_rhythm'])
     rows.extend(rhythm);losses.update(rhythm_losses)
     # The measured OPNA TL/decay law is applied to projected carrier values,
     # after native curve/voice recombination, never to source evidence.
@@ -189,15 +368,20 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     if not rows and not prefix:raise ValueError('No mapped musical operations in source')
     plan=dict(fm_allocation=fm_layers[chip]['fm_allocation'],
         waveform_allocation=fm_layers[chip]['waveform_allocation'],pcm=pcm_stats)
+    if rhythm_info:plan['opll_rhythm_fm']=rhythm_info
+    if rhythm_pcm:plan['opll_rhythm_pcm']=pcm_library
+    if layered_opll:plan['native_opll_layer']=True
+    if native_opll_rhythm:plan['native_opll_rhythm']=True
+    if auxiliary=='misato':plan['misato_no_adpcm']=True
     if profile=='layered':plan['fm_layers']=fm_layers
     if real_scc:plan['real_scc']=scc_plan
+    if real_psg:plan['psg_fm_doubling']=True
     return rows,prefix,dict(losses),plan
 
 
-def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, opna_law=False):
+def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, opna_law=False,
+                    soundcore_levels=False, volume_offsets=None):
     root=Path(outdir);root.mkdir(parents=True,exist_ok=True);results={}
-    has_pcm=bool(getattr(performance,'pcm_assets',()) or any(p.chip in ('opna','msm6258') for p in performance.pcm_packets))
-    native_rhythm=any(e.device_id in {d.device_id for d in performance.devices if d.chip=='opna'} for e in performance.percussion)
     for profile in PROFILES:
         folder=root/profile;folder.mkdir(parents=True,exist_ok=True)
         path=folder/(stem+'.vgm');path.unlink(missing_ok=True)
@@ -205,10 +389,15 @@ def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, op
             input_representation='NativePerformance',source_file_consulted=False,
             sample_rate=44100,status='unavailable',source_decisions=performance.decisions)
         try:
-            if profile.startswith('sfg01_') and not (has_pcm or profile=='sfg01_makoto' and native_rhythm):
-                raise ValueError('No PCM/native rhythm requiring this auxiliary cartridge; use sfg01')
+            # The auxiliary SFG01 compositions are "OPM, or OPM + PCM
+            # when the source carries PCM" (owner, 2026-11-15): they
+            # are published whenever sfg01 is, even when no PCM lane
+            # is needed and the result matches sfg01, so the profile
+            # set a user finds does not depend on the song's content.
             rows,prefix,losses,plan=project_variant(performance,profile,force=force,
-                dcsg_gain=dcsg_gain,opna_law=opna_law)
+                dcsg_gain=dcsg_gain,opna_law=opna_law,
+                soundcore_levels=soundcore_levels,
+                volume_offsets=volume_offsets)
             rows=_write(performance,rows,prefix,path)
             with (folder/(stem+'.writes.csv')).open('w',newline='',encoding='utf-8') as stream:
                 fields=['write_id','sample','order','device_id','unit_id','source_indices','reason','command_hex','target_address','emitted']

@@ -69,6 +69,25 @@ RECIPES = {
     'opll_instrument_level': (('attenuation',15,0),('instrument',240,4)),
     'opll_patch': (('patch_byte',255,0),),
     'opll_rhythm': (('instrument_mask',31,0),('mode',32,5)),
+    'y8950_operator_flags': (('am',128,7),('vib',64,6),('egt',32,5),('ksr',16,4),('multiple',15,0)),
+    'y8950_operator_level': (('total_level',63,0),('key_scale',192,6)),
+    'y8950_operator_attack_decay': (('attack',240,4),('decay',15,0)),
+    'y8950_operator_sustain_release': (('sustain_level',240,4),('release',15,0)),
+    'y8950_frequency_low': (('fnum_low',255,0),),
+    'y8950_frequency_high': (('fnum_high',3,0),('block',28,2),('key_on',32,5)),
+    'y8950_channel': (('connection',1,0),('feedback',14,1)),
+    'y8950_rhythm': (('instrument_mask',31,0),('mode',32,5),('vibrato_depth',64,6),('am_depth',128,7)),
+    'ymf262_operator_flags': (('am',128,7),('vib',64,6),('egt',32,5),('ksr',16,4),('multiple',15,0)),
+    'ymf262_operator_level': (('total_level',63,0),('key_scale',192,6)),
+    'ymf262_operator_attack_decay': (('attack',240,4),('decay',15,0)),
+    'ymf262_operator_sustain_release': (('sustain_level',240,4),('release',15,0)),
+    'ymf262_waveform': (('waveform',7,0),),
+    'ymf262_frequency_low': (('fnum_low',255,0),),
+    'ymf262_frequency_high': (('fnum_high',3,0),('block',28,2),('key_on',32,5)),
+    'ymf262_channel': (('connection',1,0),('feedback',14,1),('right',16,4),('left',32,5)),
+    'ymf262_rhythm': (('instrument_mask',31,0),('mode',32,5),('vibrato_depth',64,6),('am_depth',128,7)),
+    'ymf262_four_op': (('pair_mask',63,0),),
+    'ymf262_mode': (('opl3_enabled',1,0),),
     'nes_envelope': (('duty',192,6),('length_halt',32,5),('constant_volume',16,4),('volume_period',15,0)),
     'nes_sweep': (('enabled',128,7),('divider_period',112,4),('negate',8,3),('shift',7,0)),
     'nes_period_low': (('period_low',255,0),),
@@ -222,6 +241,39 @@ def decode_control(device, event, raw, *, order=None, latches=None):
             elif register<=7:kind='opll_patch';section='shared'
             elif register==14:kind='opll_rhythm';section='rhythm'
             else:kind='opll_shared_parameter';section='shared'
+        elif chip=='y8950':
+            group=register//0x20
+            if group in (1,2,3,4) and register%0x20<0x18:
+                off=register-group*0x20;slot=off%8
+                channel=(off//8)*3+slot%3 if slot<6 else None
+                section='fm' if channel is not None else 'shared'
+                kind=('y8950_operator_flags','y8950_operator_level',
+                    'y8950_operator_attack_decay','y8950_operator_sustain_release')[group-1]
+            elif 0xa0<=register<=0xa8:kind='y8950_frequency_low';channel=register-0xa0;section='fm'
+            elif 0xb0<=register<=0xb8:kind='y8950_frequency_high';channel=register-0xb0;section='fm'
+            elif register==0xbd:kind='y8950_rhythm';section='rhythm'
+            elif 0xc0<=register<=0xc8:kind='y8950_channel';channel=register-0xc0;section='fm'
+            else:kind='y8950_shared_parameter';section='shared'
+        elif chip=='ymf262':
+            port=1 if command==0x5f else 0
+            group=register//0x20
+            if group in (1,2,3,4) and register%0x20<0x18:
+                off=register-group*0x20;slot=off%8
+                channel=(off//8)*3+slot%3 if slot<6 else None
+                section='fm' if channel is not None else 'shared'
+                kind=('ymf262_operator_flags','ymf262_operator_level',
+                    'ymf262_operator_attack_decay','ymf262_operator_sustain_release')[group-1]
+            elif 0xa0<=register<=0xa8:kind='ymf262_frequency_low';channel=register-0xa0;section='fm'
+            elif 0xb0<=register<=0xb8:kind='ymf262_frequency_high';channel=register-0xb0;section='fm'
+            elif register==0xbd and not port:kind='ymf262_rhythm';section='rhythm'
+            elif 0xc0<=register<=0xc8:kind='ymf262_channel';channel=register-0xc0;section='fm'
+            elif 0xe0<=register<=0xf5:
+                off=register-0xe0;slot=off%8
+                channel=(off//8)*3+slot%3 if slot<6 else None
+                kind='ymf262_waveform';section='fm' if channel is not None else 'shared'
+            elif port and register==4:kind='ymf262_four_op'
+            elif port and register==5:kind='ymf262_mode'
+            else:kind='ymf262_shared_parameter'
         elif chip=='nesapu':
             if register<=7:
                 section='pulse';channel=register//4
@@ -263,6 +315,8 @@ def encode_control(control, device):
     if chip=='opn2':return bytes(((0xa2 if device.instance else 0x52)+p['port'],register,value))
     if chip=='opna':return bytes(((0xa6 if device.instance else 0x56)+p['port'],register,value))
     if chip=='opll':return bytes((0xa1 if device.instance else 0x51,register,value))
+    if chip=='y8950':return bytes((0x5c,register,value))
+    if chip=='ymf262':return bytes((0x5f if p['port'] else 0x5e,register,value))
     if chip=='psg':return bytes((0xa0,register|(device.instance<<7),value))
     if chip=='scc':return bytes((0xd2,p['port']|(device.instance<<7),register,value))
     if chip=='huc6280':return bytes((0xb9,register|(device.instance<<7),value))

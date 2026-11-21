@@ -1,0 +1,36 @@
+{
+ "rate_hz": 22050,
+ "source": "IKAOPLL-verilator renders of single rhythm hits at the reference oscillator pitches (FMPAC01 settings), levels at maximum; generated 2026-11-14",
+ "families": {
+  "BD": {
+   "file": "BD.wav",
+   "pitch_source": "ch7",
+   "ref_hz": 127.4,
+   "samples": 1325
+  },
+  "SD": {
+   "file": "SD.wav",
+   "pitch_source": "ch6",
+   "ref_hz": 109.2,
+   "samples": 4545
+  },
+  "TOM": {
+   "file": "TOM.wav",
+   "pitch_source": "ch8",
+   "ref_hz": 42.5,
+   "samples": 2490
+  },
+  "CYM": {
+   "file": "CYM.wav",
+   "pitch_source": "ch8",
+   "ref_hz": 42.5,
+   "samples": 5972
+  },
+  "HH": {
+   "file": "HH.wav",
+   "pitch_source": "ch6",
+   "ref_hz": 109.2,
+   "samples": 4526
+  }
+ }
+}

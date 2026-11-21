@@ -1,0 +1,578 @@
+{
+ "source": "OPLL preset conversions observed in commercial MSX dual-edition games (Pro Yakyuu Family Stadium Pennant Race, Xevious: Fardraut Saga, Gorby no Pipeline Daisakusen), extracted from the VGMRips YM2413/Y8950 pack pairings 2026-11-14. All three games agree on every voice. Kept in the private dev repository as calibration data; publication is the owner's separate decision.",
+ "law": "carrier TL = source VOL << 2; rhythm volume TL = attenuation << 2",
+ "voices": [
+  {
+   "index": 1,
+   "name": "Violin",
+   "fb": 7,
+   "alg": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 20,
+     "ar": 15,
+     "dr": 15,
+     "sl": 2,
+     "rr": 4
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 1,
+     "tl": 0,
+     "ar": 5,
+     "dr": 1,
+     "sl": 1,
+     "rr": 6
+    }
+   ],
+   "votes": 2011
+  },
+  {
+   "index": 2,
+   "name": "Guitar",
+   "fb": 7,
+   "alg": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 3,
+     "ksl": 1,
+     "tl": 31,
+     "ar": 15,
+     "dr": 4,
+     "sl": 13,
+     "rr": 5
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 1,
+     "tl": 0,
+     "ar": 14,
+     "dr": 4,
+     "sl": 3,
+     "rr": 2
+    }
+   ],
+   "votes": 714
+  },
+  {
+   "index": 3,
+   "name": "Piano",
+   "fb": 5,
+   "alg": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 3,
+     "ksl": 1,
+     "tl": 36,
+     "ar": 13,
+     "dr": 3,
+     "sl": 14,
+     "rr": 1
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 1,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 11,
+     "dr": 2,
+     "sl": 15,
+     "rr": 6
+    }
+   ],
+   "votes": 744
+  },
+  {
+   "index": 4,
+   "name": "Flute",
+   "fb": 5,
+   "alg": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 1,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 36,
+     "ar": 5,
+     "dr": 12,
+     "sl": 1,
+     "rr": 8
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 1,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 4,
+     "dr": 3,
+     "sl": 2,
+     "rr": 6
+    }
+   ],
+   "votes": 474
+  },
+  {
+   "index": 5,
+   "name": "Clarinet",
+   "fb": 5,
+   "alg": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 2,
+     "ksl": 0,
+     "tl": 29,
+     "ar": 9,
+     "dr": 9,
+     "sl": 0,
+     "rr": 4
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 6,
+     "dr": 3,
+     "sl": 1,
+     "rr": 6
+    }
+   ],
+   "votes": 946
+  },
+  {
+   "index": 6,
+   "name": "Oboe",
+   "fb": 2,
+   "alg": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 1,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 8,
+     "ar": 7,
+     "dr": 10,
+     "sl": 3,
+     "rr": 15
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 1,
+     "mul": 3,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 5,
+     "dr": 2,
+     "sl": 1,
+     "rr": 10
+    }
+   ],
+   "votes": 142
+  },
+  {
+   "index": 7,
+   "name": "Trumpet",
+   "fb": 7,
+   "alg": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 28,
+     "ar": 7,
+     "dr": 3,
+     "sl": 1,
+     "rr": 6
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 7,
+     "dr": 2,
+     "sl": 0,
+     "rr": 7
+    }
+   ],
+   "votes": 1948
+  },
+  {
+   "index": 8,
+   "name": "Organ",
+   "fb": 7,
+   "alg": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 3,
+     "ksl": 1,
+     "tl": 37,
+     "ar": 15,
+     "dr": 10,
+     "sl": 0,
+     "rr": 8
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 1,
+     "tl": 0,
+     "ar": 6,
+     "dr": 1,
+     "sl": 0,
+     "rr": 6
+    }
+   ],
+   "votes": 505
+  },
+  {
+   "index": 9,
+   "name": "Horn",
+   "fb": 6,
+   "alg": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 26,
+     "ar": 6,
+     "dr": 5,
+     "sl": 1,
+     "rr": 0
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 1,
+     "tl": 0,
+     "ar": 7,
+     "dr": 2,
+     "sl": 0,
+     "rr": 9
+    }
+   ],
+   "votes": 976
+  },
+  {
+   "index": 10,
+   "name": "Synthesizer",
+   "fb": 7,
+   "alg": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 1,
+     "tl": 12,
+     "ar": 14,
+     "dr": 5,
+     "sl": 3,
+     "rr": 0
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 9,
+     "dr": 4,
+     "sl": 1,
+     "rr": 6
+    }
+   ],
+   "votes": 834
+  },
+  {
+   "index": 11,
+   "name": "Harpsichord",
+   "fb": 1,
+   "alg": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 1,
+     "mul": 3,
+     "ksl": 1,
+     "tl": 8,
+     "ar": 15,
+     "dr": 0,
+     "sl": 15,
+     "rr": 0
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 2,
+     "ksl": 1,
+     "tl": 0,
+     "ar": 14,
+     "dr": 4,
+     "sl": 12,
+     "rr": 4
+    }
+   ],
+   "votes": 1577
+  },
+  {
+   "index": 12,
+   "name": "Vibraphone",
+   "fb": 2,
+   "alg": 0,
+   "ops": [
+    {
+     "am": 1,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 1,
+     "mul": 9,
+     "ksl": 0,
+     "tl": 38,
+     "ar": 15,
+     "dr": 15,
+     "sl": 3,
+     "rr": 0
+    },
+    {
+     "am": 1,
+     "vib": 1,
+     "egt": 0,
+     "ksr": 1,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 15,
+     "dr": 1,
+     "sl": 14,
+     "rr": 1
+    }
+   ],
+   "votes": 2536
+  },
+  {
+   "index": 13,
+   "name": "SynthBass",
+   "fb": 5,
+   "alg": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 0,
+     "ksr": 1,
+     "mul": 1,
+     "ksl": 1,
+     "tl": 10,
+     "ar": 15,
+     "dr": 7,
+     "sl": 0,
+     "rr": 1
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 0,
+     "ksr": 1,
+     "mul": 0,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 15,
+     "dr": 5,
+     "sl": 3,
+     "rr": 3
+    }
+   ],
+   "votes": 303
+  },
+  {
+   "index": 14,
+   "name": "AcoustBass",
+   "fb": 4,
+   "alg": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 1,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 23,
+     "ar": 12,
+     "dr": 2,
+     "sl": 15,
+     "rr": 0
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 1,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 12,
+     "dr": 1,
+     "sl": 5,
+     "rr": 1
+    }
+   ],
+   "votes": 2016
+  },
+  {
+   "index": 15,
+   "name": "ElecGuitar",
+   "fb": 2,
+   "alg": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 20,
+     "ar": 14,
+     "dr": 3,
+     "sl": 5,
+     "rr": 12
+    },
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 5,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 13,
+     "dr": 13,
+     "sl": 1,
+     "rr": 3
+    }
+   ],
+   "votes": 479
+  }
+ ],
+ "rhythm_template": {
+  "6": {
+   "mod": [
+    2,
+    63,
+    248,
+    70
+   ],
+   "car": [
+    8,
+    0,
+    248,
+    70
+   ],
+   "fb_cnt": 0
+  },
+  "7": {
+   "mod": [
+    14,
+    0,
+    248,
+    70
+   ],
+   "car": [
+    0,
+    0,
+    248,
+    70
+   ],
+   "fb_cnt": 0
+  },
+  "8": {
+   "mod": [
+    15,
+    0,
+    248,
+    71
+   ],
+   "car": [
+    0,
+    0,
+    248,
+    69
+   ],
+   "fb_cnt": 0
+  }
+ }
+}
