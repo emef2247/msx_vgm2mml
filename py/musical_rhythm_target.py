@@ -64,16 +64,16 @@ def project_rhythm(performance, *, makoto=False, opll_pcm=False,
                         if dict(c.parameters)['register']==0x18+list(OPNA_BITS).index(event.instrument_family) and event.start_sample<=c.sample and (event.stop_sample is None or c.sample<event.stop_sample):
                             actions.append((c.sample,c.order,'level',event))
         if to_opna:
-            # SoundCore level mode (owner's decision, 2026-11-21):
-            # the rhythm unit drops by the same ~11 dB as the other
-            # SoundCore-anchored lanes, as 15 total-level steps of
-            # 0.75 dB below the no-attenuation value.
-            total=0x3F-(15 if soundcore_levels else 0)
+            # SoundCore level mode (owner's decisions, 2026-11-21):
+            # the rhythm unit drops to the same working level as
+            # the other SoundCore-anchored lanes, as 30 total-level
+            # steps of 0.75 dB below the no-attenuation value.
+            total=0x3F-(30 if soundcore_levels else 0)
             rows.append(dict(sample=0,order=-1,command=bytes((0x56,0x11,total)),
                 unit_id='',device_id=device.device_id,source_indices=(),
                 reason='OPNA rhythm total level (Misato: no attenuation)'
                 if total==0x3F else
-                'OPNA rhythm total level (Misato: SoundCore level, -15 steps)'))
+                'OPNA rhythm total level (Misato: SoundCore level, -30 steps)'))
         mask=0;mode=True;levels={0x36:0,0x37:0,0x38:0}
         for at,rank,kind,event in sorted(actions,key=lambda a:(a[0],a[1],a[2]=='start')):
             if kind=='mode':

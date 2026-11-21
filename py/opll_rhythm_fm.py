@@ -34,12 +34,12 @@ _cache = {}
 # register setup), it falls to 25% of its peak at about 52 ms
 # (2026-11-15).
 _NOISE_PULSE_SAMPLES = int(0.052 * 44100)
-# SoundCore level mode (owner's decision, 2026-11-21): alongside
-# the SoundCore-anchored melody tables, the FM rhythm drops by
-# the same ~11 dB the melody anchor was halved by, applied as
-# +15 carrier TL steps (0.75 dB each).  The fitted tables
-# themselves keep their IKAOPLL-anchored levels.
-_SOUNDCORE_TL_OFFSET = 15
+# SoundCore level mode (owner's decisions, 2026-11-21): alongside
+# the SoundCore-anchored melody tables, the FM rhythm drops to
+# the same working level, applied as +30 carrier TL steps
+# (0.75 dB each, about -22.5 dB below the fitted level).  The
+# fitted tables themselves keep their IKAOPLL-anchored levels.
+_SOUNDCORE_TL_OFFSET = 30
 # Audible register slots per algorithm, measured with a
 # solo-carrier probe on IKAOPM (2026-11-14).
 _CARRIERS_REG = {0: {3}, 1: {3}, 2: {3}, 3: {3}, 4: {2, 3},

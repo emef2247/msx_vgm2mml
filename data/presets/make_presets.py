@@ -133,32 +133,36 @@ LEVEL_TRIM_TL_OPNA = {'Violin': 6, 'Guitar': 2, 'Piano': 2,
 # IKAOPLL-anchored trims above: median -23.1 dB (OPM), -25.9 dB
 # (OPNA), per-voice spread under 2 dB.
 #
-# Applied at HALF the measured offset (owner's decision,
+# Applied well below the measured offset (owner's decisions,
 # 2026-11-21): at full compensation a real song (FMPAC02 on the
 # real SFG-01) saturates - every note with carrier-TL headroom is
 # lifted the full ~23-26 dB while VOL 0 notes stay pinned at TL 0,
 # so the dynamics crush into one loud band (recording RMS
-# -10.6 dBFS, 1 s windows within 2 dB of each other).  The values
-# below are the per-voice midpoints between the IKAOPLL-anchored
-# trims and the full SoundCore trims; the full-compensation values
-# are in commit 770fa65 and the residuals in the probe workdir
+# -10.6 dBFS, 1 s windows within 2 dB of each other).  The first
+# application took the per-voice midpoints between the
+# IKAOPLL-anchored and full SoundCore trims; a second audition of
+# that version was still too loud, so the values below sit one
+# further ~11 dB step down (+15 TL steps from the midpoints),
+# roughly 22.5 dB below full compensation and close to the
+# IKAOPLL anchor.  The full-compensation values are in commit
+# 770fa65 and the residuals in the probe workdir
 # (opm_opna_level_probes/exg_residuals.json).
-LEVEL_TRIM_TL_OPM_SOUNDCORE = {'Violin': -10, 'Guitar': -13,
-                               'Piano': -14, 'Flute': -14,
-                               'Clarinet': -15, 'Oboe': -19,
-                               'Trumpet': -23, 'Organ': -15,
-                               'Horn': -16, 'Synthesizer': -13,
-                               'Harpsichord': -6, 'Vibraphone': -16,
-                               'SynthBass': 0, 'AcoustBass': -17,
-                               'ElecGuitar': -12}
-LEVEL_TRIM_TL_OPNA_SOUNDCORE = {'Violin': -12, 'Guitar': -16,
-                                'Piano': -16, 'Flute': -16,
-                                'Clarinet': -16, 'Oboe': -20,
-                                'Trumpet': -24, 'Organ': -16,
-                                'Horn': -17, 'Synthesizer': -14,
-                                'Harpsichord': -6, 'Vibraphone': -17,
-                                'SynthBass': -5, 'AcoustBass': -18,
-                                'ElecGuitar': -14}
+LEVEL_TRIM_TL_OPM_SOUNDCORE = {'Violin': 5, 'Guitar': 2,
+                               'Piano': 1, 'Flute': 1,
+                               'Clarinet': 0, 'Oboe': -4,
+                               'Trumpet': -8, 'Organ': 0,
+                               'Horn': -1, 'Synthesizer': 2,
+                               'Harpsichord': 9, 'Vibraphone': -1,
+                               'SynthBass': 15, 'AcoustBass': -2,
+                               'ElecGuitar': 3}
+LEVEL_TRIM_TL_OPNA_SOUNDCORE = {'Violin': 3, 'Guitar': -1,
+                                'Piano': -1, 'Flute': -1,
+                                'Clarinet': -1, 'Oboe': -5,
+                                'Trumpet': -9, 'Organ': -1,
+                                'Horn': -2, 'Synthesizer': 1,
+                                'Harpsichord': 9, 'Vibraphone': -2,
+                                'SynthBass': 10, 'AcoustBass': -3,
+                                'ElecGuitar': 1}
 
 # OPNA fit against the OPM set, 2026-11-16 (adopted by the owner
 # after audition): single-voice probes (C3/A4/C6) of the OPM table
@@ -696,8 +700,9 @@ def write_target_jsons():
         docs[rel]['source'] += (
             ' Level trims anchored to the owner\'s real YM2413 '
             'recording through the SoundCore SLOT EXG (2026-11-21), '
-            'applied at half the measured offset (full compensation '
-            'saturated real songs); see LEVEL_TRIM_TL_*_SOUNDCORE '
+            'applied about 22.5 dB below the full measured offset '
+            '(full compensation saturated real songs; lowered in '
+            'two audition steps); see LEVEL_TRIM_TL_*_SOUNDCORE '
             'in make_presets.py.')
     for rel, doc in docs.items():
         path = HERE / rel
