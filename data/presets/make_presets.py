@@ -509,22 +509,31 @@ def _established_opl_json(target, chip, clock):
 # stayed Nuked.  Mean score (harmonic + 0.5 envelope) under
 # the IKAOPLL measurement: 8.94 -> 7.19; Piano, Vibraphone,
 # AcoustBass and Guitar remain the least close voices.
+# Volume re-check 2026-11-21 (owner's direction: every voice
+# re-anchored to the IKAOPLL render's level, same production
+# probe window as the 2638a03 anchoring): Violin +1, Flute +1,
+# Synthesizer +1, Vibraphone +1, Harpsichord -2, SynthBass -2,
+# ElecGuitar +10.  ElecGuitar's trim had been set from a
+# level-invariant fit pass and read -7.2 dB (too loud) under
+# the standard window; its envelope also decays faster than
+# the original's, which no trim can fix (melody investigation,
+# separately scheduled).
 OPL3_FIT = {
-    'Violin': {'level_trim_tl': 26, 'ops': {0: {'vib': 0, 'tl': 28, 'rr': 1, 'ws': 5}, 1: {'ksl': 2, 'sl': 0, 'ws': 4}}},
+    'Violin': {'level_trim_tl': 27, 'ops': {0: {'vib': 0, 'tl': 28, 'rr': 1, 'ws': 5}, 1: {'ksl': 2, 'sl': 0, 'ws': 4}}},
     'Guitar': {'fb': 4, 'level_trim_tl': 28, 'ops': {0: {'ksr': 0, 'ksl': 1, 'tl': 25, 'dr': 7, 'rr': 1, 'ws': 1}, 1: {'ws': 6}}},
     'Piano': {'level_trim_tl': 20, 'ops': {0: {'vib': 1, 'ksl': 0, 'tl': 24, 'rr': 0, 'ws': 7}, 1: {'vib': 1, 'ws': 5}}},
-    'Flute': {'fb': 5, 'level_trim_tl': 24, 'ops': {0: {'am': 1, 'vib': 1, 'tl': 16, 'ws': 5}, 1: {'ksl': 0, 'ar': 7, 'ws': 0}}},
+    'Flute': {'fb': 5, 'level_trim_tl': 25, 'ops': {0: {'am': 1, 'vib': 1, 'tl': 16, 'ws': 5}, 1: {'ksl': 0, 'ar': 7, 'ws': 0}}},
     'Clarinet': {'level_trim_tl': 27, 'ops': {0: {'tl': 29, 'rr': 0, 'ws': 7}, 1: {'ar': 9, 'rr': 9, 'ws': 6}}},
     'Oboe': {'level_trim_tl': 24, 'ops': {0: {'rr': 1, 'ws': 0}, 1: {'ksl': 0, 'ar': 8, 'ws': 0}}},
     'Trumpet': {'fb': 6, 'level_trim_tl': 25, 'ops': {0: {'tl': 25, 'ar': 6, 'rr': 0, 'ws': 1}, 1: {'vib': 0, 'ws': 0}}},
     'Organ': {'level_trim_tl': 24, 'ops': {0: {'tl': 44, 'rr': 1, 'ws': 1}, 1: {'ws': 1}}},
     'Horn': {'level_trim_tl': 25, 'ops': {0: {'ksr': 1, 'ar': 5, 'dr': 5, 'ws': 6}, 1: {'dr': 7, 'sl': 2, 'ws': 2}}},
-    'Synthesizer': {'level_trim_tl': 24, 'ops': {0: {'vib': 0, 'sl': 7, 'ws': 1}, 1: {'ws': 1}}},
-    'Harpsichord': {'level_trim_tl': 23, 'ops': {0: {'tl': 7, 'sl': 0, 'ws': 0}, 1: {'am': 1, 'ksl': 0, 'ws': 1}}},
-    'Vibraphone': {'level_trim_tl': 27, 'ops': {0: {'egt': 1, 'rr': 3, 'ws': 4}, 1: {'am': 0, 'rr': 3, 'ws': 6}}},
-    'SynthBass': {'level_trim_tl': 29, 'ops': {0: {'am': 1, 'tl': 11, 'ar': 14, 'ws': 3}, 1: {'ws': 6}}},
+    'Synthesizer': {'level_trim_tl': 25, 'ops': {0: {'vib': 0, 'sl': 7, 'ws': 1}, 1: {'ws': 1}}},
+    'Harpsichord': {'level_trim_tl': 21, 'ops': {0: {'tl': 7, 'sl': 0, 'ws': 0}, 1: {'am': 1, 'ksl': 0, 'ws': 1}}},
+    'Vibraphone': {'level_trim_tl': 28, 'ops': {0: {'egt': 1, 'rr': 3, 'ws': 4}, 1: {'am': 0, 'rr': 3, 'ws': 6}}},
+    'SynthBass': {'level_trim_tl': 27, 'ops': {0: {'am': 1, 'tl': 11, 'ar': 14, 'ws': 3}, 1: {'ws': 6}}},
     'AcoustBass': {'fb': 2, 'level_trim_tl': 26, 'ops': {0: {'tl': 23, 'dr': 2, 'ws': 6}, 1: {'ws': 2}}},
-    'ElecGuitar': {'level_trim_tl': 12, 'ops': {0: {'vib': 0, 'rr': 1, 'ws': 0}, 1: {'rr': 5, 'ws': 0}}},
+    'ElecGuitar': {'level_trim_tl': 22, 'ops': {0: {'vib': 0, 'rr': 1, 'ws': 0}, 1: {'rr': 5, 'ws': 0}}},
 }
 
 
