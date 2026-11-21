@@ -51,9 +51,12 @@ class OpllRhythmProfileTests(unittest.TestCase):
         rows, prefix, losses, plan = project_variant(
             performance(), 'sfg01', force=True)
         self.assertIn('opll_rhythm_fm', plan)
-        # SD noise rides the YM2151 noise register in the FM route.
-        self.assertTrue(any(r['command'][0] == 0x54
-                            and r['command'][1] == 0x0F for r in rows))
+        # Both hits sound as FM key-ons (the opll table is all-FM
+        # since the 2026-11-21 refit; no noise-register ride).
+        ons = {r['unit_id'] for r in rows
+               if r['command'][0] == 0x54 and r['command'][1] == 0x08
+               and r['command'][2] & 0x78}
+        self.assertTrue({'bd', 'sd'} <= ons)
         # No native rhythm key rows.
         self.assertFalse(any(r['command'][0] == 0x51
                              and r['command'][1] == 0x0E for r in rows))

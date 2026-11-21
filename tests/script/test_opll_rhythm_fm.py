@@ -50,12 +50,14 @@ class OpllRhythmFmTests(unittest.TestCase):
         self.assertEqual(losses['opll_rhythm_fm_simultaneous_omitted'], 1)
 
     def test_noise_voice_takes_channel_8_and_enables_noise(self):
+        # The opll table is all-FM since the 2026-11-21 refit, so the
+        # noise route is exercised through the rx21 table's SD voice.
         rows, losses, info = project_opll_rhythm_fm(
-            performance((hit('sd', 'SD', 100, 0),)), 'opll', reserved=set())
+            performance((hit('sd', 'SD', 100, 0),)), 'rx21', reserved=set())
         ons = key_ons(rows)
         self.assertEqual(ons[0]['command'][2] & 7, 7)
         noise = [r for r in rows if r['command'][1] == 0x0F]
-        self.assertEqual(noise[0]['command'][2], 0x80 | 31)
+        self.assertEqual(noise[0]['command'][2], 0x80 | 13)
 
     def test_tom_pitch_follows_the_rhythm_oscillator(self):
         def control(cid, kind, sample, params):
