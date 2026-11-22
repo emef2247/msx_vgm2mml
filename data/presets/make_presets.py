@@ -604,16 +604,16 @@ def _established_opl_json(target, chip, clock):
 # start.  Guitar, Piano and Vibraphone remain the least
 # close voices under this score.
 OPL3_FIT = {
-    'Violin': {'level_trim_tl': 0, 'ops': {0: {'tl': 25, 'ws': 0}, 1: {'ar': 8, 'rr': 7, 'ws': 0}}},
+    'Violin': {'level_trim_tl': 0, 'ops': {0: {'tl': 26, 'ar': 9, 'ws': 0}, 1: {'ksl': 3, 'ar': 8, 'rr': 7, 'ws': 0}}},
     'Guitar': {'fb': 4, 'level_trim_tl': 0, 'ops': {0: {'am': 1, 'ksr': 0, 'ksl': 1, 'tl': 23, 'ws': 0}, 1: {'am': 1, 'ksl': 1, 'ar': 9, 'sl': 2, 'rr': 5, 'ws': 0}}},
     'Piano': {'level_trim_tl': 0, 'ops': {0: {'tl': 26, 'dr': 1, 'rr': 0, 'ws': 0}, 1: {'vib': 1, 'ksr': 1, 'ksl': 1, 'dr': 6, 'sl': 3, 'rr': 2, 'ws': 0}}},
     'Flute': {'fb': 6, 'level_trim_tl': 0, 'ops': {0: {'am': 1, 'tl': 9, 'ws': 0}, 1: {'ar': 7, 'ws': 0}}},
     'Clarinet': {'fb': 7, 'level_trim_tl': 0, 'ops': {0: {'ar': 8, 'rr': 0, 'ws': 0}, 1: {'ar': 11, 'ws': 0}}},
     'Oboe': {'level_trim_tl': 0, 'ops': {0: {'rr': 1, 'ws': 0}, 1: {'ksl': 1, 'ar': 8, 'rr': 8, 'ws': 0}}},
-    'Trumpet': {'fb': 6, 'level_trim_tl': 0, 'ops': {0: {'vib': 1, 'tl': 26, 'ar': 7, 'dr': 0, 'rr': 0, 'ws': 0}, 1: {'vib': 0, 'ksl': 2, 'ar': 9, 'rr': 7, 'ws': 0}}},
+    'Trumpet': {'fb': 6, 'level_trim_tl': 0, 'ops': {0: {'vib': 1, 'tl': 27, 'ar': 6, 'dr': 0, 'rr': 0, 'ws': 0}, 1: {'vib': 0, 'ksl': 2, 'ar': 9, 'rr': 7, 'ws': 0}}},
     'Organ': {'fb': 3, 'level_trim_tl': 0, 'ops': {0: {'ksr': 1, 'tl': 34, 'rr': 1, 'ws': 0}, 1: {'am': 1, 'vib': 1, 'ksl': 1, 'ar': 9, 'rr': 7, 'ws': 0}}},
     'Horn': {'level_trim_tl': 0, 'ops': {0: {'rr': 2, 'ws': 0}, 1: {'ksl': 3, 'ar': 7, 'dr': 6, 'sl': 2, 'rr': 7, 'ws': 0}}},
-    'Synthesizer': {'level_trim_tl': 0, 'ops': {0: {'tl': 14, 'ar': 7, 'dr': 3, 'rr': 3, 'ws': 0}, 1: {'vib': 0, 'ksl': 1, 'ws': 0}}},
+    'Synthesizer': {'level_trim_tl': 0, 'ops': {0: {'vib': 0, 'ar': 8, 'dr': 4, 'sl': 6, 'rr': 2, 'ws': 0}, 1: {'vib': 0, 'rr': 8, 'ws': 0}}},
     'Harpsichord': {'fb': 2, 'level_trim_tl': 0, 'ops': {0: {'tl': 7, 'sl': 0, 'ws': 0}, 1: {'ksl': 1, 'ar': 13, 'sl': 4, 'rr': 4, 'ws': 0}}},
     'Vibraphone': {'level_trim_tl': 0, 'ops': {0: {'egt': 1, 'tl': 49, 'rr': 3, 'ws': 0}, 1: {'ksl': 1, 'dr': 2, 'rr': 5, 'ws': 0}}},
     'SynthBass': {'level_trim_tl': 15, 'ops': {0: {'tl': 12, 'ar': 14, 'dr': 1, 'sl': 1, 'ws': 0}, 1: {'am': 1, 'rr': 5, 'ws': 0}}},
