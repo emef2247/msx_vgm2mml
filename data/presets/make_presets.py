@@ -465,19 +465,22 @@ def _target_json(target, chip, clock, pms, ams, trims, rhythm):
     if target == 'sfg01':
         doc['lfo'].update(pmd=86, amd=16, lfrq=0xCB)
     if target == 'makoto':
-        doc['fit_note'] = ('Voices fitted 2026-11-16 against the OPM '
-                       'table (IKAOPM reference renders, '
-                       'AdLibEmu candidates), waveform select '
-                       're-measured on the real chip 2026-11-20, '
-                       'then re-fitted 2026-11-20 against real '
-                       'YM2413 recordings of the probe set (Nuked '
-                       'candidates).  The extended re-fit (5 '
-                       'notes per voice, corrected probe pitch) '
-                       'supersedes the first re-fit, whose '
-                       'candidates sounded one octave low; mean '
-                       'distance 23.09 -> 9.37 under the corrected '
-                       'measurement; see OPL3_FIT in '
-                       'make_presets.py.')
+        doc['fit_note'] = ('Voices fitted against IKAOPLL renders '
+                       'of a low-extended 8-note probe set.  The '
+                       'current set (2026-11-22) fixes the waveform '
+                       'select at 0 on both operators -- the OPL3 '
+                       'melodic conversion is plain two-operator, '
+                       'an extension of the Y8950 set -- and was '
+                       'searched under a per-partial harmonic score '
+                       '(levels relative to each tone\'s own '
+                       'fundamental, excess partials weighted), '
+                       'starting from the earlier fitted set, the '
+                       'Y8950 fitted set and the unfitted frame.  '
+                       'Earlier passes (2026-11-16 against the OPM '
+                       'table, 2026-11-20 against real YM2413 '
+                       'recordings, 2026-11-21/22 with waveform '
+                       'select in play) were intermediate stages; '
+                       'see OPL3_FIT in make_presets.py.')
     return doc
 
 
@@ -584,22 +587,38 @@ def _established_opl_json(target, chip, clock):
 # ElecGuitar +6 steps.  Same probe set, window and IKAOPLL
 # anchor as the first re-check; after the move every voice's
 # mean gain is within +/-0.4 dB.
+# Re-fitted 2026-11-22 with the waveform select fixed at 0
+# on both operators (owner's direction: the OPL3 melodic
+# conversion is plain two-operator work, an extension of
+# the Y8950 set; no four-operator pairing takes part in
+# OPLL melody).  The search used a per-partial harmonic
+# score -- levels relative to each tone's own fundamental,
+# partials counted when either side has them, excess
+# weighted -- after an absolute-level variant of that
+# score proved to be dominated by the near-silent
+# post-key-off windows and was discarded.  Starts were
+# the unfitted frame, the previous fitted set with the
+# waveform select zeroed, the Y8950 fitted set and the
+# discarded pass's endpoints, arbitrated per voice under
+# the corrected score; no voice ended worse than its best
+# start.  Guitar, Piano and Vibraphone remain the least
+# close voices under this score.
 OPL3_FIT = {
-    'Violin': {'level_trim_tl': 0, 'ops': {0: {'vib': 0, 'tl': 28, 'rr': 1, 'ws': 5}, 1: {'ksl': 2, 'sl': 0, 'ws': 4}}},
-    'Guitar': {'fb': 4, 'level_trim_tl': 0, 'ops': {0: {'ksr': 0, 'ksl': 1, 'tl': 25, 'dr': 7, 'rr': 1, 'ws': 1}, 1: {'ws': 6}}},
-    'Piano': {'level_trim_tl': 0, 'ops': {0: {'vib': 1, 'ksl': 0, 'tl': 24, 'rr': 0, 'ws': 7}, 1: {'vib': 1, 'ws': 5}}},
-    'Flute': {'fb': 5, 'level_trim_tl': 0, 'ops': {0: {'am': 1, 'vib': 1, 'tl': 16, 'ws': 5}, 1: {'ksl': 0, 'ar': 7, 'ws': 0}}},
-    'Clarinet': {'level_trim_tl': 0, 'ops': {0: {'tl': 29, 'rr': 0, 'ws': 7}, 1: {'ar': 9, 'rr': 9, 'ws': 6}}},
-    'Oboe': {'level_trim_tl': 0, 'ops': {0: {'rr': 1, 'ws': 0}, 1: {'ksl': 0, 'ar': 8, 'ws': 0}}},
-    'Trumpet': {'fb': 6, 'level_trim_tl': 0, 'ops': {0: {'tl': 25, 'ar': 6, 'rr': 0, 'ws': 1}, 1: {'vib': 0, 'ws': 0}}},
-    'Organ': {'level_trim_tl': 0, 'ops': {0: {'tl': 44, 'rr': 1, 'ws': 1}, 1: {'ws': 1}}},
-    'Horn': {'level_trim_tl': 0, 'ops': {0: {'ksr': 1, 'ar': 5, 'dr': 5, 'ws': 6}, 1: {'dr': 7, 'sl': 2, 'ws': 2}}},
-    'Synthesizer': {'level_trim_tl': 0, 'ops': {0: {'vib': 0, 'sl': 7, 'ws': 1}, 1: {'ws': 1}}},
-    'Harpsichord': {'level_trim_tl': 0, 'ops': {0: {'tl': 7, 'sl': 0, 'ws': 0}, 1: {'am': 1, 'ksl': 0, 'ws': 1}}},
-    'Vibraphone': {'level_trim_tl': 0, 'ops': {0: {'egt': 1, 'rr': 3, 'ws': 4}, 1: {'am': 0, 'rr': 3, 'ws': 6}}},
-    'SynthBass': {'level_trim_tl': 15, 'ops': {0: {'am': 1, 'tl': 11, 'ar': 14, 'ws': 3}, 1: {'ws': 6}}},
-    'AcoustBass': {'fb': 2, 'level_trim_tl': 0, 'ops': {0: {'tl': 23, 'dr': 2, 'ws': 6}, 1: {'ws': 2}}},
-    'ElecGuitar': {'level_trim_tl': 0, 'ops': {0: {'vib': 0, 'rr': 1, 'ws': 0}, 1: {'rr': 5, 'ws': 0}}},
+    'Violin': {'level_trim_tl': 0, 'ops': {0: {'tl': 25, 'ws': 0}, 1: {'ar': 8, 'rr': 7, 'ws': 0}}},
+    'Guitar': {'fb': 4, 'level_trim_tl': 0, 'ops': {0: {'am': 1, 'ksr': 0, 'ksl': 1, 'tl': 23, 'ws': 0}, 1: {'am': 1, 'ksl': 1, 'ar': 9, 'sl': 2, 'rr': 5, 'ws': 0}}},
+    'Piano': {'level_trim_tl': 0, 'ops': {0: {'tl': 26, 'dr': 1, 'rr': 0, 'ws': 0}, 1: {'vib': 1, 'ksr': 1, 'ksl': 1, 'dr': 6, 'sl': 3, 'rr': 2, 'ws': 0}}},
+    'Flute': {'fb': 6, 'level_trim_tl': 0, 'ops': {0: {'am': 1, 'tl': 9, 'ws': 0}, 1: {'ar': 7, 'ws': 0}}},
+    'Clarinet': {'fb': 7, 'level_trim_tl': 0, 'ops': {0: {'ar': 8, 'rr': 0, 'ws': 0}, 1: {'ar': 11, 'ws': 0}}},
+    'Oboe': {'level_trim_tl': 0, 'ops': {0: {'rr': 1, 'ws': 0}, 1: {'ksl': 1, 'ar': 8, 'rr': 8, 'ws': 0}}},
+    'Trumpet': {'fb': 6, 'level_trim_tl': 0, 'ops': {0: {'vib': 1, 'tl': 26, 'ar': 7, 'dr': 0, 'rr': 0, 'ws': 0}, 1: {'vib': 0, 'ksl': 2, 'ar': 9, 'rr': 7, 'ws': 0}}},
+    'Organ': {'fb': 3, 'level_trim_tl': 0, 'ops': {0: {'ksr': 1, 'tl': 34, 'rr': 1, 'ws': 0}, 1: {'am': 1, 'vib': 1, 'ksl': 1, 'ar': 9, 'rr': 7, 'ws': 0}}},
+    'Horn': {'level_trim_tl': 0, 'ops': {0: {'rr': 2, 'ws': 0}, 1: {'ksl': 3, 'ar': 7, 'dr': 6, 'sl': 2, 'rr': 7, 'ws': 0}}},
+    'Synthesizer': {'level_trim_tl': 0, 'ops': {0: {'tl': 14, 'ar': 7, 'dr': 3, 'rr': 3, 'ws': 0}, 1: {'vib': 0, 'ksl': 1, 'ws': 0}}},
+    'Harpsichord': {'fb': 2, 'level_trim_tl': 0, 'ops': {0: {'tl': 7, 'sl': 0, 'ws': 0}, 1: {'ksl': 1, 'ar': 13, 'sl': 4, 'rr': 4, 'ws': 0}}},
+    'Vibraphone': {'level_trim_tl': 0, 'ops': {0: {'egt': 1, 'tl': 49, 'rr': 3, 'ws': 0}, 1: {'ksl': 1, 'dr': 2, 'rr': 5, 'ws': 0}}},
+    'SynthBass': {'level_trim_tl': 15, 'ops': {0: {'tl': 12, 'ar': 14, 'dr': 1, 'sl': 1, 'ws': 0}, 1: {'am': 1, 'rr': 5, 'ws': 0}}},
+    'AcoustBass': {'level_trim_tl': 0, 'ops': {0: {'tl': 20, 'dr': 2, 'ws': 0}, 1: {'am': 1, 'vib': 1, 'ksl': 1, 'ar': 10, 'rr': 4, 'ws': 0}}},
+    'ElecGuitar': {'level_trim_tl': 0, 'ops': {0: {'ws': 0}, 1: {'ksl': 1, 'rr': 5, 'ws': 0}}},
 }
 
 
