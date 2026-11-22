@@ -65,7 +65,7 @@ OPLL rhythm at all: the percussion stays on the native YM2413 lane.
 | psg_sfg01 | Native AY PSG plus an OPM doubling of the PSG voices |
 | psg_makoto | Native AY PSG plus an OPNA doubling of the PSG voices |
 | psg_layered | Native AY PSG plus both FM doublings |
-| psg_opl3 | Native AY PSG plus an OPL3 doubling of the PSG voices (unavailable until the OPL3 waveform projection is established) |
+| psg_opl3 | Native AY PSG plus an OPL3 doubling of the PSG voices |
 
 ## Layered FM
 

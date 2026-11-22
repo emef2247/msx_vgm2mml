@@ -125,7 +125,7 @@ class ExportMgsVgmVariantsTests(unittest.TestCase):
             out = Path(tmp) / 'out'
             result = self.run_main(fixture, '--outdir', out, '--vgm-variants', '--skip-keyon-counts', '--compiler', 'mgsexc')
             self.assertEqual(result, 0)
-            assert_profiles(self, out, ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'makoto', 'makoto_rx21', 'misato', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'layered', 'psg_sfg01', 'psg_makoto', 'psg_layered'), 'scale_rom1')
+            assert_profiles(self, out, ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'makoto', 'makoto_rx21', 'misato', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'layered', 'psg_sfg01', 'psg_makoto', 'psg_layered', 'psg_opl3'), 'scale_rom1')
             self.assertEqual(variant_rows(out)[0]['status'], 'success')
 
     def test_rerun_without_flag_removes_products_and_ownership(self):

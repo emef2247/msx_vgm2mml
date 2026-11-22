@@ -74,8 +74,17 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False, 
     units = [u for u in performance.units if devices[u.device_id].chip in chips
              and u.section not in ('pcm_dda','dpcm','noise') and u.role!='unpitched']
     lanes = sorted({(u.device_id,u.channel) for u in units})
-    capacity = 8 if target_chip == 'opm' else 6
-    free = [i for i in range(capacity) if i not in set(reserved)]
+    if target_chip == 'opl3':
+        from musical_opl3_target import (_OFFSETS as _opl3_offsets,
+            _command as _opl3_command, _pitch as _opl3_pitch)
+        # Each doubled voice takes four consecutive YMF262 channels,
+        # one sine carrier per spectrum harmonic.
+        taken = set(reserved)
+        free = [base for base in (0, 4, 8, 12)
+                if all(base + k not in taken for k in range(4))]
+    else:
+        capacity = 8 if target_chip == 'opm' else 6
+        free = [i for i in range(capacity) if i not in set(reserved)]
     allocation = dict(zip(lanes,free))
     rows, losses = [], Counter()
     spectra = {}
@@ -100,7 +109,15 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False, 
             losses['psg_hardware_envelope_shape_not_doubled'] += 1
         def emit(at,reg,val,reason,port=0):
             rows.append(record(unit,at,bytes((0x54 if target_chip=='opm' else 0x56+port,reg,val&255)),reason))
-        started=False
+        def emit_opl3(at,ch,reg,val,reason,order=0):
+            rows.append(record(unit,at,_opl3_command(ch,reg,val&255),reason,order))
+        def gate_off_opl3(at,reason,order=0):
+            if last_pitch is None:return
+            block,fnum=last_pitch
+            for bank in range(len(spectrum.harmonics)):
+                ch=target+bank
+                emit_opl3(at,ch,0xb0+ch%9,(block<<2)|(fnum>>8),reason,order)
+        started=False;last_pitch=None
         for at in times(unit):
             voice=voices.get(curve_value(unit.voice_curve,at))
             identity=voice.voice_id if voice else device.chip
@@ -113,6 +130,7 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False, 
                 psg_noise_muted=True
                 if started:
                     if target_chip=='opm': emit(at,8,target,'psg noise interval gate end')
+                    elif target_chip=='opl3': gate_off_opl3(at,'psg noise interval gate end')
                     else: emit(at,0x28,target%3|(4 if target>=3 else 0),'psg noise interval gate end')
                     started=False
                 continue
@@ -120,6 +138,7 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False, 
             if not hz or not math.isfinite(hz) or hz<=0:
                 losses['unknown_wave_pitch_intervals_muted'] += 1
                 if target_chip=='opm': emit(at,0x20+target,7,'unknown pitch mute')
+                elif target_chip=='opl3': gate_off_opl3(at,'unknown pitch mute')
                 else: emit(at,0xb4+target%3,0,'unknown pitch mute',target//3)
                 continue
             level=_amplitude(unit,device,curve_value(unit.volume_curve,at))
@@ -135,6 +154,24 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False, 
                                       (0x80,31),(0xa0,0),(0xc0,0),(0xe0,15)):
                         emit(at,reg+offset,value,'wave spectrum and musical volume')
                 if not started:emit(at,8,0x78|target,'musical gate start')
+            elif target_chip=='opl3':
+                block,fnum=_opl3_pitch(hz,clock);last_pitch=(block,fnum)
+                for bank,(harmonic,amplitude) in enumerate(zip(spectrum.harmonics,spectrum.amplitudes)):
+                    ch=target+bank;off=_opl3_offsets[ch%9]
+                    # A 2-op unit in FM connection: the modulator is
+                    # held silent and the carrier sounds the harmonic.
+                    # TL steps are 0.75 dB on both chips; the YMF262
+                    # range ends at 63, so quieter partials clamp.
+                    tl=max(0,min(63,carrier_tl(level*amplitude)))
+                    for reg,value in ((0x20+off,0x21),(0x40+off,63),
+                                      (0x60+off,0xf0),(0x80+off,0x0f),(0xe0+off,0)):
+                        emit_opl3(at,ch,reg,value,'wave spectrum silent modulator')
+                    for reg,value in ((0x20+off+3,0x20|harmonic),(0x40+off+3,tl),
+                                      (0x60+off+3,0xf0),(0x80+off+3,0x0f),(0xe0+off+3,0)):
+                        emit_opl3(at,ch,reg,value,'wave spectrum and musical volume')
+                    emit_opl3(at,ch,0xc0+ch%9,0x30,'additive voice stereo')
+                    emit_opl3(at,ch,0xa0+ch%9,fnum&255,'musical pitch')
+                    emit_opl3(at,ch,0xb0+ch%9,(block<<2)|(fnum>>8)|0x20,'musical pitch and gate')
             else:
                 from opm_target_vgm import _opna_pitch
                 block,fnum,*_=_opna_pitch(hz,clock)
@@ -154,12 +191,16 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False, 
             and dict(unit.parameters).get('termination','source_observation_end') in ('observation_end','source_observation_end')):
             continue
         if device.chip!='psg' or started:
-            if target_chip=='opm':
-                emit(unit.end_sample,8,target,'musical gate end')
+            if target_chip=='opl3':
+                gate_off_opl3(unit.end_sample,'musical gate end',
+                    -1 if unit.end_sample>unit.start_sample else 1)
             else:
-                emit(unit.end_sample,0x28,target%3|(4 if target>=3 else 0),'musical gate end')
-            # Same-source adjacent gates: stop precedes the next gate's setup/start.
-            rows[-1]['order']=-1 if unit.end_sample>unit.start_sample else 1
+                if target_chip=='opm':
+                    emit(unit.end_sample,8,target,'musical gate end')
+                else:
+                    emit(unit.end_sample,0x28,target%3|(4 if target>=3 else 0),'musical gate end')
+                # Same-source adjacent gates: stop precedes the next gate's setup/start.
+                rows[-1]['order']=-1 if unit.end_sample>unit.start_sample else 1
         if psg_noise_muted:losses['psg_noise_only_intervals_not_doubled'] += 1
     if losses and not force:
         raise ValueError('Wave target requires approximation: '+', '.join(sorted(losses)))

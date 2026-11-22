@@ -158,16 +158,27 @@ def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, re
     OPLL voices project through the commercially observed
     conversion table, Y8950 sources re-emit on the OPL3's OPL
     banks and YMF262 sources re-emit natively (4-op pairs
-    included).  The chip has no PCM unit, and the 4-op FM and
-    waveform projections are not established yet; sources needing
-    them make the profile unavailable.
+    included).  The chip has no PCM unit, and the 4-op FM
+    projection is not established yet; sources needing it make
+    the profile unavailable.  With real_psg (psg_opl3), PSG voices
+    also double onto YMF262 carriers through the waveform
+    projection, beside their native AY lanes.
     """
     from musical_opl3_target import project_opl3_fm
-    if real_psg:
-        raise ValueError('psg_opl3 requires the OPL3 waveform projection (not yet established)')
     allowed={'opll','y8950','ymf262','psg','dcsg'}
     if real_scc:allowed.add('scc')
-    bad=sorted({d.chip for d in performance.devices}-allowed)
+    if real_psg:
+        # The PSG layered gate in project_variant already proved the
+        # sounding sources are PSG-only; a device that never sounds
+        # (an msxplay.com header lists every device) must not fail
+        # this profile the way it fails the base opl3 profile.
+        by_id={d.device_id:d.chip for d in performance.devices}
+        present={by_id[u.device_id] for u in performance.units}
+        present|={by_id[e.device_id] for e in performance.percussion}
+        present|={p.chip for p in performance.pcm_packets}
+    else:
+        present={d.chip for d in performance.devices}
+    bad=sorted(present-allowed)
     if bad:raise ValueError('opl3 profile has no projection for '+', '.join(bad))
     rows=[];losses=Counter();plan={}
     if real_scc:
@@ -176,6 +187,15 @@ def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, re
         rows.extend(scc_rows);losses.update(scc_losses);plan['real_scc']=scc_plan
     fm_rows,fm_losses,allocation=project_opl3_fm(performance,force=force)
     rows.extend(fm_rows);losses.update(fm_losses)
+    if real_psg:
+        # psg_opl3: the PSG voices double onto YMF262 sine carriers
+        # through the waveform projection, beside the native AY
+        # lanes the auxiliary projection below emits.
+        from musical_wave_target import project_waves
+        wave_rows,wave_losses,wave_allocation=project_waves(performance,'opl3',14318180,
+            reserved=set(allocation.values()),force=True,include_psg=True)
+        rows.extend(wave_rows);losses.update(wave_losses)
+        plan['waveform_allocation']={str(k):v for k,v in wave_allocation.items()}
     opll_device=next((d.device_id for d in performance.devices if d.chip=='opll'),None)
     aux,aux_losses=project_psg_opll(performance,dcsg_gain=dcsg_gain,
         opna=False,force=True,opll_fm_device=opll_device)
@@ -207,6 +227,19 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     if profile=='msxaudio':
         return _project_msxaudio(performance,force=force,dcsg_gain=dcsg_gain)
     if profile=='opl3':
+        if real_psg:
+            # The PSG layered family is defined for PSG-only sources
+            # (owner, 2026-11-14); the opl3 route returns before the
+            # main route's gate, so the same checks run here.
+            devices={d.device_id:d for d in performance.devices}
+            sounding={devices[u.device_id].chip for u in performance.units}
+            sounding|={devices[e.device_id].chip for e in performance.percussion}
+            sounding|={p.chip for p in performance.pcm_packets}
+            if not any(devices[u.device_id].chip=='psg' and u.section!='noise'
+                and u.role!='unpitched' for u in performance.units):
+                raise ValueError('No sounding PSG units for the PSG layered profile')
+            if sounding!={'psg'}:
+                raise ValueError('PSG layered profiles require a PSG-only source')
         return _project_opl3(performance,force=force,dcsg_gain=dcsg_gain,
             real_scc=real_scc,real_psg=real_psg)
     chip='opna' if profile in ('makoto','makoto_rx21','misato') else 'opm'
