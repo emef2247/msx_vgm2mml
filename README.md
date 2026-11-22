@@ -135,37 +135,30 @@ MML 生成用に構築した音楽情報を、MSX のサウンドカートリッ
 
 生成物は `vgm-variants/<土台のプロファイル名>/<曲名>.vgm` に出力されます。組み合わせは土台の下に追加要素の名前のサブフォルダに入ります（例: `vgm-variants/sfg01/makoto/<曲名>.vgm`、`vgm-variants/sfg01/scc/<曲名>.vgm`）。土台と同一内容になる組み合わせは出力されません。生成できない構成は理由とともにスキップされ、診断が `_diagnostics` に残ります。
 
-入力音源ごとに生成されるプロファイルの一覧です（○：生成される、△：制限あり・未変換部分あり、—：生成されない）。
+土台プロファイルが入力音源ごとに生成されるかの一覧です（○：生成される、△：制限あり・未変換部分あり、—：生成されない）。
 
-| プロファイル | psg | psg_scc | opll | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| sfg01 | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ | △ |
-| sfg01_opllrhythm | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ | △ |
-| sfg01_opl3 | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ | △ |
-| makoto | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
-| misato | ○ | ○ | ○ | ○ | ○ | △ | △ | △ | △ | ○ | △ | △ |
-| misato_msxaudio | — | — | ○ | — | — | — | — | — | — | — | ○ | ○ |
-| sfg01_makoto | — | — | ○ | — | — | — | — | — | ○ | — | ○ | ○ |
-| sfg01_msxaudio | — | — | ○ | — | — | — | — | — | — | — | ○ | ○ |
-| sfg01_misato | — | — | ○ | — | — | — | — | — | ○ | — | — | — |
-| sfg01_opl3 | — | — | ○ | — | — | — | — | — | ○ | — | — | — |
-| msxaudio | ○ | — | ○ | ○ | ○ | — | — | — | — | — | — | — |
-| opl3 | ○ | — | ○ | ○ | ○ | — | — | — | — | — | — | — |
-| opl3_makoto | — | — | ○ | — | — | — | — | — | ○ | — | ○ | ○ |
-| opl3_msxaudio | — | — | ○ | — | — | — | — | — | — | — | ○ | ○ |
-| layered | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
-| scc_sfg01 | — | ○ | — | — | — | — | — | — | — | — | — | — |
-| scc_makoto | — | ○ | — | — | — | — | — | — | — | — | — | — |
-| scc_misato | — | ○ | — | — | — | — | — | — | — | — | — | — |
-| scc_msxaudio | — | ○ | — | — | — | — | — | — | — | — | — | — |
-| scc_opl3 | — | ○ | — | — | — | — | — | — | — | — | — | — |
-| scc_layered | — | ○ | — | — | — | — | — | — | — | — | — | — |
-| psg_sfg01 | ○ | — | — | — | — | — | — | — | — | — | — | — |
-| psg_makoto | ○ | — | — | — | — | — | — | — | — | — | — | — |
-| psg_misato | ○ | — | — | — | — | — | — | — | — | — | — | — |
-| psg_msxaudio | ○ | — | — | — | — | — | — | — | — | — | — | — |
-| psg_opl3 | ○ | — | — | — | — | — | — | — | — | — | — | — |
-| psg_layered | ○ | — | — | — | — | — | — | — | — | — | — | — |
+| プロファイル | psg | psg_scc | opll | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| sfg01 | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ |
+| makoto | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ |
+| misato | ○ | ○ | ○ | ○ | ○ | △ | △ | △ | △ | ○ | △ |
+| msxaudio | ○ | — | ○ | ○ | ○ | ○ | △ | △ | — | — | — |
+| opl3 | ○ | — | ○ | ○ | ○ | ○ | ○ | △ | — | — | — |
+
+msxaudio / opl3 の apu_fds・huc6280 の △ は、波形音源の声数が上限を超えるためで、`--force` 指定時に上限を超えたレーンを省略して生成します。
+
+組み合わせは土台の行を引き継ぎます。実チップを残す構成と `layered` の対応は次の通りです（psg：実PSGを残して重ねる `psg_*`、scc：実SCCを残す `scc_*`、layered：`layered` の重ねに含まれる）。
+
+| プロファイル | psg | scc | layered |
+|---|---|---|---|
+| sfg01 | ○ | ○ | ○ |
+| makoto | ○ | ○ | ○ |
+| misato | ○ | ○ | — |
+| msxaudio | ○ | ○ | — |
+| opl3 | ○ | ○ | — |
+| layered | ○ | ○ | ○ |
+
+2台目のカートリッジ（makoto / msxaudio / opl3 / misato）やリズム源（rx21 / opllrhythm）を足す組み合わせも土台の行を引き継ぎます。
 
 ### 各プロファイルの説明
 
@@ -405,37 +398,30 @@ The musical information built for MML generation is assigned to other sound chip
 
 Output goes to `vgm-variants/<base profile>/<song>.vgm`. Compositions are placed under their base in a subfolder named by the added element (e.g. `vgm-variants/sfg01/makoto/<song>.vgm`, `vgm-variants/sfg01/scc/<song>.vgm`). A composition identical to its base is not written. Configurations that cannot be generated are skipped with a reason, and diagnostics remain in `_diagnostics`.
 
-Profiles generated for each source type.
+Base profiles generated for each source type (Yes: generated, Approximate: generated with limitations or unconverted parts, No: not generated).
 
-| Profile | psg | psg_scc | opll | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| sfg01 | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Approximate | Approximate |
-| sfg01_opllrhythm | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Approximate | Approximate |
-| sfg01_opl3 | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Approximate | Approximate |
-| makoto | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Yes | Yes |
-| misato | Yes | Yes | Yes | Yes | Yes | Approximate | Approximate | Approximate | Approximate | Yes | Approximate | Approximate |
-| misato_msxaudio | No | No | Yes | No | No | No | No | No | No | No | Yes | Yes |
-| sfg01_makoto | No | No | Yes | No | No | No | No | No | Yes | No | Yes | Yes |
-| sfg01_msxaudio | No | No | Yes | No | No | No | No | No | No | No | Yes | Yes |
-| sfg01_misato | No | No | Yes | No | No | No | No | No | Yes | No | No | No |
-| sfg01_opl3 | No | No | Yes | No | No | No | No | No | Yes | No | No | No |
-| msxaudio | Yes | No | Yes | Yes | Yes | No | No | No | No | No | No | No |
-| opl3 | Yes | No | Yes | Yes | Yes | No | No | No | No | No | No | No |
-| opl3_makoto | No | No | Yes | No | No | No | No | No | Yes | No | Yes | Yes |
-| opl3_msxaudio | No | No | Yes | No | No | No | No | No | No | No | Yes | Yes |
-| layered | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Yes | Yes |
-| scc_sfg01 | No | Yes | No | No | No | No | No | No | No | No | No | No |
-| scc_makoto | No | Yes | No | No | No | No | No | No | No | No | No | No |
-| scc_misato | No | Yes | No | No | No | No | No | No | No | No | No | No |
-| scc_msxaudio | No | Yes | No | No | No | No | No | No | No | No | No | No |
-| scc_opl3 | No | Yes | No | No | No | No | No | No | No | No | No | No |
-| scc_layered | No | Yes | No | No | No | No | No | No | No | No | No | No |
-| psg_sfg01 | Yes | No | No | No | No | No | No | No | No | No | No | No |
-| psg_makoto | Yes | No | No | No | No | No | No | No | No | No | No | No |
-| psg_misato | No | Yes | No | No | No | No | No | No | No | No | No | No |
-| psg_msxaudio | No | Yes | No | No | No | No | No | No | No | No | No | No |
-| psg_opl3 | No | Yes | No | No | No | No | No | No | No | No | No | No |
-| psg_layered | Yes | No | No | No | No | No | No | No | No | No | No | No |
+| Profile | psg | psg_scc | opll | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| sfg01 | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Approximate |
+| makoto | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Yes |
+| misato | Yes | Yes | Yes | Yes | Yes | Approximate | Approximate | Approximate | Approximate | Yes | Approximate |
+| msxaudio | Yes | No | Yes | Yes | Yes | Yes | Approximate | Approximate | No | No | No |
+| opl3 | Yes | No | Yes | Yes | Yes | Yes | Yes | Approximate | No | No | No |
+
+The Approximate cells for apu_fds / huc6280 on msxaudio and opl3 are due to waveform-voice capacity: with `--force`, lanes beyond capacity are omitted.
+
+Compositions inherit their base profile's row. Keeping a real chip in the mix, and membership in the `layered` stack, are:
+
+| Profile | psg | scc | layered |
+|---|---|---|---|
+| sfg01 | Yes | Yes | Yes |
+| makoto | Yes | Yes | Yes |
+| misato | Yes | Yes | No |
+| msxaudio | Yes | Yes | No |
+| opl3 | Yes | Yes | No |
+| layered | Yes | Yes | Yes |
+
+(psg: a `psg_*` composition that keeps the real PSG; scc: a `scc_*` composition that keeps the real SCC; layered: included in the `layered` stack.) Compositions that add a second cartridge (makoto / msxaudio / opl3 / misato) or a rhythm source (rx21 / opllrhythm) also inherit the base row.
 
 ### Profile Descriptions
 
