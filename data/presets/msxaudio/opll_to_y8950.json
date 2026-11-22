@@ -2,26 +2,28 @@
  "target": "msxaudio",
  "chip": "y8950",
  "clock_hz": 3579545,
- "source": "opl_derived.json via make_presets.py; do not hand-edit",
- "law": "carrier TL = 4 * VOL",
+ "source": "Y8950_FIT in make_presets.py; do not hand-edit",
+ "law": "fitted per voice against IKAOPLL WAV output (YM2413 reference renders by the decap-based IKAOPLL RTL simulation); this set holds Y8950 parameters only and no OPLL preset data; see Y8950_FIT in make_presets.py",
+ "fit_note": "Voices fitted per voice against IKAOPLL WAV output with ymfm Y8950 candidate renders, 2026-11-22; see Y8950_FIT in make_presets.py for the method and the audition outcome.",
  "voices": [
   {
    "index": 1,
    "name": "Violin",
    "fb": 7,
+   "level_trim_tl": 0,
    "ops": [
     {
      "am": 0,
-     "vib": 1,
+     "vib": 0,
      "egt": 1,
-     "ksr": 1,
+     "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 28,
+     "tl": 30,
      "ar": 13,
      "dr": 0,
      "sl": 0,
-     "rr": 2
+     "rr": 1
     },
     {
      "am": 0,
@@ -29,32 +31,33 @@
      "egt": 1,
      "ksr": 0,
      "mul": 1,
-     "ksl": 1,
+     "ksl": 3,
      "tl": 0,
-     "ar": 5,
-     "dr": 1,
-     "sl": 1,
-     "rr": 6
+     "ar": 9,
+     "dr": 8,
+     "sl": 0,
+     "rr": 7
     }
    ]
   },
   {
    "index": 2,
    "name": "Guitar",
-   "fb": 6,
+   "fb": 3,
+   "level_trim_tl": 0,
    "ops": [
     {
-     "am": 0,
+     "am": 1,
      "vib": 0,
      "egt": 0,
-     "ksr": 1,
+     "ksr": 0,
      "mul": 3,
-     "ksl": 0,
-     "tl": 16,
-     "ar": 10,
-     "dr": 10,
+     "ksl": 2,
+     "tl": 25,
+     "ar": 12,
+     "dr": 7,
      "sl": 2,
-     "rr": 3
+     "rr": 0
     },
     {
      "am": 0,
@@ -62,11 +65,11 @@
      "egt": 0,
      "ksr": 0,
      "mul": 1,
-     "ksl": 0,
+     "ksl": 1,
      "tl": 0,
-     "ar": 15,
-     "dr": 14,
-     "sl": 3,
+     "ar": 9,
+     "dr": 3,
+     "sl": 1,
      "rr": 3
     }
    ]
@@ -74,7 +77,8 @@
   {
    "index": 3,
    "name": "Piano",
-   "fb": 7,
+   "fb": 0,
+   "level_trim_tl": 0,
    "ops": [
     {
      "am": 0,
@@ -83,56 +87,57 @@
      "ksr": 1,
      "mul": 3,
      "ksl": 1,
-     "tl": 36,
-     "ar": 15,
+     "tl": 26,
+     "ar": 10,
      "dr": 2,
-     "sl": 4,
+     "sl": 1,
      "rr": 0
     },
     {
      "am": 0,
-     "vib": 0,
+     "vib": 1,
      "egt": 0,
-     "ksr": 0,
+     "ksr": 1,
      "mul": 1,
-     "ksl": 0,
+     "ksl": 1,
      "tl": 0,
-     "ar": 6,
-     "dr": 7,
-     "sl": 0,
-     "rr": 4
+     "ar": 11,
+     "dr": 4,
+     "sl": 3,
+     "rr": 1
     }
    ]
   },
   {
    "index": 4,
    "name": "Flute",
-   "fb": 7,
+   "fb": 6,
+   "level_trim_tl": 0,
    "ops": [
     {
-     "am": 0,
+     "am": 1,
      "vib": 0,
      "egt": 0,
-     "ksr": 1,
+     "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 16,
+     "tl": 10,
      "ar": 8,
-     "dr": 6,
+     "dr": 10,
      "sl": 7,
      "rr": 0
     },
     {
      "am": 0,
-     "vib": 1,
+     "vib": 0,
      "egt": 1,
      "ksr": 0,
      "mul": 1,
-     "ksl": 2,
+     "ksl": 0,
      "tl": 0,
-     "ar": 6,
-     "dr": 4,
-     "sl": 2,
+     "ar": 10,
+     "dr": 2,
+     "sl": 1,
      "rr": 8
     }
    ]
@@ -141,19 +146,20 @@
    "index": 5,
    "name": "Clarinet",
    "fb": 6,
+   "level_trim_tl": 0,
    "ops": [
     {
      "am": 0,
      "vib": 0,
      "egt": 1,
-     "ksr": 1,
+     "ksr": 0,
      "mul": 2,
      "ksl": 0,
      "tl": 30,
-     "ar": 2,
+     "ar": 8,
      "dr": 1,
      "sl": 0,
-     "rr": 2
+     "rr": 0
     },
     {
      "am": 0,
@@ -163,27 +169,28 @@
      "mul": 1,
      "ksl": 0,
      "tl": 0,
-     "ar": 8,
-     "dr": 15,
-     "sl": 2,
-     "rr": 6
+     "ar": 11,
+     "dr": 4,
+     "sl": 1,
+     "rr": 9
     }
    ]
   },
   {
    "index": 6,
    "name": "Oboe",
-   "fb": 1,
+   "fb": 5,
+   "level_trim_tl": 0,
    "ops": [
     {
      "am": 0,
      "vib": 0,
      "egt": 1,
-     "ksr": 1,
-     "mul": 0,
+     "ksr": 0,
+     "mul": 1,
      "ksl": 0,
-     "tl": 0,
-     "ar": 6,
+     "tl": 22,
+     "ar": 13,
      "dr": 0,
      "sl": 0,
      "rr": 0
@@ -193,34 +200,22 @@
      "vib": 0,
      "egt": 1,
      "ksr": 0,
-     "mul": 6,
-     "ksl": 0,
+     "mul": 2,
+     "ksl": 1,
      "tl": 0,
-     "ar": 7,
-     "dr": 4,
-     "sl": 1,
-     "rr": 12
+     "ar": 8,
+     "dr": 1,
+     "sl": 5,
+     "rr": 8
     }
    ]
   },
   {
    "index": 7,
    "name": "Trumpet",
-   "fb": 7,
+   "fb": 6,
+   "level_trim_tl": 0,
    "ops": [
-    {
-     "am": 0,
-     "vib": 0,
-     "egt": 1,
-     "ksr": 0,
-     "mul": 1,
-     "ksl": 0,
-     "tl": 29,
-     "ar": 7,
-     "dr": 13,
-     "sl": 1,
-     "rr": 7
-    },
     {
      "am": 0,
      "vib": 1,
@@ -228,9 +223,22 @@
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 0,
+     "tl": 26,
      "ar": 7,
-     "dr": 13,
+     "dr": 0,
+     "sl": 1,
+     "rr": 0
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 1,
+     "tl": 0,
+     "ar": 8,
+     "dr": 1,
      "sl": 0,
      "rr": 7
     }
@@ -239,7 +247,8 @@
   {
    "index": 8,
    "name": "Organ",
-   "fb": 6,
+   "fb": 4,
+   "level_trim_tl": 0,
    "ops": [
     {
      "am": 0,
@@ -248,11 +257,11 @@
      "ksr": 1,
      "mul": 3,
      "ksl": 0,
-     "tl": 48,
-     "ar": 3,
+     "tl": 34,
+     "ar": 11,
      "dr": 0,
      "sl": 0,
-     "rr": 3
+     "rr": 1
     },
     {
      "am": 0,
@@ -262,10 +271,10 @@
      "mul": 1,
      "ksl": 1,
      "tl": 0,
-     "ar": 6,
-     "dr": 13,
+     "ar": 7,
+     "dr": 0,
      "sl": 0,
-     "rr": 6
+     "rr": 7
     }
    ]
   },
@@ -273,6 +282,7 @@
    "index": 9,
    "name": "Horn",
    "fb": 6,
+   "level_trim_tl": 0,
    "ops": [
     {
      "am": 0,
@@ -281,9 +291,9 @@
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 24,
-     "ar": 7,
-     "dr": 13,
+     "tl": 27,
+     "ar": 6,
+     "dr": 4,
      "sl": 1,
      "rr": 0
     },
@@ -293,45 +303,46 @@
      "egt": 1,
      "ksr": 0,
      "mul": 1,
-     "ksl": 2,
+     "ksl": 1,
      "tl": 0,
-     "ar": 6,
-     "dr": 4,
-     "sl": 1,
-     "rr": 9
+     "ar": 8,
+     "dr": 7,
+     "sl": 2,
+     "rr": 7
     }
    ]
   },
   {
    "index": 10,
    "name": "Synthesizer",
-   "fb": 2,
+   "fb": 1,
+   "level_trim_tl": 0,
    "ops": [
     {
      "am": 0,
-     "vib": 1,
+     "vib": 0,
      "egt": 0,
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 0,
-     "ar": 7,
-     "dr": 6,
+     "tl": 11,
+     "ar": 8,
+     "dr": 4,
      "sl": 6,
-     "rr": 0
+     "rr": 2
     },
     {
      "am": 0,
-     "vib": 1,
+     "vib": 0,
      "egt": 1,
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
      "tl": 0,
-     "ar": 9,
+     "ar": 15,
      "dr": 0,
-     "sl": 4,
-     "rr": 6
+     "sl": 0,
+     "rr": 8
     }
    ]
   },
@@ -339,6 +350,7 @@
    "index": 11,
    "name": "Harpsichord",
    "fb": 1,
+   "level_trim_tl": 0,
    "ops": [
     {
      "am": 0,
@@ -347,108 +359,9 @@
      "ksr": 1,
      "mul": 3,
      "ksl": 1,
-     "tl": 0,
-     "ar": 8,
-     "dr": 9,
-     "sl": 1,
-     "rr": 4
-    },
-    {
-     "am": 0,
-     "vib": 0,
-     "egt": 0,
-     "ksr": 0,
-     "mul": 1,
-     "ksl": 0,
-     "tl": 0,
-     "ar": 15,
-     "dr": 15,
-     "sl": 3,
-     "rr": 4
-    }
-   ]
-  },
-  {
-   "index": 12,
-   "name": "Vibraphone",
-   "fb": 5,
-   "ops": [
-    {
-     "am": 0,
-     "vib": 0,
-     "egt": 0,
-     "ksr": 1,
-     "mul": 9,
-     "ksl": 0,
-     "tl": 40,
-     "ar": 3,
-     "dr": 1,
-     "sl": 3,
-     "rr": 9
-    },
-    {
-     "am": 1,
-     "vib": 1,
-     "egt": 0,
-     "ksr": 0,
-     "mul": 1,
-     "ksl": 0,
-     "tl": 0,
-     "ar": 7,
-     "dr": 3,
-     "sl": 5,
-     "rr": 2
-    }
-   ]
-  },
-  {
-   "index": 13,
-   "name": "SynthBass",
-   "fb": 0,
-   "ops": [
-    {
-     "am": 0,
-     "vib": 1,
-     "egt": 1,
-     "ksr": 0,
-     "mul": 1,
-     "ksl": 0,
-     "tl": 28,
-     "ar": 8,
-     "dr": 10,
-     "sl": 2,
-     "rr": 0
-    },
-    {
-     "am": 0,
-     "vib": 1,
-     "egt": 0,
-     "ksr": 1,
-     "mul": 0,
-     "ksl": 0,
-     "tl": 0,
-     "ar": 6,
-     "dr": 11,
-     "sl": 8,
-     "rr": 2
-    }
-   ]
-  },
-  {
-   "index": 14,
-   "name": "AcoustBass",
-   "fb": 5,
-   "ops": [
-    {
-     "am": 0,
-     "vib": 0,
-     "egt": 0,
-     "ksr": 0,
-     "mul": 1,
-     "ksl": 2,
-     "tl": 24,
-     "ar": 1,
-     "dr": 15,
+     "tl": 7,
+     "ar": 11,
+     "dr": 8,
      "sl": 0,
      "rr": 0
     },
@@ -458,11 +371,113 @@
      "egt": 0,
      "ksr": 0,
      "mul": 1,
+     "ksl": 1,
+     "tl": 0,
+     "ar": 11,
+     "dr": 15,
+     "sl": 4,
+     "rr": 4
+    }
+   ]
+  },
+  {
+   "index": 12,
+   "name": "Vibraphone",
+   "fb": 7,
+   "level_trim_tl": 0,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 1,
+     "mul": 7,
+     "ksl": 0,
+     "tl": 42,
+     "ar": 11,
+     "dr": 8,
+     "sl": 2,
+     "rr": 3
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 1,
+     "tl": 0,
+     "ar": 13,
+     "dr": 2,
+     "sl": 1,
+     "rr": 5
+    }
+   ]
+  },
+  {
+   "index": 13,
+   "name": "SynthBass",
+   "fb": 5,
+   "level_trim_tl": 15,
+   "ops": [
+    {
+     "am": 1,
+     "vib": 0,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 12,
+     "ar": 14,
+     "dr": 1,
+     "sl": 1,
+     "rr": 0
+    },
+    {
+     "am": 1,
+     "vib": 1,
+     "egt": 1,
+     "ksr": 0,
+     "mul": 0,
      "ksl": 0,
      "tl": 0,
+     "ar": 15,
+     "dr": 4,
+     "sl": 9,
+     "rr": 3
+    }
+   ]
+  },
+  {
+   "index": 14,
+   "name": "AcoustBass",
+   "fb": 2,
+   "level_trim_tl": 0,
+   "ops": [
+    {
+     "am": 1,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 2,
+     "tl": 20,
      "ar": 10,
-     "dr": 3,
-     "sl": 3,
+     "dr": 2,
+     "sl": 0,
+     "rr": 3
+    },
+    {
+     "am": 0,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 0,
+     "tl": 0,
+     "ar": 11,
+     "dr": 0,
+     "sl": 0,
      "rr": 2
     }
    ]
@@ -470,33 +485,34 @@
   {
    "index": 15,
    "name": "ElecGuitar",
-   "fb": 5,
+   "fb": 3,
+   "level_trim_tl": 0,
    "ops": [
     {
      "am": 0,
-     "vib": 1,
+     "vib": 0,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 1,
+     "tl": 10,
+     "ar": 15,
+     "dr": 0,
+     "sl": 12,
+     "rr": 2
+    },
+    {
+     "am": 0,
+     "vib": 0,
      "egt": 0,
      "ksr": 0,
      "mul": 1,
      "ksl": 1,
      "tl": 0,
-     "ar": 2,
-     "dr": 6,
+     "ar": 15,
+     "dr": 2,
      "sl": 1,
-     "rr": 1
-    },
-    {
-     "am": 0,
-     "vib": 1,
-     "egt": 0,
-     "ksr": 0,
-     "mul": 7,
-     "ksl": 0,
-     "tl": 0,
-     "ar": 9,
-     "dr": 3,
-     "sl": 1,
-     "rr": 3
+     "rr": 5
     }
    ]
   }

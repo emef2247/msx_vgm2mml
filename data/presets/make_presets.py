@@ -5,12 +5,15 @@ per-target preset table per chip family.
 Single source of truth: opll_presets.json (the established
 set by emef2247), kept beside this script. Every derived table is generated from it through the
 audited conversion laws, except the msxaudio target, whose preset
-voices come from opl_derived.json, our own derivation fitted
+voices are the per-voice fitted set Y8950_FIT below (fitted
+against IKAOPLL WAV output with ymfm Y8950 candidate renders,
+2026-11-22).  opl_derived.json, our own derivation fitted
 against the conversion table observed in commercial MSX
 dual-edition games (opl_commercial.json, kept as the calibration
 reference; owner's policy, 2026-11-14: learn from the commercial
 work, do not copy it - the derived values are an independent
-realisation of the same renders). The opl3 target generated from
+realisation of the same renders), remains the calibration
+reference it was derived from. The opl3 target generated from
 the derived set through 2026-11-14, but the derived set failed
 its hardware audition that night (melody collapse on the real
 YMF289 that the ymfm fits did not predict), and the owner
@@ -509,7 +512,8 @@ def _established_opl_json(target, chip, clock):
     # (melody collapse the ymfm fits did not predict), so opl3
     # first reaches the level the established set already has on
     # OPM / OPNA; per-voice fitting for OPL3 is separate later
-    # work.  msxaudio keeps the derived table for now.
+    # work.  msxaudio has its own fitted table
+    # (Y8950_FIT below).
     def op(o):
         return {'am': o['am'], 'vib': o['vib'], 'egt': o['egt'],
                 'ksr': o['ksr'], 'mul': o['multi'],
@@ -631,6 +635,63 @@ def _fitted_opl3_json():
             voice['ops'][oi].update(fields)
     return doc
 
+
+# Per-voice fitted Y8950 (MSX-Audio) melodic set, 2026-11-22.
+# Fitted against IKAOPLL WAV output with ymfm Y8950 candidate
+# renders (the Y8950 has no RTL simulator; ymfm is the owner's
+# designated candidate renderer for this chip, final judgement on
+# real hardware).  Starting point was the fitted OPL3 set with
+# waveform select dropped (the Y8950 has none), then coordinate
+# descent on C3/A4/C6 probes: mean score 8.22 against the same
+# IKAOPLL reference, where the previous derived table scored
+# 19.74.  Violin was re-fitted afterwards on the low-extended
+# 8-note probe set with a per-partial harmonic score, after the
+# owner's audition found its harmonics harsh; the other fourteen
+# voices were accepted at that audition.  Carrier TL is a
+# performance value (source VOL << 2) plus the per-voice
+# level_trim_tl; the stored carrier tl is not used.
+Y8950_FIT = [
+    {'index': 1, 'name': 'Violin', 'fb': 7, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 30, 'ar': 13, 'dr': 0, 'sl': 0, 'rr': 1}, {'am': 0, 'vib': 1, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 3, 'tl': 0, 'ar': 9, 'dr': 8, 'sl': 0, 'rr': 7}]},
+    {'index': 2, 'name': 'Guitar', 'fb': 3, 'level_trim_tl': 0, 'ops': [{'am': 1, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 3, 'ksl': 2, 'tl': 25, 'ar': 12, 'dr': 7, 'sl': 2, 'rr': 0}, {'am': 0, 'vib': 1, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 9, 'dr': 3, 'sl': 1, 'rr': 3}]},
+    {'index': 3, 'name': 'Piano', 'fb': 0, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 0, 'ksr': 1, 'mul': 3, 'ksl': 1, 'tl': 26, 'ar': 10, 'dr': 2, 'sl': 1, 'rr': 0}, {'am': 0, 'vib': 1, 'egt': 0, 'ksr': 1, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 11, 'dr': 4, 'sl': 3, 'rr': 1}]},
+    {'index': 4, 'name': 'Flute', 'fb': 6, 'level_trim_tl': 0, 'ops': [{'am': 1, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 10, 'ar': 8, 'dr': 10, 'sl': 7, 'rr': 0}, {'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 0, 'ar': 10, 'dr': 2, 'sl': 1, 'rr': 8}]},
+    {'index': 5, 'name': 'Clarinet', 'fb': 6, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 2, 'ksl': 0, 'tl': 30, 'ar': 8, 'dr': 1, 'sl': 0, 'rr': 0}, {'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 0, 'ar': 11, 'dr': 4, 'sl': 1, 'rr': 9}]},
+    {'index': 6, 'name': 'Oboe', 'fb': 5, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 22, 'ar': 13, 'dr': 0, 'sl': 0, 'rr': 0}, {'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 2, 'ksl': 1, 'tl': 0, 'ar': 8, 'dr': 1, 'sl': 5, 'rr': 8}]},
+    {'index': 7, 'name': 'Trumpet', 'fb': 6, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 1, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 26, 'ar': 7, 'dr': 0, 'sl': 1, 'rr': 0}, {'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 8, 'dr': 1, 'sl': 0, 'rr': 7}]},
+    {'index': 8, 'name': 'Organ', 'fb': 4, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 1, 'ksr': 1, 'mul': 3, 'ksl': 0, 'tl': 34, 'ar': 11, 'dr': 0, 'sl': 0, 'rr': 1}, {'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 7, 'dr': 0, 'sl': 0, 'rr': 7}]},
+    {'index': 9, 'name': 'Horn', 'fb': 6, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 1, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 27, 'ar': 6, 'dr': 4, 'sl': 1, 'rr': 0}, {'am': 0, 'vib': 1, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 8, 'dr': 7, 'sl': 2, 'rr': 7}]},
+    {'index': 10, 'name': 'Synthesizer', 'fb': 1, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 11, 'ar': 8, 'dr': 4, 'sl': 6, 'rr': 2}, {'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 0, 'ar': 15, 'dr': 0, 'sl': 0, 'rr': 8}]},
+    {'index': 11, 'name': 'Harpsichord', 'fb': 1, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 1, 'ksr': 1, 'mul': 3, 'ksl': 1, 'tl': 7, 'ar': 11, 'dr': 8, 'sl': 0, 'rr': 0}, {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 11, 'dr': 15, 'sl': 4, 'rr': 4}]},
+    {'index': 12, 'name': 'Vibraphone', 'fb': 7, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 1, 'ksr': 1, 'mul': 7, 'ksl': 0, 'tl': 42, 'ar': 11, 'dr': 8, 'sl': 2, 'rr': 3}, {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 13, 'dr': 2, 'sl': 1, 'rr': 5}]},
+    {'index': 13, 'name': 'SynthBass', 'fb': 5, 'level_trim_tl': 15, 'ops': [{'am': 1, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 12, 'ar': 14, 'dr': 1, 'sl': 1, 'rr': 0}, {'am': 1, 'vib': 1, 'egt': 1, 'ksr': 0, 'mul': 0, 'ksl': 0, 'tl': 0, 'ar': 15, 'dr': 4, 'sl': 9, 'rr': 3}]},
+    {'index': 14, 'name': 'AcoustBass', 'fb': 2, 'level_trim_tl': 0, 'ops': [{'am': 1, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 2, 'tl': 20, 'ar': 10, 'dr': 2, 'sl': 0, 'rr': 3}, {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 0, 'ar': 11, 'dr': 0, 'sl': 0, 'rr': 2}]},
+    {'index': 15, 'name': 'ElecGuitar', 'fb': 3, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 10, 'ar': 15, 'dr': 0, 'sl': 12, 'rr': 2}, {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 15, 'dr': 2, 'sl': 1, 'rr': 5}]},
+]
+
+
+def _fitted_y8950_json():
+    import copy
+    return {'target': 'msxaudio', 'chip': 'y8950', 'clock_hz': 3579545,
+            'source': 'Y8950_FIT in make_presets.py; do not hand-edit',
+            'law': ('fitted per voice against IKAOPLL WAV output '
+                    '(YM2413 reference renders by the decap-based '
+                    'IKAOPLL RTL simulation); this set holds Y8950 '
+                    'parameters only and no OPLL preset data; see '
+                    'Y8950_FIT in make_presets.py'),
+            'fit_note': ('Voices fitted per voice against IKAOPLL '
+                         'WAV output with ymfm Y8950 candidate '
+                         'renders, 2026-11-22; see Y8950_FIT in '
+                         'make_presets.py for the method and the '
+                         'audition outcome.'),
+            'voices': copy.deepcopy(Y8950_FIT),
+            'rhythm': {'kind': 'opl_native',
+                       'note': 'OPLL percussion projects to the target '
+                               'native rhythm unit with the commercially '
+                               'observed voice template '
+                               '(musical_opl_target / musical_opl3_target); '
+                               'no FM rows.'}}
+
+
 def _derived_opl_json(target, chip, clock):
     # OPL two-op rows from our own derived preset set
     # (opl_derived.json): fitted from the established set's
@@ -662,8 +723,7 @@ def write_target_jsons():
                    'noise_reg': nf}
                   for name, row, nf in rhythm_opm()]
     docs = {
-        'msxaudio/opll_to_y8950.json': _derived_opl_json(
-            'msxaudio', 'y8950', 3579545),
+        'msxaudio/opll_to_y8950.json': _fitted_y8950_json(),
         'opl3/opll_to_opl3.json': _fitted_opl3_json(),
         'sfg01/opll_to_opm.json': _target_json(
             'sfg01', 'ym2151', 3579545, 5, 2, LEVEL_TRIM_TL_OPM,
