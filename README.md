@@ -149,7 +149,7 @@ msxaudio / opl3 の apu_fds・huc6280 の △ は、波形音源の声数が上�
 
 組み合わせは原則として土台の行を引き継ぎますが、PCM を持つ入力では行き先を足す組み合わせの方が土台より広く対応します（例: opm_msm6258 では sfg01 は △、sfg01/makoto は ○）。
 
-組み合わせと重ね系のプロファイルが生成される入力音源の種類は次の通りです（scc は SCC が鳴っている入力）。実チップを残す構成は layered の形（`psg_layered` / `scc_layered`）だけです。
+組み合わせと重ね系のプロファイルが生成される入力音源の種類は次の通りです（scc は SCC が鳴っている入力）。SCC・PSG を実チップのまま残す構成は layered の形（`psg_layered` / `scc_layered`）だけです。OPLL も実チップのまま残り、`layered` ではネイティブのレーンとして重なり、`sfg01_opllrhythm` ではリズムがネイティブのまま残ります。
 
 | プロファイル | psg | scc | opna | opm | opn2 |
 |---|---|---|---|---|---|
@@ -406,7 +406,7 @@ The Approximate cells for apu_fds / huc6280 on msxaudio and opl3 are due to wave
 
 Compositions generally inherit their base profile's row, but for sources with PCM, a composition that adds a PCM destination covers more than its base (e.g. for opm_msm6258, sfg01 is Approximate but sfg01/makoto is Yes).
 
-The source types for which the composition and layered profiles are generated are (scc: sources where SCC sounds). The only compositions that keep a real chip are the layered forms, `psg_layered` / `scc_layered`.
+The source types for which the composition and layered profiles are generated are (scc: sources where SCC sounds). The only compositions that keep a real SCC or PSG are the layered forms, `psg_layered` / `scc_layered`. OPLL also stays on the real chip: it joins `layered` as a native lane, and `sfg01_opllrhythm` keeps its rhythm native.
 
 | Profile | psg | scc | opna | opm | opn2 |
 |---|---|---|---|---|---|
