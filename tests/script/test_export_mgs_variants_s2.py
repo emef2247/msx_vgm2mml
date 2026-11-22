@@ -92,7 +92,7 @@ class ExportMgsVgmVariantsS2Tests(unittest.TestCase):
             out = root / 'out'
             rows = variant_pass(source, out, force=force)
             self.assertEqual(rows[0]['status'], 'success', rows)
-            check(out, assert_profiles(self, out, ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'sfg01_opl3', 'makoto', 'makoto_rx21', 'misato', 'misato_msxaudio', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'layered', *extra)))
+            check(out, assert_profiles(self, out, ('sfg01', 'sfg01_opl3', 'makoto', 'misato', 'layered', *extra)))
 
     def test_opna_fm_and_ssg_publish_both_base_profiles(self):
         def check(out, report):
@@ -115,7 +115,7 @@ class ExportMgsVgmVariantsS2Tests(unittest.TestCase):
             self.assertEqual(_stamp((out / 'vgm-variants/sfg01/song.vgm').read_bytes(), 0x74), 1789773)
             self.assertEqual(_stamp((out / 'vgm-variants/makoto/song.vgm').read_bytes(), 0x74), 1789773)
             self.assertEqual(_stamp((out / 'vgm-variants/makoto/song.vgm').read_bytes(), 0x48), 0)
-        self.render(_dcsg_song(), check, extra=('msxaudio', 'opl3', 'opl3_makoto', 'opl3_msxaudio'))
+        self.render(_dcsg_song(), check, extra=('msxaudio', 'opl3'))
 
     def test_nes_pulse_has_musical_profiles_instead_of_deferred_route(self):
         def check(out, report):

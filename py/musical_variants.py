@@ -20,6 +20,33 @@ PROFILES = ('sfg01','sfg01_rx21','sfg01_opllrhythm','sfg01_opl3','makoto','makot
 # only PCM complement is misato_msxaudio on the main route below
 # (owner, 2026-11-22).
 OPL3_PCM_AUXILIARY = {'opl3_makoto':'opna','opl3_msxaudio':'y8950'}
+# Composition profiles live under their base profile's folder
+# (owner, 2026-11-22): vgm-variants/<base>/ holds the base, and a
+# subfolder named by the added element alone -- the second
+# cartridge (makoto, msxaudio, opl3, misato), the kept native chip
+# (scc, psg) or the rhythm source (rx21, opllrhythm) -- holds each
+# composition, e.g. vgm-variants/sfg01/makoto/.  A variant whose
+# output is byte-identical to the base's own output is not
+# published at all: the subfolder only carries what the
+# composition actually changes.
+PROFILE_PARENTS = {'sfg01_rx21':'sfg01','sfg01_opllrhythm':'sfg01',
+                   'sfg01_opl3':'sfg01','sfg01_makoto':'sfg01',
+                   'sfg01_msxaudio':'sfg01','sfg01_misato':'sfg01',
+                   'makoto_rx21':'makoto','misato_msxaudio':'misato',
+                   'opl3_makoto':'opl3','opl3_msxaudio':'opl3',
+                   **SCC_PROFILES, **PSG_PROFILES}
+PROFILE_ELEMENTS = {'sfg01_rx21':'rx21','sfg01_opllrhythm':'opllrhythm',
+                    'sfg01_opl3':'opl3','sfg01_makoto':'makoto',
+                    'sfg01_msxaudio':'msxaudio','sfg01_misato':'misato',
+                    'makoto_rx21':'rx21','misato_msxaudio':'msxaudio',
+                    'opl3_makoto':'makoto','opl3_msxaudio':'msxaudio',
+                    **{name:'scc' for name in SCC_PROFILES},
+                    **{name:'psg' for name in PSG_PROFILES}}
+
+
+def variant_folder(profile):
+    parent = PROFILE_PARENTS.get(profile)
+    return Path(parent) / PROFILE_ELEMENTS[profile] if parent else Path(profile)
 CLOCKS = {0x54:(0x30,3579545),0x56:(0x48,8000000),0x57:(0x48,8000000),
           0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545),
           0x5e:(0x5c,14318180),0x5f:(0x5c,14318180)}
@@ -488,7 +515,7 @@ def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, op
                     soundcore_levels=False, volume_offsets=None):
     root=Path(outdir);root.mkdir(parents=True,exist_ok=True);results={}
     for profile in PROFILES:
-        folder=root/profile;folder.mkdir(parents=True,exist_ok=True)
+        folder=root/variant_folder(profile);folder.mkdir(parents=True,exist_ok=True)
         path=folder/(stem+'.vgm');path.unlink(missing_ok=True)
         result=dict(profile=profile,stage='musical_layer_target_projection',
             input_representation='NativePerformance',source_file_consulted=False,
@@ -512,6 +539,16 @@ def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, op
                         json.dumps(row.get(k)) if k=='source_indices' else row.get(k,'')) for k in fields})
             result.update(status='success',path=str(path),writes=sum(r['emitted'] for r in rows),planned_writes=len(rows),losses=losses,plan=plan,
                 song_loop_sample=performance.song_loop_sample)
+            parent=PROFILE_PARENTS.get(profile)
+            if parent:
+                parent_path=root/variant_folder(parent)/(stem+'.vgm')
+                if parent_path.is_file() and parent_path.read_bytes()==path.read_bytes():
+                    # The composition changed nothing for this song:
+                    # the base folder already carries the same bytes.
+                    path.unlink()
+                    (folder/(stem+'.writes.csv')).unlink(missing_ok=True)
+                    result.update(status='identical_to_parent',
+                        reason=f'Identical to the {parent} output; omitted')
         except ValueError as error:
             result.update(reason=str(error))
         except Exception as error:

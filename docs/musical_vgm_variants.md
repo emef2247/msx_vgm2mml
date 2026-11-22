@@ -18,19 +18,23 @@ tracks/<stem>.mml, <stem>.mgs, <stem>.vgm
 blueprint/<stem>.mml, <stem>.midi
 vgm-variants/sfg01/<stem>.vgm
 vgm-variants/makoto/<stem>.vgm
-vgm-variants/sfg01_makoto/<stem>.vgm
-vgm-variants/sfg01_msxaudio/<stem>.vgm
+vgm-variants/sfg01/makoto/<stem>.vgm
+vgm-variants/sfg01/msxaudio/<stem>.vgm
 vgm-variants/layered/<stem>.vgm
-vgm-variants/scc_sfg01/<stem>.vgm
-vgm-variants/scc_makoto/<stem>.vgm
-vgm-variants/scc_layered/<stem>.vgm
+vgm-variants/sfg01/scc/<stem>.vgm
+vgm-variants/makoto/scc/<stem>.vgm
+vgm-variants/layered/scc/<stem>.vgm
 _diagnostics/<stem>/vgm_variants/
 ```
 
-Only applicable, successful profiles are published. The two auxiliary SFG01
-compositions are OPM, or OPM + PCM when the source carries PCM: they are
-published whenever sfg01 is, even when the PCM lane is unused and the result
-matches sfg01, so the profile set does not depend on the song's content.
+Only applicable, successful profiles are published. Composition profiles
+live under their base profile's folder, in a subfolder named by the added
+element alone: the second cartridge (`makoto`, `msxaudio`, `opl3`,
+`misato`), the kept native chip (`scc`, `psg`) or the rhythm source
+(`rx21`, `opllrhythm`). A composition whose output is byte-identical to
+its base profile's output is not published; the diagnostics record it as
+`identical_to_parent`. The two auxiliary SFG01 compositions are OPM, or
+OPM + PCM when the source carries PCM.
 PCM-bearing sources can use makoto, layered, and the two auxiliary SFG01
 compositions; plain sfg01 cannot play their PCM. Native OPNA rhythm can
 also use the Makoto auxiliary composition. Unsupported profiles have explicit

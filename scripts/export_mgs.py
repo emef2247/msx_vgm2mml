@@ -25,7 +25,11 @@ VARIANT_PROFILES = ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'sfg01_opl3', 'ma
 VARIANT_PRODUCTS = tuple('vgm-variants/' + profile + '/{stem}.vgm'
                          for profile in VARIANT_PROFILES)
 # Previous publications remain owned during migration and disabled reruns.
-LEGACY_VARIANT_PRODUCTS = ('vgm_variants/{stem}/makoto/{stem}.vgm',
+LEGACY_VARIANT_PRODUCTS = tuple('vgm-variants/' + profile + '/{stem}.vgm' for profile in
+    ('sfg01_rx21', 'sfg01_opllrhythm', 'sfg01_opl3', 'sfg01_makoto', 'sfg01_msxaudio',
+     'sfg01_misato', 'makoto_rx21', 'misato_msxaudio', 'opl3_makoto', 'opl3_msxaudio',
+     'scc_sfg01', 'scc_makoto', 'scc_misato', 'scc_msxaudio', 'scc_layered', 'scc_opl3',
+     'psg_sfg01', 'psg_makoto', 'psg_misato', 'psg_msxaudio', 'psg_layered', 'psg_opl3')) + ('vgm_variants/{stem}/makoto/{stem}.vgm',
     'vgm_variants/{stem}/sfg01/dac_makoto/{stem}.vgm',
     'vgm_variants/{stem}/sfg01/dac_y8950/{stem}.vgm',
     'vgm_variants/{stem}/layered/{stem}.vgm',
@@ -126,7 +130,9 @@ def build_parser():
 
 
 def _variant_names(stem):
-    return [pattern.format(stem=stem) for pattern in VARIANT_PRODUCTS]
+    from musical_variants import variant_folder
+    return ['vgm-variants/' + variant_folder(profile).as_posix() + f'/{stem}.vgm'
+            for profile in VARIANT_PROFILES]
 
 
 def _variant_row(relative, folder, output, args):
