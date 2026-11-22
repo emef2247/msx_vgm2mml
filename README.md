@@ -133,9 +133,9 @@ MML 生成用に構築した音楽情報を、MSX のサウンドカートリッ
 
     python scripts/export_mgs.py <入力.vgm> --outdir <出力先> --vgm-variants --force
 
-生成物は `vgm-variants/<土台のプロファイル名>/<曲名>.vgm` に出力されます。組み合わせは土台の下に追加要素の名前のサブフォルダに入ります（例: `vgm-variants/sfg01/makoto/<曲名>.vgm`、`vgm-variants/sfg01/scc/<曲名>.vgm`）。土台と同一内容になる組み合わせは出力されません。生成できない構成は理由とともにスキップされ、診断が `_diagnostics` に残ります。
+生成物は `vgm-variants/<1本目のプロファイル名>/<曲名>.vgm` に出力されます。組み合わせは1本目のフォルダの下に、追加要素の名前のサブフォルダに入ります（例: `vgm-variants/sfg01/makoto/<曲名>.vgm`、`vgm-variants/sfg01/scc/<曲名>.vgm`）。1本目と同一内容になる組み合わせは出力されません。生成できない構成は理由とともにスキップされ、診断が `_diagnostics` に残ります。
 
-土台プロファイルが入力音源ごとに生成されるかの一覧です（○：生成される、△：制限あり・未変換部分あり、—：生成されない）。
+1本目のカートリッジのプロファイルが入力音源ごとに生成されるかの一覧です（○：生成される、△：制限あり・未変換部分あり、—：生成されない）。
 
 | プロファイル | psg | psg_scc | opll | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -147,7 +147,7 @@ MML 生成用に構築した音楽情報を、MSX のサウンドカートリッ
 
 msxaudio / opl3 の apu_fds・huc6280 の △ は、波形音源の声数が上限を超えるためで、`--force` 指定時に上限を超えたレーンを省略して生成します。
 
-組み合わせは原則として土台の行を引き継ぎますが、PCM を持つ入力では行き先を足す組み合わせの方が土台より広く対応します（例: opm_msm6258 では sfg01 は △、sfg01/makoto は ○）。
+組み合わせは原則として1本目の行を引き継ぎますが、PCM を持つ入力では行き先を足す組み合わせの方が1本目より広く対応します（例: opm_msm6258 では sfg01 は △、sfg01/makoto は ○）。
 
 組み合わせと重ね系のプロファイルが生成される入力音源の種類は次の通りです（scc は SCC が鳴っている入力）。SCC・PSG を実チップのまま残す構成は layered の形（`psg_layered` / `scc_layered`）だけです。OPLL も実チップのまま残り、`layered` ではネイティブのレーンとして重なり、`sfg01_opllrhythm` ではリズムがネイティブのまま残ります。
 
@@ -162,7 +162,7 @@ msxaudio / opl3 の apu_fds・huc6280 の △ は、波形音源の声数が上�
 | psg_layered | ○ | — | — | — | — |
 | scc_layered | — | ○ | — | — | — |
 
-opna / opm / opn2 列は、2台目のカートリッジ（makoto / msxaudio / opl3 / misato）やリズム源（opllrhythm）を足す組み合わせの生成で、土台自体が受け付けない入力では生成されません。
+opna / opm / opn2 列は、2本目以降のカートリッジ（makoto / msxaudio / opl3 / misato）やリズム源（opllrhythm）を足す組み合わせの生成で、1本目のカートリッジ自体が受け付けない入力では生成されません。
 
 ### 各プロファイルの説明
 
@@ -177,9 +177,9 @@ opna / opm / opn2 列は、2台目のカートリッジ（makoto / msxaudio / op
 - **`msxaudio`**：MSX-AUDIO（Y8950）向け。OPLLの演奏情報をY8950のFM音源へ変換します。OPLLのリズムはY8950のリズム音源へ、PCMはDelta-Tへ割り当てます。
 - **`opl3`**：OPL3（YMF262）向け。OPLLの演奏情報をOPL3のFM音源へ変換し、リズムはOPL3のリズム音源へ割り当てます。PCMには対応しません。
 
-#### サブカートリッジでPCMを補完する構成
+#### 2本目以降のカートリッジでPCMを補完する構成
 
-土台だけではPCMを再生できない構成に、2台目のカートリッジのPCM再生機能を組み合わせます。
+1本目のカートリッジだけではPCMを再生できない構成に、2本目以降のカートリッジのPCM再生機能を組み合わせます。
 
 - **`sfg01_makoto`**：SFG-01にMakotoを組み合わせ、PCM再生にOPNAのADPCM-Bを利用します。
 - **`sfg01_msxaudio`**：SFG-01にMSX-AUDIOを組み合わせ、PCM再生にY8950のDelta-Tを利用します。
@@ -187,7 +187,7 @@ opna / opm / opn2 列は、2台目のカートリッジ（makoto / msxaudio / op
 - **`opl3_makoto`**：OPL3にMakotoを組み合わせ、PCM再生にOPNAのADPCM-Bを利用します。
 - **`opl3_msxaudio`**：OPL3にMSX-AUDIOを組み合わせ、PCM再生にY8950のDelta-Tを利用します。
 
-#### サブカートリッジでリズム音源を補完する構成
+#### 2本目以降のカートリッジでリズム音源を補完する構成
 
 - **`sfg01_misato`**：SFG-01にMisatoを組み合わせ、OPLLやOPNAのリズムパートをMisatoのリズム音源で再生します。ADPCMは使用しません。
 - **`sfg01_opl3`**：`sfg01` を基本とし、OPLLのリズムパートをOPL3（YMF262）のリズム音源で再生します。
@@ -399,7 +399,7 @@ The musical information built for MML generation is assigned to other sound chip
 
     python scripts/export_mgs.py <input.vgm> --outdir <output> --vgm-variants --force
 
-Output goes to `vgm-variants/<base profile>/<song>.vgm`. Compositions are placed under their base in a subfolder named by the added element (e.g. `vgm-variants/sfg01/makoto/<song>.vgm`, `vgm-variants/sfg01/scc/<song>.vgm`). A composition identical to its base is not written. Configurations that cannot be generated are skipped with a reason, and diagnostics remain in `_diagnostics`.
+Output goes to `vgm-variants/<first cartridge profile>/<song>.vgm`. Compositions are placed under the first cartridge's folder in a subfolder named by the added element (e.g. `vgm-variants/sfg01/makoto/<song>.vgm`, `vgm-variants/sfg01/scc/<song>.vgm`). A composition identical to the first cartridge alone is not written. Configurations that cannot be generated are skipped with a reason, and diagnostics remain in `_diagnostics`.
 
 Base profiles generated for each source type (Yes: generated, Approximate: generated with limitations or unconverted parts, No: not generated).
 
@@ -413,7 +413,7 @@ Base profiles generated for each source type (Yes: generated, Approximate: gener
 
 The Approximate cells for apu_fds / huc6280 on msxaudio and opl3 are due to waveform-voice capacity: with `--force`, lanes beyond capacity are omitted.
 
-Compositions generally inherit their base profile's row, but for sources with PCM, a composition that adds a PCM destination covers more than its base (e.g. for opm_msm6258, sfg01 is Approximate but sfg01/makoto is Yes).
+Compositions generally inherit the first cartridge's row, but for sources with PCM, a composition that adds a PCM destination covers more than the first cartridge alone (e.g. for opm_msm6258, sfg01 is Approximate but sfg01/makoto is Yes).
 
 The source types for which the composition and layered profiles are generated are (scc: sources where SCC sounds). The only compositions that keep a real SCC or PSG are the layered forms, `psg_layered` / `scc_layered`. OPLL also stays on the real chip: it joins `layered` as a native lane, and `sfg01_opllrhythm` keeps its rhythm native.
 
@@ -428,7 +428,7 @@ The source types for which the composition and layered profiles are generated ar
 | psg_layered | Yes | No | No | No | No |
 | scc_layered | No | Yes | No | No | No |
 
-The opna / opm / opn2 columns are compositions that add a second cartridge (makoto / msxaudio / opl3 / misato) or a rhythm source (opllrhythm); they are not generated for sources the base itself does not accept.
+The opna / opm / opn2 columns are compositions that add a second or later cartridge (makoto / msxaudio / opl3 / misato) or a rhythm source (opllrhythm); they are not generated for sources the first cartridge itself does not accept.
 
 ### Profile Descriptions
 
@@ -444,9 +444,9 @@ When multiple sound sources are present, channels are allocated according to sou
 - **`msxaudio`**: For MSX-AUDIO (Y8950). Converts OPLL performance data to Y8950 FM, maps OPLL rhythm parts to the Y8950 rhythm sound generator, and plays PCM through Delta-T.
 - **`opl3`**: For OPL3 (YMF262). Converts OPLL performance data to OPL3 FM and maps OPLL rhythm parts to the OPL3 rhythm sound generator. PCM playback is not supported.
 
-#### Compositions That Add PCM Playback via a Second Cartridge
+#### Compositions That Add PCM Playback via a Second or Later Cartridge
 
-These pair a base that cannot play PCM on its own with a second cartridge's PCM playback.
+These pair a first cartridge that cannot play PCM on its own with the PCM playback of a second or later cartridge.
 
 - **`sfg01_makoto`**: Combines SFG-01 with Makoto, using OPNA ADPCM-B for PCM playback.
 - **`sfg01_msxaudio`**: Combines SFG-01 with MSX-AUDIO, using Y8950 Delta-T for PCM playback.
@@ -454,7 +454,7 @@ These pair a base that cannot play PCM on its own with a second cartridge's PCM 
 - **`opl3_makoto`**: Combines OPL3 with Makoto, using OPNA ADPCM-B for PCM playback.
 - **`opl3_msxaudio`**: Combines OPL3 with MSX-AUDIO, using Y8950 Delta-T for PCM playback.
 
-#### Compositions That Add a Rhythm Sound Generator via a Second Cartridge
+#### Compositions That Add a Rhythm Sound Generator via a Second or Later Cartridge
 
 - **`sfg01_misato`**: Combines SFG-01 with Misato, playing OPLL and OPNA rhythm parts through Misato's rhythm sound generator. ADPCM is not used.
 - **`sfg01_opl3`**: Based on `sfg01`, but plays OPLL rhythm parts through the OPL3 (YMF262) rhythm sound generator.

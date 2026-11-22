@@ -29,7 +29,7 @@ _diagnostics/<stem>/vgm_variants/
 
 Only applicable, successful profiles are published. Composition profiles
 live under their base profile's folder, in a subfolder named by the added
-element alone: the second cartridge (`makoto`, `msxaudio`, `opl3`,
+element alone: the second or later cartridge (`makoto`, `msxaudio`, `opl3`,
 `misato`), the kept native chip (`scc`, `psg`) or the rhythm source
 (`opllrhythm`). A composition whose output is byte-identical to
 its base profile's output is not published; the diagnostics record it as
@@ -56,13 +56,13 @@ rhythm unit instead of the FM one-shot table.
 | msxaudio | Y8950 FM as the main target: YM2413 projected to Y8950 FM (the commercially observed conversion table) and its native rhythm unit, native Y8950 retained, Y8950 Delta-T for PCM, plus PSG. NES APU / FDS and HuC6280 waveform voices project through the four-harmonic wave projection; the nine FM channels hold two four-carrier voices, so further waveform lanes are an explicit omission under `--force` only |
 | opl3 | YMF262 FM as the main target: YM2413 projected to OPL3 FM (the commercially observed conversion table) and its rhythm unit, native Y8950 and YMF262 retained (4-op pairs included), plus PSG. NES APU / FDS and HuC6280 waveform voices project through the four-harmonic wave projection; waveform lanes beyond the four four-carrier voice groups are an explicit omission under `--force` only. No PCM destination; the 4-op FM projection is not established yet, so those sources are unavailable |
 | layered | YM2151 and YM2608 FM in parallel, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
-| **PCM complements: a second cartridge adds PCM playback** | |
+| **PCM complements: a second or later cartridge adds PCM playback** | |
 | sfg01_makoto | YM2151 FM, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
 | sfg01_msxaudio | YM2151 FM, Y8950 Delta-T, YM2413 and PSG |
 | misato_msxaudio | The misato composition plus Y8950 Delta-T for PCM content. There is no misato_makoto: Misato and Makoto are both OPNA cartridges and their I/O ports collide |
 | opl3_makoto | The opl3 composition plus YM2608 ADPCM-B for PCM content |
 | opl3_msxaudio | The opl3 composition plus Y8950 Delta-T for PCM content |
-| **Rhythm complements: a second cartridge adds a rhythm unit** | |
+| **Rhythm complements: a second or later cartridge adds a rhythm unit** | |
 | sfg01_misato | YM2151 FM, YM2608 native rhythm and SSG on Misato (no ADPCM-B), YM2413 and PSG |
 | sfg01_opl3 | sfg01 with the OPLL rhythm on the YMF262 rhythm unit |
 | **Native chip kept** | |
