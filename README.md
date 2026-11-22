@@ -137,15 +137,17 @@ MML 生成用に構築した音楽情報を、MSX のサウンドカートリッ
 
 1本目のカートリッジのプロファイルが入力音源ごとに生成されるかの一覧です（○：生成される、△：制限あり・未変換部分あり、—：生成されない）。
 
-| プロファイル | psg | psg_scc | opll | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| sfg01 | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ | △ |
-| makoto | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
-| misato | ○ | ○ | ○ | ○ | ○ | △ | △ | △ | △ | ○ | △ | △ |
-| msxaudio | ○ | — | ○ | ○ | ○ | ○ | △ | △ | — | — | — | — |
-| opl3 | ○ | — | ○ | ○ | ○ | ○ | ○ | △ | — | — | — | — |
+| プロファイル | psg | psg_scc | opll | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 | opm_segapcm |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| sfg01 | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ | △ | △ |
+| makoto | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ | △ |
+| misato | ○ | ○ | ○ | ○ | ○ | △ | △ | △ | △ | ○ | △ | △ | △ |
+| msxaudio | ○ | — | ○ | ○ | ○ | ○ | △ | △ | — | — | — | — | — |
+| opl3 | ○ | — | ○ | ○ | ○ | ○ | ○ | △ | — | — | — | — | — |
 
 msxaudio / opl3 の apu_fds・huc6280 の △ は、波形音源の声数が上限を超えるためで、`--force` 指定時に上限を超えたレーンを省略して生成します。
+
+opm_segapcm の △ は、SegaPCM が最大16声の PCM で、1台の PCM では1声へのミックスや 256KiB 予算による省略が入るためです。PCM の行き先を足す組み合わせ（makoto/msxaudio、makoto/msxaudio/msxaudio）で声数と容量が広がります。
 
 組み合わせは原則として1本目の行を引き継ぎますが、PCM を持つ入力では行き先を足す組み合わせの方が1本目より広く対応します（例: opm_msm6258 では sfg01 は △、sfg01/makoto は ○）。
 
@@ -406,15 +408,17 @@ Output goes to `vgm-variants/<first cartridge profile>/<song>.vgm`. Compositions
 
 Base profiles generated for each source type (Yes: generated, Approximate: generated with limitations or unconverted parts, No: not generated).
 
-| Profile | psg | psg_scc | opll | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| sfg01 | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Approximate | Approximate |
-| makoto | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Yes | Yes |
-| misato | Yes | Yes | Yes | Yes | Yes | Approximate | Approximate | Approximate | Approximate | Yes | Approximate | Approximate |
-| msxaudio | Yes | No | Yes | Yes | Yes | Yes | Approximate | Approximate | No | No | No | No |
-| opl3 | Yes | No | Yes | Yes | Yes | Yes | Yes | Approximate | No | No | No | No |
+| Profile | psg | psg_scc | opll | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 | opm_segapcm |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| sfg01 | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Approximate | Approximate | Approximate |
+| makoto | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Yes | Yes | Approximate |
+| misato | Yes | Yes | Yes | Yes | Yes | Approximate | Approximate | Approximate | Approximate | Yes | Approximate | Approximate | Approximate |
+| msxaudio | Yes | No | Yes | Yes | Yes | Yes | Approximate | Approximate | No | No | No | No | No |
+| opl3 | Yes | No | Yes | Yes | Yes | Yes | Yes | Approximate | No | No | No | No | No |
 
 The Approximate cells for apu_fds / huc6280 on msxaudio and opl3 are due to waveform-voice capacity: with `--force`, lanes beyond capacity are omitted.
+
+The Approximate cells for opm_segapcm are because SegaPCM carries up to 16 PCM voices: a single PCM unit mixes them down to one voice and may omit content over its 256 KiB budget. The compositions that add PCM destinations (makoto/msxaudio, makoto/msxaudio/msxaudio) widen both the voice count and the capacity.
 
 Compositions generally inherit the first cartridge's row, but for sources with PCM, a composition that adds a PCM destination covers more than the first cartridge alone (e.g. for opm_msm6258, sfg01 is Approximate but sfg01/makoto is Yes).
 

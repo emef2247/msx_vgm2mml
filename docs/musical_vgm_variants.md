@@ -273,3 +273,34 @@ observations do not. At most one VGM tick of fractional finite-exhaustion
 rounding can be clipped downward, with exact rational exhaustion and the
 original gate endpoint retained in asset metadata and source decisions. Larger
 overruns remain unresolved; no extra samples or last-value hold are invented.
+
+## SegaPCM musical PCM
+
+The native SegaPCM trace retains write-observed configuration intervals
+only; audible gates are not part of that evidence. A separate playback
+reconstruction re-executes the channel runtime under the
+VGMPlay-compatible model documented across the project family: channel
+RAM resets to FF (every channel disabled), samples are unsigned bytes
+centred at 0x80, each output frame (clock / 128) advances a 16.8
+fixed-point address by the programmed delta, the end page is checked
+before the fetch and stops the channel or wraps it to the loop
+address (a natural stop clears the address fraction), and the control
+register's bank bits select the ROM window. Uncovered ROM bytes read
+as 0x80 and are counted in the source decisions. Only the first chip
+instance is decoded.
+
+Each gate becomes a decoded asset at its own byte rate
+(clock * delta / 32768); a mid-gate delta change starts a new asset,
+and an asset starts when bytes actually flow, so a gate keyed on with
+delta still zero does not stretch its byte sequence over the silent
+setup span. Stereo volumes fold to mono by their mean.
+
+OPM + SegaPCM inputs use the Makoto, MSX-AUDIO-stacking and layered
+profiles. Each cartridge PCM unit is a single voice: overlapping
+assets mix into it, identical encoded windows are shared, and windows
+over the unit's 256 KiB budget are omitted under `--force` with
+explicit loss counts. The makoto/msxaudio and
+makoto/msxaudio/msxaudio compositions split overlapping assets
+across two or three units (256 KiB each), which removes most of the
+mixing. A single unit is therefore an approximation for this family:
+the data usually fits, but the polyphony does not.
