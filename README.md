@@ -147,7 +147,9 @@ MML 生成用に構築した音楽情報を、MSX のサウンドカートリッ
 
 msxaudio / opl3 の apu_fds・huc6280 の △ は、波形音源の声数が上限を超えるためで、`--force` 指定時に上限を超えたレーンを省略して生成します。
 
-組み合わせは原則として土台の行を引き継ぎます。ただし PCM を持つ入力では、PCM の行き先を足す組み合わせの方が土台より広く対応します（例: opm_msm6258 では sfg01 は △ ですが、sfg01/makoto は ○ です）。組み合わせが生成される入力音源の種類は次の通りです（scc は SCC が鳴っている入力）。
+組み合わせは原則として土台の行を引き継ぎますが、PCM を持つ入力では行き先を足す組み合わせの方が土台より広く対応します（例: opm_msm6258 では sfg01 は △、sfg01/makoto は ○）。
+
+組み合わせと重ね系のプロファイルが生成される入力音源の種類は次の通りです。土台の行の psg / scc 列は、その土台の `psg_*` / `scc_*` 組み合わせの生成を示します（scc は SCC が鳴っている入力）。
 
 | プロファイル | psg | scc | opna | opm | opn2 |
 |---|---|---|---|---|---|
@@ -156,9 +158,11 @@ msxaudio / opl3 の apu_fds・huc6280 の △ は、波形音源の声数が上�
 | misato | ○ | ○ | ○ | ○ | ○ |
 | msxaudio | ○ | ○ | — | — | — |
 | opl3 | ○ | ○ | — | — | — |
-| layered | ○ | ○ | ○ | ○ | ○ |
+| layered | — | — | ○ | ○ | ○ |
+| psg_layered | ○ | — | — | — | — |
+| scc_layered | — | ○ | — | — | — |
 
-psg 列は実PSGを残して重ねる `psg_*`、scc 列は実SCCを残す `scc_*` の生成です。opna / opm / opn2 列は、2台目のカートリッジ（makoto / msxaudio / opl3 / misato）やリズム源（rx21 / opllrhythm）を足す組み合わせの生成で、土台自体が受け付けない入力では生成されません。
+opna / opm / opn2 列は、2台目のカートリッジ（makoto / msxaudio / opl3 / misato）やリズム源（rx21 / opllrhythm）を足す組み合わせの生成で、土台自体が受け付けない入力では生成されません。
 
 ### 各プロファイルの説明
 
@@ -410,7 +414,9 @@ Base profiles generated for each source type (Yes: generated, Approximate: gener
 
 The Approximate cells for apu_fds / huc6280 on msxaudio and opl3 are due to waveform-voice capacity: with `--force`, lanes beyond capacity are omitted.
 
-Compositions generally inherit their base profile's row. For sources with PCM, however, a composition that adds a PCM destination covers more than its base (e.g. for opm_msm6258, sfg01 is Approximate but sfg01/makoto is Yes). The source types for which compositions are generated are:
+Compositions generally inherit their base profile's row, but for sources with PCM, a composition that adds a PCM destination covers more than its base (e.g. for opm_msm6258, sfg01 is Approximate but sfg01/makoto is Yes).
+
+The source types for which the composition and layered profiles are generated are: In a base row, the psg / scc columns show that base's `psg_*` / `scc_*` compositions (scc: sources where SCC sounds).
 
 | Profile | psg | scc | opna | opm | opn2 |
 |---|---|---|---|---|---|
@@ -419,9 +425,11 @@ Compositions generally inherit their base profile's row. For sources with PCM, h
 | misato | Yes | Yes | Yes | Yes | Yes |
 | msxaudio | Yes | Yes | No | No | No |
 | opl3 | Yes | Yes | No | No | No |
-| layered | Yes | Yes | Yes | Yes | Yes |
+| layered | No | No | Yes | Yes | Yes |
+| psg_layered | Yes | No | No | No | No |
+| scc_layered | No | Yes | No | No | No |
 
-The psg column is the `psg_*` compositions that keep the real PSG; the scc column is the `scc_*` compositions that keep the real SCC (scc: sources where SCC sounds). The opna / opm / opn2 columns are compositions that add a second cartridge (makoto / msxaudio / opl3 / misato) or a rhythm source (rx21 / opllrhythm); they are not generated for sources the base itself does not accept.
+The opna / opm / opn2 columns are compositions that add a second cartridge (makoto / msxaudio / opl3 / misato) or a rhythm source (rx21 / opllrhythm); they are not generated for sources the base itself does not accept.
 
 ### Profile Descriptions
 
