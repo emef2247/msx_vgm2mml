@@ -39,7 +39,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 6
   },
   {
    "index": 2,
@@ -75,7 +75,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 12
   },
   {
    "index": 3,
@@ -111,7 +111,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 2
   },
   {
    "index": 4,
@@ -147,7 +147,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 27
   },
   {
    "index": 5,
@@ -183,7 +183,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 29
   },
   {
    "index": 6,
@@ -219,7 +219,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 12
   },
   {
    "index": 7,
@@ -255,7 +255,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 18
   },
   {
    "index": 8,
@@ -291,7 +291,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 13
   },
   {
    "index": 9,
@@ -363,7 +363,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 30
   },
   {
    "index": 11,
@@ -435,7 +435,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 14
   },
   {
    "index": 13,
@@ -471,7 +471,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 15
+   "level_trim_tl": 29
   },
   {
    "index": 14,
@@ -507,7 +507,7 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 5
   },
   {
    "index": 15,
@@ -543,12 +543,12 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 14
   }
  ],
  "rhythm": {
   "kind": "opl_native",
   "note": "OPLL percussion projects to the target native rhythm unit with the composed voice template (derived voices over the commercial one; musical_opl_target / musical_opl3_target); no FM rows."
  },
- "fit_note": "Voices fitted against IKAOPLL renders of a low-extended 8-note probe set, most recently 2026-11-21 (mean score 8.94 -> 7.19), with level trims re-checked against the IKAOPLL renders the same day. Earlier passes (2026-11-16 against the OPM table, 2026-11-20 against real YM2413 recordings) were intermediate stages toward this fit; see OPL3_FIT in make_presets.py."
+ "fit_note": "Voices fitted against IKAOPLL renders of a low-extended 8-note probe set, most recently 2026-11-21 (mean score 8.94 -> 7.19), with level trims re-checked against the IKAOPLL renders the same day; the 2026-11-22 waveform-select-0 re-fit reset the trims, and they were re-anchored against the IKAOPLL renders on 2026-11-23. Earlier passes (2026-11-16 against the OPM table, 2026-11-20 against real YM2413 recordings) were intermediate stages toward this fit; see OPL3_FIT in make_presets.py."
 }

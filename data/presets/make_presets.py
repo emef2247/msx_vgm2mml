@@ -607,22 +607,35 @@ def _established_opl_json(target, chip, clock):
 # the corrected score; no voice ended worse than its best
 # start.  Guitar, Piano and Vibraphone remain the least
 # close voices under this score.
+# Volume re-check 2026-11-23 (the WS=0 re-fit above selected on
+# harmonic shape only and reset the trims, so the 2026-11-21
+# anchors no longer applied; the owner's FMPAC02 take showed
+# quiet passages buried under the hot voices): every voice
+# re-measured against the IKAOPLL render with the same probe
+# set and window as the 2026-11-21 re-checks.  Mean gains
+# before the move ran from +22.1 dB (Synthesizer, too loud) to
+# -2.8 dB (Horn, too quiet); trims move +6 Violin, +12 Guitar,
+# +2 Piano, +27 Flute, +29 Clarinet, +12 Oboe, +18 Trumpet,
+# +13 Organ, +30 Synthesizer, +14 Vibraphone, +14 SynthBass
+# (15 -> 29), +5 AcoustBass, +14 ElecGuitar steps.  Horn and
+# Harpsichord keep trim 0: both read at or below the reference
+# and a trim cannot lift.
 OPL3_FIT = {
-    'Violin': {'level_trim_tl': 0, 'ops': {0: {'tl': 26, 'ar': 9, 'ws': 0}, 1: {'ksl': 3, 'ar': 8, 'rr': 7, 'ws': 0}}},
-    'Guitar': {'fb': 4, 'level_trim_tl': 0, 'ops': {0: {'am': 1, 'ksr': 0, 'ksl': 1, 'tl': 23, 'ws': 0}, 1: {'am': 1, 'ksl': 1, 'ar': 9, 'sl': 2, 'rr': 5, 'ws': 0}}},
-    'Piano': {'level_trim_tl': 0, 'ops': {0: {'tl': 26, 'dr': 1, 'rr': 0, 'ws': 0}, 1: {'vib': 1, 'ksr': 1, 'ksl': 1, 'dr': 6, 'sl': 3, 'rr': 2, 'ws': 0}}},
-    'Flute': {'fb': 6, 'level_trim_tl': 0, 'ops': {0: {'am': 1, 'tl': 9, 'ws': 0}, 1: {'ar': 7, 'ws': 0}}},
-    'Clarinet': {'fb': 7, 'level_trim_tl': 0, 'ops': {0: {'ar': 8, 'rr': 0, 'ws': 0}, 1: {'ar': 11, 'ws': 0}}},
-    'Oboe': {'level_trim_tl': 0, 'ops': {0: {'rr': 1, 'ws': 0}, 1: {'ksl': 1, 'ar': 8, 'rr': 8, 'ws': 0}}},
-    'Trumpet': {'fb': 6, 'level_trim_tl': 0, 'ops': {0: {'vib': 1, 'tl': 27, 'ar': 6, 'dr': 0, 'rr': 0, 'ws': 0}, 1: {'vib': 0, 'ksl': 2, 'ar': 9, 'rr': 7, 'ws': 0}}},
-    'Organ': {'fb': 3, 'level_trim_tl': 0, 'ops': {0: {'ksr': 1, 'tl': 34, 'rr': 1, 'ws': 0}, 1: {'am': 1, 'vib': 1, 'ksl': 1, 'ar': 9, 'rr': 7, 'ws': 0}}},
+    'Violin': {'level_trim_tl': 6, 'ops': {0: {'tl': 26, 'ar': 9, 'ws': 0}, 1: {'ksl': 3, 'ar': 8, 'rr': 7, 'ws': 0}}},
+    'Guitar': {'fb': 4, 'level_trim_tl': 12, 'ops': {0: {'am': 1, 'ksr': 0, 'ksl': 1, 'tl': 23, 'ws': 0}, 1: {'am': 1, 'ksl': 1, 'ar': 9, 'sl': 2, 'rr': 5, 'ws': 0}}},
+    'Piano': {'level_trim_tl': 2, 'ops': {0: {'tl': 26, 'dr': 1, 'rr': 0, 'ws': 0}, 1: {'vib': 1, 'ksr': 1, 'ksl': 1, 'dr': 6, 'sl': 3, 'rr': 2, 'ws': 0}}},
+    'Flute': {'fb': 6, 'level_trim_tl': 27, 'ops': {0: {'am': 1, 'tl': 9, 'ws': 0}, 1: {'ar': 7, 'ws': 0}}},
+    'Clarinet': {'fb': 7, 'level_trim_tl': 29, 'ops': {0: {'ar': 8, 'rr': 0, 'ws': 0}, 1: {'ar': 11, 'ws': 0}}},
+    'Oboe': {'level_trim_tl': 12, 'ops': {0: {'rr': 1, 'ws': 0}, 1: {'ksl': 1, 'ar': 8, 'rr': 8, 'ws': 0}}},
+    'Trumpet': {'fb': 6, 'level_trim_tl': 18, 'ops': {0: {'vib': 1, 'tl': 27, 'ar': 6, 'dr': 0, 'rr': 0, 'ws': 0}, 1: {'vib': 0, 'ksl': 2, 'ar': 9, 'rr': 7, 'ws': 0}}},
+    'Organ': {'fb': 3, 'level_trim_tl': 13, 'ops': {0: {'ksr': 1, 'tl': 34, 'rr': 1, 'ws': 0}, 1: {'am': 1, 'vib': 1, 'ksl': 1, 'ar': 9, 'rr': 7, 'ws': 0}}},
     'Horn': {'level_trim_tl': 0, 'ops': {0: {'rr': 2, 'ws': 0}, 1: {'ksl': 3, 'ar': 7, 'dr': 6, 'sl': 2, 'rr': 7, 'ws': 0}}},
-    'Synthesizer': {'level_trim_tl': 0, 'ops': {0: {'vib': 0, 'ar': 8, 'dr': 4, 'sl': 6, 'rr': 2, 'ws': 0}, 1: {'vib': 0, 'rr': 8, 'ws': 0}}},
+    'Synthesizer': {'level_trim_tl': 30, 'ops': {0: {'vib': 0, 'ar': 8, 'dr': 4, 'sl': 6, 'rr': 2, 'ws': 0}, 1: {'vib': 0, 'rr': 8, 'ws': 0}}},
     'Harpsichord': {'fb': 2, 'level_trim_tl': 0, 'ops': {0: {'tl': 7, 'sl': 0, 'ws': 0}, 1: {'ksl': 1, 'ar': 13, 'sl': 4, 'rr': 4, 'ws': 0}}},
-    'Vibraphone': {'level_trim_tl': 0, 'ops': {0: {'egt': 1, 'tl': 49, 'rr': 3, 'ws': 0}, 1: {'ksl': 1, 'dr': 2, 'rr': 5, 'ws': 0}}},
-    'SynthBass': {'level_trim_tl': 15, 'ops': {0: {'tl': 12, 'ar': 14, 'dr': 1, 'sl': 1, 'ws': 0}, 1: {'am': 1, 'rr': 5, 'ws': 0}}},
-    'AcoustBass': {'level_trim_tl': 0, 'ops': {0: {'tl': 20, 'dr': 2, 'ws': 0}, 1: {'am': 1, 'vib': 1, 'ksl': 1, 'ar': 10, 'rr': 4, 'ws': 0}}},
-    'ElecGuitar': {'level_trim_tl': 0, 'ops': {0: {'ws': 0}, 1: {'ksl': 1, 'rr': 5, 'ws': 0}}},
+    'Vibraphone': {'level_trim_tl': 14, 'ops': {0: {'egt': 1, 'tl': 49, 'rr': 3, 'ws': 0}, 1: {'ksl': 1, 'dr': 2, 'rr': 5, 'ws': 0}}},
+    'SynthBass': {'level_trim_tl': 29, 'ops': {0: {'tl': 12, 'ar': 14, 'dr': 1, 'sl': 1, 'ws': 0}, 1: {'am': 1, 'rr': 5, 'ws': 0}}},
+    'AcoustBass': {'level_trim_tl': 5, 'ops': {0: {'tl': 20, 'dr': 2, 'ws': 0}, 1: {'am': 1, 'vib': 1, 'ksl': 1, 'ar': 10, 'rr': 4, 'ws': 0}}},
+    'ElecGuitar': {'level_trim_tl': 14, 'ops': {0: {'ws': 0}, 1: {'ksl': 1, 'rr': 5, 'ws': 0}}},
 }
 
 
@@ -639,7 +652,10 @@ def _fitted_opl3_json():
                        'recently 2026-11-21 (mean score 8.94 -> '
                        '7.19), with level trims re-checked '
                        'against the IKAOPLL renders the same '
-                       'day. Earlier passes (2026-11-16 against '
+                       'day; the 2026-11-22 waveform-select-0 '
+                       're-fit reset the trims, and they were '
+                       're-anchored against the IKAOPLL renders '
+                       'on 2026-11-23. Earlier passes (2026-11-16 against '
                        'the OPM table, 2026-11-20 against real '
                        'YM2413 recordings) were intermediate '
                        'stages toward this fit; see OPL3_FIT in '
