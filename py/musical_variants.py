@@ -138,17 +138,14 @@ def _project_msxaudio(performance, *, force=False, dcsg_gain=.25, real_scc=False
     from musical_pcm_target import project_pcm
     allowed={'y8950','opll','psg','dcsg','msm6258'}
     if real_scc:allowed.add('scc')
-    if real_psg:
-        # The PSG layered gate in project_variant already proved the
-        # sounding sources are PSG-only; a device that never sounds
-        # (an msxplay.com header lists every device) must not fail
-        # this profile the way it fails the base msxaudio profile.
-        by_id={d.device_id:d.chip for d in performance.devices}
-        present={by_id[u.device_id] for u in performance.units}
-        present|={by_id[e.device_id] for e in performance.percussion}
-        present|={p.chip for p in performance.pcm_packets}
-    else:
-        present={d.chip for d in performance.devices}
+    # The gate counts sounding devices only, as in the opl3 route:
+    # a device that never sounds (an msxplay.com export lists every
+    # device) must not fail the profile; a sounding unsupported
+    # chip still does.
+    by_id={d.device_id:d.chip for d in performance.devices}
+    present={by_id[u.device_id] for u in performance.units}
+    present|={by_id[e.device_id] for e in performance.percussion}
+    present|={p.chip for p in performance.pcm_packets}
     bad=sorted(present-allowed)
     if bad:raise ValueError('msxaudio profile has no projection for '+', '.join(bad))
     msm_issues=[d for d in performance.decisions if d and d[0] in
@@ -205,17 +202,13 @@ def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, re
     from musical_opl3_target import project_opl3_fm
     allowed={'opll','y8950','ymf262','psg','dcsg'}
     if real_scc:allowed.add('scc')
-    if real_psg:
-        # The PSG layered gate in project_variant already proved the
-        # sounding sources are PSG-only; a device that never sounds
-        # (an msxplay.com header lists every device) must not fail
-        # this profile the way it fails the base opl3 profile.
-        by_id={d.device_id:d.chip for d in performance.devices}
-        present={by_id[u.device_id] for u in performance.units}
-        present|={by_id[e.device_id] for e in performance.percussion}
-        present|={p.chip for p in performance.pcm_packets}
-    else:
-        present={d.chip for d in performance.devices}
+    # The gate counts sounding devices only: a device that never
+    # sounds (an msxplay.com export lists every device) must not
+    # fail the profile; a sounding unsupported chip still does.
+    by_id={d.device_id:d.chip for d in performance.devices}
+    present={by_id[u.device_id] for u in performance.units}
+    present|={by_id[e.device_id] for e in performance.percussion}
+    present|={p.chip for p in performance.pcm_packets}
     bad=sorted(present-allowed)
     if bad:raise ValueError('opl3 profile has no projection for '+', '.join(bad))
     rows=[];losses=Counter();plan={}
