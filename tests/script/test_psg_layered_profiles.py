@@ -26,17 +26,26 @@ class PsgLayeredProfileTests(unittest.TestCase):
     def test_profiles_stack_native_ay_with_fm_doubling(self):
         p = performance()
         commands = {}
-        for profile in ('psg_sfg01', 'psg_makoto', 'psg_layered', 'sfg01'):
+        for profile in ('psg_sfg01', 'psg_makoto', 'psg_layered', 'psg_opl3', 'sfg01'):
             rows, _, losses, plan = project_variant(p, profile, force=True)
             commands[profile] = {row['command'][0] for row in rows}
         self.assertTrue({0xa0, 0x54} <= commands['psg_sfg01'])
         self.assertTrue({0xa0, 0x56} <= commands['psg_makoto'])
         self.assertTrue({0xa0, 0x54, 0x56} <= commands['psg_layered'])
+        self.assertTrue({0xa0, 0x5e} <= commands['psg_opl3'])
+        self.assertNotIn(0x54, commands['psg_opl3'])
         # The base profile keeps the PSG native-only: no FM doubling.
         self.assertIn(0xa0, commands['sfg01'])
         self.assertNotIn(0x54, commands['sfg01'])
         _, _, _, plan = project_variant(p, 'psg_sfg01', force=True)
         self.assertTrue(plan['psg_fm_doubling'])
+        rows, _, _, plan = project_variant(p, 'psg_opl3', force=True)
+        self.assertIn('waveform_allocation', plan)
+        # The doubling gates YMF262 carriers: a pitch register write
+        # carrying the key-on bit, on a channel the AY lane never uses.
+        self.assertTrue(any(row['command'][0] in (0x5e, 0x5f)
+                            and 0xb0 <= row['command'][1] <= 0xb8
+                            and row['command'][2] & 0x20 for row in rows))
 
     def test_profiles_require_a_psg_only_source(self):
         psg = performance()
@@ -56,7 +65,7 @@ class PsgLayeredProfileTests(unittest.TestCase):
     def test_export_reports_psg_profiles(self):
         with tempfile.TemporaryDirectory() as tmp:
             result = export_variants(performance(), tmp, 'authored', force=True)
-            for profile in ('psg_sfg01', 'psg_makoto', 'psg_layered'):
+            for profile in ('psg_sfg01', 'psg_makoto', 'psg_layered', 'psg_opl3'):
                 self.assertEqual(result[profile]['status'], 'success', profile)
             result = export_variants(performance(chip='scc'), tmp, 'authored',
                                      force=True)

@@ -13,7 +13,13 @@ from musical_wave_target import project_waves, project_psg_opll
 
 SCC_PROFILES = {'scc_sfg01':'sfg01', 'scc_makoto':'makoto', 'scc_layered':'layered', 'scc_opl3':'opl3'}
 PSG_PROFILES = {'psg_sfg01':'sfg01', 'psg_makoto':'makoto', 'psg_layered':'layered', 'psg_opl3':'opl3'}
-PROFILES = ('sfg01','sfg01_rx21','sfg01_opllrhythm','sfg01_opl3','makoto','makoto_rx21','misato','sfg01_makoto','sfg01_msxaudio','sfg01_misato','msxaudio','opl3','layered', *SCC_PROFILES, *PSG_PROFILES)
+PROFILES = ('sfg01','sfg01_rx21','sfg01_opllrhythm','sfg01_opl3','makoto','makoto_rx21','misato','misato_msxaudio','sfg01_makoto','sfg01_msxaudio','sfg01_misato','msxaudio','opl3','opl3_makoto','opl3_msxaudio','layered', *SCC_PROFILES, *PSG_PROFILES)
+# The opl3 composition has no PCM unit; these profiles pair it with
+# a PCM cartridge instead.  Misato gets no such pairing with Makoto:
+# both are OPNA cartridges and their I/O ports collide, so Misato's
+# only PCM complement is misato_msxaudio on the main route below
+# (owner, 2026-11-22).
+OPL3_PCM_AUXILIARY = {'opl3_makoto':'opna','opl3_msxaudio':'y8950'}
 CLOCKS = {0x54:(0x30,3579545),0x56:(0x48,8000000),0x57:(0x48,8000000),
           0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545),
           0x5e:(0x5c,14318180),0x5f:(0x5c,14318180)}
@@ -152,22 +158,34 @@ def _project_msxaudio(performance, *, force=False, dcsg_gain=.25):
     return rows,prefix,dict(losses),plan
 
 
-def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, real_psg=False):
+def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, real_psg=False,
+                  pcm_auxiliary=None):
     """OPL3 profile: the YMF262 is the primary target.
 
     OPLL voices project through the commercially observed
     conversion table, Y8950 sources re-emit on the OPL3's OPL
     banks and YMF262 sources re-emit natively (4-op pairs
-    included).  The chip has no PCM unit, and the 4-op FM and
-    waveform projections are not established yet; sources needing
-    them make the profile unavailable.
+    included).  The chip has no PCM unit, and the 4-op FM
+    projection is not established yet; sources needing it make
+    the profile unavailable.  With real_psg (psg_opl3), PSG voices
+    also double onto YMF262 carriers through the waveform
+    projection, beside their native AY lanes.
     """
     from musical_opl3_target import project_opl3_fm
-    if real_psg:
-        raise ValueError('psg_opl3 requires the OPL3 waveform projection (not yet established)')
     allowed={'opll','y8950','ymf262','psg','dcsg'}
     if real_scc:allowed.add('scc')
-    bad=sorted({d.chip for d in performance.devices}-allowed)
+    if real_psg:
+        # The PSG layered gate in project_variant already proved the
+        # sounding sources are PSG-only; a device that never sounds
+        # (an msxplay.com header lists every device) must not fail
+        # this profile the way it fails the base opl3 profile.
+        by_id={d.device_id:d.chip for d in performance.devices}
+        present={by_id[u.device_id] for u in performance.units}
+        present|={by_id[e.device_id] for e in performance.percussion}
+        present|={p.chip for p in performance.pcm_packets}
+    else:
+        present={d.chip for d in performance.devices}
+    bad=sorted(present-allowed)
     if bad:raise ValueError('opl3 profile has no projection for '+', '.join(bad))
     rows=[];losses=Counter();plan={}
     if real_scc:
@@ -176,17 +194,37 @@ def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, re
         rows.extend(scc_rows);losses.update(scc_losses);plan['real_scc']=scc_plan
     fm_rows,fm_losses,allocation=project_opl3_fm(performance,force=force)
     rows.extend(fm_rows);losses.update(fm_losses)
+    if real_psg:
+        # psg_opl3: the PSG voices double onto YMF262 sine carriers
+        # through the waveform projection, beside the native AY
+        # lanes the auxiliary projection below emits.
+        from musical_wave_target import project_waves
+        wave_rows,wave_losses,wave_allocation=project_waves(performance,'opl3',14318180,
+            reserved=set(allocation.values()),force=True,include_psg=True)
+        rows.extend(wave_rows);losses.update(wave_losses)
+        plan['waveform_allocation']={str(k):v for k,v in wave_allocation.items()}
     opll_device=next((d.device_id for d in performance.devices if d.chip=='opll'),None)
     aux,aux_losses=project_psg_opll(performance,dcsg_gain=dcsg_gain,
         opna=False,force=True,opll_fm_device=opll_device)
     rows.extend(aux);losses.update(aux_losses)
+    prefix=b'';pcm_stats={}
     assets=getattr(performance,'pcm_assets',())
     if assets:
-        if not force:raise ValueError('OPL3 has no PCM destination (use --force to omit the PCM content)')
-        losses['pcm_content_omitted_no_opl3_destination']+=len(assets)
+        if pcm_auxiliary:
+            # opl3_makoto / opl3_msxaudio: the paired cartridge gives
+            # the PCM content its destination (owner, 2026-11-22).
+            from musical_pcm_target import project_pcm
+            pcm,prefix,pcm_losses,pcm_stats=project_pcm(performance,pcm_auxiliary,force=force)
+            if any(count for code,count in pcm_losses.items() if 'budget' in code and ('omitted' in code or 'dropped' in code)) and not force:
+                raise ValueError('PCM content exceeds cartridge DRAM (use --force for explicit omission)')
+            rows.extend(pcm);losses.update(pcm_losses)
+        else:
+            if not force:raise ValueError('OPL3 has no PCM destination (use --force to omit the PCM content)')
+            losses['pcm_content_omitted_no_opl3_destination']+=len(assets)
     if not rows:raise ValueError('No mapped musical operations in source')
     plan['fm_allocation']={str(k):v for k,v in allocation.items()}
-    return rows,b'',dict(losses),plan
+    if pcm_stats:plan['pcm']=pcm_stats
+    return rows,prefix,dict(losses),plan
 
 
 def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_law=False,
@@ -198,6 +236,8 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     profile=SCC_PROFILES.get(profile,profile)
     real_psg=profile in PSG_PROFILES
     profile=PSG_PROFILES.get(profile,profile)
+    opl3_pcm_auxiliary=OPL3_PCM_AUXILIARY.get(profile)
+    if opl3_pcm_auxiliary:profile='opl3'
     # sfg01_opllrhythm keeps the sfg01 OPM melody projection but leaves
     # OPLL percussion on the native chip (owner, 2026-11-16): no FM
     # rhythm table is selected for it below, so project_rhythm emits
@@ -211,15 +251,33 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     if profile=='msxaudio':
         return _project_msxaudio(performance,force=force,dcsg_gain=dcsg_gain)
     if profile=='opl3':
+        if real_psg:
+            # The PSG layered family is defined for PSG-only sources
+            # (owner, 2026-11-14); the opl3 route returns before the
+            # main route's gate, so the same checks run here.
+            devices={d.device_id:d for d in performance.devices}
+            sounding={devices[u.device_id].chip for u in performance.units}
+            sounding|={devices[e.device_id].chip for e in performance.percussion}
+            sounding|={p.chip for p in performance.pcm_packets}
+            if not any(devices[u.device_id].chip=='psg' and u.section!='noise'
+                and u.role!='unpitched' for u in performance.units):
+                raise ValueError('No sounding PSG units for the PSG layered profile')
+            if sounding!={'psg'}:
+                raise ValueError('PSG layered profiles require a PSG-only source')
         return _project_opl3(performance,force=force,dcsg_gain=dcsg_gain,
-            real_scc=real_scc,real_psg=real_psg)
-    chip='opna' if profile in ('makoto','makoto_rx21','misato') else 'opm'
+            real_scc=real_scc,real_psg=real_psg,
+            pcm_auxiliary=opl3_pcm_auxiliary)
+    chip='opna' if profile in ('makoto','makoto_rx21','misato','misato_msxaudio') else 'opm'
     clock=8000000 if chip=='opna' else 3579545
     # Misato is the Makoto composition on the OPN3 cartridge, which
     # has no ADPCM unit (owner, 2026-11-16): PCM content has no
     # destination there and percussion plays on the native YM2608
     # rhythm unit instead of ADPCM-B samples.
-    auxiliary='opna' if profile in ('makoto','makoto_rx21','sfg01_makoto','layered') else 'misato' if profile in ('misato','sfg01_misato') else 'y8950' if profile=='sfg01_msxaudio' else None
+    auxiliary='opna' if profile in ('makoto','makoto_rx21','sfg01_makoto','layered') else 'misato' if profile in ('misato','sfg01_misato','misato_msxaudio') else 'y8950' if profile=='sfg01_msxaudio' else None
+    # misato_msxaudio keeps the Misato rhythm/SSG side (auxiliary
+    # above) and gives PCM content the MSX-AUDIO Delta-T as its
+    # destination; a Makoto pairing is impossible (I/O collision).
+    pcm_auxiliary='y8950' if profile=='misato_msxaudio' else auxiliary
     # FM-only SFG01 compositions play OPLL rhythm as fitted FM
     # one-shots; makoto_rx21 swaps the PCM hit library to the RX21.
     # sfg01_opllrhythm selects no table: its rhythm stays native.
@@ -296,12 +354,12 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
             losses.update(rhythm_pcm_losses)
     missing_pcm=[decision for decision in performance.decisions if decision and decision[0] in ('nes_pcm_missing_sample_bytes','opn2_pcm_source_issue','opn2_pcm_direct_without_observed_enable')]
     if missing_pcm:losses['source_pcm_content_incomplete_diagnostics']+=len(missing_pcm)
-    if assets and auxiliary=='misato':
+    if assets and pcm_auxiliary=='misato':
         if not force:raise ValueError('Misato has no ADPCM unit (use --force to omit the PCM content)')
         losses['pcm_content_omitted_no_misato_destination']+=len(assets)
     elif assets:
-        if auxiliary is None:raise ValueError('PCM source requires sfg01_makoto or sfg01_msxaudio')
-        pcm,prefix,pcm_losses,pcm_stats=project_pcm(pcm_performance,auxiliary,force=force)
+        if pcm_auxiliary is None:raise ValueError('PCM source requires sfg01_makoto or sfg01_msxaudio')
+        pcm,prefix,pcm_losses,pcm_stats=project_pcm(pcm_performance,pcm_auxiliary,force=force)
         if any(count for code,count in pcm_losses.items() if 'budget' in code and ('omitted' in code or 'dropped' in code)) and not force:
             raise ValueError('PCM content exceeds cartridge DRAM (use --force for explicit omission)')
         rows.extend(pcm);losses.update(pcm_losses)

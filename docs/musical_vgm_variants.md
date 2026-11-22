@@ -56,11 +56,14 @@ unit instead of the FM one-shot table.
 | makoto | YM2608 at 8 MHz, plus native YM2413 and AY PSG |
 | makoto_rx21 | makoto with the RX21 hit library on ADPCM-B |
 | misato | The makoto composition on the Misato (OPN3) cartridge: YM2608 at 8 MHz with no ADPCM unit, so PCM content has no destination and percussion plays on the native rhythm unit, plus native YM2413 and AY PSG |
+| misato_msxaudio | The misato composition plus Y8950 Delta-T for PCM content. There is no misato_makoto: Misato and Makoto are both OPNA cartridges and their I/O ports collide |
 | sfg01_makoto | YM2151 FM, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
 | sfg01_msxaudio | YM2151 FM, Y8950 Delta-T, YM2413 and PSG |
 | sfg01_misato | YM2151 FM, YM2608 native rhythm and SSG on Misato (no ADPCM-B), YM2413 and PSG |
 | msxaudio | Y8950 FM as the main target: YM2413 projected to Y8950 FM (the commercially observed conversion table) and its native rhythm unit, native Y8950 retained, Y8950 Delta-T for PCM, plus PSG |
-| opl3 | YMF262 FM as the main target: YM2413 projected to OPL3 FM (the commercially observed conversion table) and its rhythm unit, native Y8950 and YMF262 retained (4-op pairs included), plus PSG. No PCM destination; the 4-op FM and waveform projections are not established yet, so those sources are unavailable |
+| opl3 | YMF262 FM as the main target: YM2413 projected to OPL3 FM (the commercially observed conversion table) and its rhythm unit, native Y8950 and YMF262 retained (4-op pairs included), plus PSG. No PCM destination; the 4-op FM projection is not established yet, so those sources are unavailable |
+| opl3_makoto | The opl3 composition plus YM2608 ADPCM-B for PCM content |
+| opl3_msxaudio | The opl3 composition plus Y8950 Delta-T for PCM content |
 | layered | YM2151 and YM2608 FM in parallel, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
 | scc_sfg01 | Real SCC plus the sfg01 composition |
 | scc_makoto | Real SCC plus the makoto composition |
@@ -69,7 +72,7 @@ unit instead of the FM one-shot table.
 | psg_sfg01 | Native AY PSG plus an OPM doubling of the PSG voices |
 | psg_makoto | Native AY PSG plus an OPNA doubling of the PSG voices |
 | psg_layered | Native AY PSG plus both FM doublings |
-| psg_opl3 | Native AY PSG plus an OPL3 doubling of the PSG voices (unavailable until the OPL3 waveform projection is established) |
+| psg_opl3 | Native AY PSG plus an OPL3 doubling of the PSG voices |
 
 ## Layered FM
 

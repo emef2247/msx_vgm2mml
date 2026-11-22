@@ -138,14 +138,14 @@ class Opl3ProfileTests(unittest.TestCase):
         self.assertEqual(result['status'],'unavailable')
         self.assertIn('opm',result['reason'])
 
-    def test_psg_opl3_waits_for_the_waveform_projection(self):
+    def test_psg_opl3_requires_a_psg_only_source(self):
         body=b''.join((
             opll(0x30,0x73),opll(0x10,0x22),opll(0x20,0x19),
             b'\x62',opll(0x20,0x09)))
         performance,folder=self.build(vgm(body,{0x10:3579545,0x5c:14318180}))
         result=self.export(performance,folder+'/out')['psg_opl3']
         self.assertEqual(result['status'],'unavailable')
-        self.assertIn('waveform',result['reason'])
+        self.assertIn('No sounding PSG units',result['reason'])
 
 
 if __name__=='__main__':
