@@ -144,38 +144,97 @@ MML 生成用に構築した音楽情報を、MSX のサウンドカートリッ
 | sfg01_opl3 | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ | △ |
 | makoto | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
 | misato | ○ | ○ | ○ | ○ | ○ | △ | △ | △ | △ | ○ | △ | △ |
+| misato_msxaudio | — | — | ○ | — | — | — | — | — | — | — | ○ | ○ |
 | sfg01_makoto | — | — | ○ | — | — | — | — | — | ○ | — | ○ | ○ |
 | sfg01_msxaudio | — | — | ○ | — | — | — | — | — | — | — | ○ | ○ |
 | sfg01_misato | — | — | ○ | — | — | — | — | — | ○ | — | — | — |
+| sfg01_opl3 | — | — | ○ | — | — | — | — | — | ○ | — | — | — |
 | msxaudio | ○ | — | ○ | ○ | ○ | — | — | — | — | — | — | — |
 | opl3 | ○ | — | ○ | ○ | ○ | — | — | — | — | — | — | — |
+| opl3_makoto | — | — | ○ | — | — | — | — | — | ○ | — | ○ | ○ |
+| opl3_msxaudio | — | — | ○ | — | — | — | — | — | — | — | ○ | ○ |
 | layered | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
 | scc_sfg01 | — | ○ | — | — | — | — | — | — | — | — | — | — |
 | scc_makoto | — | ○ | — | — | — | — | — | — | — | — | — | — |
-| scc_layered | — | ○ | — | — | — | — | — | — | — | — | — | — |
+| scc_misato | — | ○ | — | — | — | — | — | — | — | — | — | — |
+| scc_msxaudio | — | ○ | — | — | — | — | — | — | — | — | — | — |
 | scc_opl3 | — | ○ | — | — | — | — | — | — | — | — | — | — |
+| scc_layered | — | ○ | — | — | — | — | — | — | — | — | — | — |
 | psg_sfg01 | ○ | — | — | — | — | — | — | — | — | — | — | — |
 | psg_makoto | ○ | — | — | — | — | — | — | — | — | — | — | — |
+| psg_misato | ○ | — | — | — | — | — | — | — | — | — | — | — |
+| psg_msxaudio | ○ | — | — | — | — | — | — | — | — | — | — | — |
+| psg_opl3 | ○ | — | — | — | — | — | — | — | — | — | — | — |
 | psg_layered | ○ | — | — | — | — | — | — | — | — | — | — | — |
 
-- `makoto`：各音源を OPNA の FM 向けに変換します。複数の音源が混在する場合は優先順位があります。PCM は OPNA の ADPCM-B へ変換します。
-- `sfg01`：各音源を OPM の FM 向けに変換します。こちらも音源の優先順位があります。PCM の再生には Makoto または MSX-AUDIO を併用できます（`sfg01_makoto` / `sfg01_msxaudio`）。
-- `sfg01_opllrhythm`：`sfg01` と同じ変換ですが、OPLL のリズム音だけは FM に変換せず、YM2413 のリズム音源をそのまま鳴らします。
-- `sfg01_opl3`：`sfg01` と同じ変換ですが、OPLL のリズム音は OPL3（YMF262）のリズム音源で鳴らします。
-- `misato`：`makoto` と同じ変換を Misato（OPN3）向けに行います。ADPCM ユニットのないカートリッジなので PCM は変換先がなく、打楽器は OPNA のリズム音源で鳴らします。
-- `sfg01_misato`：OPM への変換に Misato を組み合わせます。OPLL や OPNA のリズムは Misato のリズム音源で鳴らします。ADPCM は使いません。
-- `msxaudio`：MSX-AUDIO（Y8950）向けです。OPLL を Y8950 の FM に変換し、OPLL のリズムは Y8950 のリズム音源で、PCM は Delta-T で鳴らします。
-- `opl3`：OPL3（YMF262）向けです。OPLL を OPL3 の FM に変換し、OPLL のリズムは OPL3 のリズム音源で鳴らします。PCM の変換先はありません。
-- `layered`：FM に変換可能な音源について OPM と OPNA 両方の演奏データを格納し、SFG-01 と Makoto が同じパートを重ねて演奏します。デチューンとも違う、MSX ならではのお遊び機能です。
-- `scc_sfg01`：SCC のパートを実 SCC で鳴らしながら、同じパートを OPM の FM でも重ねます。他のパートは `scc` の付かない構成と同じです。
-- `scc_makoto`：SCC のパートを実 SCC で鳴らしながら、同じパートを OPNA の FM でも重ねます。他のパートは `scc` の付かない構成と同じです。
-- `scc_layered`：SCC のパートを実 SCC で鳴らしながら、同じパートを OPM と OPNA の両方の FM でも重ねます。他のパートは `scc` の付かない構成と同じです。
-- `scc_opl3`：SCC のパートを実 SCC で鳴らしながら、同じパートを OPL3 の FM でも重ねます。他のパートは `scc` の付かない構成と同じです。
-- `psg_sfg01`：PSG のパートを実 PSG で鳴らしながら、同じパートを OPM の FM でも重ねます。PSG のみの入力専用です。
-- `psg_makoto`：PSG のパートを実 PSG で鳴らしながら、同じパートを OPNA の FM でも重ねます。PSG のみの入力専用です。
-- `psg_layered`：PSG のパートを実 PSG で鳴らしながら、同じパートを OPM と OPNA の両方の FM でも重ねます。PSG のみの入力専用です。
-- PCM は 256KiB の容量に収まるよう、重複するサンプルの共有や代表への置き換えで自動的に調整されます。
-- 再生は MSX 実機の VGMPlay や、Mami-VSIF Pro 経由の MAmidiMEmo などでどうぞ。実機がなくても、VGM プレーヤーで再生できます。
+### 各プロファイルの説明
+
+各プロファイルでは、入力VGMから抽出した演奏情報を、対応するサウンドカートリッジの音源へ割り当てます。
+複数の音源が混在する場合は、音源ごとの優先順位に従ってチャンネルを割り当てます。音源の仕様やチャンネル数の制約により、一部の演奏情報を再現できない場合があります。
+
+#### 基本構成
+
+- **`sfg01`**：SFG-01（OPM / YM2151）向け。各音源の演奏情報をOPMのFM音源へ変換します。
+- **`makoto`**：Makoto（OPNA / YM2608）向け。各音源をOPNAのFM音源へ変換し、PCMはADPCM-Bへ割り当てます。
+- **`misato`**：Misato（OPN3）向け。`makoto` と同様にFM音源へ変換しますが、ADPCM機能がないためPCMは再生できません。打楽器には搭載されたリズム音源を使用します。
+- **`msxaudio`**：MSX-AUDIO（Y8950）向け。OPLLの演奏情報をY8950のFM音源へ変換します。OPLLのリズムはY8950のリズム音源へ、PCMはDelta-Tへ割り当てます。
+- **`opl3`**：OPL3（YMF262）向け。OPLLの演奏情報をOPL3のFM音源へ変換し、リズムはOPL3のリズム音源へ割り当てます。PCMには対応しません。
+
+#### 組み合わせ例： SFG-01と他の音源を組み合わせる構成
+
+SFG-01によるFM演奏を基本とし、リズム音源やPCM再生に別の音源を併用する構成です。
+
+- **`sfg01_opllrhythm`**：`sfg01` を基本とし、OPLLのリズムパートだけはFMへ変換せず、YM2413のリズム音源でそのまま再生します。
+- **`sfg01_opl3`**：`sfg01` を基本とし、OPLLのリズムパートをOPL3（YMF262）のリズム音源で再生します。
+- **`sfg01_makoto`**：SFG-01にMakotoを組み合わせ、PCM再生にOPNAのADPCM-Bを利用します。
+- **`sfg01_msxaudio`**：SFG-01にMSX-AUDIOを組み合わせ、PCM再生にY8950のDelta-Tを利用します。
+- **`sfg01_misato`**：SFG-01にMisatoを組み合わせ、OPLLやOPNAのリズムパートをMisatoのリズム音源で再生します。ADPCMは使用しません。
+
+#### FM音源を重ねる構成
+
+- **`layered`**：FMへ変換可能な演奏パートを各チップのFMユニットに割り当てます。最大でSFG-01,Makoto(or Misato), OPLL, OPL3, MSX-Audioで同じパートを重ねて演奏します。
+
+単なるデチューンとは異なり、異なるFM音源チップの音色を重ね合わせる、MSXならではのお遊び機能です。
+
+#### SCCを重ねる構成
+
+SCCの演奏パートを元のSCCで再生しながら、同じパートを別のFM音源にも割り当てる構成です。
+
+- **`scc_sfg01`**：SCC ＋ SFG-01（OPM）の2重奏
+- **`scc_makoto`**：SCC ＋ Makoto（OPNA）の2重奏
+- **`scc_misato`**：SCC ＋ Misato（OPN3-L）の2重奏
+- **`scc_msxaudio`**：SCC ＋ MSX-Audio（Y8950）の2重奏
+- **`scc_opl3`**：SCC ＋ OPL3（YMF262）の2重奏
+- **`scc_layered`**：SCC ＋ SFG-01（OPM）＋ Makoto（OPNA）の3重奏
+
+SCC以外のパートは、対応する基本構成またはレイヤー構成と同じ方法で変換します。
+
+#### PSGを重ねる構成
+
+PSGの演奏パートを元のPSGで再生しながら、同じパートをFM音源にも割り当てる構成です。
+
+- **`psg_sfg01`**：PSG ＋ SFG-01（OPM）の2重奏
+- **`psg_makoto`**：PSG ＋ Makoto（OPNA）の2重奏
+- **`psg_misato`**：PSG ＋ Misato（OPN3-L）の2重奏
+- **`psg_msxaudio`**：PSG ＋ MSX-Audio（Y8950）の2重奏
+- **`psg_opl3`**：PSG ＋ OPL3（YMF262）の2重奏
+- **`psg_layered`**：PSG ＋ SFG-01（OPM）＋ Makoto（OPNA）の3重奏
+
+これらはPSGのみを使用する入力VGMを対象とします。
+
+なお、SCC・PSGのレイヤー構成ではOPLLへの変換は行いません。OPLLはユーザー定義音色を同時に1種類しか使用できないため、複数パートの独立した音色を再現する用途には適していません。
+
+#### PCMの取り扱い
+
+PCMデータは256KiBの容量制限に収まるよう、重複サンプルの共有や代表サンプルへの置き換えによって自動調整します。
+
+PCMの再生可否や割り当て先は、プロファイルと搭載音源の構成によって異なります。
+
+#### 再生方法
+
+生成したVGMは、MSX実機のVGMPlayや、Mami-VSIF Pro経由のMAmidiMEmoなどで再生できます。
+
+実機をお持ちでない場合も、対応するVGMプレーヤーで演奏を楽しめます。
 
 ## 構成
 
@@ -355,38 +414,96 @@ Profiles generated for each source type.
 | sfg01_opl3 | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Approximate | Approximate |
 | makoto | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Yes | Yes |
 | misato | Yes | Yes | Yes | Yes | Yes | Approximate | Approximate | Approximate | Approximate | Yes | Approximate | Approximate |
+| misato_msxaudio | No | No | Yes | No | No | No | No | No | No | No | Yes | Yes |
 | sfg01_makoto | No | No | Yes | No | No | No | No | No | Yes | No | Yes | Yes |
 | sfg01_msxaudio | No | No | Yes | No | No | No | No | No | No | No | Yes | Yes |
 | sfg01_misato | No | No | Yes | No | No | No | No | No | Yes | No | No | No |
+| sfg01_opl3 | No | No | Yes | No | No | No | No | No | Yes | No | No | No |
 | msxaudio | Yes | No | Yes | Yes | Yes | No | No | No | No | No | No | No |
 | opl3 | Yes | No | Yes | Yes | Yes | No | No | No | No | No | No | No |
+| opl3_makoto | No | No | Yes | No | No | No | No | No | Yes | No | Yes | Yes |
+| opl3_msxaudio | No | No | Yes | No | No | No | No | No | No | No | Yes | Yes |
 | layered | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Yes | Yes |
 | scc_sfg01 | No | Yes | No | No | No | No | No | No | No | No | No | No |
 | scc_makoto | No | Yes | No | No | No | No | No | No | No | No | No | No |
-| scc_layered | No | Yes | No | No | No | No | No | No | No | No | No | No |
+| scc_misato | No | Yes | No | No | No | No | No | No | No | No | No | No |
+| scc_msxaudio | No | Yes | No | No | No | No | No | No | No | No | No | No |
 | scc_opl3 | No | Yes | No | No | No | No | No | No | No | No | No | No |
+| scc_layered | No | Yes | No | No | No | No | No | No | No | No | No | No |
 | psg_sfg01 | Yes | No | No | No | No | No | No | No | No | No | No | No |
 | psg_makoto | Yes | No | No | No | No | No | No | No | No | No | No | No |
+| psg_misato | No | Yes | No | No | No | No | No | No | No | No | No | No |
+| psg_msxaudio | No | Yes | No | No | No | No | No | No | No | No | No | No |
+| psg_opl3 | No | Yes | No | No | No | No | No | No | No | No | No | No |
 | psg_layered | Yes | No | No | No | No | No | No | No | No | No | No | No |
 
-- `makoto`: Converts each source for OPNA FM. When several sources are mixed, priorities apply. PCM is converted to OPNA ADPCM-B.
-- `sfg01`: Converts each source for OPM FM. Priorities apply here as well. For PCM playback, Makoto or MSX-AUDIO can be combined (`sfg01_makoto` / `sfg01_msxaudio`).
-- `sfg01_opllrhythm`: The same conversion as `sfg01`, except that OPLL rhythm is not converted to FM; the YM2413 rhythm unit plays it as-is.
-- `sfg01_opl3`: The same conversion as `sfg01`, except that OPLL rhythm plays on the OPL3 (YMF262) rhythm unit.
-- `misato`: The same conversion as `makoto`, for the Misato (OPN3) cartridge. The cartridge has no ADPCM unit, so PCM has no destination, and percussion plays on the OPNA rhythm unit.
-- `sfg01_misato`: Combines the OPM conversion with Misato. OPLL and OPNA rhythm plays on Misato's rhythm unit. ADPCM is not used.
-- `msxaudio`: For MSX-AUDIO (Y8950). Converts OPLL to Y8950 FM, plays OPLL rhythm on the Y8950 rhythm unit, and PCM on Delta-T.
-- `opl3`: For OPL3 (YMF262). Converts OPLL to OPL3 FM and plays OPLL rhythm on the OPL3 rhythm unit. There is no PCM destination.
-- `layered`: For sources that can be converted to FM, performance data for both OPM and OPNA is stored, and SFG-01 and Makoto play the same part layered together. Unlike detune, this is a playful feature only possible on MSX.
-- `scc_sfg01`: Plays the SCC part on real SCC while layering the same part on OPM FM. The other parts are the same as the configuration without `scc`.
-- `scc_makoto`: Plays the SCC part on real SCC while layering the same part on OPNA FM. The other parts are the same as the configuration without `scc`.
-- `scc_layered`: Plays the SCC part on real SCC while layering the same part on both OPM and OPNA FM. The other parts are the same as the configuration without `scc`.
-- `scc_opl3`: Plays the SCC part on real SCC while layering the same part on OPL3 FM. The other parts are the same as the configuration without `scc`.
-- `psg_sfg01`: Plays the PSG parts on real PSG while layering the same parts on OPM FM. For PSG-only sources.
-- `psg_makoto`: Plays the PSG parts on real PSG while layering the same parts on OPNA FM. For PSG-only sources.
-- `psg_layered`: Plays the PSG parts on real PSG while layering the same parts on both OPM and OPNA FM. For PSG-only sources.
-- PCM is automatically adjusted to fit within the 256 KiB capacity, by sharing duplicated samples and substituting representatives.
-- For playback, use VGMPlay on real MSX hardware, or MAmidiMEmo via Mami-VSIF Pro. Even without real hardware, you can play them in a VGM player.
+### Profile Descriptions
+
+Each profile maps the musical information extracted from the input VGM to the sound chips available in the corresponding MSX sound cartridge configuration.
+
+When multiple sound sources are present, channels are allocated according to source priorities. Some performance details may not be reproduced due to hardware limitations or the number of available channels.
+
+#### Basic Configurations
+
+- **`sfg01`**: For SFG-01 (OPM / YM2151). Converts performance data from various sound sources to the OPM FM sound generator.
+- **`makoto`**: For Makoto (OPNA / YM2608). Converts performance data to the OPNA FM sound generator and maps PCM samples to ADPCM-B.
+- **`misato`**: For Misato (OPN3). Performs FM conversion similarly to `makoto`, but PCM playback is unavailable because the cartridge has no ADPCM functionality. Percussion is played using its built-in rhythm sound generator.
+- **`msxaudio`**: For MSX-AUDIO (Y8950). Converts OPLL performance data to Y8950 FM, maps OPLL rhythm parts to the Y8950 rhythm sound generator, and plays PCM through Delta-T.
+- **`opl3`**: For OPL3 (YMF262). Converts OPLL performance data to OPL3 FM and maps OPLL rhythm parts to the OPL3 rhythm sound generator. PCM playback is not supported.
+
+#### Combination Examples: SFG-01 with Additional Sound Chips
+
+These configurations use SFG-01 for FM playback while combining it with other sound chips for rhythm or PCM playback.
+
+- **`sfg01_opllrhythm`**: Based on `sfg01`, but preserves the original OPLL rhythm parts and plays them directly through the YM2413 rhythm sound generator instead of converting them to FM.
+- **`sfg01_opl3`**: Based on `sfg01`, but plays OPLL rhythm parts through the OPL3 (YMF262) rhythm sound generator.
+- **`sfg01_makoto`**: Combines SFG-01 with Makoto, using OPNA ADPCM-B for PCM playback.
+- **`sfg01_msxaudio`**: Combines SFG-01 with MSX-AUDIO, using Y8950 Delta-T for PCM playback.
+- **`sfg01_misato`**: Combines SFG-01 with Misato, playing OPLL and OPNA rhythm parts through Misato's rhythm sound generator. ADPCM is not used.
+
+#### Layered FM Configurations
+
+- **`layered`**: Assigns FM-convertible performance parts to the FM units of multiple sound chips. The same parts can be played simultaneously on up to five sound sources: SFG-01, Makoto (or Misato), OPLL, OPL3, and MSX-AUDIO.
+
+Unlike simple detuning, this feature layers the distinct timbres of different FM sound chips, offering a unique kind of musical experimentation made possible by the MSX platform.
+
+#### Layered SCC Configurations
+
+These configurations preserve the original SCC performance while simultaneously playing the same parts through additional FM sound chips.
+
+- **`scc_sfg01`**: SCC + SFG-01 (OPM), two-layer playback
+- **`scc_makoto`**: SCC + Makoto (OPNA), two-layer playback
+- **`scc_misato`**: SCC + Misato (OPN3-L), two-layer playback
+- **`scc_msxaudio`**: SCC + MSX-AUDIO (Y8950), two-layer playback
+- **`scc_opl3`**: SCC + OPL3 (YMF262), two-layer playback
+- **`scc_layered`**: SCC + SFG-01 (OPM) + Makoto (OPNA), three-layer playback
+
+Parts other than SCC are converted using the same methods as their corresponding basic or layered configurations.
+
+#### Layered PSG Configurations
+
+These configurations preserve the original PSG performance while simultaneously playing the same parts through additional FM sound chips.
+
+- **`psg_sfg01`**: PSG + SFG-01 (OPM), two-layer playback
+- **`psg_makoto`**: PSG + Makoto (OPNA), two-layer playback
+- **`psg_misato`**: PSG + Misato (OPN3-L), two-layer playback
+- **`psg_msxaudio`**: PSG + MSX-AUDIO (Y8950), two-layer playback
+- **`psg_opl3`**: PSG + OPL3 (YMF262), two-layer playback
+- **`psg_layered`**: PSG + SFG-01 (OPM) + Makoto (OPNA), three-layer playback
+
+These profiles are intended for input VGM files containing only PSG sound data.
+
+Note that OPLL is not used as a conversion target in the layered SCC and PSG configurations. Since OPLL supports only one user-defined instrument at a time, it is not well suited to reproducing multiple independent parts with different custom timbres.
+
+#### PCM Handling
+
+PCM data is automatically optimized to fit within the 256 KiB capacity limit by sharing duplicate samples and substituting representative samples where necessary.
+
+PCM playback availability and destination depend on the selected profile and the sound chips included in the configuration.
+
+#### Playback
+
+The generated VGM files can be played using
 
 ## Project Structure
 
