@@ -149,7 +149,7 @@ msxaudio / opl3 の apu_fds・huc6280 の △ は、波形音源の声数が上�
 
 組み合わせは原則として1本目の行を引き継ぎますが、PCM を持つ入力では行き先を足す組み合わせの方が1本目より広く対応します（例: opm_msm6258 では sfg01 は △、sfg01/makoto は ○）。
 
-組み合わせと重ね系のプロファイルが生成される入力音源の種類は次の通りです（scc は SCC が鳴っている入力）。SCC・PSG を実チップのまま残す構成は layered の形（`psg_layered` / `scc_layered`）だけです。OPLL も実チップのまま残り、`layered` ではネイティブのレーンとして重なり、`sfg01_opllrhythm` ではリズムがネイティブのまま残ります。
+組み合わせと重ね系のプロファイルが生成される入力音源の種類は次の通りです（scc は SCC が鳴っている入力）。SCC・PSG を実チップのまま残す構成は layered の形（`layered/psg` / `layered/scc`）だけです。OPLL も実チップのまま残り、`layered` ではネイティブのレーンとして重なり、`sfg01/opllrhythm` ではリズムがネイティブのまま残ります。
 
 | プロファイル | psg | scc | opna | opm | opn2 |
 |---|---|---|---|---|---|
@@ -159,8 +159,8 @@ msxaudio / opl3 の apu_fds・huc6280 の △ は、波形音源の声数が上�
 | msxaudio | — | — | — | — | — |
 | opl3 | — | — | — | — | — |
 | layered | — | — | ○ | ○ | ○ |
-| psg_layered | ○ | — | — | — | — |
-| scc_layered | — | ○ | — | — | — |
+| layered/psg | ○ | — | — | — | — |
+| layered/scc | — | ○ | — | — | — |
 
 opna / opm / opn2 列は、2本目以降のカートリッジ（makoto / msxaudio / opl3 / misato）やリズム源（opllrhythm）を足す組み合わせの生成で、1本目のカートリッジ自体が受け付けない入力では生成されません。
 
@@ -181,20 +181,20 @@ opna / opm / opn2 列は、2本目以降のカートリッジ（makoto / msxaudi
 
 1本目のカートリッジだけではPCMを再生できない構成に、2本目以降のカートリッジのPCM再生機能を組み合わせます。
 
-- **`sfg01_makoto`**：SFG-01にMakotoを組み合わせ、PCM再生にOPNAのADPCM-Bを利用します。
-- **`sfg01_msxaudio`**：SFG-01にMSX-AUDIOを組み合わせ、PCM再生にY8950のDelta-Tを利用します。
-- **`misato_msxaudio`**：MisatoにMSX-AUDIOを組み合わせ、PCM再生にY8950のDelta-Tを利用します。リズムはMisatoのリズム音源で再生します。
-- **`opl3_makoto`**：OPL3にMakotoを組み合わせ、PCM再生にOPNAのADPCM-Bを利用します。
-- **`opl3_msxaudio`**：OPL3にMSX-AUDIOを組み合わせ、PCM再生にY8950のDelta-Tを利用します。
+- **`sfg01/makoto/`**：SFG-01にMakotoを組み合わせ、PCM再生にOPNAのADPCM-Bを利用します。
+- **`sfg01/msxaudio/`**：SFG-01にMSX-AUDIOを組み合わせ、PCM再生にY8950のDelta-Tを利用します。
+- **`misato/msxaudio/`**：MisatoにMSX-AUDIOを組み合わせ、PCM再生にY8950のDelta-Tを利用します。リズムはMisatoのリズム音源で再生します。
+- **`opl3/makoto/`**：OPL3にMakotoを組み合わせ、PCM再生にOPNAのADPCM-Bを利用します。
+- **`opl3/msxaudio/`**：OPL3にMSX-AUDIOを組み合わせ、PCM再生にY8950のDelta-Tを利用します。
 
 #### 2本目以降のカートリッジでリズム音源を補完する構成
 
-- **`sfg01_misato`**：SFG-01にMisatoを組み合わせ、OPLLやOPNAのリズムパートをMisatoのリズム音源で再生します。ADPCMは使用しません。
-- **`sfg01_opl3`**：`sfg01` を基本とし、OPLLのリズムパートをOPL3（YMF262）のリズム音源で再生します。
+- **`sfg01/misato/`**：SFG-01にMisatoを組み合わせ、OPLLやOPNAのリズムパートをMisatoのリズム音源で再生します。ADPCMは使用しません。
+- **`sfg01/opl3/`**：`sfg01` を基本とし、OPLLのリズムパートをOPL3（YMF262）のリズム音源で再生します。
 
 #### 実チップのリズムを残す構成
 
-- **`sfg01_opllrhythm`**：`sfg01` を基本とし、OPLLのリズムパートだけはFMへ変換せず、YM2413のリズム音源でそのまま再生します。
+- **`sfg01/opllrhythm/`**：`sfg01` を基本とし、OPLLのリズムパートだけはFMへ変換せず、YM2413のリズム音源でそのまま再生します。
 
 #### FM音源を重ねる構成
 
@@ -206,7 +206,7 @@ opna / opm / opn2 列は、2本目以降のカートリッジ（makoto / msxaudi
 
 SCCの演奏パートを元のSCCで再生しながら、同じパートを別のFM音源にも割り当てる構成です。
 
-- **`scc_layered`**：SCC ＋ SFG-01（OPM）＋ Makoto（OPNA）の3重奏
+- **`layered/scc/`**：SCC ＋ SFG-01（OPM）＋ Makoto（OPNA）の3重奏
 
 SCC以外のパートは、対応する基本構成またはレイヤー構成と同じ方法で変換します。
 
@@ -214,7 +214,7 @@ SCC以外のパートは、対応する基本構成またはレイヤー構成�
 
 PSGの演奏パートを元のPSGで再生しながら、同じパートをFM音源にも割り当てる構成です。
 
-- **`psg_layered`**：PSG ＋ SFG-01（OPM）＋ Makoto（OPNA）の3重奏
+- **`layered/psg/`**：PSG ＋ SFG-01（OPM）＋ Makoto（OPNA）の3重奏
 
 これらはPSGのみを使用する入力VGMを対象とします。
 
@@ -415,7 +415,7 @@ The Approximate cells for apu_fds / huc6280 on msxaudio and opl3 are due to wave
 
 Compositions generally inherit the first cartridge's row, but for sources with PCM, a composition that adds a PCM destination covers more than the first cartridge alone (e.g. for opm_msm6258, sfg01 is Approximate but sfg01/makoto is Yes).
 
-The source types for which the composition and layered profiles are generated are (scc: sources where SCC sounds). The only compositions that keep a real SCC or PSG are the layered forms, `psg_layered` / `scc_layered`. OPLL also stays on the real chip: it joins `layered` as a native lane, and `sfg01_opllrhythm` keeps its rhythm native.
+The source types for which the composition and layered profiles are generated are (scc: sources where SCC sounds). The only compositions that keep a real SCC or PSG are the layered forms, `layered/psg` / `layered/scc`. OPLL also stays on the real chip: it joins `layered` as a native lane, and `sfg01/opllrhythm` keeps its rhythm native.
 
 | Profile | psg | scc | opna | opm | opn2 |
 |---|---|---|---|---|---|
@@ -425,8 +425,8 @@ The source types for which the composition and layered profiles are generated ar
 | msxaudio | No | No | No | No | No |
 | opl3 | No | No | No | No | No |
 | layered | No | No | Yes | Yes | Yes |
-| psg_layered | Yes | No | No | No | No |
-| scc_layered | No | Yes | No | No | No |
+| layered/psg | Yes | No | No | No | No |
+| layered/scc | No | Yes | No | No | No |
 
 The opna / opm / opn2 columns are compositions that add a second or later cartridge (makoto / msxaudio / opl3 / misato) or a rhythm source (opllrhythm); they are not generated for sources the first cartridge itself does not accept.
 
@@ -448,20 +448,20 @@ When multiple sound sources are present, channels are allocated according to sou
 
 These pair a first cartridge that cannot play PCM on its own with the PCM playback of a second or later cartridge.
 
-- **`sfg01_makoto`**: Combines SFG-01 with Makoto, using OPNA ADPCM-B for PCM playback.
-- **`sfg01_msxaudio`**: Combines SFG-01 with MSX-AUDIO, using Y8950 Delta-T for PCM playback.
-- **`misato_msxaudio`**: Combines Misato with MSX-AUDIO, using Y8950 Delta-T for PCM playback. Rhythm plays on Misato's rhythm sound generator.
-- **`opl3_makoto`**: Combines OPL3 with Makoto, using OPNA ADPCM-B for PCM playback.
-- **`opl3_msxaudio`**: Combines OPL3 with MSX-AUDIO, using Y8950 Delta-T for PCM playback.
+- **`sfg01/makoto/`**: Combines SFG-01 with Makoto, using OPNA ADPCM-B for PCM playback.
+- **`sfg01/msxaudio/`**: Combines SFG-01 with MSX-AUDIO, using Y8950 Delta-T for PCM playback.
+- **`misato/msxaudio/`**: Combines Misato with MSX-AUDIO, using Y8950 Delta-T for PCM playback. Rhythm plays on Misato's rhythm sound generator.
+- **`opl3/makoto/`**: Combines OPL3 with Makoto, using OPNA ADPCM-B for PCM playback.
+- **`opl3/msxaudio/`**: Combines OPL3 with MSX-AUDIO, using Y8950 Delta-T for PCM playback.
 
 #### Compositions That Add a Rhythm Sound Generator via a Second or Later Cartridge
 
-- **`sfg01_misato`**: Combines SFG-01 with Misato, playing OPLL and OPNA rhythm parts through Misato's rhythm sound generator. ADPCM is not used.
-- **`sfg01_opl3`**: Based on `sfg01`, but plays OPLL rhythm parts through the OPL3 (YMF262) rhythm sound generator.
+- **`sfg01/misato/`**: Combines SFG-01 with Misato, playing OPLL and OPNA rhythm parts through Misato's rhythm sound generator. ADPCM is not used.
+- **`sfg01/opl3/`**: Based on `sfg01`, but plays OPLL rhythm parts through the OPL3 (YMF262) rhythm sound generator.
 
 #### Compositions That Keep the Rhythm on the Real Chip
 
-- **`sfg01_opllrhythm`**: Based on `sfg01`, but preserves the original OPLL rhythm parts and plays them directly through the YM2413 rhythm sound generator instead of converting them to FM.
+- **`sfg01/opllrhythm/`**: Based on `sfg01`, but preserves the original OPLL rhythm parts and plays them directly through the YM2413 rhythm sound generator instead of converting them to FM.
 
 #### Layered FM Configurations
 
@@ -473,7 +473,7 @@ Unlike simple detuning, this feature layers the distinct timbres of different FM
 
 These configurations preserve the original SCC performance while simultaneously playing the same parts through additional FM sound chips.
 
-- **`scc_layered`**: SCC + SFG-01 (OPM) + Makoto (OPNA), three-layer playback
+- **`layered/scc/`**: SCC + SFG-01 (OPM) + Makoto (OPNA), three-layer playback
 
 Parts other than SCC are converted using the same methods as their corresponding basic or layered configurations.
 
@@ -481,7 +481,7 @@ Parts other than SCC are converted using the same methods as their corresponding
 
 These configurations preserve the original PSG performance while simultaneously playing the same parts through additional FM sound chips.
 
-- **`psg_layered`**: PSG + SFG-01 (OPM) + Makoto (OPNA), three-layer playback
+- **`layered/psg/`**: PSG + SFG-01 (OPM) + Makoto (OPNA), three-layer playback
 
 These profiles are intended for input VGM files containing only PSG sound data.
 
