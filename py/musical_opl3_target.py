@@ -398,6 +398,32 @@ def project_opl3_fm(performance, *, force=False):
     return rows, losses, allocation
 
 
+def project_opl3_rhythm(performance):
+    """Project OPLL percussion to the YMF262 rhythm unit only.
+
+    Returns (rows, losses).  The sfg01_opl3 variant pairs this lane
+    with the OPM melody projection: the OPL3 cartridge is present
+    for its rhythm unit, so no OPL3 melody voices are emitted here.
+    """
+    rows, losses = [], Counter()
+
+    def emit(unit, sample, order, ch, register, value, reason, device_id=None):
+        rows.append(dict(sample=sample, order=order,
+                         command=_command(ch, register, value),
+                         unit_id=unit.unit_id if unit else '',
+                         device_id=device_id or (unit.device_id if unit else ''),
+                         source_indices=unit.source_indices if unit else (),
+                         reason=reason))
+
+    rows.append(dict(sample=0, order=-2, command=bytes((0x5f, 0x05, 1)),
+                     unit_id='', device_id='', source_indices=(),
+                     reason='OPL3 mode enable'))
+    for device in performance.devices:
+        if device.chip == 'opll':
+            _project_opll_rhythm(performance, device, emit, losses)
+    return rows, losses
+
+
 def _kit_quad(fields):
     return ((fields['am'] << 7) | (fields['vib'] << 6)
             | (fields['egt'] << 5) | (fields['ksr'] << 4) | fields['mul'],

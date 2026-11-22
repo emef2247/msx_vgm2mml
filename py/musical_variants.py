@@ -13,7 +13,7 @@ from musical_wave_target import project_waves, project_psg_opll
 
 SCC_PROFILES = {'scc_sfg01':'sfg01', 'scc_makoto':'makoto', 'scc_layered':'layered', 'scc_opl3':'opl3'}
 PSG_PROFILES = {'psg_sfg01':'sfg01', 'psg_makoto':'makoto', 'psg_layered':'layered', 'psg_opl3':'opl3'}
-PROFILES = ('sfg01','sfg01_rx21','sfg01_opllrhythm','makoto','makoto_rx21','misato','sfg01_makoto','sfg01_msxaudio','sfg01_misato','msxaudio','opl3','layered', *SCC_PROFILES, *PSG_PROFILES)
+PROFILES = ('sfg01','sfg01_rx21','sfg01_opllrhythm','sfg01_opl3','makoto','makoto_rx21','misato','sfg01_makoto','sfg01_msxaudio','sfg01_misato','msxaudio','opl3','layered', *SCC_PROFILES, *PSG_PROFILES)
 CLOCKS = {0x54:(0x30,3579545),0x56:(0x48,8000000),0x57:(0x48,8000000),
           0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545),
           0x5e:(0x5c,14318180),0x5f:(0x5c,14318180)}
@@ -203,6 +203,10 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     # rhythm table is selected for it below, so project_rhythm emits
     # the percussion natively instead of skipping it.
     native_opll_rhythm=profile=='sfg01_opllrhythm'
+    # sfg01_opl3 keeps the sfg01 OPM melody projection and plays
+    # OPLL percussion on the OPL3 cartridge's rhythm unit instead
+    # of the FM one-shot table (owner, 2026-11-22).
+    opl3_rhythm_unit=profile=='sfg01_opl3'
     if not 0<dcsg_gain<=1:raise ValueError('DCSG gain must be >0 and <=1')
     if profile=='msxaudio':
         return _project_msxaudio(performance,force=force,dcsg_gain=dcsg_gain)
@@ -340,10 +344,14 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
             soundcore_levels=soundcore_levels,
             tl_offset=offsets['opm_rhythm'])
         rows.extend(fm_rhythm);losses.update(fm_rhythm_losses)
+    if opl3_rhythm_unit:
+        from musical_opl3_target import project_opl3_rhythm
+        opl3_rows,opl3_losses=project_opl3_rhythm(performance)
+        rows.extend(opl3_rows);losses.update(opl3_losses)
     from musical_rhythm_target import project_rhythm
     rhythm,rhythm_losses=project_rhythm(performance,makoto=auxiliary in ('opna','misato'),
         opll_pcm=rhythm_pcm,opll_fm=bool(fm_rhythm_table),
-        opna_rhythm=auxiliary=='misato',
+        opna_rhythm=auxiliary=='misato',opl3_rhythm=opl3_rhythm_unit,
         soundcore_levels=soundcore_levels,
         opna_rhythm_tl_offset=offsets['opna_rhythm'])
     rows.extend(rhythm);losses.update(rhythm_losses)
@@ -372,6 +380,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     if rhythm_pcm:plan['opll_rhythm_pcm']=pcm_library
     if layered_opll:plan['native_opll_layer']=True
     if native_opll_rhythm:plan['native_opll_rhythm']=True
+    if opl3_rhythm_unit:plan['opl3_rhythm_unit']=True
     if auxiliary=='misato':plan['misato_no_adpcm']=True
     if profile=='layered':plan['fm_layers']=fm_layers
     if real_scc:plan['real_scc']=scc_plan

@@ -10,7 +10,7 @@ OPLL_LEVEL={'BD':(0x36,0),'SD':(0x37,0),'HH':(0x37,4),'TOM':(0x38,4),'CYM':(0x38
 
 
 def project_rhythm(performance, *, makoto=False, opll_pcm=False,
-                   opll_fm=False, opna_rhythm=False,
+                   opll_fm=False, opna_rhythm=False, opl3_rhythm=False,
                    soundcore_levels=False, opna_rhythm_tl_offset=30):
     devices={d.device_id:d for d in performance.devices}
     controls={c.control_id:c for c in performance.controls}
@@ -41,7 +41,7 @@ def project_rhythm(performance, *, makoto=False, opll_pcm=False,
             actions.extend((at,order(event,at)-.25,'level',event) for at,_ in event.volume_curve)
         # Shared total level, rhythm pitch and pan belong to musical effects;
         # original key masks/levels never override editable percussion events.
-        if device.chip=='opll' and (opll_pcm or opll_fm):
+        if device.chip=='opll' and (opll_pcm or opll_fm or opl3_rhythm):
             continue
         # Misato targets: OPLL percussion plays on the YM2608 rhythm
         # unit (no ADPCM unit on that cartridge).

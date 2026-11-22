@@ -43,12 +43,16 @@ instead of the IKAOPLL-fitted voices of plain `sfg01`, and
 instead of the IKAOPLL library. A third variant, `sfg01_opllrhythm`,
 keeps the plain `sfg01` melody projection but does not project the
 OPLL rhythm at all: the percussion stays on the native YM2413 lane.
+A fourth variant, `sfg01_opl3`, keeps the plain `sfg01` melody
+projection and plays the OPLL rhythm on the OPL3 (YMF262) rhythm
+unit instead of the FM one-shot table.
 
 | Profile | FM / auxiliary sound hardware |
 | --- | --- |
 | sfg01 | YM2151 at 3,579,545 Hz, plus native YM2413 and AY PSG |
 | sfg01_rx21 | sfg01 with RX21-fitted FM rhythm voices |
 | sfg01_opllrhythm | sfg01 with the OPLL rhythm left native on the YM2413 |
+| sfg01_opl3 | sfg01 with the OPLL rhythm on the YMF262 rhythm unit |
 | makoto | YM2608 at 8 MHz, plus native YM2413 and AY PSG |
 | makoto_rx21 | makoto with the RX21 hit library on ADPCM-B |
 | misato | The makoto composition on the Misato (OPN3) cartridge: YM2608 at 8 MHz with no ADPCM unit, so PCM content has no destination and percussion plays on the native rhythm unit, plus native YM2413 and AY PSG |

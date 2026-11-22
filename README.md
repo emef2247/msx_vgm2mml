@@ -141,6 +141,7 @@ MML 生成用に構築した音楽情報を、MSX のサウンドカートリッ
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | sfg01 | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ | △ |
 | sfg01_opllrhythm | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ | △ |
+| sfg01_opl3 | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ | △ |
 | makoto | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
 | misato | ○ | ○ | ○ | ○ | ○ | △ | △ | △ | △ | ○ | △ | △ |
 | sfg01_makoto | — | — | ○ | — | — | — | — | — | ○ | — | ○ | ○ |
@@ -160,6 +161,7 @@ MML 生成用に構築した音楽情報を、MSX のサウンドカートリッ
 - `makoto`：各音源を OPNA の FM 向けに変換します。複数の音源が混在する場合は優先順位があります。PCM は OPNA の ADPCM-B へ変換します。
 - `sfg01`：各音源を OPM の FM 向けに変換します。こちらも音源の優先順位があります。PCM の再生には Makoto または MSX-AUDIO を併用できます（`sfg01_makoto` / `sfg01_msxaudio`）。
 - `sfg01_opllrhythm`：`sfg01` と同じ変換ですが、OPLL のリズム音だけは FM に変換せず、YM2413 のリズム音源をそのまま鳴らします。
+- `sfg01_opl3`：`sfg01` と同じ変換ですが、OPLL のリズム音は OPL3（YMF262）のリズム音源で鳴らします。
 - `misato`：`makoto` と同じ変換を Misato（OPN3）向けに行います。ADPCM ユニットのないカートリッジなので PCM は変換先がなく、打楽器は OPNA のリズム音源で鳴らします。
 - `sfg01_misato`：OPM への変換に Misato を組み合わせます。OPLL や OPNA のリズムは Misato のリズム音源で鳴らします。ADPCM は使いません。
 - `msxaudio`：MSX-AUDIO（Y8950）向けです。OPLL を Y8950 の FM に変換し、OPLL のリズムは Y8950 のリズム音源で、PCM は Delta-T で鳴らします。
@@ -350,6 +352,7 @@ Profiles generated for each source type.
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | sfg01 | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Approximate | Approximate |
 | sfg01_opllrhythm | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Approximate | Approximate |
+| sfg01_opl3 | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Approximate | Approximate |
 | makoto | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Yes | Yes |
 | misato | Yes | Yes | Yes | Yes | Yes | Approximate | Approximate | Approximate | Approximate | Yes | Approximate | Approximate |
 | sfg01_makoto | No | No | Yes | No | No | No | No | No | Yes | No | Yes | Yes |
@@ -369,6 +372,7 @@ Profiles generated for each source type.
 - `makoto`: Converts each source for OPNA FM. When several sources are mixed, priorities apply. PCM is converted to OPNA ADPCM-B.
 - `sfg01`: Converts each source for OPM FM. Priorities apply here as well. For PCM playback, Makoto or MSX-AUDIO can be combined (`sfg01_makoto` / `sfg01_msxaudio`).
 - `sfg01_opllrhythm`: The same conversion as `sfg01`, except that OPLL rhythm is not converted to FM; the YM2413 rhythm unit plays it as-is.
+- `sfg01_opl3`: The same conversion as `sfg01`, except that OPLL rhythm plays on the OPL3 (YMF262) rhythm unit.
 - `misato`: The same conversion as `makoto`, for the Misato (OPN3) cartridge. The cartridge has no ADPCM unit, so PCM has no destination, and percussion plays on the OPNA rhythm unit.
 - `sfg01_misato`: Combines the OPM conversion with Misato. OPLL and OPNA rhythm plays on Misato's rhythm unit. ADPCM is not used.
 - `msxaudio`: For MSX-AUDIO (Y8950). Converts OPLL to Y8950 FM, plays OPLL rhythm on the Y8950 rhythm unit, and PCM on Delta-T.
