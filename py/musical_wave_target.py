@@ -67,10 +67,12 @@ def _spectrum(device, voice, losses):
     return waveform_voice(bytes(max(-128,min(127,x)) & 255 for x in values).hex())
 
 
-def project_waves(performance, target_chip, clock, reserved=(), *, force=False, include_psg=False):
+def project_waves(performance, target_chip, clock, reserved=(), *, force=False, include_psg=False,
+                  chips=None):
     devices = {d.device_id:d for d in performance.devices}
     voices = {v.voice_id:v for v in performance.voices}
-    chips = ('scc','huc6280','nesapu','psg') if include_psg else ('scc','huc6280','nesapu')
+    if chips is None:
+        chips = ('scc','huc6280','nesapu','psg') if include_psg else ('scc','huc6280','nesapu')
     units = [u for u in performance.units if devices[u.device_id].chip in chips
              and u.section not in ('pcm_dda','dpcm','noise') and u.role!='unpitched']
     lanes = sorted({(u.device_id,u.channel) for u in units})

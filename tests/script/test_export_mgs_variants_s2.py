@@ -121,7 +121,7 @@ class ExportMgsVgmVariantsS2Tests(unittest.TestCase):
         def check(out, report):
             self.assertGreater(report['summaries']['sfg01']['writes'], 0)
             self.assertEqual(_stamp((out / 'vgm-variants/sfg01/song.vgm').read_bytes(), 0x30), 3579545)
-        self.render(_nes_song(), check)
+        self.render(_nes_song(), check, extra=('msxaudio', 'opl3'))
 
     def test_mixed_opna_dcsg_source_uses_one_shared_native_projection(self):
         # Keep both source devices active in the same authored VGM timeline.

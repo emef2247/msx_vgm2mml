@@ -154,8 +154,12 @@ def _project_msxaudio(performance, *, force=False, dcsg_gain=.25, real_scc=False
     OPLL voices project to Y8950 FM through the commercially
     observed conversion table and OPLL percussion to the native
     rhythm unit; Y8950 sources re-emit natively; PCM rides the
-    Y8950 Delta-T unit.  Source families whose Y8950 projection is
-    not established yet (4-op FM, waveform chips) make the profile
+    Y8950 Delta-T unit.  NES APU / FDS and HuC6280 waveform voices
+    project through the established four-harmonic wave projection
+    (the y8950 arm of musical_wave_target), as on the OPM / OPNA
+    bases; lanes beyond the nine-channel budget are an explicit
+    omission under --force only.  Source families whose Y8950
+    projection is not established yet (4-op FM) make the profile
     unavailable.  With real_scc (scc_msxaudio) the SCC lanes stay
     on a real SCC beside the Y8950 projection; with real_psg
     (psg_msxaudio) PSG voices also double onto Y8950 carriers
@@ -163,7 +167,7 @@ def _project_msxaudio(performance, *, force=False, dcsg_gain=.25, real_scc=False
     """
     from musical_opl_target import project_opl_fm
     from musical_pcm_target import project_pcm
-    allowed={'y8950','opll','psg','dcsg','msm6258'}
+    allowed={'y8950','opll','psg','dcsg','msm6258','nesapu','huc6280'}
     if real_scc:allowed.add('scc')
     # The gate counts sounding devices only, as in the opl3 route:
     # a device that never sounds (an msxplay.com export lists every
@@ -186,15 +190,23 @@ def _project_msxaudio(performance, *, force=False, dcsg_gain=.25, real_scc=False
         rows.extend(scc_rows);losses.update(scc_losses);plan_extra['real_scc']=scc_plan
     fm_rows,fm_losses,allocation=project_opl_fm(performance,force=force)
     rows.extend(fm_rows);losses.update(fm_losses)
-    if real_psg:
-        # psg_msxaudio: the PSG voices double onto Y8950 sine
-        # carriers through the waveform projection, beside the
-        # native AY lanes the auxiliary projection below emits.
-        # Nine FM channels take two four-carrier voices; a third
-        # voice's doubling is omitted with the loss recorded.
+    wave_chips={'nesapu','huc6280'}&present
+    if real_psg:wave_chips.add('psg')
+    if wave_chips:
+        # Waveform sources (NES APU / FDS, HuC6280) project through
+        # the four-harmonic wave projection, as on the OPM / OPNA
+        # bases; with real_psg the PSG voices also double onto
+        # Y8950 sine carriers beside their native AY lanes.  Nine
+        # FM channels take two four-carrier voices.  A doubled PSG
+        # voice beyond that keeps its native lane, but a waveform
+        # lane has no native fallback here, so exceeding the budget
+        # is an explicit omission under --force only.
         from musical_wave_target import project_waves
         wave_rows,wave_losses,wave_allocation=project_waves(performance,'y8950',3579545,
-            reserved=set(allocation.values()),force=True,include_psg=True)
+            reserved=set(allocation.values()),force=True,
+            chips=tuple(sorted(wave_chips)))
+        if wave_chips-{'psg'} and wave_losses.get('wave_channel_capacity_units_omitted') and not force:
+            raise ValueError('Waveform voices exceed Y8950 FM capacity (use --force for explicit omission)')
         rows.extend(wave_rows);losses.update(wave_losses)
         plan_extra['waveform_allocation']={str(k):v for k,v in wave_allocation.items()}
     opll_device=next((d.device_id for d in performance.devices if d.chip=='opll'),None)
@@ -222,12 +234,17 @@ def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, re
     banks and YMF262 sources re-emit natively (4-op pairs
     included).  The chip has no PCM unit, and the 4-op FM
     projection is not established yet; sources needing it make
-    the profile unavailable.  With real_psg (psg_opl3), PSG voices
+    the profile unavailable.  NES APU / FDS and HuC6280 waveform
+    voices project through the established four-harmonic wave
+    projection (the opl3 arm of musical_wave_target), as on the
+    OPM / OPNA bases; lanes beyond the channel budget are an
+    explicit omission under --force only.  With real_psg
+    (psg_opl3), PSG voices
     also double onto YMF262 carriers through the waveform
     projection, beside their native AY lanes.
     """
     from musical_opl3_target import project_opl3_fm
-    allowed={'opll','y8950','ymf262','psg','dcsg'}
+    allowed={'opll','y8950','ymf262','psg','dcsg','nesapu','huc6280'}
     if real_scc:allowed.add('scc')
     # The gate counts sounding devices only: a device that never
     # sounds (an msxplay.com export lists every device) must not
@@ -245,13 +262,23 @@ def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, re
         rows.extend(scc_rows);losses.update(scc_losses);plan['real_scc']=scc_plan
     fm_rows,fm_losses,allocation=project_opl3_fm(performance,force=force)
     rows.extend(fm_rows);losses.update(fm_losses)
-    if real_psg:
-        # psg_opl3: the PSG voices double onto YMF262 sine carriers
-        # through the waveform projection, beside the native AY
-        # lanes the auxiliary projection below emits.
+    wave_chips={'nesapu','huc6280'}&present
+    if real_psg:wave_chips.add('psg')
+    if wave_chips:
+        # Waveform sources (NES APU / FDS, HuC6280) project through
+        # the four-harmonic wave projection, as on the OPM / OPNA
+        # bases; with real_psg the PSG voices also double onto
+        # YMF262 sine carriers beside their native AY lanes.  A
+        # doubled PSG voice beyond the channel budget keeps its
+        # native lane, but a waveform lane has no native fallback
+        # here, so exceeding the budget is an explicit omission
+        # under --force only.
         from musical_wave_target import project_waves
         wave_rows,wave_losses,wave_allocation=project_waves(performance,'opl3',14318180,
-            reserved=set(allocation.values()),force=True,include_psg=True)
+            reserved=set(allocation.values()),force=True,
+            chips=tuple(sorted(wave_chips)))
+        if wave_chips-{'psg'} and wave_losses.get('wave_channel_capacity_units_omitted') and not force:
+            raise ValueError('Waveform voices exceed OPL3 FM capacity (use --force for explicit omission)')
         rows.extend(wave_rows);losses.update(wave_losses)
         plan['waveform_allocation']={str(k):v for k,v in wave_allocation.items()}
     opll_device=next((d.device_id for d in performance.devices if d.chip=='opll'),None)

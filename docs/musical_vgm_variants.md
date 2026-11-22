@@ -64,8 +64,8 @@ unit instead of the FM one-shot table.
 | sfg01_makoto | YM2151 FM, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
 | sfg01_msxaudio | YM2151 FM, Y8950 Delta-T, YM2413 and PSG |
 | sfg01_misato | YM2151 FM, YM2608 native rhythm and SSG on Misato (no ADPCM-B), YM2413 and PSG |
-| msxaudio | Y8950 FM as the main target: YM2413 projected to Y8950 FM (the commercially observed conversion table) and its native rhythm unit, native Y8950 retained, Y8950 Delta-T for PCM, plus PSG |
-| opl3 | YMF262 FM as the main target: YM2413 projected to OPL3 FM (the commercially observed conversion table) and its rhythm unit, native Y8950 and YMF262 retained (4-op pairs included), plus PSG. No PCM destination; the 4-op FM projection is not established yet, so those sources are unavailable |
+| msxaudio | Y8950 FM as the main target: YM2413 projected to Y8950 FM (the commercially observed conversion table) and its native rhythm unit, native Y8950 retained, Y8950 Delta-T for PCM, plus PSG. NES APU / FDS and HuC6280 waveform voices project through the four-harmonic wave projection; the nine FM channels hold two four-carrier voices, so further waveform lanes are an explicit omission under `--force` only |
+| opl3 | YMF262 FM as the main target: YM2413 projected to OPL3 FM (the commercially observed conversion table) and its rhythm unit, native Y8950 and YMF262 retained (4-op pairs included), plus PSG. NES APU / FDS and HuC6280 waveform voices project through the four-harmonic wave projection; waveform lanes beyond the four four-carrier voice groups are an explicit omission under `--force` only. No PCM destination; the 4-op FM projection is not established yet, so those sources are unavailable |
 | opl3_makoto | The opl3 composition plus YM2608 ADPCM-B for PCM content |
 | opl3_msxaudio | The opl3 composition plus Y8950 Delta-T for PCM content |
 | layered | YM2151 and YM2608 FM in parallel, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
