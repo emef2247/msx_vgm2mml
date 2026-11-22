@@ -31,7 +31,7 @@ Only applicable, successful profiles are published. Composition profiles
 live under their base profile's folder, in a subfolder named by the added
 element alone: the second cartridge (`makoto`, `msxaudio`, `opl3`,
 `misato`), the kept native chip (`scc`, `psg`) or the rhythm source
-(`rx21`, `opllrhythm`). A composition whose output is byte-identical to
+(`opllrhythm`). A composition whose output is byte-identical to
 its base profile's output is not published; the diagnostics record it as
 `identical_to_parent`. The two auxiliary SFG01 compositions are OPM, or
 OPM + PCM when the source carries PCM.
@@ -40,35 +40,33 @@ compositions; plain sfg01 cannot play their PCM. Native OPNA rhythm can
 also use the Makoto auxiliary composition. Unsupported profiles have explicit
 reasons in `_diagnostics/<stem>/vgm_variants.json`.
 
-Two rhythm-timbre variants subdivide the base compositions: `sfg01_rx21`
-plays OPLL rhythm as FM voices fitted to the owner's RX21 recordings
-instead of the IKAOPLL-fitted voices of plain `sfg01`, and
-`makoto_rx21` plays the RX21 hit library through the Makoto ADPCM-B
-instead of the IKAOPLL library. A third variant, `sfg01_opllrhythm`,
-keeps the plain `sfg01` melody projection but does not project the
-OPLL rhythm at all: the percussion stays on the native YM2413 lane.
-A fourth variant, `sfg01_opl3`, keeps the plain `sfg01` melody
-projection and plays the OPLL rhythm on the OPL3 (YMF262) rhythm
-unit instead of the FM one-shot table.
+Two rhythm-source variants subdivide the base compositions:
+`sfg01_opllrhythm` keeps the plain `sfg01` melody projection but
+does not project the OPLL rhythm at all: the percussion stays on
+the native YM2413 lane.  `sfg01_opl3` keeps the plain `sfg01`
+melody projection and plays the OPLL rhythm on the OPL3 (YMF262)
+rhythm unit instead of the FM one-shot table.
 
 | Profile | FM / auxiliary sound hardware |
 | --- | --- |
+| **Base profiles** | |
 | sfg01 | YM2151 at 3,579,545 Hz, plus native YM2413 and AY PSG |
-| sfg01_rx21 | sfg01 with RX21-fitted FM rhythm voices |
-| sfg01_opllrhythm | sfg01 with the OPLL rhythm left native on the YM2413 |
-| sfg01_opl3 | sfg01 with the OPLL rhythm on the YMF262 rhythm unit |
 | makoto | YM2608 at 8 MHz, plus native YM2413 and AY PSG |
-| makoto_rx21 | makoto with the RX21 hit library on ADPCM-B |
 | misato | The makoto composition on the Misato (OPN3) cartridge: YM2608 at 8 MHz with no ADPCM unit, so PCM content has no destination and percussion plays on the native rhythm unit, plus native YM2413 and AY PSG |
-| misato_msxaudio | The misato composition plus Y8950 Delta-T for PCM content. There is no misato_makoto: Misato and Makoto are both OPNA cartridges and their I/O ports collide |
-| sfg01_makoto | YM2151 FM, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
-| sfg01_msxaudio | YM2151 FM, Y8950 Delta-T, YM2413 and PSG |
-| sfg01_misato | YM2151 FM, YM2608 native rhythm and SSG on Misato (no ADPCM-B), YM2413 and PSG |
 | msxaudio | Y8950 FM as the main target: YM2413 projected to Y8950 FM (the commercially observed conversion table) and its native rhythm unit, native Y8950 retained, Y8950 Delta-T for PCM, plus PSG. NES APU / FDS and HuC6280 waveform voices project through the four-harmonic wave projection; the nine FM channels hold two four-carrier voices, so further waveform lanes are an explicit omission under `--force` only |
 | opl3 | YMF262 FM as the main target: YM2413 projected to OPL3 FM (the commercially observed conversion table) and its rhythm unit, native Y8950 and YMF262 retained (4-op pairs included), plus PSG. NES APU / FDS and HuC6280 waveform voices project through the four-harmonic wave projection; waveform lanes beyond the four four-carrier voice groups are an explicit omission under `--force` only. No PCM destination; the 4-op FM projection is not established yet, so those sources are unavailable |
+| layered | YM2151 and YM2608 FM in parallel, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
+| **PCM complements: a second cartridge adds PCM playback** | |
+| sfg01_makoto | YM2151 FM, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
+| sfg01_msxaudio | YM2151 FM, Y8950 Delta-T, YM2413 and PSG |
+| misato_msxaudio | The misato composition plus Y8950 Delta-T for PCM content. There is no misato_makoto: Misato and Makoto are both OPNA cartridges and their I/O ports collide |
 | opl3_makoto | The opl3 composition plus YM2608 ADPCM-B for PCM content |
 | opl3_msxaudio | The opl3 composition plus Y8950 Delta-T for PCM content |
-| layered | YM2151 and YM2608 FM in parallel, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
+| **Rhythm complements: a second cartridge adds a rhythm unit** | |
+| sfg01_misato | YM2151 FM, YM2608 native rhythm and SSG on Misato (no ADPCM-B), YM2413 and PSG |
+| sfg01_opl3 | sfg01 with the OPLL rhythm on the YMF262 rhythm unit |
+| **Native chip kept** | |
+| sfg01_opllrhythm | sfg01 with the OPLL rhythm left native on the YM2413 |
 | scc_layered | Real SCC plus both FM layers |
 | psg_layered | Native AY PSG plus both FM doublings |
 
@@ -179,14 +177,9 @@ the repeat rather than only in the introduction.
   rhythm_fm_opll.json` table, fitted to the same IKAOPLL hits with
   IKAOPM in the loop) on at most two channels: at one instant the
   two loudest hits sound and a later hit cuts a ringing tail.
-  `sfg01_rx21` uses the RX21-fitted table instead,
   `sfg01_opllrhythm` selects no FM rhythm table so the musical
   rhythm projection emits the percussion on the native YM2413 lane
-  (mode, oscillator pitch, level curves and key masks), and
-  `makoto_rx21` swaps the PCM hit library to
-  `data/presets/rhythm_pcm_rx21/` (HH maps to CLOSEHH; the TOM
-  picks the nearest-pitched of TOM1..3 with a residual rate
-  ratio; CLAPS has no OPLL counterpart and is unused).
+  (mode, oscillator pitch, level curves and key masks).
 - `NativePCM` retains decoded signed16 source content independently of opaque
   original PCM packets. OPN2 DAC, NES DPCM and HuC DDA are decoded. OPN2 uses
   the inherited shared decoded-supply renderer, including run splitting,

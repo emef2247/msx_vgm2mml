@@ -16,7 +16,12 @@ from musical_wave_target import project_waves, project_psg_opll
 # retired in favour of scc_layered / psg_layered.
 SCC_PROFILES = {'scc_layered':'layered'}
 PSG_PROFILES = {'psg_layered':'layered'}
-PROFILES = ('sfg01','sfg01_rx21','sfg01_opllrhythm','sfg01_opl3','makoto','makoto_rx21','misato','misato_msxaudio','sfg01_makoto','sfg01_msxaudio','sfg01_misato','msxaudio','opl3','opl3_makoto','opl3_msxaudio','layered', *SCC_PROFILES, *PSG_PROFILES)
+# The RX21 rhythm variants (sfg01_rx21 / makoto_rx21) are retired
+# (owner, 2026-11-22): a rhythm-timbre swap inside a base profile
+# made the variant list hard to read.  Compositions are grouped by
+# what the added cartridge provides (PCM playback, a rhythm unit)
+# or by the native chip kept.
+PROFILES = ('sfg01','sfg01_opllrhythm','sfg01_opl3','makoto','misato','misato_msxaudio','sfg01_makoto','sfg01_msxaudio','sfg01_misato','msxaudio','opl3','opl3_makoto','opl3_msxaudio','layered', *SCC_PROFILES, *PSG_PROFILES)
 # The opl3 composition has no PCM unit; these profiles pair it with
 # a PCM cartridge instead.  Misato gets no such pairing with Makoto:
 # both are OPNA cartridges and their I/O ports collide, so Misato's
@@ -27,21 +32,21 @@ OPL3_PCM_AUXILIARY = {'opl3_makoto':'opna','opl3_msxaudio':'y8950'}
 # (owner, 2026-11-22): vgm-variants/<base>/ holds the base, and a
 # subfolder named by the added element alone -- the second
 # cartridge (makoto, msxaudio, opl3, misato), the kept native chip
-# (scc, psg) or the rhythm source (rx21, opllrhythm) -- holds each
+# (scc, psg) or the rhythm source (opllrhythm) -- holds each
 # composition, e.g. vgm-variants/sfg01/makoto/.  A variant whose
 # output is byte-identical to the base's own output is not
 # published at all: the subfolder only carries what the
 # composition actually changes.
-PROFILE_PARENTS = {'sfg01_rx21':'sfg01','sfg01_opllrhythm':'sfg01',
+PROFILE_PARENTS = {'sfg01_opllrhythm':'sfg01',
                    'sfg01_opl3':'sfg01','sfg01_makoto':'sfg01',
                    'sfg01_msxaudio':'sfg01','sfg01_misato':'sfg01',
-                   'makoto_rx21':'makoto','misato_msxaudio':'misato',
+                   'misato_msxaudio':'misato',
                    'opl3_makoto':'opl3','opl3_msxaudio':'opl3',
                    **SCC_PROFILES, **PSG_PROFILES}
-PROFILE_ELEMENTS = {'sfg01_rx21':'rx21','sfg01_opllrhythm':'opllrhythm',
+PROFILE_ELEMENTS = {'sfg01_opllrhythm':'opllrhythm',
                     'sfg01_opl3':'opl3','sfg01_makoto':'makoto',
                     'sfg01_msxaudio':'msxaudio','sfg01_misato':'misato',
-                    'makoto_rx21':'rx21','misato_msxaudio':'msxaudio',
+                    'misato_msxaudio':'msxaudio',
                     'opl3_makoto':'makoto','opl3_msxaudio':'msxaudio',
                     **{name:'scc' for name in SCC_PROFILES},
                     **{name:'psg' for name in PSG_PROFILES}}
@@ -310,22 +315,22 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     if profile=='opl3':
         return _project_opl3(performance,force=force,dcsg_gain=dcsg_gain,
             pcm_auxiliary=opl3_pcm_auxiliary)
-    chip='opna' if profile in ('makoto','makoto_rx21','misato','misato_msxaudio') else 'opm'
+    chip='opna' if profile in ('makoto','misato','misato_msxaudio') else 'opm'
     clock=8000000 if chip=='opna' else 3579545
     # Misato is the Makoto composition on the OPN3 cartridge, which
     # has no ADPCM unit (owner, 2026-11-16): PCM content has no
     # destination there and percussion plays on the native YM2608
     # rhythm unit instead of ADPCM-B samples.
-    auxiliary='opna' if profile in ('makoto','makoto_rx21','sfg01_makoto','layered') else 'misato' if profile in ('misato','sfg01_misato','misato_msxaudio') else 'y8950' if profile=='sfg01_msxaudio' else None
+    auxiliary='opna' if profile in ('makoto','sfg01_makoto','layered') else 'misato' if profile in ('misato','sfg01_misato','misato_msxaudio') else 'y8950' if profile=='sfg01_msxaudio' else None
     # misato_msxaudio keeps the Misato rhythm/SSG side (auxiliary
     # above) and gives PCM content the MSX-AUDIO Delta-T as its
     # destination; a Makoto pairing is impossible (I/O collision).
     pcm_auxiliary='y8950' if profile=='misato_msxaudio' else auxiliary
     # FM-only SFG01 compositions play OPLL rhythm as fitted FM
-    # one-shots; makoto_rx21 swaps the PCM hit library to the RX21.
-    # sfg01_opllrhythm selects no table: its rhythm stays native.
-    fm_rhythm_table='opll' if profile=='sfg01' else 'rx21' if profile=='sfg01_rx21' else None
-    pcm_library='rx21' if profile=='makoto_rx21' else 'ika'
+    # one-shots.  sfg01_opllrhythm selects no table: its rhythm
+    # stays native.
+    fm_rhythm_table='opll' if profile=='sfg01' else None
+    pcm_library='ika'
     losses=Counter();rows=[];prefix=b''
     supported={'opm','opna','opn2','psg','opll','scc','dcsg','huc6280','nesapu','msm6258'}
     for device in performance.devices:

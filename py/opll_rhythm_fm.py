@@ -1,10 +1,9 @@
 """OPLL percussion events projected to OPM FM one-shot voices.
 
 Used by the FM-only SFG01 compositions, which have no PCM lane:
-the fitted tables in data/presets/sfg01/rhythm_fm_*.json hold
-OPM voices fitted to reference hits with IKAOPM in the loop
-(IKAOPLL library hits for the plain sfg01 profile, the owner's
-RX21 recordings for sfg01_rx21; fitted 2026-11-14).  At most two
+the fitted table in data/presets/sfg01/rhythm_fm_opll.json holds
+OPM voices fitted to the IKAOPLL library hits with IKAOPM in the
+loop.  At most two
 OPM channels carry rhythm, per the owner's channel budget: at
 one instant the two loudest hits sound, and a hit that arrives
 while both channels ring cuts the oldest tail (the PCM lane's
@@ -25,7 +24,7 @@ from opll_rhythm_pcm import _pitch_at
 from psg_scc_opm import opm_pitch
 
 _PRESET_DIR = Path(__file__).resolve().parent.parent / 'data' / 'presets'
-_TABLES = {'opll': 'rhythm_fm_opll.json', 'rx21': 'rhythm_fm_rx21.json'}
+_TABLES = {'opll': 'rhythm_fm_opll.json'}
 _cache = {}
 # The YM2151 noise does not decay while NE is on, so a noise hit is
 # emitted as a fixed-width pulse from its onset instead of ringing

@@ -162,7 +162,7 @@ msxaudio / opl3 の apu_fds・huc6280 の △ は、波形音源の声数が上�
 | psg_layered | ○ | — | — | — | — |
 | scc_layered | — | ○ | — | — | — |
 
-opna / opm / opn2 列は、2台目のカートリッジ（makoto / msxaudio / opl3 / misato）やリズム源（rx21 / opllrhythm）を足す組み合わせの生成で、土台自体が受け付けない入力では生成されません。
+opna / opm / opn2 列は、2台目のカートリッジ（makoto / msxaudio / opl3 / misato）やリズム源（opllrhythm）を足す組み合わせの生成で、土台自体が受け付けない入力では生成されません。
 
 ### 各プロファイルの説明
 
@@ -177,15 +177,24 @@ opna / opm / opn2 列は、2台目のカートリッジ（makoto / msxaudio / op
 - **`msxaudio`**：MSX-AUDIO（Y8950）向け。OPLLの演奏情報をY8950のFM音源へ変換します。OPLLのリズムはY8950のリズム音源へ、PCMはDelta-Tへ割り当てます。
 - **`opl3`**：OPL3（YMF262）向け。OPLLの演奏情報をOPL3のFM音源へ変換し、リズムはOPL3のリズム音源へ割り当てます。PCMには対応しません。
 
-#### 組み合わせ例： SFG-01と他の音源を組み合わせる構成
+#### サブカートリッジでPCMを補完する構成
 
-SFG-01によるFM演奏を基本とし、リズム音源やPCM再生に別の音源を併用する構成です。
+土台だけではPCMを再生できない構成に、2台目のカートリッジのPCM再生機能を組み合わせます。
 
-- **`sfg01_opllrhythm`**：`sfg01` を基本とし、OPLLのリズムパートだけはFMへ変換せず、YM2413のリズム音源でそのまま再生します。
-- **`sfg01_opl3`**：`sfg01` を基本とし、OPLLのリズムパートをOPL3（YMF262）のリズム音源で再生します。
 - **`sfg01_makoto`**：SFG-01にMakotoを組み合わせ、PCM再生にOPNAのADPCM-Bを利用します。
 - **`sfg01_msxaudio`**：SFG-01にMSX-AUDIOを組み合わせ、PCM再生にY8950のDelta-Tを利用します。
+- **`misato_msxaudio`**：MisatoにMSX-AUDIOを組み合わせ、PCM再生にY8950のDelta-Tを利用します。リズムはMisatoのリズム音源で再生します。
+- **`opl3_makoto`**：OPL3にMakotoを組み合わせ、PCM再生にOPNAのADPCM-Bを利用します。
+- **`opl3_msxaudio`**：OPL3にMSX-AUDIOを組み合わせ、PCM再生にY8950のDelta-Tを利用します。
+
+#### サブカートリッジでリズム音源を補完する構成
+
 - **`sfg01_misato`**：SFG-01にMisatoを組み合わせ、OPLLやOPNAのリズムパートをMisatoのリズム音源で再生します。ADPCMは使用しません。
+- **`sfg01_opl3`**：`sfg01` を基本とし、OPLLのリズムパートをOPL3（YMF262）のリズム音源で再生します。
+
+#### 実チップのリズムを残す構成
+
+- **`sfg01_opllrhythm`**：`sfg01` を基本とし、OPLLのリズムパートだけはFMへ変換せず、YM2413のリズム音源でそのまま再生します。
 
 #### FM音源を重ねる構成
 
@@ -419,7 +428,7 @@ The source types for which the composition and layered profiles are generated ar
 | psg_layered | Yes | No | No | No | No |
 | scc_layered | No | Yes | No | No | No |
 
-The opna / opm / opn2 columns are compositions that add a second cartridge (makoto / msxaudio / opl3 / misato) or a rhythm source (rx21 / opllrhythm); they are not generated for sources the base itself does not accept.
+The opna / opm / opn2 columns are compositions that add a second cartridge (makoto / msxaudio / opl3 / misato) or a rhythm source (opllrhythm); they are not generated for sources the base itself does not accept.
 
 ### Profile Descriptions
 
@@ -435,15 +444,24 @@ When multiple sound sources are present, channels are allocated according to sou
 - **`msxaudio`**: For MSX-AUDIO (Y8950). Converts OPLL performance data to Y8950 FM, maps OPLL rhythm parts to the Y8950 rhythm sound generator, and plays PCM through Delta-T.
 - **`opl3`**: For OPL3 (YMF262). Converts OPLL performance data to OPL3 FM and maps OPLL rhythm parts to the OPL3 rhythm sound generator. PCM playback is not supported.
 
-#### Combination Examples: SFG-01 with Additional Sound Chips
+#### Compositions That Add PCM Playback via a Second Cartridge
 
-These configurations use SFG-01 for FM playback while combining it with other sound chips for rhythm or PCM playback.
+These pair a base that cannot play PCM on its own with a second cartridge's PCM playback.
 
-- **`sfg01_opllrhythm`**: Based on `sfg01`, but preserves the original OPLL rhythm parts and plays them directly through the YM2413 rhythm sound generator instead of converting them to FM.
-- **`sfg01_opl3`**: Based on `sfg01`, but plays OPLL rhythm parts through the OPL3 (YMF262) rhythm sound generator.
 - **`sfg01_makoto`**: Combines SFG-01 with Makoto, using OPNA ADPCM-B for PCM playback.
 - **`sfg01_msxaudio`**: Combines SFG-01 with MSX-AUDIO, using Y8950 Delta-T for PCM playback.
+- **`misato_msxaudio`**: Combines Misato with MSX-AUDIO, using Y8950 Delta-T for PCM playback. Rhythm plays on Misato's rhythm sound generator.
+- **`opl3_makoto`**: Combines OPL3 with Makoto, using OPNA ADPCM-B for PCM playback.
+- **`opl3_msxaudio`**: Combines OPL3 with MSX-AUDIO, using Y8950 Delta-T for PCM playback.
+
+#### Compositions That Add a Rhythm Sound Generator via a Second Cartridge
+
 - **`sfg01_misato`**: Combines SFG-01 with Misato, playing OPLL and OPNA rhythm parts through Misato's rhythm sound generator. ADPCM is not used.
+- **`sfg01_opl3`**: Based on `sfg01`, but plays OPLL rhythm parts through the OPL3 (YMF262) rhythm sound generator.
+
+#### Compositions That Keep the Rhythm on the Real Chip
+
+- **`sfg01_opllrhythm`**: Based on `sfg01`, but preserves the original OPLL rhythm parts and plays them directly through the YM2413 rhythm sound generator instead of converting them to FM.
 
 #### Layered FM Configurations
 
