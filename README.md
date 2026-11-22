@@ -133,7 +133,7 @@ MML 生成用に構築した音楽情報を、MSX のサウンドカートリッ
 
     python scripts/export_mgs.py <入力.vgm> --outdir <出力先> --vgm-variants --force
 
-生成物は `vgm-variants/<プロファイル名>/<曲名>.vgm` に出力されます。生成できない構成は理由とともにスキップされ、診断が `_diagnostics` に残ります。
+生成物は `vgm-variants/<土台のプロファイル名>/<曲名>.vgm` に出力されます。組み合わせは土台の下に追加要素の名前のサブフォルダに入ります（例: `vgm-variants/sfg01/makoto/<曲名>.vgm`、`vgm-variants/sfg01/scc/<曲名>.vgm`）。土台と同一内容になる組み合わせは出力されません。生成できない構成は理由とともにスキップされ、診断が `_diagnostics` に残ります。
 
 入力音源ごとに生成されるプロファイルの一覧です（○：生成される、△：制限あり・未変換部分あり、—：生成されない）。
 
@@ -403,7 +403,7 @@ The musical information built for MML generation is assigned to other sound chip
 
     python scripts/export_mgs.py <input.vgm> --outdir <output> --vgm-variants --force
 
-Output goes to `vgm-variants/<profile>/<song>.vgm`. Configurations that cannot be generated are skipped with a reason, and diagnostics remain in `_diagnostics`.
+Output goes to `vgm-variants/<base profile>/<song>.vgm`. Compositions are placed under their base in a subfolder named by the added element (e.g. `vgm-variants/sfg01/makoto/<song>.vgm`, `vgm-variants/sfg01/scc/<song>.vgm`). A composition identical to its base is not written. Configurations that cannot be generated are skipped with a reason, and diagnostics remain in `_diagnostics`.
 
 Profiles generated for each source type.
 
