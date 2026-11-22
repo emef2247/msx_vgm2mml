@@ -69,14 +69,8 @@ unit instead of the FM one-shot table.
 | opl3_makoto | The opl3 composition plus YM2608 ADPCM-B for PCM content |
 | opl3_msxaudio | The opl3 composition plus Y8950 Delta-T for PCM content |
 | layered | YM2151 and YM2608 FM in parallel, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
-| scc_sfg01 | Real SCC plus the sfg01 composition |
-| scc_makoto | Real SCC plus the makoto composition |
 | scc_layered | Real SCC plus both FM layers |
-| scc_opl3 | Real SCC plus the opl3 composition |
-| psg_sfg01 | Native AY PSG plus an OPM doubling of the PSG voices |
-| psg_makoto | Native AY PSG plus an OPNA doubling of the PSG voices |
 | psg_layered | Native AY PSG plus both FM doublings |
-| psg_opl3 | Native AY PSG plus an OPL3 doubling of the PSG voices |
 
 ## Layered FM
 
@@ -98,13 +92,13 @@ differ from a single-chip profile. Song timing and loop positions are shared.
 
 ## Real SCC with FM companions
 
-SCC-bearing sources additionally publish `scc_sfg01`, `scc_makoto`, and
-`scc_layered`: real SCC plus respectively OPM, OPNA, or both FM approximations.
+SCC-bearing sources additionally publish `scc_layered`: real SCC plus
+both FM approximations.
 The real SCC lane is reconstructed from the same NativePerformance pitch,
 volume and waveform curves, without reopening the source file. Its original
 clock/level are retained.
-PSG, OPLL, noise and PCM are not duplicated. Makoto-containing compositions
-retain their existing single PCM bank and 256 KiB budget.
+PSG, OPLL, noise and PCM are not duplicated. The composition
+retains its existing single PCM bank and 256 KiB budget.
 
 The additional profiles require sounding SCC units on one primary cartridge.
 Ordinary SCC channel 4/5 wave sharing is checked; incompatible simultaneous
@@ -118,10 +112,9 @@ No detune is added and relative loudness still needs user listening checks.
 
 ## Native PSG with FM companions
 
-PSG-only sources additionally publish `psg_sfg01`, `psg_makoto`, and
-`psg_layered`: the native AY lanes stay exactly as in the base profiles,
+PSG-only sources additionally publish `psg_layered`: the native AY lanes stay exactly as in the base profiles,
 and the PSG tone voices are doubled by the FM additive projection
-(square spectrum) on respectively OPM, OPNA, or both. Noise-only
+(square spectrum) on both OPM and OPNA. Noise-only
 intervals rest on the FM side and stay on the native AY; a hardware
 envelope shape is not reproduced by the doubling. Both facts are
 recorded as losses. The profiles require a PSG-only source: any

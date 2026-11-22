@@ -62,7 +62,7 @@ class Opl3ProfileTests(unittest.TestCase):
         # no clock at 0x5c treats the file as having no OPL3 chip.
         self.assertEqual(struct.unpack_from('<I',written,0x5c)[0],14318180)
         self.assertEqual(struct.unpack_from('<I',written,0x64)[0],0)
-        self.assertEqual(results['scc_opl3']['status'],'unavailable')
+        self.assertEqual(results['scc_layered']['status'],'unavailable')
         back,_=self.build(open(result['path'],'rb').read())
         self.assertEqual(len(back.units),1)
         unit=back.units[0]
@@ -138,12 +138,12 @@ class Opl3ProfileTests(unittest.TestCase):
         self.assertEqual(result['status'],'unavailable')
         self.assertIn('opm',result['reason'])
 
-    def test_psg_opl3_requires_a_psg_only_source(self):
+    def test_psg_layered_requires_a_psg_only_source(self):
         body=b''.join((
             opll(0x30,0x73),opll(0x10,0x22),opll(0x20,0x19),
             b'\x62',opll(0x20,0x09)))
         performance,folder=self.build(vgm(body,{0x10:3579545,0x5c:14318180}))
-        result=self.export(performance,folder+'/out')['psg_opl3']
+        result=self.export(performance,folder+'/out')['psg_layered']
         self.assertEqual(result['status'],'unavailable')
         self.assertIn('No sounding PSG units',result['reason'])
 

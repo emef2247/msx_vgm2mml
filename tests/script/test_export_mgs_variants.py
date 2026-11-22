@@ -38,7 +38,7 @@ for _value in (0x80, 0xA0, 0xC0, 0xE0, 0xC0, 0xA0, 0x80, 0x60):
     BURST += bytes((0x52, 0x2a, _value, 0x61, 0x02, 0x00))
 OPN2_SONG = vgm(PHRASE + BURST)
 
-PROFILES = ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'sfg01_opl3', 'makoto', 'makoto_rx21', 'misato', 'misato_msxaudio', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'msxaudio', 'opl3', 'opl3_makoto', 'opl3_msxaudio', 'layered', 'scc_sfg01', 'scc_makoto', 'scc_misato', 'scc_msxaudio', 'scc_layered', 'scc_opl3', 'psg_sfg01', 'psg_makoto', 'psg_misato', 'psg_msxaudio', 'psg_layered', 'psg_opl3')
+PROFILES = ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'sfg01_opl3', 'makoto', 'makoto_rx21', 'misato', 'misato_msxaudio', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'msxaudio', 'opl3', 'opl3_makoto', 'opl3_msxaudio', 'layered', 'scc_layered', 'psg_layered')
 # Composition profiles are published under their base profile's folder,
 # in a subfolder named by the added element alone.
 FOLDERS = {'sfg01_rx21': 'sfg01/rx21', 'sfg01_opllrhythm': 'sfg01/opllrhythm',
@@ -46,10 +46,7 @@ FOLDERS = {'sfg01_rx21': 'sfg01/rx21', 'sfg01_opllrhythm': 'sfg01/opllrhythm',
            'sfg01_msxaudio': 'sfg01/msxaudio', 'sfg01_misato': 'sfg01/misato',
            'makoto_rx21': 'makoto/rx21', 'misato_msxaudio': 'misato/msxaudio',
            'opl3_makoto': 'opl3/makoto', 'opl3_msxaudio': 'opl3/msxaudio',
-           'scc_sfg01': 'sfg01/scc', 'scc_makoto': 'makoto/scc', 'scc_misato': 'misato/scc',
-           'scc_msxaudio': 'msxaudio/scc', 'scc_layered': 'layered/scc', 'scc_opl3': 'opl3/scc',
-           'psg_sfg01': 'sfg01/psg', 'psg_makoto': 'makoto/psg', 'psg_misato': 'misato/psg',
-           'psg_msxaudio': 'msxaudio/psg', 'psg_layered': 'layered/psg', 'psg_opl3': 'opl3/psg'}
+           'scc_layered': 'layered/scc', 'psg_layered': 'layered/psg'}
 
 
 def profile_folder(profile):
@@ -142,7 +139,7 @@ class ExportMgsVgmVariantsTests(unittest.TestCase):
             out = Path(tmp) / 'out'
             result = self.run_main(fixture, '--outdir', out, '--vgm-variants', '--skip-keyon-counts', '--compiler', 'mgsexc')
             self.assertEqual(result, 0)
-            assert_profiles(self, out, ('sfg01', 'sfg01_opl3', 'makoto', 'misato', 'msxaudio', 'opl3', 'layered', 'psg_sfg01', 'psg_makoto', 'psg_misato', 'psg_msxaudio', 'psg_layered', 'psg_opl3'), 'scale_rom1')
+            assert_profiles(self, out, ('sfg01', 'sfg01_opl3', 'makoto', 'misato', 'msxaudio', 'opl3', 'layered', 'psg_layered'), 'scale_rom1')
             self.assertEqual(variant_rows(out)[0]['status'], 'success')
 
     def test_rerun_without_flag_removes_products_and_ownership(self):

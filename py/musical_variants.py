@@ -11,8 +11,11 @@ import struct
 
 from musical_wave_target import project_waves, project_psg_opll
 
-SCC_PROFILES = {'scc_sfg01':'sfg01', 'scc_makoto':'makoto', 'scc_misato':'misato', 'scc_msxaudio':'msxaudio', 'scc_layered':'layered', 'scc_opl3':'opl3'}
-PSG_PROFILES = {'psg_sfg01':'sfg01', 'psg_makoto':'makoto', 'psg_misato':'misato', 'psg_msxaudio':'msxaudio', 'psg_layered':'layered', 'psg_opl3':'opl3'}
+# Keeping a real chip in the mix exists only in the layered form
+# (owner, 2026-11-22): the per-base scc_* / psg_* compositions are
+# retired in favour of scc_layered / psg_layered.
+SCC_PROFILES = {'scc_layered':'layered'}
+PSG_PROFILES = {'psg_layered':'layered'}
 PROFILES = ('sfg01','sfg01_rx21','sfg01_opllrhythm','sfg01_opl3','makoto','makoto_rx21','misato','misato_msxaudio','sfg01_makoto','sfg01_msxaudio','sfg01_misato','msxaudio','opl3','opl3_makoto','opl3_msxaudio','layered', *SCC_PROFILES, *PSG_PROFILES)
 # The opl3 composition has no PCM unit; these profiles pair it with
 # a PCM cartridge instead.  Misato gets no such pairing with Makoto:
@@ -148,7 +151,7 @@ def _project_fm_layer(performance, chip, clock, *, force, include_psg=False,
         losses=dict(losses))
 
 
-def _project_msxaudio(performance, *, force=False, dcsg_gain=.25, real_scc=False, real_psg=False):
+def _project_msxaudio(performance, *, force=False, dcsg_gain=.25):
     """MSX-AUDIO profile: the Y8950 FM section is the primary target.
 
     OPLL voices project to Y8950 FM through the commercially
@@ -160,15 +163,11 @@ def _project_msxaudio(performance, *, force=False, dcsg_gain=.25, real_scc=False
     bases; lanes beyond the nine-channel budget are an explicit
     omission under --force only.  Source families whose Y8950
     projection is not established yet (4-op FM) make the profile
-    unavailable.  With real_scc (scc_msxaudio) the SCC lanes stay
-    on a real SCC beside the Y8950 projection; with real_psg
-    (psg_msxaudio) PSG voices also double onto Y8950 carriers
-    through the waveform projection, beside their native AY lanes.
+    unavailable.
     """
     from musical_opl_target import project_opl_fm
     from musical_pcm_target import project_pcm
     allowed={'y8950','opll','psg','dcsg','msm6258','nesapu','huc6280'}
-    if real_scc:allowed.add('scc')
     # The gate counts sounding devices only, as in the opl3 route:
     # a device that never sounds (an msxplay.com export lists every
     # device) must not fail the profile; a sounding unsupported
@@ -184,28 +183,20 @@ def _project_msxaudio(performance, *, force=False, dcsg_gain=.25, real_scc=False
     if msm_issues and not force:
         raise ValueError('MSM6258 PCM source evidence is unresolved; inspect native decisions')
     rows=[];prefix=b'';losses=Counter();pcm_stats={};plan_extra={}
-    if real_scc:
-        from musical_scc_target import project_scc
-        scc_rows,scc_losses,scc_plan=project_scc(performance)
-        rows.extend(scc_rows);losses.update(scc_losses);plan_extra['real_scc']=scc_plan
     fm_rows,fm_losses,allocation=project_opl_fm(performance,force=force)
     rows.extend(fm_rows);losses.update(fm_losses)
     wave_chips={'nesapu','huc6280'}&present
-    if real_psg:wave_chips.add('psg')
     if wave_chips:
         # Waveform sources (NES APU / FDS, HuC6280) project through
         # the four-harmonic wave projection, as on the OPM / OPNA
-        # bases; with real_psg the PSG voices also double onto
-        # Y8950 sine carriers beside their native AY lanes.  Nine
-        # FM channels take two four-carrier voices.  A doubled PSG
-        # voice beyond that keeps its native lane, but a waveform
-        # lane has no native fallback here, so exceeding the budget
-        # is an explicit omission under --force only.
+        # bases.  Nine FM channels take two four-carrier voices.
+        # A waveform lane has no native fallback here, so exceeding
+        # the budget is an explicit omission under --force only.
         from musical_wave_target import project_waves
         wave_rows,wave_losses,wave_allocation=project_waves(performance,'y8950',3579545,
             reserved=set(allocation.values()),force=True,
             chips=tuple(sorted(wave_chips)))
-        if wave_chips-{'psg'} and wave_losses.get('wave_channel_capacity_units_omitted') and not force:
+        if wave_losses.get('wave_channel_capacity_units_omitted') and not force:
             raise ValueError('Waveform voices exceed Y8950 FM capacity (use --force for explicit omission)')
         rows.extend(wave_rows);losses.update(wave_losses)
         plan_extra['waveform_allocation']={str(k):v for k,v in wave_allocation.items()}
@@ -225,7 +216,7 @@ def _project_msxaudio(performance, *, force=False, dcsg_gain=.25, real_scc=False
     return rows,prefix,dict(losses),plan
 
 
-def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, real_psg=False,
+def _project_opl3(performance, *, force=False, dcsg_gain=.25,
                   pcm_auxiliary=None):
     """OPL3 profile: the YMF262 is the primary target.
 
@@ -238,14 +229,10 @@ def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, re
     voices project through the established four-harmonic wave
     projection (the opl3 arm of musical_wave_target), as on the
     OPM / OPNA bases; lanes beyond the channel budget are an
-    explicit omission under --force only.  With real_psg
-    (psg_opl3), PSG voices
-    also double onto YMF262 carriers through the waveform
-    projection, beside their native AY lanes.
+    explicit omission under --force only.
     """
     from musical_opl3_target import project_opl3_fm
     allowed={'opll','y8950','ymf262','psg','dcsg','nesapu','huc6280'}
-    if real_scc:allowed.add('scc')
     # The gate counts sounding devices only: a device that never
     # sounds (an msxplay.com export lists every device) must not
     # fail the profile; a sounding unsupported chip still does.
@@ -256,28 +243,20 @@ def _project_opl3(performance, *, force=False, dcsg_gain=.25, real_scc=False, re
     bad=sorted(present-allowed)
     if bad:raise ValueError('opl3 profile has no projection for '+', '.join(bad))
     rows=[];losses=Counter();plan={}
-    if real_scc:
-        from musical_scc_target import project_scc
-        scc_rows,scc_losses,scc_plan=project_scc(performance)
-        rows.extend(scc_rows);losses.update(scc_losses);plan['real_scc']=scc_plan
     fm_rows,fm_losses,allocation=project_opl3_fm(performance,force=force)
     rows.extend(fm_rows);losses.update(fm_losses)
     wave_chips={'nesapu','huc6280'}&present
-    if real_psg:wave_chips.add('psg')
     if wave_chips:
         # Waveform sources (NES APU / FDS, HuC6280) project through
         # the four-harmonic wave projection, as on the OPM / OPNA
-        # bases; with real_psg the PSG voices also double onto
-        # YMF262 sine carriers beside their native AY lanes.  A
-        # doubled PSG voice beyond the channel budget keeps its
-        # native lane, but a waveform lane has no native fallback
-        # here, so exceeding the budget is an explicit omission
-        # under --force only.
+        # bases.  A waveform lane has no native fallback here, so
+        # exceeding the budget is an explicit omission under
+        # --force only.
         from musical_wave_target import project_waves
         wave_rows,wave_losses,wave_allocation=project_waves(performance,'opl3',14318180,
             reserved=set(allocation.values()),force=True,
             chips=tuple(sorted(wave_chips)))
-        if wave_chips-{'psg'} and wave_losses.get('wave_channel_capacity_units_omitted') and not force:
+        if wave_losses.get('wave_channel_capacity_units_omitted') and not force:
             raise ValueError('Waveform voices exceed OPL3 FM capacity (use --force for explicit omission)')
         rows.extend(wave_rows);losses.update(wave_losses)
         plan['waveform_allocation']={str(k):v for k,v in wave_allocation.items()}
@@ -327,37 +306,9 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     opl3_rhythm_unit=profile=='sfg01_opl3'
     if not 0<dcsg_gain<=1:raise ValueError('DCSG gain must be >0 and <=1')
     if profile=='msxaudio':
-        if real_psg:
-            # The PSG layered family is defined for PSG-only sources
-            # (owner, 2026-11-14); the msxaudio route returns before
-            # the main route's gate, so the same checks run here.
-            devices={d.device_id:d for d in performance.devices}
-            sounding={devices[u.device_id].chip for u in performance.units}
-            sounding|={devices[e.device_id].chip for e in performance.percussion}
-            sounding|={p.chip for p in performance.pcm_packets}
-            if not any(devices[u.device_id].chip=='psg' and u.section!='noise'
-                and u.role!='unpitched' for u in performance.units):
-                raise ValueError('No sounding PSG units for the PSG layered profile')
-            if sounding!={'psg'}:
-                raise ValueError('PSG layered profiles require a PSG-only source')
-        return _project_msxaudio(performance,force=force,dcsg_gain=dcsg_gain,
-            real_scc=real_scc,real_psg=real_psg)
+        return _project_msxaudio(performance,force=force,dcsg_gain=dcsg_gain)
     if profile=='opl3':
-        if real_psg:
-            # The PSG layered family is defined for PSG-only sources
-            # (owner, 2026-11-14); the opl3 route returns before the
-            # main route's gate, so the same checks run here.
-            devices={d.device_id:d for d in performance.devices}
-            sounding={devices[u.device_id].chip for u in performance.units}
-            sounding|={devices[e.device_id].chip for e in performance.percussion}
-            sounding|={p.chip for p in performance.pcm_packets}
-            if not any(devices[u.device_id].chip=='psg' and u.section!='noise'
-                and u.role!='unpitched' for u in performance.units):
-                raise ValueError('No sounding PSG units for the PSG layered profile')
-            if sounding!={'psg'}:
-                raise ValueError('PSG layered profiles require a PSG-only source')
         return _project_opl3(performance,force=force,dcsg_gain=dcsg_gain,
-            real_scc=real_scc,real_psg=real_psg,
             pcm_auxiliary=opl3_pcm_auxiliary)
     chip='opna' if profile in ('makoto','makoto_rx21','misato','misato_msxaudio') else 'opm'
     clock=8000000 if chip=='opna' else 3579545

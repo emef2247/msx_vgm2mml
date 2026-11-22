@@ -21,7 +21,7 @@ from mgs_conversion_config import sample_threshold
 
 DEFAULT_FM_STATE_MS = 24.0
 
-VARIANT_PROFILES = ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'sfg01_opl3', 'makoto', 'makoto_rx21', 'misato', 'misato_msxaudio', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'msxaudio', 'opl3', 'opl3_makoto', 'opl3_msxaudio', 'layered', 'scc_sfg01', 'scc_makoto', 'scc_misato', 'scc_msxaudio', 'scc_layered', 'scc_opl3', 'psg_sfg01', 'psg_makoto', 'psg_misato', 'psg_msxaudio', 'psg_layered', 'psg_opl3')
+VARIANT_PROFILES = ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'sfg01_opl3', 'makoto', 'makoto_rx21', 'misato', 'misato_msxaudio', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'msxaudio', 'opl3', 'opl3_makoto', 'opl3_msxaudio', 'layered', 'scc_layered', 'psg_layered')
 VARIANT_PRODUCTS = tuple('vgm-variants/' + profile + '/{stem}.vgm'
                          for profile in VARIANT_PROFILES)
 # Previous publications remain owned during migration and disabled reruns.
@@ -29,7 +29,10 @@ LEGACY_VARIANT_PRODUCTS = tuple('vgm-variants/' + profile + '/{stem}.vgm' for pr
     ('sfg01_rx21', 'sfg01_opllrhythm', 'sfg01_opl3', 'sfg01_makoto', 'sfg01_msxaudio',
      'sfg01_misato', 'makoto_rx21', 'misato_msxaudio', 'opl3_makoto', 'opl3_msxaudio',
      'scc_sfg01', 'scc_makoto', 'scc_misato', 'scc_msxaudio', 'scc_layered', 'scc_opl3',
-     'psg_sfg01', 'psg_makoto', 'psg_misato', 'psg_msxaudio', 'psg_layered', 'psg_opl3')) + ('vgm_variants/{stem}/makoto/{stem}.vgm',
+     'psg_sfg01', 'psg_makoto', 'psg_misato', 'psg_msxaudio', 'psg_layered', 'psg_opl3')) + tuple(
+    'vgm-variants/' + base + '/' + element + '/{stem}.vgm'
+    for base in ('sfg01', 'makoto', 'misato', 'msxaudio', 'opl3')
+    for element in ('scc', 'psg')) + ('vgm_variants/{stem}/makoto/{stem}.vgm',
     'vgm_variants/{stem}/sfg01/dac_makoto/{stem}.vgm',
     'vgm_variants/{stem}/sfg01/dac_y8950/{stem}.vgm',
     'vgm_variants/{stem}/layered/{stem}.vgm',

@@ -149,15 +149,15 @@ msxaudio / opl3 の apu_fds・huc6280 の △ は、波形音源の声数が上�
 
 組み合わせは原則として土台の行を引き継ぎますが、PCM を持つ入力では行き先を足す組み合わせの方が土台より広く対応します（例: opm_msm6258 では sfg01 は △、sfg01/makoto は ○）。
 
-組み合わせと重ね系のプロファイルが生成される入力音源の種類は次の通りです。土台の行の psg / scc 列は、その土台の `psg_*` / `scc_*` 組み合わせの生成を示します（scc は SCC が鳴っている入力）。
+組み合わせと重ね系のプロファイルが生成される入力音源の種類は次の通りです（scc は SCC が鳴っている入力）。実チップを残す構成は layered の形（`psg_layered` / `scc_layered`）だけです。
 
 | プロファイル | psg | scc | opna | opm | opn2 |
 |---|---|---|---|---|---|
-| sfg01 | ○ | ○ | ○ | ○ | ○ |
-| makoto | ○ | ○ | ○ | ○ | ○ |
-| misato | ○ | ○ | ○ | ○ | ○ |
-| msxaudio | ○ | ○ | — | — | — |
-| opl3 | ○ | ○ | — | — | — |
+| sfg01 | — | — | ○ | ○ | ○ |
+| makoto | — | — | ○ | ○ | ○ |
+| misato | — | — | ○ | ○ | ○ |
+| msxaudio | — | — | — | — | — |
+| opl3 | — | — | — | — | — |
 | layered | — | — | ○ | ○ | ○ |
 | psg_layered | ○ | — | — | — | — |
 | scc_layered | — | ○ | — | — | — |
@@ -197,11 +197,6 @@ SFG-01によるFM演奏を基本とし、リズム音源やPCM再生に別の音
 
 SCCの演奏パートを元のSCCで再生しながら、同じパートを別のFM音源にも割り当てる構成です。
 
-- **`scc_sfg01`**：SCC ＋ SFG-01（OPM）の2重奏
-- **`scc_makoto`**：SCC ＋ Makoto（OPNA）の2重奏
-- **`scc_misato`**：SCC ＋ Misato（OPN3-L）の2重奏
-- **`scc_msxaudio`**：SCC ＋ MSX-Audio（Y8950）の2重奏
-- **`scc_opl3`**：SCC ＋ OPL3（YMF262）の2重奏
 - **`scc_layered`**：SCC ＋ SFG-01（OPM）＋ Makoto（OPNA）の3重奏
 
 SCC以外のパートは、対応する基本構成またはレイヤー構成と同じ方法で変換します。
@@ -210,11 +205,6 @@ SCC以外のパートは、対応する基本構成またはレイヤー構成�
 
 PSGの演奏パートを元のPSGで再生しながら、同じパートをFM音源にも割り当てる構成です。
 
-- **`psg_sfg01`**：PSG ＋ SFG-01（OPM）の2重奏
-- **`psg_makoto`**：PSG ＋ Makoto（OPNA）の2重奏
-- **`psg_misato`**：PSG ＋ Misato（OPN3-L）の2重奏
-- **`psg_msxaudio`**：PSG ＋ MSX-Audio（Y8950）の2重奏
-- **`psg_opl3`**：PSG ＋ OPL3（YMF262）の2重奏
 - **`psg_layered`**：PSG ＋ SFG-01（OPM）＋ Makoto（OPNA）の3重奏
 
 これらはPSGのみを使用する入力VGMを対象とします。
@@ -416,15 +406,15 @@ The Approximate cells for apu_fds / huc6280 on msxaudio and opl3 are due to wave
 
 Compositions generally inherit their base profile's row, but for sources with PCM, a composition that adds a PCM destination covers more than its base (e.g. for opm_msm6258, sfg01 is Approximate but sfg01/makoto is Yes).
 
-The source types for which the composition and layered profiles are generated are: In a base row, the psg / scc columns show that base's `psg_*` / `scc_*` compositions (scc: sources where SCC sounds).
+The source types for which the composition and layered profiles are generated are (scc: sources where SCC sounds). The only compositions that keep a real chip are the layered forms, `psg_layered` / `scc_layered`.
 
 | Profile | psg | scc | opna | opm | opn2 |
 |---|---|---|---|---|---|
-| sfg01 | Yes | Yes | Yes | Yes | Yes |
-| makoto | Yes | Yes | Yes | Yes | Yes |
-| misato | Yes | Yes | Yes | Yes | Yes |
-| msxaudio | Yes | Yes | No | No | No |
-| opl3 | Yes | Yes | No | No | No |
+| sfg01 | No | No | Yes | Yes | Yes |
+| makoto | No | No | Yes | Yes | Yes |
+| misato | No | No | Yes | Yes | Yes |
+| msxaudio | No | No | No | No | No |
+| opl3 | No | No | No | No | No |
 | layered | No | No | Yes | Yes | Yes |
 | psg_layered | Yes | No | No | No | No |
 | scc_layered | No | Yes | No | No | No |
@@ -465,11 +455,6 @@ Unlike simple detuning, this feature layers the distinct timbres of different FM
 
 These configurations preserve the original SCC performance while simultaneously playing the same parts through additional FM sound chips.
 
-- **`scc_sfg01`**: SCC + SFG-01 (OPM), two-layer playback
-- **`scc_makoto`**: SCC + Makoto (OPNA), two-layer playback
-- **`scc_misato`**: SCC + Misato (OPN3-L), two-layer playback
-- **`scc_msxaudio`**: SCC + MSX-AUDIO (Y8950), two-layer playback
-- **`scc_opl3`**: SCC + OPL3 (YMF262), two-layer playback
 - **`scc_layered`**: SCC + SFG-01 (OPM) + Makoto (OPNA), three-layer playback
 
 Parts other than SCC are converted using the same methods as their corresponding basic or layered configurations.
@@ -478,11 +463,6 @@ Parts other than SCC are converted using the same methods as their corresponding
 
 These configurations preserve the original PSG performance while simultaneously playing the same parts through additional FM sound chips.
 
-- **`psg_sfg01`**: PSG + SFG-01 (OPM), two-layer playback
-- **`psg_makoto`**: PSG + Makoto (OPNA), two-layer playback
-- **`psg_misato`**: PSG + Misato (OPN3-L), two-layer playback
-- **`psg_msxaudio`**: PSG + MSX-AUDIO (Y8950), two-layer playback
-- **`psg_opl3`**: PSG + OPL3 (YMF262), two-layer playback
 - **`psg_layered`**: PSG + SFG-01 (OPM) + Makoto (OPNA), three-layer playback
 
 These profiles are intended for input VGM files containing only PSG sound data.
