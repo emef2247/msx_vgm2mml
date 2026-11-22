@@ -21,7 +21,7 @@ PSG_PROFILES = {'psg_layered':'layered'}
 # made the variant list hard to read.  Compositions are grouped by
 # what the added cartridge provides (PCM playback, a rhythm unit)
 # or by the native chip kept.
-PROFILES = ('sfg01','sfg01_opllrhythm','sfg01_opl3','makoto','makoto_msxaudio','misato','misato_msxaudio','sfg01_makoto','sfg01_msxaudio','sfg01_misato','msxaudio','msxaudio_msxaudio','opl3','opl3_makoto','opl3_msxaudio','layered', *SCC_PROFILES, *PSG_PROFILES)
+PROFILES = ('sfg01','sfg01_opllrhythm','sfg01_opl3','makoto','makoto_msxaudio','makoto_msxaudio_msxaudio','misato','misato_msxaudio','sfg01_makoto','sfg01_msxaudio','sfg01_misato','msxaudio','msxaudio_msxaudio','opl3','opl3_makoto','opl3_msxaudio','layered', *SCC_PROFILES, *PSG_PROFILES)
 # The opl3 composition has no PCM unit; these profiles pair it with
 # a PCM cartridge instead.  Misato gets no such pairing with Makoto:
 # both are OPNA cartridges and their I/O ports collide, so Misato's
@@ -41,6 +41,7 @@ PROFILE_PARENTS = {'sfg01_opllrhythm':'sfg01',
                    'sfg01_opl3':'sfg01','sfg01_makoto':'sfg01',
                    'sfg01_msxaudio':'sfg01','sfg01_misato':'sfg01',
                    'makoto_msxaudio':'makoto','misato_msxaudio':'misato',
+                   'makoto_msxaudio_msxaudio':'makoto_msxaudio',
                    'msxaudio_msxaudio':'msxaudio',
                    'opl3_makoto':'opl3','opl3_msxaudio':'opl3',
                    **SCC_PROFILES, **PSG_PROFILES}
@@ -48,6 +49,7 @@ PROFILE_ELEMENTS = {'sfg01_opllrhythm':'opllrhythm',
                     'sfg01_opl3':'opl3','sfg01_makoto':'makoto',
                     'sfg01_msxaudio':'msxaudio','sfg01_misato':'misato',
                     'makoto_msxaudio':'msxaudio','misato_msxaudio':'msxaudio',
+                    'makoto_msxaudio_msxaudio':'msxaudio',
                     'msxaudio_msxaudio':'msxaudio',
                     'opl3_makoto':'makoto','opl3_msxaudio':'msxaudio',
                     **{name:'scc' for name in SCC_PROFILES},
@@ -56,7 +58,7 @@ PROFILE_ELEMENTS = {'sfg01_opllrhythm':'opllrhythm',
 
 def variant_folder(profile):
     parent = PROFILE_PARENTS.get(profile)
-    return Path(parent) / PROFILE_ELEMENTS[profile] if parent else Path(profile)
+    return variant_folder(parent) / PROFILE_ELEMENTS[profile] if parent else Path(profile)
 CLOCKS = {0x54:(0x30,3579545),0x56:(0x48,8000000),0x57:(0x48,8000000),
           0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545),
           0xac:(0x58,3579545),
@@ -379,21 +381,24 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     if profile=='opl3':
         return _project_opl3(performance,force=force,dcsg_gain=dcsg_gain,
             pcm_auxiliary=opl3_pcm_auxiliary)
-    chip='opna' if profile in ('makoto','makoto_msxaudio','misato','misato_msxaudio') else 'opm'
+    chip='opna' if profile in ('makoto','makoto_msxaudio','makoto_msxaudio_msxaudio','misato','misato_msxaudio') else 'opm'
     clock=8000000 if chip=='opna' else 3579545
     # Misato is the Makoto composition on the OPN3 cartridge, which
     # has no ADPCM unit (owner, 2026-11-16): PCM content has no
     # destination there and percussion plays on the native YM2608
     # rhythm unit instead of ADPCM-B samples.
-    auxiliary='opna' if profile in ('makoto','makoto_msxaudio','sfg01_makoto','layered') else 'misato' if profile in ('misato','sfg01_misato','misato_msxaudio') else 'y8950' if profile=='sfg01_msxaudio' else None
+    auxiliary='opna' if profile in ('makoto','makoto_msxaudio','makoto_msxaudio_msxaudio','sfg01_makoto','layered') else 'misato' if profile in ('misato','sfg01_misato','misato_msxaudio') else 'y8950' if profile=='sfg01_msxaudio' else None
     # misato_msxaudio keeps the Misato rhythm/SSG side (auxiliary
     # above) and gives PCM content the MSX-AUDIO Delta-T as its
     # destination; a Makoto pairing is impossible (I/O collision).
     pcm_auxiliary='y8950' if profile=='misato_msxaudio' else auxiliary
     # makoto_msxaudio adds the MSX-AUDIO Delta-T as a second PCM
     # unit beside Makoto's ADPCM-B (owner, 2026-11-23): decoded PCM
-    # assets split across the two units, each with its own 256 KiB.
-    pcm_lanes=('opna','y8950') if profile=='makoto_msxaudio' else None
+    # assets split across the units, each with its own 256 KiB.
+    # makoto_msxaudio_msxaudio stacks a second MSX-AUDIO as a third
+    # unit (256 KiB x 3); its Y8950 is the VGM dual chip.
+    pcm_lanes=(('opna',0),('y8950',0)) if profile=='makoto_msxaudio' else \
+        (('opna',0),('y8950',0),('y8950',1)) if profile=='makoto_msxaudio_msxaudio' else None
     # FM-only SFG01 compositions play OPLL rhythm as fitted FM
     # one-shots.  sfg01_opllrhythm selects no table: its rhythm
     # stays native.
@@ -477,14 +482,15 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
         if pcm_auxiliary is None:raise ValueError('PCM source requires sfg01_makoto or sfg01_msxaudio')
         if pcm_lanes and not rhythm_pcm:
             lane_stats=[];lane_prefixes=[]
-            for lane_index,(lane_target,lane_perf) in enumerate(zip(pcm_lanes,_split_pcm_assets(pcm_performance,len(pcm_lanes)))):
+            for lane_index,((lane_target,lane_instance),lane_perf) in enumerate(zip(pcm_lanes,_split_pcm_assets(pcm_performance,len(pcm_lanes)))):
                 if lane_perf is None:lane_stats.append(None);continue
-                pcm,lane_prefix,pcm_losses,stats=project_pcm(lane_perf,lane_target,force=force)
+                pcm,lane_prefix,pcm_losses,stats=project_pcm(lane_perf,lane_target,force=force,instance=lane_instance)
                 if any(count for code,count in pcm_losses.items() if 'budget' in code and ('omitted' in code or 'dropped' in code)) and not force:
                     raise ValueError('PCM content exceeds cartridge DRAM (use --force for explicit omission)')
                 rows.extend(pcm);losses.update(pcm_losses)
                 lane_prefixes.append(lane_prefix);lane_stats.append(stats)
-                if lane_index:losses['pcm_assets_on_second_unit']+=len(lane_perf.pcm_assets)
+                if lane_index==1:losses['pcm_assets_on_second_unit']+=len(lane_perf.pcm_assets)
+                elif lane_index==2:losses['pcm_assets_on_third_unit']+=len(lane_perf.pcm_assets)
             prefix=b''.join(lane_prefixes);pcm_stats={'lanes':lane_stats}
         else:
             pcm,prefix,pcm_losses,pcm_stats=project_pcm(pcm_performance,pcm_auxiliary,force=force)
@@ -603,15 +609,20 @@ def export_variants(performance, outdir, stem, *, force=False, dcsg_gain=.25, op
             result.update(status='success',path=str(path),writes=sum(r['emitted'] for r in rows),planned_writes=len(rows),losses=losses,plan=plan,
                 song_loop_sample=performance.song_loop_sample)
             parent=PROFILE_PARENTS.get(profile)
-            if parent:
+            while parent:
                 parent_path=root/variant_folder(parent)/(stem+'.vgm')
-                if parent_path.is_file() and parent_path.read_bytes()==path.read_bytes():
-                    # The composition changed nothing for this song:
-                    # the base folder already carries the same bytes.
-                    path.unlink()
-                    (folder/(stem+'.writes.csv')).unlink(missing_ok=True)
-                    result.update(status='identical_to_parent',
-                        reason=f'Identical to the {parent} output; omitted')
+                if parent_path.is_file():
+                    if parent_path.read_bytes()==path.read_bytes():
+                        # The composition changed nothing for this song:
+                        # the base folder already carries the same bytes.
+                        path.unlink()
+                        (folder/(stem+'.writes.csv')).unlink(missing_ok=True)
+                        result.update(status='identical_to_parent',
+                            reason=f'Identical to the {parent} output; omitted')
+                    break
+                # The parent itself was omitted as identical; compare
+                # against the nearest published ancestor instead.
+                parent=PROFILE_PARENTS.get(parent)
         except ValueError as error:
             result.update(reason=str(error))
         except Exception as error:

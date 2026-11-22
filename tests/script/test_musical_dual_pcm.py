@@ -76,6 +76,26 @@ class DualPcmVariantTests(unittest.TestCase):
         self.assertIsNone(plan['pcm']['lanes'][1])
         self.assertNotIn(0x5c, {row['command'][0] for row in rows})
 
+    def test_triple_stack_uses_three_units(self):
+        perf = performance([asset('a', 0, 4000, 1), asset('b', 1000, 5000, 2),
+                            asset('c', 2000, 6000, 3)])
+        rows, prefix, losses, plan = project_variant(
+            perf, 'makoto_msxaudio_msxaudio')
+        commands = {row['command'][0] for row in rows}
+        self.assertIn(0x57, commands)  # Makoto ADPCM-B lane
+        self.assertIn(0x5c, commands)  # first MSX-AUDIO Delta-T lane
+        self.assertIn(0xac, commands)  # second MSX-AUDIO (dual-chip form)
+        lanes = plan['pcm']['lanes']
+        self.assertEqual(len(lanes), 3)
+        self.assertTrue(all(lanes))
+        self.assertEqual(losses['pcm_assets_on_second_unit'], 1)
+        self.assertEqual(losses['pcm_assets_on_third_unit'], 1)
+        with tempfile.TemporaryDirectory() as td:
+            results = export_variants(perf, Path(td), 'song')
+            self.assertEqual(results['makoto_msxaudio_msxaudio']['status'], 'success')
+            self.assertTrue(
+                (Path(td) / 'makoto' / 'msxaudio' / 'msxaudio' / 'song.vgm').is_file())
+
 
 if __name__ == '__main__':
     unittest.main()
