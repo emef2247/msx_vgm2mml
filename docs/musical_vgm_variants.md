@@ -59,6 +59,8 @@ rhythm unit instead of the FM one-shot table.
 | **PCM complements: a second or later cartridge adds PCM playback** | |
 | sfg01_makoto | YM2151 FM, YM2608 ADPCM-B / native rhythm, YM2413 and PSG |
 | sfg01_msxaudio | YM2151 FM, Y8950 Delta-T, YM2413 and PSG |
+| makoto_msxaudio | The makoto composition plus an MSX-AUDIO: decoded PCM splits across the YM2608 ADPCM-B and the Y8950 Delta-T, 256 KiB each |
+| msxaudio_msxaudio | Two MSX-AUDIO cartridges: the first unit's FM and Delta-T plus the second unit's Delta-T as a second PCM voice, written as the VGM dual-chip Y8950; 256 KiB per unit |
 | misato_msxaudio | The misato composition plus Y8950 Delta-T for PCM content. There is no misato_makoto: Misato and Makoto are both OPNA cartridges and their I/O ports collide |
 | opl3_makoto | The opl3 composition plus YM2608 ADPCM-B for PCM content |
 | opl3_msxaudio | The opl3 composition plus Y8950 Delta-T for PCM content |

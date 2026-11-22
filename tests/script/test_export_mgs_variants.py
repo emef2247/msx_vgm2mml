@@ -38,10 +38,12 @@ for _value in (0x80, 0xA0, 0xC0, 0xE0, 0xC0, 0xA0, 0x80, 0x60):
     BURST += bytes((0x52, 0x2a, _value, 0x61, 0x02, 0x00))
 OPN2_SONG = vgm(PHRASE + BURST)
 
-PROFILES = ('sfg01', 'sfg01_opllrhythm', 'sfg01_opl3', 'makoto', 'misato', 'misato_msxaudio', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'msxaudio', 'opl3', 'opl3_makoto', 'opl3_msxaudio', 'layered', 'scc_layered', 'psg_layered')
+PROFILES = ('sfg01', 'sfg01_opllrhythm', 'sfg01_opl3', 'makoto', 'makoto_msxaudio', 'misato', 'misato_msxaudio', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'msxaudio', 'msxaudio_msxaudio', 'opl3', 'opl3_makoto', 'opl3_msxaudio', 'layered', 'scc_layered', 'psg_layered')
 # Composition profiles are published under their base profile's folder,
 # in a subfolder named by the added element alone.
 FOLDERS = {'sfg01_opllrhythm': 'sfg01/opllrhythm',
+           'makoto_msxaudio': 'makoto/msxaudio',
+           'msxaudio_msxaudio': 'msxaudio/msxaudio',
            'sfg01_opl3': 'sfg01/opl3', 'sfg01_makoto': 'sfg01/makoto',
            'sfg01_msxaudio': 'sfg01/msxaudio', 'sfg01_misato': 'sfg01/misato',
            'misato_msxaudio': 'misato/msxaudio',

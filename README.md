@@ -183,7 +183,9 @@ opna / opm / opn2 列は、2本目以降のカートリッジ（makoto / msxaudi
 
 - **`sfg01/makoto/`**：SFG-01にMakotoを組み合わせ、PCM再生にOPNAのADPCM-Bを利用します。
 - **`sfg01/msxaudio/`**：SFG-01にMSX-AUDIOを組み合わせ、PCM再生にY8950のDelta-Tを利用します。
+- **`makoto/msxaudio/`**：MakotoにMSX-AUDIOを組み合わせ、PCMをADPCM-BとDelta-Tの2チャンネルで再生します（各256KiB）。重なって鳴るPCMは2台に振り分けられます。
 - **`misato/msxaudio/`**：MisatoにMSX-AUDIOを組み合わせ、PCM再生にY8950のDelta-Tを利用します。リズムはMisatoのリズム音源で再生します。
+- **`msxaudio/msxaudio/`**：MSX-AUDIOを2台使います。1台目のFM演奏に加え、PCMをDelta-T 2チャンネルで再生します（各256KiB、2台目のFM部は使いません）。
 - **`opl3/makoto/`**：OPL3にMakotoを組み合わせ、PCM再生にOPNAのADPCM-Bを利用します。
 - **`opl3/msxaudio/`**：OPL3にMSX-AUDIOを組み合わせ、PCM再生にY8950のDelta-Tを利用します。
 
@@ -450,7 +452,9 @@ These pair a first cartridge that cannot play PCM on its own with the PCM playba
 
 - **`sfg01/makoto/`**: Combines SFG-01 with Makoto, using OPNA ADPCM-B for PCM playback.
 - **`sfg01/msxaudio/`**: Combines SFG-01 with MSX-AUDIO, using Y8950 Delta-T for PCM playback.
+- **`makoto/msxaudio/`**: Combines Makoto with MSX-AUDIO, playing PCM on two channels, ADPCM-B and Delta-T (256 KiB each). PCM content that sounds together is split across the two units.
 - **`misato/msxaudio/`**: Combines Misato with MSX-AUDIO, using Y8950 Delta-T for PCM playback. Rhythm plays on Misato's rhythm sound generator.
+- **`msxaudio/msxaudio/`**: Uses two MSX-AUDIO cartridges. On top of the first unit's FM playback, PCM plays on two Delta-T channels (256 KiB each; the second unit's FM section is not used).
 - **`opl3/makoto/`**: Combines OPL3 with Makoto, using OPNA ADPCM-B for PCM playback.
 - **`opl3/msxaudio/`**: Combines OPL3 with MSX-AUDIO, using Y8950 Delta-T for PCM playback.
 

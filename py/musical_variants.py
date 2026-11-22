@@ -21,7 +21,7 @@ PSG_PROFILES = {'psg_layered':'layered'}
 # made the variant list hard to read.  Compositions are grouped by
 # what the added cartridge provides (PCM playback, a rhythm unit)
 # or by the native chip kept.
-PROFILES = ('sfg01','sfg01_opllrhythm','sfg01_opl3','makoto','misato','misato_msxaudio','sfg01_makoto','sfg01_msxaudio','sfg01_misato','msxaudio','opl3','opl3_makoto','opl3_msxaudio','layered', *SCC_PROFILES, *PSG_PROFILES)
+PROFILES = ('sfg01','sfg01_opllrhythm','sfg01_opl3','makoto','makoto_msxaudio','misato','misato_msxaudio','sfg01_makoto','sfg01_msxaudio','sfg01_misato','msxaudio','msxaudio_msxaudio','opl3','opl3_makoto','opl3_msxaudio','layered', *SCC_PROFILES, *PSG_PROFILES)
 # The opl3 composition has no PCM unit; these profiles pair it with
 # a PCM cartridge instead.  Misato gets no such pairing with Makoto:
 # both are OPNA cartridges and their I/O ports collide, so Misato's
@@ -40,13 +40,15 @@ OPL3_PCM_AUXILIARY = {'opl3_makoto':'opna','opl3_msxaudio':'y8950'}
 PROFILE_PARENTS = {'sfg01_opllrhythm':'sfg01',
                    'sfg01_opl3':'sfg01','sfg01_makoto':'sfg01',
                    'sfg01_msxaudio':'sfg01','sfg01_misato':'sfg01',
-                   'misato_msxaudio':'misato',
+                   'makoto_msxaudio':'makoto','misato_msxaudio':'misato',
+                   'msxaudio_msxaudio':'msxaudio',
                    'opl3_makoto':'opl3','opl3_msxaudio':'opl3',
                    **SCC_PROFILES, **PSG_PROFILES}
 PROFILE_ELEMENTS = {'sfg01_opllrhythm':'opllrhythm',
                     'sfg01_opl3':'opl3','sfg01_makoto':'makoto',
                     'sfg01_msxaudio':'msxaudio','sfg01_misato':'misato',
-                    'misato_msxaudio':'msxaudio',
+                    'makoto_msxaudio':'msxaudio','misato_msxaudio':'msxaudio',
+                    'msxaudio_msxaudio':'msxaudio',
                     'opl3_makoto':'makoto','opl3_msxaudio':'msxaudio',
                     **{name:'scc' for name in SCC_PROFILES},
                     **{name:'psg' for name in PSG_PROFILES}}
@@ -57,6 +59,7 @@ def variant_folder(profile):
     return Path(parent) / PROFILE_ELEMENTS[profile] if parent else Path(profile)
 CLOCKS = {0x54:(0x30,3579545),0x56:(0x48,8000000),0x57:(0x48,8000000),
           0x51:(0x10,3579545),0xa0:(0x74,1789773),0x5c:(0x58,3579545),
+          0xac:(0x58,3579545),
           0x5e:(0x5c,14318180),0x5f:(0x5c,14318180)}
 # Variant volume offsets in TL steps (0.75 dB each, positive =
 # quieter), set by the hidden --v-offset-* export options.  The
@@ -107,12 +110,17 @@ def _write(performance, rows, prefix, path):
         struct.pack_into('<I',header,offset,clock)
         reg=command[1]
         state_only=(command[0]==0x54 and 0x20<=reg<=0xff or command[0] in (0x56,0x57) and (0x30<=reg<0x90 or 0xb0<=reg<=0xb6)
-            or command[0]==0x5c and 0x20<=reg<=0xc8
+            or command[0] in (0x5c,0xac) and 0x20<=reg<=0xc8
             or command[0] in (0x5e,0x5f) and 0x20<=reg<=0xf5)
         key=(command[0],reg)
         row['emitted']=not (state_only and cache.get(key)==command[2])
         if row['emitted']:
             body.extend(command);cache[key]=command[2]
+    if any(row['command'][0]==0xac for row in rows):
+        # A second Y8950 is in the mix (owner, 2026-11-23): its
+        # writes use 0xac and the header clock carries the VGM
+        # dual-chip flag.
+        struct.pack_into('<I',header,0x58,3579545|0x40000000)
     advance(performance.end_sample);body.append(0x66)
     for offset,value in ((8,0x171),(0x18,performance.end_sample),(0x34,256-0x34)):
         struct.pack_into('<I',header,offset,value)
@@ -131,6 +139,44 @@ def _write(performance, rows, prefix, path):
         raise ValueError('Cartridge VGM timing differs from musical performance')
     path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(raw)
     return rows
+
+
+def _split_pcm_assets(performance, lane_count):
+    """Split decoded PCM assets across lane_count cartridge PCM units.
+
+    Returns one sub-performance per unit (None for a unit that
+    receives nothing).  Assets keep their identity and are assigned
+    in start order to the first unit free at their start, so
+    content that sounds together lands on different units; each
+    unit is then projected on its own with its own 256 KiB budget.
+    Content beyond the unit count falls back to the first unit,
+    whose projection mixes it and records that loss.  A
+    single-stream source (one MSM6258 stream or one OPN2 DAC
+    timeline) is one voice and stays on the first unit whole.
+    """
+    from dataclasses import replace
+    assets=sorted(getattr(performance,'pcm_assets',()),
+                  key=lambda a:(a.start_sample,a.asset_id))
+    lanes=[[] for _ in range(lane_count)]
+    if assets:
+        devices={d.device_id:d.chip for d in performance.devices}
+        single_stream=(all(devices[a.device_id]=='msm6258' for a in assets)
+            or all(devices[a.device_id]=='opn2'
+                   and 'dac_timeline' in dict(a.parameters) for a in assets))
+        if single_stream:
+            lanes[0]=list(assets)
+        else:
+            free_at=[0]*lane_count
+            for asset in assets:
+                for lane in range(lane_count):
+                    if asset.start_sample>=free_at[lane]:
+                        lanes[lane].append(asset)
+                        free_at[lane]=max(free_at[lane],asset.end_sample)
+                        break
+                else:
+                    lanes[0].append(asset)
+    return [replace(performance,pcm_assets=tuple(lane)) if lane else None
+            for lane in lanes]
 
 
 def _project_fm_layer(performance, chip, clock, *, force, include_psg=False,
@@ -156,7 +202,8 @@ def _project_fm_layer(performance, chip, clock, *, force, include_psg=False,
         losses=dict(losses))
 
 
-def _project_msxaudio(performance, *, force=False, dcsg_gain=.25):
+def _project_msxaudio(performance, *, force=False, dcsg_gain=.25,
+                      dual_pcm=False):
     """MSX-AUDIO profile: the Y8950 FM section is the primary target.
 
     OPLL voices project to Y8950 FM through the commercially
@@ -172,7 +219,7 @@ def _project_msxaudio(performance, *, force=False, dcsg_gain=.25):
     """
     from musical_opl_target import project_opl_fm
     from musical_pcm_target import project_pcm
-    allowed={'y8950','opll','psg','dcsg','msm6258','nesapu','huc6280'}
+    allowed={'y8950','opll','psg','dcsg','msm6258','nesapu','huc6280','segapcm'}
     # The gate counts sounding devices only, as in the opl3 route:
     # a device that never sounds (an msxplay.com export lists every
     # device) must not fail the profile; a sounding unsupported
@@ -210,7 +257,23 @@ def _project_msxaudio(performance, *, force=False, dcsg_gain=.25):
         opna=False,force=True,opll_fm_device=opll_device)
     rows.extend(aux);losses.update(aux_losses)
     assets=getattr(performance,'pcm_assets',())
-    if assets:
+    if assets and dual_pcm:
+        # Two MSX-AUDIO cartridges (owner, 2026-11-23): the second
+        # unit's Delta-T is a second PCM voice beside the first
+        # unit's, each with its own 256 KiB.  Its FM section is not
+        # used.  The second unit is written as the VGM dual-chip
+        # Y8950 (command 0xac, flagged RAM block).
+        lane_stats=[];lane_prefixes=[]
+        for instance,lane_perf in enumerate(_split_pcm_assets(performance,2)):
+            if lane_perf is None:lane_stats.append(None);continue
+            pcm,lane_prefix,pcm_losses,stats=project_pcm(lane_perf,'y8950',force=force,instance=instance)
+            if any(count for code,count in pcm_losses.items() if 'budget' in code and ('omitted' in code or 'dropped' in code)) and not force:
+                raise ValueError('PCM content exceeds cartridge DRAM (use --force for explicit omission)')
+            rows.extend(pcm);losses.update(pcm_losses)
+            lane_prefixes.append(lane_prefix);lane_stats.append(stats)
+            if instance:losses['pcm_assets_on_second_unit']+=len(lane_perf.pcm_assets)
+        prefix=b''.join(lane_prefixes);pcm_stats={'lanes':lane_stats}
+    elif assets:
         pcm,prefix,pcm_losses,pcm_stats=project_pcm(performance,'y8950',force=force)
         if any(count for code,count in pcm_losses.items() if 'budget' in code and ('omitted' in code or 'dropped' in code)) and not force:
             raise ValueError('PCM content exceeds cartridge DRAM (use --force for explicit omission)')
@@ -237,7 +300,7 @@ def _project_opl3(performance, *, force=False, dcsg_gain=.25,
     explicit omission under --force only.
     """
     from musical_opl3_target import project_opl3_fm
-    allowed={'opll','y8950','ymf262','psg','dcsg','nesapu','huc6280'}
+    allowed={'opll','y8950','ymf262','psg','dcsg','nesapu','huc6280','segapcm'}
     # The gate counts sounding devices only: a device that never
     # sounds (an msxplay.com export lists every device) must not
     # fail the profile; a sounding unsupported chip still does.
@@ -310,29 +373,34 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     # of the FM one-shot table (owner, 2026-11-22).
     opl3_rhythm_unit=profile=='sfg01_opl3'
     if not 0<dcsg_gain<=1:raise ValueError('DCSG gain must be >0 and <=1')
-    if profile=='msxaudio':
-        return _project_msxaudio(performance,force=force,dcsg_gain=dcsg_gain)
+    if profile in ('msxaudio','msxaudio_msxaudio'):
+        return _project_msxaudio(performance,force=force,dcsg_gain=dcsg_gain,
+            dual_pcm=profile=='msxaudio_msxaudio')
     if profile=='opl3':
         return _project_opl3(performance,force=force,dcsg_gain=dcsg_gain,
             pcm_auxiliary=opl3_pcm_auxiliary)
-    chip='opna' if profile in ('makoto','misato','misato_msxaudio') else 'opm'
+    chip='opna' if profile in ('makoto','makoto_msxaudio','misato','misato_msxaudio') else 'opm'
     clock=8000000 if chip=='opna' else 3579545
     # Misato is the Makoto composition on the OPN3 cartridge, which
     # has no ADPCM unit (owner, 2026-11-16): PCM content has no
     # destination there and percussion plays on the native YM2608
     # rhythm unit instead of ADPCM-B samples.
-    auxiliary='opna' if profile in ('makoto','sfg01_makoto','layered') else 'misato' if profile in ('misato','sfg01_misato','misato_msxaudio') else 'y8950' if profile=='sfg01_msxaudio' else None
+    auxiliary='opna' if profile in ('makoto','makoto_msxaudio','sfg01_makoto','layered') else 'misato' if profile in ('misato','sfg01_misato','misato_msxaudio') else 'y8950' if profile=='sfg01_msxaudio' else None
     # misato_msxaudio keeps the Misato rhythm/SSG side (auxiliary
     # above) and gives PCM content the MSX-AUDIO Delta-T as its
     # destination; a Makoto pairing is impossible (I/O collision).
     pcm_auxiliary='y8950' if profile=='misato_msxaudio' else auxiliary
+    # makoto_msxaudio adds the MSX-AUDIO Delta-T as a second PCM
+    # unit beside Makoto's ADPCM-B (owner, 2026-11-23): decoded PCM
+    # assets split across the two units, each with its own 256 KiB.
+    pcm_lanes=('opna','y8950') if profile=='makoto_msxaudio' else None
     # FM-only SFG01 compositions play OPLL rhythm as fitted FM
     # one-shots.  sfg01_opllrhythm selects no table: its rhythm
     # stays native.
     fm_rhythm_table='opll' if profile=='sfg01' else None
     pcm_library='ika'
     losses=Counter();rows=[];prefix=b''
-    supported={'opm','opna','opn2','psg','opll','scc','dcsg','huc6280','nesapu','msm6258'}
+    supported={'opm','opna','opn2','psg','opll','scc','dcsg','huc6280','nesapu','msm6258','segapcm'}
     for device in performance.devices:
         if device.chip not in supported:losses['unsupported_source_device_'+device.chip]+=1
     if any(k.startswith('unsupported_source_device_') for k in losses):
@@ -407,10 +475,22 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
         losses['pcm_content_omitted_no_misato_destination']+=len(assets)
     elif assets:
         if pcm_auxiliary is None:raise ValueError('PCM source requires sfg01_makoto or sfg01_msxaudio')
-        pcm,prefix,pcm_losses,pcm_stats=project_pcm(pcm_performance,pcm_auxiliary,force=force)
-        if any(count for code,count in pcm_losses.items() if 'budget' in code and ('omitted' in code or 'dropped' in code)) and not force:
-            raise ValueError('PCM content exceeds cartridge DRAM (use --force for explicit omission)')
-        rows.extend(pcm);losses.update(pcm_losses)
+        if pcm_lanes and not rhythm_pcm:
+            lane_stats=[];lane_prefixes=[]
+            for lane_index,(lane_target,lane_perf) in enumerate(zip(pcm_lanes,_split_pcm_assets(pcm_performance,len(pcm_lanes)))):
+                if lane_perf is None:lane_stats.append(None);continue
+                pcm,lane_prefix,pcm_losses,stats=project_pcm(lane_perf,lane_target,force=force)
+                if any(count for code,count in pcm_losses.items() if 'budget' in code and ('omitted' in code or 'dropped' in code)) and not force:
+                    raise ValueError('PCM content exceeds cartridge DRAM (use --force for explicit omission)')
+                rows.extend(pcm);losses.update(pcm_losses)
+                lane_prefixes.append(lane_prefix);lane_stats.append(stats)
+                if lane_index:losses['pcm_assets_on_second_unit']+=len(lane_perf.pcm_assets)
+            prefix=b''.join(lane_prefixes);pcm_stats={'lanes':lane_stats}
+        else:
+            pcm,prefix,pcm_losses,pcm_stats=project_pcm(pcm_performance,pcm_auxiliary,force=force)
+            if any(count for code,count in pcm_losses.items() if 'budget' in code and ('omitted' in code or 'dropped' in code)) and not force:
+                raise ValueError('PCM content exceeds cartridge DRAM (use --force for explicit omission)')
+            rows.extend(pcm);losses.update(pcm_losses)
     native_pcm=[p for p in performance.pcm_packets if p.chip=='opna']
     if native_pcm:
         from opn2_target_vgm import ADPCM_B_DRAM_BUDGET
