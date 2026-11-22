@@ -11,8 +11,8 @@ import struct
 
 from musical_wave_target import project_waves, project_psg_opll
 
-SCC_PROFILES = {'scc_sfg01':'sfg01', 'scc_makoto':'makoto', 'scc_layered':'layered', 'scc_opl3':'opl3'}
-PSG_PROFILES = {'psg_sfg01':'sfg01', 'psg_makoto':'makoto', 'psg_layered':'layered', 'psg_opl3':'opl3'}
+SCC_PROFILES = {'scc_sfg01':'sfg01', 'scc_makoto':'makoto', 'scc_misato':'misato', 'scc_msxaudio':'msxaudio', 'scc_layered':'layered', 'scc_opl3':'opl3'}
+PSG_PROFILES = {'psg_sfg01':'sfg01', 'psg_makoto':'makoto', 'psg_misato':'misato', 'psg_msxaudio':'msxaudio', 'psg_layered':'layered', 'psg_opl3':'opl3'}
 PROFILES = ('sfg01','sfg01_rx21','sfg01_opllrhythm','sfg01_opl3','makoto','makoto_rx21','misato','misato_msxaudio','sfg01_makoto','sfg01_msxaudio','sfg01_misato','msxaudio','opl3','opl3_makoto','opl3_msxaudio','layered', *SCC_PROFILES, *PSG_PROFILES)
 # The opl3 composition has no PCM unit; these profiles pair it with
 # a PCM cartridge instead.  Misato gets no such pairing with Makoto:
@@ -121,7 +121,7 @@ def _project_fm_layer(performance, chip, clock, *, force, include_psg=False,
         losses=dict(losses))
 
 
-def _project_msxaudio(performance, *, force=False, dcsg_gain=.25):
+def _project_msxaudio(performance, *, force=False, dcsg_gain=.25, real_scc=False, real_psg=False):
     """MSX-AUDIO profile: the Y8950 FM section is the primary target.
 
     OPLL voices project to Y8950 FM through the commercially
@@ -129,20 +129,50 @@ def _project_msxaudio(performance, *, force=False, dcsg_gain=.25):
     rhythm unit; Y8950 sources re-emit natively; PCM rides the
     Y8950 Delta-T unit.  Source families whose Y8950 projection is
     not established yet (4-op FM, waveform chips) make the profile
-    unavailable.
+    unavailable.  With real_scc (scc_msxaudio) the SCC lanes stay
+    on a real SCC beside the Y8950 projection; with real_psg
+    (psg_msxaudio) PSG voices also double onto Y8950 carriers
+    through the waveform projection, beside their native AY lanes.
     """
     from musical_opl_target import project_opl_fm
     from musical_pcm_target import project_pcm
     allowed={'y8950','opll','psg','dcsg','msm6258'}
-    bad=sorted({d.chip for d in performance.devices}-allowed)
+    if real_scc:allowed.add('scc')
+    if real_psg:
+        # The PSG layered gate in project_variant already proved the
+        # sounding sources are PSG-only; a device that never sounds
+        # (an msxplay.com header lists every device) must not fail
+        # this profile the way it fails the base msxaudio profile.
+        by_id={d.device_id:d.chip for d in performance.devices}
+        present={by_id[u.device_id] for u in performance.units}
+        present|={by_id[e.device_id] for e in performance.percussion}
+        present|={p.chip for p in performance.pcm_packets}
+    else:
+        present={d.chip for d in performance.devices}
+    bad=sorted(present-allowed)
     if bad:raise ValueError('msxaudio profile has no projection for '+', '.join(bad))
     msm_issues=[d for d in performance.decisions if d and d[0] in
         ('msm6258_pcm_source_issue','msm6258_pcm_unresolved_playback')]
     if msm_issues and not force:
         raise ValueError('MSM6258 PCM source evidence is unresolved; inspect native decisions')
-    rows=[];prefix=b'';losses=Counter();pcm_stats={}
+    rows=[];prefix=b'';losses=Counter();pcm_stats={};plan_extra={}
+    if real_scc:
+        from musical_scc_target import project_scc
+        scc_rows,scc_losses,scc_plan=project_scc(performance)
+        rows.extend(scc_rows);losses.update(scc_losses);plan_extra['real_scc']=scc_plan
     fm_rows,fm_losses,allocation=project_opl_fm(performance,force=force)
     rows.extend(fm_rows);losses.update(fm_losses)
+    if real_psg:
+        # psg_msxaudio: the PSG voices double onto Y8950 sine
+        # carriers through the waveform projection, beside the
+        # native AY lanes the auxiliary projection below emits.
+        # Nine FM channels take two four-carrier voices; a third
+        # voice's doubling is omitted with the loss recorded.
+        from musical_wave_target import project_waves
+        wave_rows,wave_losses,wave_allocation=project_waves(performance,'y8950',3579545,
+            reserved=set(allocation.values()),force=True,include_psg=True)
+        rows.extend(wave_rows);losses.update(wave_losses)
+        plan_extra['waveform_allocation']={str(k):v for k,v in wave_allocation.items()}
     opll_device=next((d.device_id for d in performance.devices if d.chip=='opll'),None)
     aux,aux_losses=project_psg_opll(performance,dcsg_gain=dcsg_gain,
         opna=False,force=True,opll_fm_device=opll_device)
@@ -155,6 +185,7 @@ def _project_msxaudio(performance, *, force=False, dcsg_gain=.25):
         rows.extend(pcm);losses.update(pcm_losses)
     if not rows and not prefix:raise ValueError('No mapped musical operations in source')
     plan=dict(fm_allocation={str(k):v for k,v in allocation.items()},pcm=pcm_stats)
+    plan.update(plan_extra)
     return rows,prefix,dict(losses),plan
 
 
@@ -249,7 +280,21 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     opl3_rhythm_unit=profile=='sfg01_opl3'
     if not 0<dcsg_gain<=1:raise ValueError('DCSG gain must be >0 and <=1')
     if profile=='msxaudio':
-        return _project_msxaudio(performance,force=force,dcsg_gain=dcsg_gain)
+        if real_psg:
+            # The PSG layered family is defined for PSG-only sources
+            # (owner, 2026-11-14); the msxaudio route returns before
+            # the main route's gate, so the same checks run here.
+            devices={d.device_id:d for d in performance.devices}
+            sounding={devices[u.device_id].chip for u in performance.units}
+            sounding|={devices[e.device_id].chip for e in performance.percussion}
+            sounding|={p.chip for p in performance.pcm_packets}
+            if not any(devices[u.device_id].chip=='psg' and u.section!='noise'
+                and u.role!='unpitched' for u in performance.units):
+                raise ValueError('No sounding PSG units for the PSG layered profile')
+            if sounding!={'psg'}:
+                raise ValueError('PSG layered profiles require a PSG-only source')
+        return _project_msxaudio(performance,force=force,dcsg_gain=dcsg_gain,
+            real_scc=real_scc,real_psg=real_psg)
     if profile=='opl3':
         if real_psg:
             # The PSG layered family is defined for PSG-only sources

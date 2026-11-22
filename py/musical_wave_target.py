@@ -82,6 +82,17 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False, 
         taken = set(reserved)
         free = [base for base in (0, 4, 8, 12)
                 if all(base + k not in taken for k in range(4))]
+    elif target_chip == 'y8950':
+        from musical_opl_target import (_OFFSETS as _y8950_offsets,
+            _pitch as _y8950_pitch)
+        # Each doubled voice takes four consecutive Y8950 channels,
+        # one sine carrier per spectrum harmonic.  The chip has nine
+        # FM channels, so two full voices fit; a third PSG voice
+        # keeps its native AY lane and its doubling is omitted with
+        # the capacity loss recorded.
+        taken = set(reserved)
+        free = [base for base in (0, 4)
+                if all(base + k not in taken for k in range(4))]
     else:
         capacity = 8 if target_chip == 'opm' else 6
         free = [i for i in range(capacity) if i not in set(reserved)]
@@ -117,6 +128,14 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False, 
             for bank in range(len(spectrum.harmonics)):
                 ch=target+bank
                 emit_opl3(at,ch,0xb0+ch%9,(block<<2)|(fnum>>8),reason,order)
+        def emit_y8950(at,ch,reg,val,reason,order=0):
+            rows.append(record(unit,at,bytes((0x5c,reg,val&255)),reason,order))
+        def gate_off_y8950(at,reason,order=0):
+            if last_pitch is None:return
+            block,fnum=last_pitch
+            for bank in range(len(spectrum.harmonics)):
+                ch=target+bank
+                emit_y8950(at,ch,0xb0+ch,(block<<2)|(fnum>>8),reason,order)
         started=False;last_pitch=None
         for at in times(unit):
             voice=voices.get(curve_value(unit.voice_curve,at))
@@ -131,6 +150,7 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False, 
                 if started:
                     if target_chip=='opm': emit(at,8,target,'psg noise interval gate end')
                     elif target_chip=='opl3': gate_off_opl3(at,'psg noise interval gate end')
+                    elif target_chip=='y8950': gate_off_y8950(at,'psg noise interval gate end')
                     else: emit(at,0x28,target%3|(4 if target>=3 else 0),'psg noise interval gate end')
                     started=False
                 continue
@@ -139,6 +159,7 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False, 
                 losses['unknown_wave_pitch_intervals_muted'] += 1
                 if target_chip=='opm': emit(at,0x20+target,7,'unknown pitch mute')
                 elif target_chip=='opl3': gate_off_opl3(at,'unknown pitch mute')
+                elif target_chip=='y8950': gate_off_y8950(at,'unknown pitch mute')
                 else: emit(at,0xb4+target%3,0,'unknown pitch mute',target//3)
                 continue
             level=_amplitude(unit,device,curve_value(unit.volume_curve,at))
@@ -172,6 +193,24 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False, 
                     emit_opl3(at,ch,0xc0+ch%9,0x30,'additive voice stereo')
                     emit_opl3(at,ch,0xa0+ch%9,fnum&255,'musical pitch')
                     emit_opl3(at,ch,0xb0+ch%9,(block<<2)|(fnum>>8)|0x20,'musical pitch and gate')
+            elif target_chip=='y8950':
+                block,fnum=_y8950_pitch(hz,clock);last_pitch=(block,fnum)
+                for bank,(harmonic,amplitude) in enumerate(zip(spectrum.harmonics,spectrum.amplitudes)):
+                    ch=target+bank;off=_y8950_offsets[ch]
+                    # A 2-op unit in FM connection: the modulator is
+                    # held silent and the carrier sounds the harmonic,
+                    # as in the opl3 arm; the Y8950 has no waveform
+                    # select, so no 0xe0 writes are emitted.
+                    tl=max(0,min(63,carrier_tl(level*amplitude)))
+                    for reg,value in ((0x20+off,0x21),(0x40+off,63),
+                                      (0x60+off,0xf0),(0x80+off,0x0f)):
+                        emit_y8950(at,ch,reg,value,'wave spectrum silent modulator')
+                    for reg,value in ((0x20+off+3,0x20|harmonic),(0x40+off+3,tl),
+                                      (0x60+off+3,0xf0),(0x80+off+3,0x0f)):
+                        emit_y8950(at,ch,reg,value,'wave spectrum and musical volume')
+                    emit_y8950(at,ch,0xc0+ch,0,'additive voice')
+                    emit_y8950(at,ch,0xa0+ch,fnum&255,'musical pitch')
+                    emit_y8950(at,ch,0xb0+ch,(block<<2)|(fnum>>8)|0x20,'musical pitch and gate')
             else:
                 from opm_target_vgm import _opna_pitch
                 block,fnum,*_=_opna_pitch(hz,clock)
@@ -193,6 +232,9 @@ def project_waves(performance, target_chip, clock, reserved=(), *, force=False, 
         if device.chip!='psg' or started:
             if target_chip=='opl3':
                 gate_off_opl3(unit.end_sample,'musical gate end',
+                    -1 if unit.end_sample>unit.start_sample else 1)
+            elif target_chip=='y8950':
+                gate_off_y8950(unit.end_sample,'musical gate end',
                     -1 if unit.end_sample>unit.start_sample else 1)
             else:
                 if target_chip=='opm':
