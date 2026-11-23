@@ -53,14 +53,18 @@ _RHYTHM_TL = {'BD': 0x53, 'SD': 0x54, 'TOM': 0x52, 'CYM': 0x55, 'HH': 0x51}
 # are the sweep's.  The Y8950 target keeps the fitted
 # shared template untouched.
 _RHYTHM_TL_SHIFT = {'BD': -51, 'SD': -53, 'TOM': -43, 'CYM': -29, 'HH': -27}
-# Lane level on top of the kit anchor (owner's decision,
-# 2026-11-23): with the melodic trims re-anchored to the
-# IKAOPLL reference the kit stood too far forward against the
-# melody (FMPAC02 hardware takes: the rhythm-led sections sat
-# about 18 dB over the melody-led intro).  A/B takes at -3/-6/
-# -9 dB settled on -9 dB, i.e. 12 TL steps on every instrument;
-# the kit's internal balance is unchanged.
-_RHYTHM_TL_OFFSET = 12
+# Lane level on top of the kit anchor (owner's decisions,
+# 2026-11-23 and 2026-11-24): with the melodic trims
+# re-anchored to the IKAOPLL reference the kit stood too far
+# forward against the melody (FMPAC02 hardware takes: the
+# rhythm-led sections sat about 18 dB over the melody-led
+# intro).  A/B takes at -3/-6/-9 dB settled on -9 dB, i.e.
+# 12 TL steps on every instrument; the kit's internal balance
+# is unchanged.  A FMPAC01 hardware take then showed the
+# rhythm still exposed where the melody thins out (intro and
+# ending about 6-8 dB over the middle), so the same -9 dB
+# treatment was applied once more: 24 steps in total.
+_RHYTHM_TL_OFFSET = 24
 # Full per-slot field sets for the kit, keyed (channel, slot).
 # Every field is specified, so nothing of the shared composed
 # template survives on the OPL3 target.  Waveform select is
