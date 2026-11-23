@@ -47,6 +47,14 @@ _RHYTHM_TL = {'BD': 0x53, 'SD': 0x54, 'TOM': 0x52, 'CYM': 0x55, 'HH': 0x51}
 # reference attenuation a hit lands exactly on the kit level.
 # The Y8950 target keeps the fitted shared template untouched.
 _RHYTHM_TL_SHIFT = {'BD': -51, 'SD': 8, 'TOM': -43, 'CYM': -29, 'HH': -27}
+# Lane level on top of the kit anchor (owner's decision,
+# 2026-11-23): with the melodic trims re-anchored to the
+# IKAOPLL reference the kit stood too far forward against the
+# melody (FMPAC02 hardware takes: the rhythm-led sections sat
+# about 18 dB over the melody-led intro).  A/B takes at -3/-6/
+# -9 dB settled on -9 dB, i.e. 12 TL steps on every instrument;
+# the kit's internal balance is unchanged.
+_RHYTHM_TL_OFFSET = 12
 # Full per-slot field sets for the kit, keyed (channel, slot).
 # Every field is specified, so nothing of the shared composed
 # template survives on the OPL3 target.  Waveform select is
@@ -482,7 +490,8 @@ def _project_opll_rhythm(performance, device, emit, losses):
                     continue
                 emit(None, at, -0.5, 6, _RHYTHM_TL[e.instrument_family],
                      max(0, min(63, rhythm_level(e.instrument_family, level)
-                                + _RHYTHM_TL_SHIFT.get(e.instrument_family, 0))),
+                                + _RHYTHM_TL_SHIFT.get(e.instrument_family, 0)
+                                + _RHYTHM_TL_OFFSET)),
                      'OPL3 rhythm level', device_id=device.device_id)
             if not e.volume_curve:
                 losses['opll_rhythm_level_unobserved'] += 1
