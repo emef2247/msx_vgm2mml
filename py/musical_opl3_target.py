@@ -45,7 +45,7 @@ _RHYTHM_TL = {'BD': 0x53, 'SD': 0x54, 'TOM': 0x52, 'CYM': 0x55, 'HH': 0x51}
 # HH mod 36, SD car 8, TOM mod 0, CYM car 24), so at the
 # reference attenuation a hit lands exactly on the kit level.
 # The Y8950 target keeps the fitted shared template untouched.
-_RHYTHM_TL_SHIFT = {'BD': -51, 'SD': 8, 'TOM': -43, 'CYM': -29, 'HH': -27}
+_RHYTHM_TL_SHIFT = {'BD': -51, 'SD': -53, 'TOM': -43, 'CYM': -29, 'HH': -27}
 # Lane level on top of the kit anchor (owner's decision,
 # 2026-11-23): with the melodic trims re-anchored to the
 # IKAOPLL reference the kit stood too far forward against the
