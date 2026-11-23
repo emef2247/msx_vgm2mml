@@ -22,7 +22,7 @@ import json
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-ROM = json.loads((HERE / 'opll_presets.json').read_text())
+SEED = json.loads((HERE / 'opll_presets.json').read_text())
 OUT = HERE / 'opll_presets_established.h'
 
 MUL_MAP = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 12, 12, 15, 15]
@@ -231,7 +231,7 @@ OPM_RHYTHM_NOISE_NFRQ = 29
 
 def rhythm_opm():
     """[(name, four_op row, reg 0x0F value or 0)] for OPM drums."""
-    d = ROM['drums']
+    d = SEED['drums']
 
     def pair(mod, car, fb):
         return four_op({'mod': mod, 'car': car, 'fb': fb}, 0, 0,
@@ -275,13 +275,13 @@ def fmt_op4(v):
 
 
 def main():
-    mel = [ROM['melodic'][str(i)] for i in range(1, 16)]
+    mel = [SEED['melodic'][str(i)] for i in range(1, 16)]
     lines = []
     lines.append('#ifndef OPLL_PRESETS_ESTABLISHED_H')
     lines.append('#define OPLL_PRESETS_ESTABLISHED_H')
     lines.append('')
     lines.append('/*')
-    for ln in ROM['notice'].splitlines():
+    for ln in SEED['notice'].splitlines():
         lines.append(' * ' + ln if ln else ' *')
     lines.append(' *')
     lines.append(' * Contents: the base YM2413 set (register bytes), plus')
@@ -316,9 +316,9 @@ def main():
                   'R: Tom-tom(M)/Top Cymbal(C)']
     base_rows = []
     for i in range(1, 16):
-        v = ROM['melodic'][str(i)]
+        v = SEED['melodic'][str(i)]
         base_rows.append(pack(v['mod'], v['car'], v['fb'], v['dc'], v['dm']))
-    drums = ROM['drums']
+    drums = SEED['drums']
     base_rows.append(pack(drums['bd']['mod'], drums['bd']['car'],
                           drums['bd']['fb'], drums['bd']['dc'],
                           drums['bd']['dm']))
@@ -406,7 +406,7 @@ def _op_obj(op):
 def _target_json(target, chip, clock, pms, ams, trims, rhythm):
     voices = []
     for i in range(1, 16):
-        row = ROM['melodic'][str(i)]
+        row = SEED['melodic'][str(i)]
         fb, alg, vp, va, ops = four_op(row, pms, ams, perc_rr=8,
                                        ksl_comp=True)
         voice = {'index': i, 'name': row['name'], 'fb': fb, 'alg': alg,
@@ -494,7 +494,7 @@ def _established_opl_json(target, chip, clock):
                 'rr': o['rr']}
     voices = []
     for i in range(1, 16):
-        row = ROM['melodic'][str(i)]
+        row = SEED['melodic'][str(i)]
         voices.append({'index': i, 'name': row['name'],
                        'fb': row['fb'],
                        'ops': [op(row['mod']), op(row['car'])],

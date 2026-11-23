@@ -1,6 +1,8 @@
 {
  "rate_hz": 22050,
  "source": "IKAOPLL-verilator renders of single rhythm hits at the reference oscillator pitches (FMPAC01 settings), levels at maximum; generated 2026-11-14",
+ "copyright": "Copyright (c) 2026 emef2247",
+ "license": "MIT",
  "families": {
   "BD": {
    "file": "BD.wav",
