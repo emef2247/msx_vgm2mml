@@ -423,12 +423,18 @@ def project_opl3_rhythm(performance):
                          source_indices=unit.source_indices if unit else (),
                          reason=reason))
 
-    rows.append(dict(sample=0, order=-2, command=bytes((0x5f, 0x05, 1)),
-                     unit_id='', device_id='', source_indices=(),
-                     reason='OPL3 mode enable'))
     for device in performance.devices:
         if device.chip == 'opll':
             _project_opll_rhythm(performance, device, emit, losses)
+    if rows:
+        # The mode enable is setup for content this lane actually
+        # projected.  Emitting it for an empty lane would still make
+        # the writer declare the OPL3 clock, so a composition that
+        # adds nothing (any non-OPLL source) could never collapse
+        # into its base profile's byte-identical output.
+        rows.insert(0, dict(sample=0, order=-2, command=bytes((0x5f, 0x05, 1)),
+                            unit_id='', device_id='', source_indices=(),
+                            reason='OPL3 mode enable'))
     return rows, losses
 
 
