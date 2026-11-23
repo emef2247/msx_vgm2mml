@@ -44,28 +44,23 @@ _RHYTHM_TL = {'BD': 0x53, 'SD': 0x54, 'TOM': 0x52, 'CYM': 0x55, 'HH': 0x51}
 # _RHYTHM_TL_SHIFT re-anchors rhythm_level()'s fitted
 # reference points onto the kit's nominal TLs (BD car 0,
 # HH mod 36, SD car 8, TOM mod 0, CYM car 24), so at the
-# reference attenuation a hit lands exactly on the kit level.
+# reference attenuation a hit lands exactly on the kit level
+# (the lane carries no further offset; see _RHYTHM_TL_OFFSET).
 # The sweep's own fitted TLs (BD/HH/SD/TOM 0) were tried
 # first and the owner's hardware listening rejected them:
 # at those levels the lane sounded like banging on a hard
 # desk rather than instruments, so the level balance is the
-# previous kit's, while the frames, feedback and pitches
-# are the sweep's.  The Y8950 target keeps the fitted
-# shared template untouched.
+# one settled by the owner's listening checks, while the
+# frames, feedback and pitches are the sweep's.  The Y8950
+# target keeps the fitted shared template untouched.
 _RHYTHM_TL_SHIFT = {'BD': -51, 'SD': -53, 'TOM': -43, 'CYM': -29, 'HH': -27}
-# Lane level on top of the kit anchor (owner's decisions,
-# 2026-11-23 and 2026-11-24): with the melodic trims
-# re-anchored to the IKAOPLL reference the kit stood too far
-# forward against the melody (FMPAC02 hardware takes: the
-# rhythm-led sections sat about 18 dB over the melody-led
-# intro).  A/B takes at -3/-6/-9 dB settled on -9 dB, i.e.
-# 12 TL steps on every instrument; the kit's internal balance
-# is unchanged.  (A further -9 dB was tried on a FMPAC01 take
-# and reverted the same night: the loud intro and ending there
-# turned out to be the un-trimmed custom-patch melody voice,
-# not the rhythm, and preset voices now play on the custom
-# basis -- see resolve_opll.)
-_RHYTHM_TL_OFFSET = 12
+# Lane level on top of the kit anchor: none (owner's
+# decision, 2026-11-24).  A -9 dB lane offset (12 steps) was
+# in place while the melody side was pulled down by the
+# carrier law; with preset voices now playing at their
+# parameter level, the kit plays at its anchored landings
+# as they are.
+_RHYTHM_TL_OFFSET = 0
 # Full per-slot field sets for the kit, keyed (channel, slot).
 # Every field is specified, so nothing of the shared composed
 # template survives on the OPL3 target.  Waveform select is
@@ -326,7 +321,6 @@ def project_opl3_fm(performance, *, force=False):
             losses['second_opll_device_melody_not_fm_projected'] += 1
         _doc, table = _table()
         resolved = {}
-        trim_by_row = {}
 
         def resolve_opll(voice_id):
             if voice_id in resolved:
@@ -340,13 +334,6 @@ def project_opl3_fm(performance, *, force=False):
                 result = (entry['fb'],
                           [tuple(o[f] for f in _OP_FIELDS) + (o.get('ws') or 0,) for o in entry['ops']],
                           entry.get('alg', 0), 1, 1)
-                # Owner's decision (2026-11-24): preset voices
-                # play on the same loudness basis as custom
-                # patches -- the source attenuation alone, with
-                # no per-voice trim.  The table's fitted
-                # level_trim_tl values are not applied on this
-                # target.
-                trim_by_row[id(result)] = 0
             elif inst == 0:
                 patch = p.get('custom_patch') or ()
                 if any(b is None for b in patch):
@@ -360,18 +347,21 @@ def project_opl3_fm(performance, *, force=False):
             resolved[voice_id] = result
             return result
 
+        # Owner's decision (2026-11-24): an OPLL voice's level
+        # on this target is the parameter's own carrier TL --
+        # the fitted table carries 0 for every preset, and a
+        # custom patch carries its own value.  The performance
+        # attenuation (source VOL steps x 4) and the table's
+        # level_trim_tl are not applied: with them, preset
+        # voices sat far below the custom patch and the rhythm
+        # on real hardware.  The source's volume steps
+        # therefore do not change note volume on this target.
         def tl_opll(row, slot, op, level):
-            if slot == 0:
-                return op[6]
-            level = 15 if level is None else max(0, min(15, int(level)))
-            return max(0, min(63, (level << 2)
-                              + trim_by_row.get(id(row), 0)))
+            return op[6]
 
         def carrier_opll(unit, sample, ch, row, level, emit):
-            level = 15 if level is None else max(0, min(15, int(level)))
             emit(unit, sample, -0.5, ch, 0x40 + _OFFSETS[ch % 9] + 3,
-                 (row[1][1][5] << 6) | max(0, min(63, (level << 2)
-                              + trim_by_row.get(id(row), 0))), 'OPL3 carrier level')
+                 (row[1][1][5] << 6) | row[1][1][6], 'OPL3 carrier level')
 
         run_units(device,
                   [u for u in performance.units
