@@ -72,11 +72,25 @@ def project_pcm(performance, target, *, force=False, instance=0):
         groups[-1].append(asset)
     windows=[]
     for group in groups:
-        start=min(a.start_sample for a in group);end=max(a.end_sample for a in group)
-        boundaries=[start,end]
-        if performance.song_loop_sample is not None and start<performance.song_loop_sample<end:
-            boundaries.insert(1,performance.song_loop_sample)
-        windows.extend((group,left,right) for left,right in zip(boundaries,boundaries[1:]))
+        # Cut the overlap chain at every gate boundary, following the
+        # bank-then-stream structure of the x68k SegaPCM route: the
+        # source is first decomposed into gates, and the stream is
+        # then built from segments that each hold a constant set of
+        # sounding gates, mixed and encoded on their own and shared
+        # when identical. A single chain-wide window could outgrow
+        # the whole RAM budget and be dropped entire, taking the
+        # song's PCM body with it while most of the budget sat
+        # unused (AFBII02/03/04 each lost exactly one such window).
+        edges=sorted({edge for a in group for edge in (a.start_sample,a.end_sample)})
+        if performance.song_loop_sample is not None and edges[0]<performance.song_loop_sample<edges[-1]:
+            edges=sorted(set(edges)|{performance.song_loop_sample})
+        active=[];pending=sorted(group,key=lambda a:a.start_sample);index=0
+        for left,right in zip(edges,edges[1:]):
+            while index<len(pending) and pending[index].start_sample<=left:
+                active.append(pending[index]);index+=1
+            active=[a for a in active if a.end_sample>left]
+            if active:
+                windows.append((list(active),left,right))
     for group,start,end in windows:
         natural=min(44100,max(float(a.rate_hz) for a in group))
         delta=max(1,min(65535,round(natural*divisor/clock)));rate=clock*delta/divisor
