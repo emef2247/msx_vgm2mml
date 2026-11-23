@@ -44,8 +44,8 @@ _RHYTHM_TL = {'BD': 0x53, 'SD': 0x54, 'TOM': 0x52, 'CYM': 0x55, 'HH': 0x51}
 # _RHYTHM_TL_SHIFT re-anchors rhythm_level()'s fitted
 # reference points onto the kit's nominal TLs (BD car 0,
 # HH mod 36, SD car 8, TOM mod 0, CYM car 24), so at the
-# reference attenuation a hit lands exactly on the kit level
-# (the lane carries no further offset; see _RHYTHM_TL_OFFSET).
+# reference attenuation a hit lands exactly on the kit level,
+# before the lane offset below.
 # The sweep's own fitted TLs (BD/HH/SD/TOM 0) were tried
 # first and the owner's hardware listening rejected them:
 # at those levels the lane sounded like banging on a hard
@@ -54,13 +54,13 @@ _RHYTHM_TL = {'BD': 0x53, 'SD': 0x54, 'TOM': 0x52, 'CYM': 0x55, 'HH': 0x51}
 # frames, feedback and pitches are the sweep's.  The Y8950
 # target keeps the fitted shared template untouched.
 _RHYTHM_TL_SHIFT = {'BD': -51, 'SD': -53, 'TOM': -43, 'CYM': -29, 'HH': -27}
-# Lane level on top of the kit anchor: none (owner's
-# decision, 2026-11-24).  A -9 dB lane offset (12 steps) was
-# in place while the melody side was pulled down by the
-# carrier law; with preset voices now playing at their
-# parameter level, the kit plays at its anchored landings
-# as they are.
-_RHYTHM_TL_OFFSET = 0
+# Lane level on top of the kit anchor (owner's decision,
+# 2026-11-24): -12 dB, i.e. 16 TL steps on every instrument.
+# With melody voices at their parameter level the kit at its
+# bare landings stood forward of the melody; the offset
+# balances the lane against it.  The kit's internal balance
+# is unchanged.
+_RHYTHM_TL_OFFSET = 16
 # Full per-slot field sets for the kit, keyed (channel, slot).
 # Every field is specified, so nothing of the shared composed
 # template survives on the OPL3 target.  Waveform select is
