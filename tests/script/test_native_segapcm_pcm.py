@@ -43,6 +43,42 @@ def synthetic_vgm():
     return bytes(header) + bytes(stream)
 
 
+def synthetic_retrigger_vgm():
+    """Same gate as synthetic_vgm, but after the end page stops
+    it the driver retriggers by rewriting the start address pair
+    (plus a control rewrite) with the enable bit held clear --
+    the OUTRUN driver's pattern, with no enable toggle."""
+    header = bytearray(256)
+    header[0:4] = b'Vgm '
+    struct.pack_into('<I', header, 0x08, 0x171)
+    struct.pack_into('<I', header, 0x34, 0x100 - 0x34)
+    struct.pack_into('<I', header, 0x38, CLOCK)
+    struct.pack_into('<I', header, 0x3c, 0)
+    payload = bytes(range(256))
+    block_body = struct.pack('<II', 0x10000, 0) + payload
+    block = b'\x67\x66\x80' + struct.pack('<I', len(block_body)) + block_body
+
+    def write(offset, value):
+        return bytes((0xc0, offset & 0xff, offset >> 8, value))
+
+    stream = bytearray(block)
+    stream += write(2, 0x7f)
+    stream += write(3, 0x7f)
+    stream += write(6, 0x00)
+    stream += write(7, 0x80)
+    stream += write(0x84, 0x00)
+    stream += write(0x85, 0x00)
+    stream += write(0x86, 0x02)   # key on, loop disabled
+    stream += b'\x61' + struct.pack('<H', 2000)
+    stream += write(0x84, 0x00)   # retrigger: start address pair
+    stream += write(0x85, 0x00)
+    stream += write(0x86, 0x02)   # control rewrite, bit still clear
+    stream += b'\x61' + struct.pack('<H', 2000)
+    stream += b'\x66'
+    struct.pack_into('<I', header, 0x04, 256 + len(stream) - 4)
+    return bytes(header) + bytes(stream)
+
+
 class SegaPcmDecodeTests(unittest.TestCase):
     def test_gate_decodes_to_asset_at_byte_rate(self):
         with tempfile.TemporaryDirectory() as td:
@@ -57,6 +93,15 @@ class SegaPcmDecodeTests(unittest.TestCase):
         # 256 bytes at 16384 B/s end near sample 689, not at the
         # 44100-sample source end: the end page stops the gate.
         self.assertTrue(600 < asset.end_sample < 800)
+
+    def test_address_retrigger_after_end_page_starts_a_new_asset(self):
+        with tempfile.TemporaryDirectory() as td:
+            perf = build_native_performance(synthetic_retrigger_vgm(), td, 'sega')
+        assets = [a for a in perf.pcm_assets if a.device_id == 'segapcm:0']
+        self.assertEqual(len(assets), 2)
+        for asset in assets:
+            self.assertEqual(len(asset.samples), 256)
+        self.assertGreater(assets[1].start_sample, assets[0].end_sample)
 
 
 if __name__ == '__main__':

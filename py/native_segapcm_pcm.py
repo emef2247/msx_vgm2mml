@@ -18,6 +18,18 @@ frame boundaries.  Stereo volumes fold to mono by their mean,
 as in the other source PCM reconstructions.  Only the first chip
 instance is decoded; the second instance's clock lives in the
 extra header and is not interpreted.
+
+The address registers are the live playback counter, so a
+driver retriggers a channel by rewriting the start address
+while the enable bit stays clear; the end-page stop is not a
+latch that waits for the bit to toggle.  A completed
+low+high address write pair on an enabled channel therefore
+(re)starts playback: a channel stopped at its end page starts
+again, and a gate that already produced samples is cut there
+and a new gate begins.  (OUTRUN's driver never toggles the
+enable bit after setup: 2,644 trigger sequences on one channel
+arrive as address pairs plus a control rewrite with the bit
+still clear.)
 """
 from fractions import Fraction
 
@@ -62,7 +74,7 @@ class _Rom:
 
 class _Channel:
     __slots__ = ('active', 'position', 'fraction', 'gate', 'asset', 'number',
-                 'zero_delta_hold')
+                 'zero_delta_hold', 'addr_low_seen', 'addr_high_seen')
 
     def __init__(self):
         self.active = False
@@ -72,6 +84,8 @@ class _Channel:
         self.asset = None  # [samples, rate, start, source_ids, volumes]
         self.number = 0
         self.zero_delta_hold = False
+        self.addr_low_seen = False
+        self.addr_high_seen = False
 
 
 def add_segapcm_pcm(builder):
@@ -218,7 +232,31 @@ def add_segapcm_pcm(builder):
         if event.role in ('programmed_address_low', 'programmed_address_high'):
             integer = (ram[base + 0x85] << 8) | ram[base + 0x84]
             state.position = Fraction(integer) + state.fraction
+            if event.role == 'programmed_address_low':
+                state.addr_low_seen = True
+            else:
+                state.addr_high_seen = True
+            if state.addr_low_seen and state.addr_high_seen:
+                state.addr_low_seen = state.addr_high_seen = False
+                if not ram[base + 0x86] & 1:
+                    # A completed start-address write on an enabled
+                    # channel (re)starts playback: the address
+                    # registers are the live counter, and drivers
+                    # retrigger by rewriting them with the enable
+                    # bit held clear.
+                    if not state.active:
+                        state.active = True
+                        state.zero_delta_hold = False
+                        state.gate = (source.vgmticks, source.source_event_id)
+                        state.position = Fraction(integer)
+                        state.fraction = Fraction(0)
+                    elif state.asset is not None and state.asset[0]:
+                        flush(channel, source.vgmticks)
+                        state.gate = (source.vgmticks, source.source_event_id)
+                        state.position = Fraction(integer)
+                        state.fraction = Fraction(0)
         elif event.role == 'control':
+            state.addr_low_seen = state.addr_high_seen = False
             if event.value & 1:
                 if state.active:
                     state.active = False
