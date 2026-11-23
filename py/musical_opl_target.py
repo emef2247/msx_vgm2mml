@@ -10,8 +10,8 @@ plus the table's per-voice level trim).  Custom patches, which
 the commercial games mapped by
 field identity, still project through the established set's OPL
 frame.  OPLL percussion projects to the native rhythm unit with
-the commercially observed voice template.  Y8950 sources re-emit
-their retained native voices and rhythm.
+the fitted derived voice set (data/presets/rhythm_opl_derived.json).
+Y8950 sources re-emit their retained native voices and rhythm.
 """
 from collections import Counter
 import json
@@ -39,13 +39,6 @@ def _table():
     return _cache['y8950']
 
 
-def _commercial_rhythm():
-    if 'commercial_rhythm' not in _cache:
-        doc = json.loads((_PRESET_DIR / 'opl_commercial.json').read_text())
-        _cache['commercial_rhythm'] = doc['rhythm_template']
-    return _cache['commercial_rhythm']
-
-
 def _derived_rhythm():
     if 'derived_rhythm' not in _cache:
         doc = json.loads((_PRESET_DIR / 'rhythm_opl_derived.json').read_text())
@@ -54,12 +47,12 @@ def _derived_rhythm():
 
 
 def composed_rhythm_template():
-    """Channel 6/7/8 rhythm setup: the observed commercial
-    template with the derived voices overlaid op by op.  SD has
-    no derived entry and keeps the commercial carrier."""
+    """Channel 6/7/8 rhythm setup, composed entirely from the
+    fitted derived voices: BD fills ch6, HH (mod) and SD (car)
+    share ch7, TOM (mod) and CYM (car) share ch8.  Channels
+    start from a zero feedback/connection byte."""
     if 'composed_rhythm' not in _cache:
-        template = {ch: dict(entry)
-                    for ch, entry in _commercial_rhythm().items()}
+        template = {str(ch): {'fb_cnt': 0} for ch in (6, 7, 8)}
         for voice in _derived_rhythm().values():
             entry = template[str(voice['channel'])]
             for key in ('mod', 'car'):
@@ -88,9 +81,8 @@ def rhythm_fixed_pitches(family):
     installs for the derived fixed-timbre voices (their OPLL
     originals are pitch-invariant; only TOM tracks the source
     pitch).  A partner pitch is channel 7, the OPL noise XOR
-    partner.  SD restores channel 7 to the unwritten state its
-    commercial voice was approved in, because HH and CYM hits
-    move that pitch."""
+    partner.  SD restores channel 7 to the unwritten state,
+    because HH and CYM hits move that pitch."""
     if family == 'SD':
         return [(7, 0, 0)]
     voice = _derived_rhythm().get(family)
@@ -364,10 +356,9 @@ def _project_rhythm(performance, device, emit, losses):
 
 
 def _rhythm_template(device, emit):
-    """Rhythm voices on channels 6/7/8: the commercially observed
-    template with the derived voices overlaid (see
-    composed_rhythm_template).  The five volume TL registers
-    start muted and are set per hit.
+    """Rhythm voices on channels 6/7/8: the fitted derived
+    voices composed per channel (see composed_rhythm_template).
+    The five volume TL registers start muted and are set per hit.
     """
     template = composed_rhythm_template()
     for ch in (6, 7, 8):

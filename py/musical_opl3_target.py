@@ -22,8 +22,7 @@ import math
 from pathlib import Path
 
 from musical_fm_target import _at
-from musical_opl_target import _identity_op, _commercial_rhythm, \
-    rhythm_level
+from musical_opl_target import _identity_op, rhythm_level
 from opll_fm_target import _decode_patch
 
 _PRESET_DIR = Path(__file__).resolve().parent.parent / 'data' / 'presets'

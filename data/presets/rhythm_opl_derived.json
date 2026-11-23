@@ -1,5 +1,5 @@
 {
- "source": "Rhythm parameters independently fitted by emef2247 against IKAOPLL RTL reference renders. This file contains BD, HH, TOM and CYM parameters.",
+ "source": "Rhythm parameters independently fitted by emef2247 against IKAOPLL RTL reference renders. This file contains BD, HH, SD, TOM and CYM parameters.",
  "voices": {
   "BD": {
    "car": [
@@ -56,6 +56,17 @@
    ],
    "tl_att_ref": 4,
    "tl_base": 63
+  },
+  "SD": {
+   "car": [
+    0,
+    61,
+    249,
+    87
+   ],
+   "channel": 7,
+   "tl_att_ref": 0,
+   "tl_base": 61
   },
   "TOM": {
    "channel": 8,
