@@ -405,7 +405,7 @@ def project_variant(performance, profile, *, force=False, dcsg_gain=.25, opna_la
     fm_rhythm_table='opll' if profile=='sfg01' else None
     pcm_library='ika'
     losses=Counter();rows=[];prefix=b''
-    supported={'opm','opna','opn2','psg','opll','scc','dcsg','huc6280','nesapu','msm6258','segapcm'}
+    supported={'opm','opna','opn2','opn','psg','opll','scc','dcsg','huc6280','nesapu','msm6258','segapcm'}
     for device in performance.devices:
         if device.chip not in supported:losses['unsupported_source_device_'+device.chip]+=1
     if any(k.startswith('unsupported_source_device_') for k in losses):

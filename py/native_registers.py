@@ -228,6 +228,24 @@ def decode_control(device, event, raw, *, order=None, latches=None):
             else:kind={0x22:'opna_lfo',0x24:'opna_timer_a_high',0x25:'opna_timer_a_low',
                 0x26:'opna_timer_b',0x27:'opna_mode',0x29:'opna_channel_enable',
                 0x2d:'opna_prescaler_select',0x2e:'opna_prescaler_select',0x2f:'opna_prescaler_select'}.get(register,'opna_shared_parameter')
+        elif chip=='opn':
+            from native_imports.opn import register_channel
+            channel=register_channel(register,data)
+            section='fm' if channel is not None else 'shared'
+            if register<=15:
+                section='ssg';channel=register//2 if register<=5 else register-8 if 8<=register<=10 else None
+                kind=('ssg_period_high' if register&1 else 'ssg_period_low') if register<=5 else {
+                    6:'ssg_noise',7:'ssg_mixer',8:'ssg_amplitude',9:'ssg_amplitude',10:'ssg_amplitude',
+                    11:'ssg_envelope_low',12:'ssg_envelope_high',13:'ssg_shape'}.get(register,'ssg_io')
+            elif register==0x28:kind='opna_key'
+            elif 0x30<=register<=0x9f:
+                kind=('opna_operator_multiple','fm_operator_level','fm_operator_attack','fm_operator_decay1',
+                      'opna_operator_decay2','fm_operator_release','opna_operator_ssg')[(register-0x30)//16]
+            elif 0xa0<=register<=0xae:kind='opna_frequency_high' if register&4 else 'opna_frequency_low'
+            elif 0xb0<=register<=0xb2:kind='opna_channel'
+            else:kind={0x24:'opna_timer_a_high',0x25:'opna_timer_a_low',
+                0x26:'opna_timer_b',0x27:'opna_mode',
+                0x2d:'opna_prescaler_select',0x2e:'opna_prescaler_select',0x2f:'opna_prescaler_select'}.get(register,'opn_shared_parameter')
         elif chip=='psg':
             register&=127;section='tone';channel=register//2 if register<=5 else register-8 if 8<=register<=10 else None
             kind=('ssg_period_high' if register&1 else 'ssg_period_low') if register<=5 else {
@@ -314,6 +332,7 @@ def encode_control(control, device):
     if chip=='opm':return bytes((0xa4 if device.instance else 0x54,register,value))
     if chip=='opn2':return bytes(((0xa2 if device.instance else 0x52)+p['port'],register,value))
     if chip=='opna':return bytes(((0xa6 if device.instance else 0x56)+p['port'],register,value))
+    if chip=='opn':return bytes((0x55,register,value))
     if chip=='opll':return bytes((0xa1 if device.instance else 0x51,register,value))
     if chip=='y8950':return bytes((0x5c,register,value))
     if chip=='ymf262':return bytes((0x5f if p['port'] else 0x5e,register,value))

@@ -258,7 +258,7 @@ def project_psg_opll(performance, *, dcsg_gain=.25, opna=False, force=False, opl
     voices={v.voice_id:v for v in performance.voices}
     rows=[];losses=Counter()
     psg_units=[u for u in performance.units if devices[u.device_id].chip in ('psg','dcsg') or
-               devices[u.device_id].chip=='opna' and u.section=='ssg' or
+               devices[u.device_id].chip in ('opna','opn') and u.section=='ssg' or
                devices[u.device_id].chip in ('huc6280','nesapu') and u.section=='noise']
     lanes=sorted({(u.device_id,u.channel) for u in psg_units},key=lambda x:(devices[x[0]].chip!='psg',x))
     lane_map={lane:(0xa0 if index<3 else 0x56,index%3) for index,lane in enumerate(lanes[:6 if opna else 3])}
