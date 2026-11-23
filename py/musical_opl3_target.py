@@ -31,21 +31,23 @@ _OP_FIELDS = ('am', 'vib', 'egt', 'ksr', 'mul', 'ksl', 'tl',
               'ar', 'dr', 'sl', 'rr')
 _RHYTHM_BITS = (('BD', 16), ('SD', 8), ('TOM', 4), ('CYM', 2), ('HH', 1))
 _RHYTHM_TL = {'BD': 0x53, 'SD': 0x54, 'TOM': 0x52, 'CYM': 0x55, 'HH': 0x51}
-# The OPL3 rhythm voices are a designed kit, not a fit to the
-# OPLL's built-in rhythm sounds (owner's decision, 2026-11-21:
-# the fits neither matched the original nor stood up as drum
-# sounds, so the rhythm lane now aims at instruments that work
-# as rhythm).  The kit is transcribed from Zeliard's YM3812
-# driver -- the surveyed real-software kit that uses all five
-# instruments (docs: opl_rhythm_software_survey in the external
-# notes repo) -- with pitches and balances as written there.
-# Per-hit levels still follow the source performance's volume
-# curve; _RHYTHM_TL_SHIFT re-anchors rhythm_level()'s fitted
-# reference points onto the kit's nominal TLs (BD car 0,
-# HH mod 36, SD car 8, TOM mod 0, CYM car 24), so at the
-# reference attenuation a hit lands exactly on the kit level.
-# The Y8950 target keeps the fitted shared template untouched.
-_RHYTHM_TL_SHIFT = {'BD': -51, 'SD': -53, 'TOM': -43, 'CYM': -29, 'HH': -27}
+# The OPL3 rhythm voices are a kit of our own, established by
+# parameter sweep (2026-11-23): candidate kits rendered with
+# the Nuked OPL3 core against the IKAOPLL renders of the
+# OPLL's built-in rhythm hits, scored with the same waveform
+# distance as the Y8950 rhythm fits, starting from the derived
+# Y8950 frames.  Final distances: BD 44.4, HH 14.8, SD 24.5,
+# TOM 26.6, CYM 7.8 (the previous kit measured 92.6 / 49.4 /
+# 57.0 / 53.4 / 23.8 on the same references).  Per-hit levels
+# still follow the source performance's volume curve;
+# _RHYTHM_TL_SHIFT re-anchors rhythm_level()'s fitted
+# reference points so a hit at the reference attenuation lands
+# on the sweep's fitted TL (BD 0, HH 0, SD 0, TOM 0, CYM 36,
+# after the lane offset below).  HH's fitted base sits at the
+# rhythm_level ceiling, so its shift saturates: every HH hit
+# lands on TL 0 regardless of attenuation.  The Y8950 target
+# keeps the fitted shared template untouched.
+_RHYTHM_TL_SHIFT = {'BD': -63, 'SD': -73, 'TOM': -55, 'CYM': -29, 'HH': -75}
 # Lane level on top of the kit anchor (owner's decision,
 # 2026-11-23): with the melodic trims re-anchored to the
 # IKAOPLL reference the kit stood too far forward against the
@@ -57,31 +59,30 @@ _RHYTHM_TL_OFFSET = 12
 # Full per-slot field sets for the kit, keyed (channel, slot).
 # Every field is specified, so nothing of the shared composed
 # template survives on the OPL3 target.  Waveform select is
-# never written for rhythm slots (the chip keeps 0, sine),
-# matching Zeliard's effective WS of 0.  The output slots'
-# (BD car, HH mod, SD car, TOM mod, CYM car) TL fields are
-# placeholders here: the template mutes them and the per-hit
-# level writes set them.
+# never written for rhythm slots (the chip keeps 0, sine).
+# The output slots' (BD car, HH mod, SD car, TOM mod, CYM car)
+# TL fields are placeholders here: the template mutes them
+# and the per-hit level writes set them.
 _RHYTHM_KIT = {
-    (6, 'mod'): {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 0,
-                 'ksl': 0, 'tl': 11, 'ar': 10, 'dr': 8, 'sl': 11, 'rr': 12},
-    (6, 'car'): {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 0,
-                 'ksl': 0, 'tl': 0, 'ar': 13, 'dr': 6, 'sl': 11, 'rr': 15},
-    (7, 'mod'): {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1,
-                 'ksl': 0, 'tl': 36, 'ar': 13, 'dr': 8, 'sl': 6, 'rr': 8},
-    (7, 'car'): {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 12,
-                 'ksl': 0, 'tl': 8, 'ar': 12, 'dr': 7, 'sl': 4, 'rr': 6},
-    (8, 'mod'): {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 2,
-                 'ksl': 0, 'tl': 0, 'ar': 12, 'dr': 8, 'sl': 6, 'rr': 7},
-    (8, 'car'): {'am': 1, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 8,
-                 'ksl': 0, 'tl': 24, 'ar': 15, 'dr': 5, 'sl': 6, 'rr': 5},
+    (6, 'mod'): {'am': 0, 'vib': 1, 'egt': 1, 'ksr': 1, 'mul': 1,
+                 'ksl': 0, 'tl': 30, 'ar': 14, 'dr': 9, 'sl': 1, 'rr': 3},
+    (6, 'car'): {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 1, 'mul': 1,
+                 'ksl': 0, 'tl': 0, 'ar': 11, 'dr': 9, 'sl': 8, 'rr': 14},
+    (7, 'mod'): {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 5,
+                 'ksl': 0, 'tl': 0, 'ar': 15, 'dr': 7, 'sl': 0, 'rr': 8},
+    (7, 'car'): {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 1, 'mul': 7,
+                 'ksl': 0, 'tl': 0, 'ar': 13, 'dr': 9, 'sl': 3, 'rr': 8},
+    (8, 'mod'): {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 9,
+                 'ksl': 0, 'tl': 0, 'ar': 9, 'dr': 9, 'sl': 8, 'rr': 10},
+    (8, 'car'): {'am': 1, 'vib': 1, 'egt': 0, 'ksr': 0, 'mul': 10,
+                 'ksl': 0, 'tl': 24, 'ar': 11, 'dr': 10, 'sl': 3, 'rr': 6},
 }
-_RHYTHM_KIT_FB_CNT = {6: 0, 7: 15, 8: 0}
-# Fixed channel pitches of the kit in Hz (Zeliard: ch6 48.6,
-# ch7 7.6, ch8 18.2).  TOM has no fixed pitch: it tracks the
-# source pitch through _RHYTHM_PITCH_CH as before.
-_RHYTHM_KIT_PITCH_HZ = {'BD': ((6, 48.6),), 'HH': ((7, 7.6),),
-                        'SD': ((7, 7.6),), 'CYM': ((8, 18.2),)}
+_RHYTHM_KIT_FB_CNT = {6: 10, 7: 15, 8: 3}
+# Fixed channel pitches of the kit in Hz, as fitted (ch6
+# 45.7, ch7 7.49, ch8 17.5).  TOM has no fixed pitch: it
+# tracks the source pitch through _RHYTHM_PITCH_CH as before.
+_RHYTHM_KIT_PITCH_HZ = {'BD': ((6, 45.7),), 'HH': ((7, 7.49),),
+                        'SD': ((7, 7.49),), 'CYM': ((8, 17.5),)}
 _RHYTHM_PITCH_CH = {'BD': 6, 'TOM': 8}
 _cache = {}
 
@@ -462,7 +463,7 @@ def _rhythm_template(emit, device_id):
                  device_id=device_id)
         emit(None, 0, -2, ch, 0xc0 + ch, _RHYTHM_KIT_FB_CNT[ch] | 0x30,
              'OPL3 rhythm voice', device_id=device_id)
-    for ch, hz in ((6, 48.6), (7, 7.6), (8, 18.2)):
+    for ch, hz in ((6, 45.7), (7, 7.49), (8, 17.5)):
         block, fnum = _pitch(hz, 14318180)
         emit(None, 0, -2, ch, 0xa0 + ch, fnum & 255, 'OPL3 rhythm voice',
              device_id=device_id)
