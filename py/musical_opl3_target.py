@@ -60,11 +60,12 @@ _RHYTHM_TL_SHIFT = {'BD': -51, 'SD': -53, 'TOM': -43, 'CYM': -29, 'HH': -27}
 # rhythm-led sections sat about 18 dB over the melody-led
 # intro).  A/B takes at -3/-6/-9 dB settled on -9 dB, i.e.
 # 12 TL steps on every instrument; the kit's internal balance
-# is unchanged.  A FMPAC01 hardware take then showed the
-# rhythm still exposed where the melody thins out (intro and
-# ending about 6-8 dB over the middle), so the same -9 dB
-# treatment was applied once more: 24 steps in total.
-_RHYTHM_TL_OFFSET = 24
+# is unchanged.  (A further -9 dB was tried on a FMPAC01 take
+# and reverted the same night: the loud intro and ending there
+# turned out to be the un-trimmed custom-patch melody voice,
+# not the rhythm, and preset voices now play on the custom
+# basis -- see resolve_opll.)
+_RHYTHM_TL_OFFSET = 12
 # Full per-slot field sets for the kit, keyed (channel, slot).
 # Every field is specified, so nothing of the shared composed
 # template survives on the OPL3 target.  Waveform select is
@@ -339,7 +340,13 @@ def project_opl3_fm(performance, *, force=False):
                 result = (entry['fb'],
                           [tuple(o[f] for f in _OP_FIELDS) + (o.get('ws') or 0,) for o in entry['ops']],
                           entry.get('alg', 0), 1, 1)
-                trim_by_row[id(result)] = entry.get('level_trim_tl', 0)
+                # Owner's decision (2026-11-24): preset voices
+                # play on the same loudness basis as custom
+                # patches -- the source attenuation alone, with
+                # no per-voice trim.  The table's fitted
+                # level_trim_tl values are not applied on this
+                # target.
+                trim_by_row[id(result)] = 0
             elif inst == 0:
                 patch = p.get('custom_patch') or ()
                 if any(b is None for b in patch):
