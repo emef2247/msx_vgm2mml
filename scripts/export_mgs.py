@@ -21,11 +21,20 @@ from mgs_conversion_config import sample_threshold
 
 DEFAULT_FM_STATE_MS = 24.0
 
-VARIANT_PROFILES = ('sfg01', 'makoto', 'sfg01_makoto', 'sfg01_msxaudio', 'layered', 'scc_sfg01', 'scc_makoto', 'scc_layered')
+VARIANT_PROFILES = ('sfg01', 'sfg01_opllrhythm', 'sfg01_opl3', 'makoto', 'makoto_msxaudio', 'makoto_msxaudio_msxaudio', 'misato', 'misato_msxaudio', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'msxaudio', 'msxaudio_msxaudio', 'opl3', 'opl3_makoto', 'opl3_msxaudio', 'layered', 'scc_layered', 'psg_layered')
 VARIANT_PRODUCTS = tuple('vgm-variants/' + profile + '/{stem}.vgm'
                          for profile in VARIANT_PROFILES)
 # Previous publications remain owned during migration and disabled reruns.
-LEGACY_VARIANT_PRODUCTS = ('vgm_variants/{stem}/makoto/{stem}.vgm',
+LEGACY_VARIANT_PRODUCTS = tuple('vgm-variants/' + profile + '/{stem}.vgm' for profile in
+    ('sfg01_rx21', 'sfg01_opllrhythm', 'sfg01_opl3', 'sfg01_makoto', 'sfg01_msxaudio',
+     'sfg01_misato', 'makoto_rx21', 'misato_msxaudio', 'opl3_makoto', 'opl3_msxaudio',
+     'scc_sfg01', 'scc_makoto', 'scc_misato', 'scc_msxaudio', 'scc_layered', 'scc_opl3',
+     'psg_sfg01', 'psg_makoto', 'psg_misato', 'psg_msxaudio', 'psg_layered', 'psg_opl3')) + tuple(
+    'vgm-variants/' + base + '/' + element + '/{stem}.vgm'
+    for base in ('sfg01', 'makoto', 'misato', 'msxaudio', 'opl3')
+    for element in ('scc', 'psg')) + tuple(
+    'vgm-variants/' + base + '/' + element + '/{stem}.vgm'
+    for base, element in (('sfg01', 'rx21'), ('makoto', 'rx21'))) + ('vgm_variants/{stem}/makoto/{stem}.vgm',
     'vgm_variants/{stem}/sfg01/dac_makoto/{stem}.vgm',
     'vgm_variants/{stem}/sfg01/dac_y8950/{stem}.vgm',
     'vgm_variants/{stem}/layered/{stem}.vgm',
@@ -88,6 +97,19 @@ def build_parser():
                              'OPNA FM lane of OPN2 target and variant VGMs '
                              '(carrier TL remap and decay-rate correction; '
                              'default off = register transcription)')
+    parser.add_argument('--soundcore-levels', action='store_true',
+                        help='Use the SoundCore SLOT EXG anchored level trims '
+                             'for the OPLL>OPM/OPNA preset tables '
+                             '(opll_to_*_soundcore.json) instead of the '
+                             'IKAOPLL anchored ones (default)')
+    parser.add_argument('--v-offset-opm-melody', type=int, default=0,
+                        help=argparse.SUPPRESS)
+    parser.add_argument('--v-offset-opm-rhythm', type=int, default=30,
+                        help=argparse.SUPPRESS)
+    parser.add_argument('--v-offset-opna-melody', type=int, default=0,
+                        help=argparse.SUPPRESS)
+    parser.add_argument('--v-offset-opna-rhythm', type=int, default=30,
+                        help=argparse.SUPPRESS)
     parser.add_argument('--dump-passes', action='store_true',
                         help='Retain inspectable conversion passes')
     parser.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
@@ -113,7 +135,9 @@ def build_parser():
 
 
 def _variant_names(stem):
-    return [pattern.format(stem=stem) for pattern in VARIANT_PRODUCTS]
+    from musical_variants import variant_folder
+    return ['vgm-variants/' + variant_folder(profile).as_posix() + f'/{stem}.vgm'
+            for profile in VARIANT_PROFILES]
 
 
 def _variant_row(relative, folder, output, args):
@@ -186,7 +210,13 @@ def _update_song_variants(path, relative, package, output, args):
         from musical_variants import export_variants
         performance = build_native_performance(path, stage_root / 'native', stem)
         summaries = export_variants(performance, stage_root, stem, force=args.force,
-                                   dcsg_gain=args.dcsg_gain, opna_law=args.opna_law)
+                                   dcsg_gain=args.dcsg_gain, opna_law=args.opna_law,
+                                   soundcore_levels=args.soundcore_levels,
+                                   volume_offsets=dict(
+                                       opm_melody=args.v_offset_opm_melody,
+                                       opm_rhythm=args.v_offset_opm_rhythm,
+                                       opna_melody=args.v_offset_opna_melody,
+                                       opna_rhythm=args.v_offset_opna_rhythm))
         evidence['summaries'] = summaries
         for profile, name in zip(VARIANT_PROFILES, names):
             result = summaries[profile]

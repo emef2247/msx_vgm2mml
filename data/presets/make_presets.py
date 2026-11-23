@@ -1,0 +1,742 @@
+#!/usr/bin/env python3
+"""Generate OPLL reference and sound-chip-specific instrument parameter tables.
+
+The OPLL parameter dataset was independently developed by emef2247
+through parameter-space sweeps, RTL-based sound chip simulation,
+waveform analysis, and listening-based refinement.
+
+Single source of truth: opll_presets.json, kept beside this script.
+OPM and OPNA use the conversion laws and per-voice adjustments below.
+OPL3 and Y8950 use independently fitted per-voice parameter sets.
+The base OPLL and OPM rhythm tables are also emitted here.
+
+Carrier TL is a performance value (source VOL << 2); preset tables
+carry 0 for the carrier and the modulator TL from the dataset.
+OPM drum voices include hardware-noise variants; projection selects
+which variant and channel to use. OPNA uses its internal rhythm unit.
+
+Copyright (c) 2026 emef2247
+SPDX-License-Identifier: MIT
+"""
+import json
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+SEED = json.loads((HERE / 'opll_presets.json').read_text())
+OUT = HERE / 'opll_presets_established.h'
+
+MUL_MAP = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 12, 12, 15, 15]
+NAMES = ['Violin', 'Guitar', 'Piano', 'Flute', 'Clarinet', 'Oboe', 'Trumpet',
+         'Organ', 'Horn', 'Synthesizer', 'Harpsichord', 'Vibraphone',
+         'SynthBass', 'AcoustBass', 'ElecGuitar']
+
+
+def eg(op):
+    ar = 0 if op['ar'] == 0 else min(31, 2 * op['ar'] + 4)
+    d1r = 0 if op['dr'] == 0 else min(31, 2 * op['dr'] + 3)
+    d2r = 0 if (op['egt'] or op['rr'] == 0) else min(31, 2 * op['rr'] + 3)
+    rr = 0 if op['rr'] == 0 else min(15, op['rr'] + 1)
+    return ar, d1r, d2r, rr
+
+
+def ks(op):
+    return 2 if op['ksr'] else 0
+
+
+KSL_COMP = {0: 0, 1: 7, 2: 14, 3: 19}  # TL steps, A4 reference (see four_op)
+
+# Per-voice output level trim for the OPM table, in carrier TL
+# steps, added by projections on top of the performance carrier
+# TL (source VOL << 2).  Measured 2026-11-14 on IKAOPLL /
+# IKAOPM: single A4 notes at VOL 0 (OPLL) vs carrier TL 0
+# (OPM), RMS over 50-350 ms, anchored to the median of the
+# ws=0 voices (+23.97 dB renderer offset).  The ws=1 carrier
+# voices render hot on OPM because the OPLL half-wave output
+# carries less power than the sine-based projection at equal
+# settings: Violin +5.2 dB, Organ +3.0, Harpsichord +3.3,
+# Synthesizer +6.5 (also mod ws=1; confirmed in song balance:
+# its share of the FMPAC02 mix was +4 to +6.5 dB high).
+# Trumpet -0.8 dB.  Synthesizer measured +6.46 dB = 8.6 steps;
+# auditions of FMPAC02 settled it at 7 (9: slightly too quiet,
+# 8: still lacking pressure, 7: adopted, 2026-11-14).
+
+# Vibraphone is excluded: its offset is
+# window-dependent (-3.4 / -5.7 / -6.4 dB at 0.1 / 0.35 / 1 s),
+# an EG decay-shape difference, not a level offset.
+#
+# Re-anchored 2026-11-21 from real-chip recordings of the
+# 15-voice probe set (C3/A4/C6, gate 1.0 s) generated from the
+# post-seed-swap tables: per-voice RMS over [onset+0.15,
+# onset+0.95] s against the IKAOPLL render, each voice's offset
+# taken relative to the 15-voice median (the recording chain's
+# common gain), converted at 0.75 dB per TL step and rounded to
+# the nearest step, applied per voice (no global shift).  The
+# seed swap moved several voices by multiple dB (SynthBass
+# +10.4 dB, Harpsichord +4.8, Trumpet -4.4, Synthesizer -4.1 on
+# OPM), so the 2026-11-13/14 values above do not carry over.
+# Synthesizer's 7 was an owner audition on the old seed; the
+# post-seed measurement reads -4.1 dB at trim 7, hence 2.
+# Vibraphone stays excluded on the decay-shape ground above:
+# the post-seed readings (OPM -6.5 dB in this window, OPNA
+# -1.3) are consistent with the window dependence, and the
+# owner confirmed the exclusion on 2026-11-21.  OPNA now
+# carries its own dict from its own recording; it differs
+# from OPM only in Harpsichord (+1 step) and SynthBass
+# (-1 step).
+LEVEL_TRIM_TL_OPM = {'Violin': 6, 'Guitar': 2, 'Piano': 2,
+                     'Flute': 1, 'Clarinet': 1, 'Oboe': -3,
+                     'Trumpet': -7, 'Synthesizer': 2,
+                     'Harpsichord': 10, 'SynthBass': 14,
+                     'AcoustBass': -1, 'ElecGuitar': 4}
+LEVEL_TRIM_TL_OPNA = {'Violin': 6, 'Guitar': 2, 'Piano': 2,
+                      'Flute': 1, 'Clarinet': 1, 'Oboe': -3,
+                      'Trumpet': -7, 'Synthesizer': 2,
+                      'Harpsichord': 11, 'SynthBass': 13,
+                      'AcoustBass': -1, 'ElecGuitar': 4}
+
+# SoundCore SLOT EXG anchor experiment (2026-11-21, retired the
+# same day - see below): the level trims were re-anchored from
+# the IKAOPLL render to the owner's real YM2413 recording through
+# the SoundCore SLOT EXG - the anchor the OPL3 table's final
+# levels already use, so the FM targets agree when layered.
+# Residual per voice = (real target - real OPLL) - (model target
+# - IKAOPLL model) over the v2 probe set (IKAOPM / ymfm renders,
+# transient-aligned lags), applied to the IKAOPLL-anchored trims
+# above: median -23.1 dB (OPM), -25.9 dB (OPNA), per-voice spread
+# under 2 dB.
+#
+# The lift was then walked back (owner's auditions, 2026-11-21):
+# at full compensation a real song (FMPAC02 on the real SFG-01)
+# saturates - every note with carrier-TL headroom is lifted the
+# full ~23-26 dB while VOL 0 notes stay pinned at TL 0, so the
+# dynamics crush into one loud band (recording RMS -10.6 dBFS,
+# 1 s windows within 2 dB of each other).  Two ~11 dB steps down
+# (midpoints, then one more step) brought the trims back to
+# within a few steps of the IKAOPLL anchor, at which point the
+# owner retired the separate melody tuning entirely: the melody
+# stays at the IKAOPLL anchor, with no half-adjusted variant
+# left to confuse later work.  The SoundCore tables below are
+# therefore generated with the default trims; --soundcore-levels
+# now changes only the OPNA rhythm lanes (Misato unit level,
+# Makoto ADPCM-B gain).  The full-compensation values are in
+# commit 770fa65 and the residuals in the probe workdir
+# (opm_opna_level_probes/exg_residuals.json).
+LEVEL_TRIM_TL_OPM_SOUNDCORE = LEVEL_TRIM_TL_OPM
+LEVEL_TRIM_TL_OPNA_SOUNDCORE = LEVEL_TRIM_TL_OPNA
+
+# OPNA fit against the OPM set, 2026-11-16 (adopted by the owner
+# after audition): single-voice probes (C3/A4/C6) of the OPM table
+# rendered with IKAOPM as the reference, the OPNA table rendered
+# with ymfm, per-voice coordinate descent over modulator TL, FB,
+# DT and PMS on harmonic distance.  Level and envelope already
+# matched (offsets ~0.00 dB, envelope <= 0.7 dB), so the fit is
+# timbre-only: the dominant move is PMS 4 -> 2 on the vibrato
+# voices (the bridged LFO depth was too deep in this chain; the
+# LFO-rate coupling is not separated).  Harmonic distance
+# before -> after: SynthBass 5.73 -> 4.28, Horn 4.29 -> 3.68,
+# Guitar 2.62 -> 1.99, Synthesizer 2.76 -> 2.02, Flute 2.29 ->
+# 1.88.  Piano / Clarinet / Oboe / Harpsichord / AcoustBass took
+# no move.  Vibraphone's carrier SL/D2R moves come from a separate
+# envelope-weighted pass and stay provisional: its decay-shape
+# difference is structural (see the LEVEL_TRIM note above), the
+# pass only crept (envelope 9.53 -> 9.11).
+OPNA_FIT = {
+    'Violin': {'pms': 2},
+    'Guitar': {'pms': 3, 'ops': {0: {'dt': 6}, 1: {'dt': 6}}},
+    'Flute': {'pms': 2},
+    'Trumpet': {'pms': 2},
+    'Organ': {'ops': {0: {'dt': 5}}},
+    'Horn': {'pms': 2},
+    'Synthesizer': {'pms': 1},
+    'Vibraphone': {'pms': 3, 'ops': {0: {'dt': 6},
+                                     1: {'dt': 3, 'd2r': 9, 'sl': 4}}},
+    'SynthBass': {'ops': {0: {'dt': 1}}},
+    'ElecGuitar': {'pms': 2},
+}
+
+
+SILENT4 = (1, 127, 0, 31, 0, 0, 0, 15, 0, 0)
+
+
+def slot4(op, tl, is_mod=False, perc_rr=None, ksl_comp=False):
+    ar, d1r, d2r, rr = eg(op)
+    if perc_rr is not None and not op['egt'] and not is_mod:
+        rr = perc_rr
+    if ksl_comp and is_mod:
+        tl = min(127, tl + KSL_COMP[op['ksl']])
+    return (MUL_MAP[op['multi']], tl, ks(op), ar, d1r, d2r,
+            op['sl'], rr, 0, op['am'])
+
+
+def four_op(voice, pms, ams, perc_rr=None, ksl_comp=False):
+    """(fb, alg, pms, ams, [op x4]) in slot order M1, C1, M2, C2.
+
+    PMS/AMS carry the bridged depth only when the voice actually
+    uses vibrato / AM on some operator; otherwise 0 (the target
+    chips gate AM per operator but PMS is channel-wide, so an
+    ungated depth would add vibrato the source does not have).
+    perc_rr, when given, replaces RR for the percussive (egt=0)
+    CARRIER only: a YM2413 percussive carrier key-off is a fixed
+    fast damp (~170 dB/s regardless of rr; measured 2026-11-13 on
+    IKAOPLL), so the target RR is the register whose key-off rate
+    matches the damp, not rr+1.  The modulator is excluded: an
+    egt=0 modulator holds its level through key-off (sideband
+    ratio unchanged over 1 s at rr 0 and 1; measured 2026-11-14
+    on IKAOPLL), so it keeps the eg() law.  Carrier-only adopted
+    2026-11-14: an A/B render of the FMPAC pack (both scopes)
+    found no clear difference, and the measured behaviour is the
+    tiebreaker.  YM2151: RR 8 (~219 dB/s).  YM2608: RR 8
+    as well (grid measurement 2026-11-13: percussive voices that
+    never reached -20 dB with rr+1 land at ~91 ms with RR 8;
+    SynthBass lands fast at ~19 ms and stays a listening item).
+    ksl_comp: YM2151/YM2608 have no per-operator KSL, but on YM2413 the
+    modulator's KSL attenuates it (at A4: ksl 1/2/3 = 5.4/10.4/
+    14.6 dB; measured 2026-11-13 on IKAOPLL, small-index sideband
+    method).  When set, the modulator TL absorbs that attenuation
+    at the A4 reference pitch (KSL_COMP steps of 0.75 dB); the
+    pitch dependence (+-3 dB over A3..A5 for ksl 2) remains as a
+    recorded approximation of the static table."""
+    pms = pms if (voice['mod']['vib'] or voice['car']['vib']) else 0
+    ams = ams if (voice['mod']['am'] or voice['car']['am']) else 0
+    return (voice['fb'], 4, pms, ams,
+            [slot4(voice['mod'], voice['mod']['tl'], True, perc_rr, ksl_comp),
+             slot4(voice['car'], 0, False, perc_rr, ksl_comp),
+             SILENT4, SILENT4])
+
+
+# OPM rhythm preset codes.  Composition of the OPLL drum pairs
+# follows the v1 candidates measured on IKAOPM against IKAOPLL
+# references (2026-11-13): BD = bd pair; SD = hh.mod + sd.car;
+# TC = tom.mod + tc.car; HH = hh.mod solo on the carrier;
+# TOM = tom.mod solo on the carrier.  HH/TC also get a
+# hardware-noise variant (owner decision 2026-11-13: prepare
+# both; the projection chooses by channel availability, because
+# the noise source occupies channel 8).  In a noise row the
+# shaping operator sits on C2, whose output the noise generator
+# replaces when reg 0x0F NE=1; its EG is the same law applied to
+# the op that carries the FM variant's envelope (hh.mod / tc.car).
+# NFRQ 29 matched both references' spectra on IKAOPM renders
+# (centroids: ref HH 9397 Hz / TC 9820 Hz, NFRQ 29 -> 9402 Hz;
+# one noise generator serves the whole chip, so both share it).
+# The noise rows carry the same law EG as the FM variants.  Note
+# the measured residual: at equal register values the noise
+# path's envelope decays more slowly than an FM carrier's and
+# with a different (accelerating) curve shape -- identical on
+# IKAOPM and on the MAME YM2151 core, so it is chip behaviour,
+# not a renderer quirk (2026-11-13).  Decay-time matching of
+# the noise rows is an open calibration item; no rate
+# compensation is applied until it is measured properly.
+OPM_RHYTHM_NOISE_NFRQ = 29
+
+
+def rhythm_opm():
+    """[(name, four_op row, reg 0x0F value or 0)] for OPM drums."""
+    d = SEED['drums']
+
+    def pair(mod, car, fb):
+        return four_op({'mod': mod, 'car': car, 'fb': fb}, 0, 0,
+                       perc_rr=8, ksl_comp=True)
+
+    def solo(op):
+        return (0, 4, 0, 0,
+                [SILENT4, slot4(op, 0, perc_rr=8, ksl_comp=True),
+                 SILENT4, SILENT4])
+
+    def noise(op):
+        return (0, 4, 0, 0,
+                [SILENT4, SILENT4, SILENT4,
+                 slot4(op, 0, perc_rr=8, ksl_comp=True)])
+
+    nf = 0x80 | OPM_RHYTHM_NOISE_NFRQ
+    return [
+        ('BD', pair(d['bd']['mod'], d['bd']['car'], d['bd']['fb']), 0),
+        ('SD', pair(d['hh']['mod'], d['sd']['car'], d['hh']['fb']), 0),
+        ('TOM', solo(d['tom']['mod']), 0),
+        ('HH', solo(d['hh']['mod']), 0),
+        ('TC', pair(d['tom']['mod'], d['tc']['car'], d['tom']['fb']), 0),
+        ('HH (noise)', noise(d['hh']['mod']), nf),
+        ('TC (noise)', noise(d['tc']['car']), nf),
+    ]
+
+
+def opl_voice(voice):
+    def op(o, tl):
+        ksl = {0: 0, 1: 2, 2: 1, 3: 3}[o['ksl']]  # re-frame to OPL
+        return (o['am'], o['vib'], o['egt'], o['ksr'], o['multi'], ksl,
+                tl, o['ar'], o['dr'], o['sl'], o['rr'], 1 if o['ws'] else 0)
+    return (voice['fb'], [op(voice['mod'], voice['mod']['tl']),
+                          op(voice['car'], 0xFF)])
+
+
+def fmt_op4(v):
+    fb, alg, pms, ams, ops = v
+    flat = [fb, alg, pms, ams] + [x for op in ops for x in op]
+    return '{ ' + ', '.join(str(x) for x in flat) + ' }'
+
+
+def main():
+    mel = [SEED['melodic'][str(i)] for i in range(1, 16)]
+    lines = []
+    lines.append('#ifndef OPLL_PRESETS_ESTABLISHED_H')
+    lines.append('#define OPLL_PRESETS_ESTABLISHED_H')
+    lines.append('')
+    lines.append('/*')
+    for ln in SEED['notice'].splitlines():
+        lines.append(' * ' + ln if ln else ' *')
+    lines.append(' *')
+    lines.append(' * Contents: the base YM2413 set (register bytes), plus')
+    lines.append(' * derived preset tables for OPL, OPN, OPNA and OPM,')
+    lines.append(' * generated from the base set through the audited')
+    lines.append(' * conversion laws (see make_presets.py). Carrier TL is')
+    lines.append(' * a performance value (source VOL << 2); tables carry 0.')
+    lines.append(' * OPLL_OPM_LEVEL_TRIM carries the measured per-voice')
+    lines.append(' * output level correction (carrier TL steps) that')
+    lines.append(' * projections add on top of the performance value.')
+    lines.append(' * Rhythm voices are in the base table; the OPM rhythm')
+    lines.append(' * table at the end carries the drum preset codes.')
+    lines.append(' */')
+    lines.append('')
+    lines.append('/* Base set: YM2413 register bytes (regs 00..07), 15 melodic')
+    lines.append(' * voices + 3 rhythm entries (BD, HH/SD, TOM/TC). */')
+    lines.append('static const unsigned char OPLL_ESTABLISHED_BASE[18][8] = {')
+    def pack(mod, car, fb, dc, dm):
+        def op0(o):
+            return ((o['am'] << 7) | (o['vib'] << 6) | (o['egt'] << 5)
+                    | (o['ksr'] << 4) | o['multi'])
+        return [op0(mod), op0(car), (mod['ksl'] << 6) | mod['tl'],
+                (car['ksl'] << 6) | (dc << 4) | (dm << 3) | fb,
+                (mod['ar'] << 4) | mod['dr'], (car['ar'] << 4) | car['dr'],
+                (mod['sl'] << 4) | mod['rr'], (car['sl'] << 4) | car['rr']]
+
+    base_names = ['Violin', 'Guitar', 'Piano', 'Flute', 'Clarinet',
+                  'Oboe', 'Trumpet', 'Organ', 'Horn', 'Synthesizer',
+                  'Harpsichord', 'Vibraphone', 'Synthsizer Bass',
+                  'Acoustic Bass', 'Electric Guitar', 'R: Bass Drum',
+                  'R: High-Hat(M)/Snare Drum(C)',
+                  'R: Tom-tom(M)/Top Cymbal(C)']
+    base_rows = []
+    for i in range(1, 16):
+        v = SEED['melodic'][str(i)]
+        base_rows.append(pack(v['mod'], v['car'], v['fb'], v['dc'], v['dm']))
+    drums = SEED['drums']
+    base_rows.append(pack(drums['bd']['mod'], drums['bd']['car'],
+                          drums['bd']['fb'], drums['bd']['dc'],
+                          drums['bd']['dm']))
+    base_rows.append(pack(drums['hh']['mod'], drums['sd']['car'],
+                          drums['hh']['fb'], drums['hh']['dc'],
+                          drums['hh']['dm']))
+    base_rows.append(pack(drums['tom']['mod'], drums['tc']['car'],
+                          drums['tom']['fb'], drums['tom']['dc'],
+                          drums['tom']['dm']))
+    for i, (name, vals) in enumerate(zip(base_names, base_rows)):
+        lines.append('    {' + ', '.join(f'0x{v:02X}' for v in vals) +
+                     f'}}, // {i + 1}: {name}')
+    lines.append('};')
+    lines.append('')
+    lines.append('/* OPL version: { FB, { {AM,VIB,EGT,KSR,MULTI,KSL,TL,AR,DR,SL,RR,WS} x2 } }')
+    lines.append(' * KSL re-framed to the OPL frame; carrier TL 0xFF = performance VOL. */')
+    lines.append('static const unsigned char OPLL_PRESET_OPL[15][1 + 2 * 12] = {')
+    for i, v in enumerate(mel):
+        fb, ops = opl_voice(v)
+        flat = [fb] + [x for op in ops for x in op]
+        lines.append('    { ' + ', '.join(str(x) for x in flat) + f' }}, // {NAMES[i]}')
+    lines.append('};')
+    for chip, pms, ams, note in (
+            ('OPN', 4, 2, 'YM2203: field law shared with OPNA; sounding EG/LFO '
+                          'rates follow the 4 MHz clock, corrected at projection.'),
+            ('OPNA', 4, 2, 'YM2608: law measured on this chip.'),
+            ('OPM', 5, 2, 'YM2151: LFO bridge depths PMD 86 / AMD 16 are '
+                          'chip-global constants of the projection. PMS 5 '
+                          'measured on IKAOPM at +/-9 cents (the OPLL '
+                          'vibrato depth class); PMS 2 renders ~0.')):
+        lines.append('')
+        lines.append(f'/* {chip} version: {{ FB, ALG, PMS, AMS, '
+                     '{ {MUL,TL,KS,AR,D1R,D2R,D1L,RR,DT,AM} x4 (M1,C1,M2,C2) } }')
+        lines.append(f' * {note} */')
+        lines.append(f'static const unsigned char OPLL_PRESET_{chip}[15][4 + 4 * 10] = {{')
+        for i, v in enumerate(mel):
+            lines.append(f'    {fmt_op4(four_op(v, pms, ams, 8 if chip in ("OPM", "OPNA") else None, chip in ("OPM", "OPNA")))}, // {NAMES[i]}')
+        lines.append('};')
+    lines.append('')
+    lines.append('')
+    lines.append('/* Per-voice output level trim for OPM projections:')
+    lines.append(' * carrier TL steps added to the performance carrier TL')
+    lines.append(' * (source VOL << 2).  Measured 2026-11-14 on')
+    lines.append(' * IKAOPLL / IKAOPM (see LEVEL_TRIM_TL_OPM in')
+    lines.append(' * make_presets.py for method and per-voice values). */')
+    lines.append('static const signed char OPLL_OPM_LEVEL_TRIM[15] = {')
+    lines.append('    ' + ', '.join(str(LEVEL_TRIM_TL_OPM.get(n, 0)) for n in NAMES) + ' };')
+    lines.append('static const signed char OPLL_OPNA_LEVEL_TRIM[15] = {')
+    lines.append('    ' + ', '.join(str(LEVEL_TRIM_TL_OPNA.get(n, 0)) for n in NAMES) + ' };')
+    lines.append('/* OPM rhythm: { FB, ALG, PMS, AMS, { op x4 } } preset codes')
+    lines.append(' * for the five drum voices, plus HH/TC hardware-noise')
+    lines.append(' * variants.  The companion table gives the reg 0x0F byte')
+    lines.append(' * (NE | NFRQ) for noise rows and 0 for FM rows; a noise')
+    lines.append(' * row sounds on channel 8 (its C2 slot), so the projection')
+    lines.append(' * picks FM or noise per hit by channel availability. */')
+    lines.append('static const unsigned char OPLL_PRESET_OPM_RHYTHM[7][4 + 4 * 10] = {')
+    for name, row, _nf in rhythm_opm():
+        lines.append(f'    {fmt_op4(row)}, // {name}')
+    lines.append('};')
+    lines.append('static const unsigned char OPLL_PRESET_OPM_RHYTHM_NOISE[7] = {')
+    lines.append('    ' + ', '.join(f'0x{nf:02X}' if nf else '0'
+                                     for _name, _row, nf in rhythm_opm()))
+    lines.append('};')
+    lines.append('')
+    lines.append('#endif /* OPLL_PRESETS_ESTABLISHED_H */')
+    OUT.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    print('wrote', OUT, OUT.stat().st_size, 'bytes')
+    write_target_jsons()
+
+
+# Per-target preset JSONs for the vgm-variants OPLL projection
+# (py/opll_fm_target.py).  Register-ready four-op rows from the
+# same laws as the C header; the projector applies them and
+# computes custom patches with a port of four_op().  LFO bridge:
+# the OPLL vibrato rate measured through the OPM bridge is
+# 5.76 Hz (LFRQ 0xCB at 3.579545 MHz, PMD 86 / AMD 16).
+SYNTH_MOD_EG_OVERRIDE = {'d1r': 11, 'd2r': 4, 'sl': 6}
+
+
+def _op_obj(op):
+    keys = ('mul', 'tl', 'ks', 'ar', 'd1r', 'd2r', 'sl', 'rr', 'dt', 'am')
+    return dict(zip(keys, op))
+
+
+def _target_json(target, chip, clock, pms, ams, trims, rhythm):
+    voices = []
+    for i in range(1, 16):
+        row = SEED['melodic'][str(i)]
+        fb, alg, vp, va, ops = four_op(row, pms, ams, perc_rr=8,
+                                       ksl_comp=True)
+        voice = {'index': i, 'name': row['name'], 'fb': fb, 'alg': alg,
+                 'pms': vp, 'ams': va,
+                 'ops': [_op_obj(o) for o in ops],
+                 'level_trim_tl': trims.get(row['name'], 0)}
+        if row['name'] == 'Synthesizer':
+            # Modulator brightness-sustain fit, 2026-11-14:
+            # probe trajectory error 15.5 -> 4.1 (OPM) and
+            # 12.75 -> 6.27 (OPNA) against IKAOPLL.  Adopted by
+            # the owner's audition of the FMPAC02 countermeasure
+            # render the same day (sound pressure restored).
+            voice['mod_eg_override'] = dict(
+                SYNTH_MOD_EG_OVERRIDE,
+                status='adopted 2026-11-14 by owner audition (FMPAC02)')
+        if target == 'makoto' and row['name'] in OPNA_FIT:
+            fit = OPNA_FIT[row['name']]
+            if 'pms' in fit:
+                voice['pms'] = fit['pms']
+            for oi, fields in fit.get('ops', {}).items():
+                voice['ops'][oi].update(fields)
+        voices.append(voice)
+    doc = {'target': target, 'chip': chip, 'clock_hz': clock,
+           'source': 'opll_presets.json via make_presets.py; do not hand-edit',
+           'lfo': {'hz': 5.76, 'pms': pms, 'ams': ams},
+           'voices': voices, 'rhythm': rhythm}
+    if target == 'sfg01':
+        doc['lfo'].update(pmd=86, amd=16, lfrq=0xCB)
+    if target == 'makoto':
+        doc['fit_note'] = ('Voices fitted against IKAOPLL renders '
+                       'of a low-extended 8-note probe set.  The '
+                       'current set (2026-11-22) fixes the waveform '
+                       'select at 0 on both operators -- the OPL3 '
+                       'melodic conversion is plain two-operator, '
+                       'an extension of the Y8950 set -- and was '
+                       'searched under a per-partial harmonic score '
+                       '(levels relative to each tone\'s own '
+                       'fundamental, excess partials weighted), '
+                       'starting from the earlier fitted set, the '
+                       'Y8950 fitted set and the unfitted frame.  '
+                       'Earlier passes (2026-11-16 against the OPM '
+                       'table, 2026-11-20 against real YM2413 '
+                       'recordings, 2026-11-21/22 with waveform '
+                       'select in play) were intermediate stages; '
+                       'see OPL3_FIT in make_presets.py.')
+    return doc
+
+
+# OPL3 (YMF262): the same sine-projection cause as OPM - the
+# OPL frame carries no waveform, so ws=1 carriers render as
+# sine and come out hot by the same amounts (the ESE OPL3
+# recordings of FMPAC02 show Organ about +5 dB and Synthesizer
+# about +3 dB over the song's other voices, the same family).
+# Initial values carried from the OPM set; the owner's audition
+# may retune them per voice, as it did there (9 -> 8 -> 7).
+# Pinned to the pre-2026-11-21 OPM values: OPL3's shipped
+# trims all come from OPL3_FIT below (absolute anchor against
+# the IKAOPLL render), so this base only fills voices a FIT
+# entry might omit; it must not follow the OPM/OPNA real-chip
+# re-anchor above.
+LEVEL_TRIM_TL_OPL3 = {'Violin': 7, 'Trumpet': -1, 'Organ': 4,
+                      'Synthesizer': 7, 'Harpsichord': 4}
+
+
+def _established_opl_json(target, chip, clock):
+    # OPL two-op rows straight from the established set
+    # (opll_presets.json) by field identity - the same frame the
+    # OPL section of the header above and the custom-patch
+    # projection use: KSL re-framed ({0:0, 1:2, 2:1, 3:3}) so the
+    # physical key-scale rate is preserved, modulator TL from
+    # the set, carrier TL a performance value (source VOL << 2)
+    # carried as 0.  Adopted for the opl3 target by the owner
+    # (2026-11-15): the derived set failed its hardware audition
+    # (melody collapse the ymfm fits did not predict), so opl3
+    # first reaches the level the established set already has on
+    # OPM / OPNA; per-voice fitting for OPL3 is separate later
+    # work.  msxaudio has its own fitted table
+    # (Y8950_FIT below).
+    def op(o):
+        return {'am': o['am'], 'vib': o['vib'], 'egt': o['egt'],
+                'ksr': o['ksr'], 'mul': o['multi'],
+                'ksl': {0: 0, 1: 2, 2: 1, 3: 3}[o['ksl']],
+                'tl': o['tl'] or 0,
+                'ar': o['ar'], 'dr': o['dr'], 'sl': o['sl'],
+                'rr': o['rr']}
+    voices = []
+    for i in range(1, 16):
+        row = SEED['melodic'][str(i)]
+        voices.append({'index': i, 'name': row['name'],
+                       'fb': row['fb'],
+                       'ops': [op(row['mod']), op(row['car'])],
+                       'level_trim_tl':
+                           LEVEL_TRIM_TL_OPL3.get(row['name'], 0)})
+    return {'target': target, 'chip': chip, 'clock_hz': clock,
+            'source': 'opll_presets.json via make_presets.py; '
+                      'do not hand-edit',
+            'law': 'field identity from the established set '
+                   '(KSL re-framed); carrier TL = 4 * VOL',
+            'voices': voices,
+            'rhythm': {'kind': 'opl_native',
+                       'note': 'OPLL percussion projects to the target '
+                               'native rhythm unit using the configured rhythm '
+                               'parameters (musical_opl_target / '
+                               'musical_opl3_target); no FM rows.'}}
+
+
+# OPL3 fitted set: per-voice fit against IKAOPLL WAV output.
+# First fitted 2026-11-16 against the OPM table (IKAOPM reference
+# renders, AdLibEmu candidate search over the OPL frame plus
+# waveform select, an axis OPM does not have), with the waveform
+# select re-measured on the real chip 2026-11-20.  Re-fitted
+# 2026-11-20 against real YM2413 recordings of the 15-voice
+# probe set (Nuked candidate renders, coordinate descent plus
+# level trims re-anchored to the recording's per-voice balance).
+# The first of those searches measured its candidates one
+# octave low (the probe generator used the Y8950-frame pitch
+# function), so its harmonic scores were biased; the extended
+# re-fit the same day (5 notes per voice: C3/A4/C6/A6/C7,
+# corrected probe pitch, each voice started from the better of
+# the two earlier tables, level held during the descent) is
+# what stands below: mean envelope+harmonic distance to the
+# real chip 23.09 -> 9.37 under the corrected measurement.
+# Re-fitted again 2026-11-21 against IKAOPLL RTL renders of a
+# low-extended probe set (8 notes per voice: A1/C2/A2/C3/A4/
+# C6/A6/C7), starting from the table above (the owner's
+# standing point; the low notes were added after FMPAC02's
+# ElecGuitar, a bass role centred on 55 Hz, proved to live
+# almost entirely below the old probe range).  The owner
+# holds IKAOPLL renders equivalent to real-chip recordings
+# as a reference (decap-based RTL), and the candidate side
+# stayed Nuked.  Mean score (harmonic + 0.5 envelope) under
+# the IKAOPLL measurement: 8.94 -> 7.19; Piano, Vibraphone,
+# AcoustBass and Guitar remain the least close voices.
+# Volume re-check 2026-11-21 (owner's direction: every voice
+# re-anchored to the IKAOPLL render's level, same production
+# probe window as the 2638a03 anchoring): Violin +1, Flute +1,
+# Synthesizer +1, Vibraphone +1, Harpsichord -2, SynthBass -2,
+# ElecGuitar +10.  ElecGuitar's trim had been set from a
+# level-invariant fit pass and read -7.2 dB (too loud) under
+# the standard window; its envelope also decays faster than
+# the original's, which no trim can fix (melody investigation,
+# separately scheduled).
+# Volume re-check repeated 2026-11-21 after the seed swap
+# (the established frame reads the seed's modulator TL and EG
+# directly, so the waveform-fit seed moved this table's levels
+# even though OPL3_FIT itself did not change): ten trims move -
+# Guitar +4, Piano +4, Flute +3, Clarinet +4, Horn +1,
+# Harpsichord +7, Vibraphone +4, SynthBass +9, AcoustBass +2,
+# ElecGuitar +6 steps.  Same probe set, window and IKAOPLL
+# anchor as the first re-check; after the move every voice's
+# mean gain is within +/-0.4 dB.
+# Re-fitted 2026-11-22 with the waveform select fixed at 0
+# on both operators (owner's direction: the OPL3 melodic
+# conversion is plain two-operator work, an extension of
+# the Y8950 set; no four-operator pairing takes part in
+# OPLL melody).  The search used a per-partial harmonic
+# score -- levels relative to each tone's own fundamental,
+# partials counted when either side has them, excess
+# weighted -- after an absolute-level variant of that
+# score proved to be dominated by the near-silent
+# post-key-off windows and was discarded.  Starts were
+# the unfitted frame, the previous fitted set with the
+# waveform select zeroed, the Y8950 fitted set and the
+# discarded pass's endpoints, arbitrated per voice under
+# the corrected score; no voice ended worse than its best
+# start.  Guitar, Piano and Vibraphone remain the least
+# close voices under this score.
+# Volume re-check 2026-11-23 (the WS=0 re-fit above selected on
+# harmonic shape only and reset the trims, so the 2026-11-21
+# anchors no longer applied; the owner's FMPAC02 take showed
+# quiet passages buried under the hot voices): every voice
+# re-measured against the IKAOPLL render with the same probe
+# set and window as the 2026-11-21 re-checks.  Mean gains
+# before the move ran from +22.1 dB (Synthesizer, too loud) to
+# -2.8 dB (Horn, too quiet); trims move +6 Violin, +12 Guitar,
+# +2 Piano, +27 Flute, +29 Clarinet, +12 Oboe, +18 Trumpet,
+# +13 Organ, +30 Synthesizer, +14 Vibraphone, +14 SynthBass
+# (15 -> 29), +5 AcoustBass, +14 ElecGuitar steps.  Horn and
+# Harpsichord keep trim 0: both read at or below the reference
+# and a trim cannot lift.
+OPL3_FIT = {
+    'Violin': {'level_trim_tl': 6, 'ops': {0: {'tl': 26, 'ar': 9, 'ws': 0}, 1: {'ksl': 3, 'ar': 8, 'rr': 7, 'ws': 0}}},
+    'Guitar': {'fb': 4, 'level_trim_tl': 12, 'ops': {0: {'am': 1, 'ksr': 0, 'ksl': 1, 'tl': 23, 'ws': 0}, 1: {'am': 1, 'ksl': 1, 'ar': 9, 'sl': 2, 'rr': 5, 'ws': 0}}},
+    'Piano': {'level_trim_tl': 2, 'ops': {0: {'tl': 26, 'dr': 1, 'rr': 0, 'ws': 0}, 1: {'vib': 1, 'ksr': 1, 'ksl': 1, 'dr': 6, 'sl': 3, 'rr': 2, 'ws': 0}}},
+    'Flute': {'fb': 6, 'level_trim_tl': 27, 'ops': {0: {'am': 1, 'tl': 9, 'ws': 0}, 1: {'ar': 7, 'ws': 0}}},
+    'Clarinet': {'fb': 7, 'level_trim_tl': 29, 'ops': {0: {'ar': 8, 'rr': 0, 'ws': 0}, 1: {'ar': 11, 'ws': 0}}},
+    'Oboe': {'level_trim_tl': 12, 'ops': {0: {'rr': 1, 'ws': 0}, 1: {'ksl': 1, 'ar': 8, 'rr': 8, 'ws': 0}}},
+    'Trumpet': {'fb': 6, 'level_trim_tl': 18, 'ops': {0: {'vib': 1, 'tl': 27, 'ar': 6, 'dr': 0, 'rr': 0, 'ws': 0}, 1: {'vib': 0, 'ksl': 2, 'ar': 9, 'rr': 7, 'ws': 0}}},
+    'Organ': {'fb': 3, 'level_trim_tl': 13, 'ops': {0: {'ksr': 1, 'tl': 34, 'rr': 1, 'ws': 0}, 1: {'am': 1, 'vib': 1, 'ksl': 1, 'ar': 9, 'rr': 7, 'ws': 0}}},
+    'Horn': {'level_trim_tl': 0, 'ops': {0: {'rr': 2, 'ws': 0}, 1: {'ksl': 3, 'ar': 7, 'dr': 6, 'sl': 2, 'rr': 7, 'ws': 0}}},
+    'Synthesizer': {'level_trim_tl': 30, 'ops': {0: {'vib': 0, 'ar': 8, 'dr': 4, 'sl': 6, 'rr': 2, 'ws': 0}, 1: {'vib': 0, 'rr': 8, 'ws': 0}}},
+    'Harpsichord': {'fb': 2, 'level_trim_tl': 0, 'ops': {0: {'tl': 7, 'sl': 0, 'ws': 0}, 1: {'ksl': 1, 'ar': 13, 'sl': 4, 'rr': 4, 'ws': 0}}},
+    'Vibraphone': {'level_trim_tl': 14, 'ops': {0: {'egt': 1, 'tl': 49, 'rr': 3, 'ws': 0}, 1: {'ksl': 1, 'dr': 2, 'rr': 5, 'ws': 0}}},
+    'SynthBass': {'level_trim_tl': 29, 'ops': {0: {'tl': 12, 'ar': 14, 'dr': 1, 'sl': 1, 'ws': 0}, 1: {'am': 1, 'rr': 5, 'ws': 0}}},
+    'AcoustBass': {'level_trim_tl': 5, 'ops': {0: {'tl': 20, 'dr': 2, 'ws': 0}, 1: {'am': 1, 'vib': 1, 'ksl': 1, 'ar': 10, 'rr': 4, 'ws': 0}}},
+    'ElecGuitar': {'level_trim_tl': 14, 'ops': {0: {'ws': 0}, 1: {'ksl': 1, 'rr': 5, 'ws': 0}}},
+}
+
+
+def _fitted_opl3_json():
+    import copy
+    doc = _established_opl_json('opl3', 'ymf262', 14318180)
+    doc['law'] = ('fitted per voice against IKAOPLL WAV output '
+                  '(YM2413 reference renders by the decap-based '
+                  'IKAOPLL RTL simulation); this set holds OPL3 '
+                  'parameters only and no OPLL preset data; see '
+                  'OPL3_FIT in make_presets.py')
+    doc['fit_note'] = ('Voices fitted against IKAOPLL renders '
+                       'of a low-extended 8-note probe set, most '
+                       'recently 2026-11-21 (mean score 8.94 -> '
+                       '7.19), with level trims re-checked '
+                       'against the IKAOPLL renders the same '
+                       'day; the 2026-11-22 waveform-select-0 '
+                       're-fit reset the trims, and they were '
+                       're-anchored against the IKAOPLL renders '
+                       'on 2026-11-23. Earlier passes (2026-11-16 against '
+                       'the OPM table, 2026-11-20 against real '
+                       'YM2413 recordings) were intermediate '
+                       'stages toward this fit; see OPL3_FIT in '
+                       'make_presets.py.')
+    for voice in doc['voices']:
+        fit = OPL3_FIT[voice['name']]
+        if 'fb' in fit:
+            voice['fb'] = fit['fb']
+        if 'level_trim_tl' in fit:
+            voice['level_trim_tl'] = fit['level_trim_tl']
+        for oi, fields in fit.get('ops', {}).items():
+            voice['ops'][oi].update(fields)
+    return doc
+
+
+# Per-voice fitted Y8950 (MSX-Audio) melodic set, 2026-11-22.
+# Fitted against IKAOPLL WAV output with ymfm Y8950 candidate
+# renders (the Y8950 has no RTL simulator; ymfm is the owner's
+# designated candidate renderer for this chip, final judgement on
+# real hardware).  Starting point was the fitted OPL3 set with
+# waveform select dropped (the Y8950 has none), then coordinate
+# descent on C3/A4/C6 probes: mean score 8.22 against the same
+# IKAOPLL reference, where the previous derived table scored
+# 19.74.  Violin was re-fitted afterwards on the low-extended
+# 8-note probe set with a per-partial harmonic score, after the
+# owner's audition found its harmonics harsh; the other fourteen
+# voices were accepted at that audition.  Carrier TL is a
+# performance value (source VOL << 2) plus the per-voice
+# level_trim_tl; the stored carrier tl is not used.
+Y8950_FIT = [
+    {'index': 1, 'name': 'Violin', 'fb': 7, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 30, 'ar': 13, 'dr': 0, 'sl': 0, 'rr': 1}, {'am': 0, 'vib': 1, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 3, 'tl': 0, 'ar': 9, 'dr': 8, 'sl': 0, 'rr': 7}]},
+    {'index': 2, 'name': 'Guitar', 'fb': 3, 'level_trim_tl': 0, 'ops': [{'am': 1, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 3, 'ksl': 2, 'tl': 25, 'ar': 12, 'dr': 7, 'sl': 2, 'rr': 0}, {'am': 0, 'vib': 1, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 9, 'dr': 3, 'sl': 1, 'rr': 3}]},
+    {'index': 3, 'name': 'Piano', 'fb': 0, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 0, 'ksr': 1, 'mul': 3, 'ksl': 1, 'tl': 26, 'ar': 10, 'dr': 2, 'sl': 1, 'rr': 0}, {'am': 0, 'vib': 1, 'egt': 0, 'ksr': 1, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 11, 'dr': 4, 'sl': 3, 'rr': 1}]},
+    {'index': 4, 'name': 'Flute', 'fb': 6, 'level_trim_tl': 0, 'ops': [{'am': 1, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 10, 'ar': 8, 'dr': 10, 'sl': 7, 'rr': 0}, {'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 0, 'ar': 10, 'dr': 2, 'sl': 1, 'rr': 8}]},
+    {'index': 5, 'name': 'Clarinet', 'fb': 6, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 2, 'ksl': 0, 'tl': 30, 'ar': 8, 'dr': 1, 'sl': 0, 'rr': 0}, {'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 0, 'ar': 11, 'dr': 4, 'sl': 1, 'rr': 9}]},
+    {'index': 6, 'name': 'Oboe', 'fb': 5, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 22, 'ar': 13, 'dr': 0, 'sl': 0, 'rr': 0}, {'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 2, 'ksl': 1, 'tl': 0, 'ar': 8, 'dr': 1, 'sl': 5, 'rr': 8}]},
+    {'index': 7, 'name': 'Trumpet', 'fb': 6, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 1, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 26, 'ar': 7, 'dr': 0, 'sl': 1, 'rr': 0}, {'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 8, 'dr': 1, 'sl': 0, 'rr': 7}]},
+    {'index': 8, 'name': 'Organ', 'fb': 4, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 1, 'ksr': 1, 'mul': 3, 'ksl': 0, 'tl': 34, 'ar': 11, 'dr': 0, 'sl': 0, 'rr': 1}, {'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 7, 'dr': 0, 'sl': 0, 'rr': 7}]},
+    {'index': 9, 'name': 'Horn', 'fb': 6, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 1, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 27, 'ar': 6, 'dr': 4, 'sl': 1, 'rr': 0}, {'am': 0, 'vib': 1, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 8, 'dr': 7, 'sl': 2, 'rr': 7}]},
+    {'index': 10, 'name': 'Synthesizer', 'fb': 1, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 11, 'ar': 8, 'dr': 4, 'sl': 6, 'rr': 2}, {'am': 0, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 0, 'ar': 15, 'dr': 0, 'sl': 0, 'rr': 8}]},
+    {'index': 11, 'name': 'Harpsichord', 'fb': 1, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 1, 'ksr': 1, 'mul': 3, 'ksl': 1, 'tl': 7, 'ar': 11, 'dr': 8, 'sl': 0, 'rr': 0}, {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 11, 'dr': 15, 'sl': 4, 'rr': 4}]},
+    {'index': 12, 'name': 'Vibraphone', 'fb': 7, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 1, 'ksr': 1, 'mul': 7, 'ksl': 0, 'tl': 42, 'ar': 11, 'dr': 8, 'sl': 2, 'rr': 3}, {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 13, 'dr': 2, 'sl': 1, 'rr': 5}]},
+    {'index': 13, 'name': 'SynthBass', 'fb': 5, 'level_trim_tl': 15, 'ops': [{'am': 1, 'vib': 0, 'egt': 1, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 12, 'ar': 14, 'dr': 1, 'sl': 1, 'rr': 0}, {'am': 1, 'vib': 1, 'egt': 1, 'ksr': 0, 'mul': 0, 'ksl': 0, 'tl': 0, 'ar': 15, 'dr': 4, 'sl': 9, 'rr': 3}]},
+    {'index': 14, 'name': 'AcoustBass', 'fb': 2, 'level_trim_tl': 0, 'ops': [{'am': 1, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 2, 'tl': 20, 'ar': 10, 'dr': 2, 'sl': 0, 'rr': 3}, {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 0, 'tl': 0, 'ar': 11, 'dr': 0, 'sl': 0, 'rr': 2}]},
+    {'index': 15, 'name': 'ElecGuitar', 'fb': 3, 'level_trim_tl': 0, 'ops': [{'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 10, 'ar': 15, 'dr': 0, 'sl': 12, 'rr': 2}, {'am': 0, 'vib': 0, 'egt': 0, 'ksr': 0, 'mul': 1, 'ksl': 1, 'tl': 0, 'ar': 15, 'dr': 2, 'sl': 1, 'rr': 5}]},
+]
+
+
+def _fitted_y8950_json():
+    import copy
+    return {'target': 'msxaudio', 'chip': 'y8950', 'clock_hz': 3579545,
+            'source': 'Y8950_FIT in make_presets.py; do not hand-edit',
+            'law': ('fitted per voice against IKAOPLL WAV output '
+                    '(YM2413 reference renders by the decap-based '
+                    'IKAOPLL RTL simulation); this set holds Y8950 '
+                    'parameters only and no OPLL preset data; see '
+                    'Y8950_FIT in make_presets.py'),
+            'fit_note': ('Voices fitted per voice against IKAOPLL '
+                         'WAV output with ymfm Y8950 candidate '
+                         'renders, 2026-11-22; see Y8950_FIT in '
+                         'make_presets.py for the method and the '
+                         'audition outcome.'),
+            'voices': copy.deepcopy(Y8950_FIT),
+            'rhythm': {'kind': 'opl_native',
+                       'note': 'OPLL percussion projects to the target '
+                               'native rhythm unit using the configured rhythm '
+                               'parameters (musical_opl_target / '
+                               'musical_opl3_target); no FM rows.'}}
+
+
+def write_target_jsons():
+    import json as _json
+    opm_rhythm = [{'name': name, 'fb': row[0], 'alg': row[1],
+                   'ops': [_op_obj(o) for o in row[4]],
+                   'noise_reg': nf}
+                  for name, row, nf in rhythm_opm()]
+    docs = {
+        'msxaudio/opll_to_y8950.json': _fitted_y8950_json(),
+        'opl3/opll_to_opl3.json': _fitted_opl3_json(),
+        'sfg01/opll_to_opm.json': _target_json(
+            'sfg01', 'ym2151', 3579545, 5, 2, LEVEL_TRIM_TL_OPM,
+            {'kind': 'fm_rows', 'rows': opm_rhythm}),
+        'makoto/opll_to_opna.json': _target_json(
+            'makoto', 'ym2608', 8000000, 4, 2, LEVEL_TRIM_TL_OPNA,
+            {'kind': 'opna_native',
+             'note': 'OPLL percussion projects to the OPNA native '
+                     'rhythm unit (project_rhythm); no FM rows.'}),
+        'sfg01/opll_to_opm_soundcore.json': _target_json(
+            'sfg01', 'ym2151', 3579545, 5, 2,
+            LEVEL_TRIM_TL_OPM_SOUNDCORE,
+            {'kind': 'fm_rows', 'rows': opm_rhythm}),
+        'makoto/opll_to_opna_soundcore.json': _target_json(
+            'makoto', 'ym2608', 8000000, 4, 2,
+            LEVEL_TRIM_TL_OPNA_SOUNDCORE,
+            {'kind': 'opna_native',
+             'note': 'OPLL percussion projects to the OPNA native '
+                     'rhythm unit (project_rhythm); no FM rows.'}),
+    }
+    for rel in ('sfg01/opll_to_opm_soundcore.json',
+                'makoto/opll_to_opna_soundcore.json'):
+        docs[rel]['source'] += (
+            ' Melody level trims are the IKAOPLL-anchored values, '
+            'identical to the default table (owner\'s decision, '
+            '2026-11-21: the SoundCore level lift was retired '
+            'after audition; --soundcore-levels now affects only '
+            'the rhythm lanes).')
+    for rel, doc in docs.items():
+        doc['copyright'] = 'Copyright (c) 2026 emef2247'
+        doc['license'] = 'MIT'
+        path = HERE / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(_json.dumps(doc, indent=1) + '\n', encoding='utf-8')
+        print('wrote', path, path.stat().st_size, 'bytes')
+
+
+if __name__ == '__main__':
+    main()

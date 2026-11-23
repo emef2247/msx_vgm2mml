@@ -24,14 +24,6 @@ python scripts/export_mgs.py INDIR --outdir OUTDIR
 
 MMLの生成からMGSへのコンパイルまでを自動で行います。VGMやBlueprintも出力します。
 
-MGSの生成にはMGSCまたはmgsc-jsが必要です。また、生成結果のKey-On検証にはlibkss-jsを使用します。
-
-なお、バッファ制限回避のため、独自コンパイラMGSEXCも収録しています（`scripts/batch_vgm_to_mgs.py` の `--compiler mgsexc` で選択）。
-
-これらの環境構築については、[環境構築](docs/setup_mgs_tools.ja.md)を参照してください。
-
-外部ツールを自動でインストールしたい場合は、[scripts/setup_mgs_tools.py](scripts/setup_mgs_tools.py)を利用してください。
-
 ### Blueprintの出力
 
 通常のMML/MGSとは別に、演奏情報を編集用のMMLおよびMIDI（SMF）として出力するBlueprint機能を搭載しています。
@@ -39,10 +31,6 @@ MGSの生成にはMGSCまたはmgsc-jsが必要です。また、生成結果の
 またndpサブフォルダ（`blueprint/ndp/`）には、MSX用PSGドライバ「NDP」形式のMMLが生成されます。
 
 Blueprintでは、音色や音量の再現よりも、音符・音価・休符・繰り返しといった楽曲の構造を抽出することを重視しています。
-
-生成したデータは、MMLの編集やDAWでのアレンジなどに利用できます。
-
-Blueprintは通常のMML/MGS生成とは独立しており、MGSへの変換ができない場合でも生成できることがあります。
 
 詳細は[Blueprintの仕様](docs/musical_blueprint.md)を参照してください。
 
@@ -73,6 +61,8 @@ Blueprintは通常のMML/MGS生成とは独立しており、MGSへの変換が�
 | OPM＋MSM6258 | ― | ― | ○ |
 | OPNA（YM2608） | ― | ○ | ○ |
 | OPN2（YM2612） | ― | ○ | ○ |
+| OPN（YM2203） | ― | ○ | ○ |
+| OPN＋SegaPCM | ― | ― | ○ |
 
 ○：対応　△：近似変換　―：非対応
 
@@ -80,21 +70,9 @@ Blueprintは通常のMML/MGS生成とは独立しており、MGSへの変換が�
 
 PSG／SSG、OPLL、SCCの演奏情報をMGSDRV用MMLに変換します。
 
-PSG／SCCでは、音量変化からソフトウェアエンベロープを抽出し、反復部分のループ化やマクロ化も行います。
-
-HuC6280は、SCCを中心にPSGやOPLLを併用して近似変換します。波形や音源の使用状況によっては、再現できない演奏情報があります。
-
-NES APUは、パルス波と三角波をSCC、ノイズをPSGへ割り当てて変換します。DPCMとFDSは、SCCの空きチャンネルでの波形スライス再生やOPLLへの割り当てで再現します。
-
 ## VGM出力
 
 VGMから抽出した演奏情報をもとに、VGMファイルを生成できます。
-
-VGMの生成はMMLのコンパイルとは独立しており、MMLやMGSを生成できない場合でも利用できることがあります。
-
-生成されるVGMは音楽的な情報をもとに再構成したものであり、元のVGMのレジスタ操作を完全に再現するものではありません。
-
-VGMのみを一括生成したい場合は、次のスクリプトも利用できます。
 
 ```bash
 python scripts/export_vgm.py INDIR --outdir OUTDIR
@@ -129,33 +107,24 @@ MGSDRV本体は16KBを超える演奏データも処理できますが、プレ�
 
 通常の出力に加えて、`--vgm-variants` を付けて実行すると、サウンドカートリッジの構成ごとの VGM を別途生成します。SFG-01（OPM）や Makoto（OPNA）といったカートリッジで、変換した曲をそのまま鳴らすための機能です。
 
-MML 生成用に構築した音楽情報を、MSX のサウンドカートリッジに搭載された別の音源へ割り当ててみる機能です。現在の対象は SFG-01（OPM）と Makoto（OPNA）です。
-
     python scripts/export_mgs.py <入力.vgm> --outdir <出力先> --vgm-variants --force
 
-生成物は `vgm-variants/<プロファイル名>/<曲名>.vgm` に出力されます。生成できない構成は理由とともにスキップされ、診断が `_diagnostics` に残ります。
+生成物は `vgm-variants/<1本目のプロファイル名>/<曲名>.vgm` に出力されます。組み合わせは1本目のフォルダの下に、追加要素の名前のサブフォルダに入ります（例: `vgm-variants/sfg01/makoto/<曲名>.vgm`、`vgm-variants/sfg01/scc/<曲名>.vgm`）。
 
-入力音源ごとに生成されるプロファイルの一覧です（○：生成される、△：制限あり・未変換部分あり、—：生成されない）。
+1本目のカートリッジのプロファイルが入力音源ごとに生成されるかの一覧です（○：生成される、△：制限あり・未変換部分あり、—：生成されない）。
 
-| プロファイル | psg | psg_scc | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| sfg01 | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ | △ |
-| makoto | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
-| sfg01_makoto | — | — | — | — | — | — | — | ○ | — | ○ | ○ |
-| sfg01_msxaudio | — | — | — | — | — | — | — | — | — | ○ | ○ |
-| layered | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ |
-| scc_sfg01 | — | ○ | — | — | — | — | — | — | — | — | — |
-| scc_makoto | — | ○ | — | — | — | — | — | — | — | — | — |
-| scc_layered | — | ○ | — | — | — | — | — | — | — | — | — |
+| プロファイル | psg | psg_scc | opll | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 | opm_segapcm | opn | opn_segapcm |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| sfg01 | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | △ | △ | △ | ○ | △ |
+| makoto | ○ | ○ | ○ | ○ | ○ | ○ | ○ | △ | ○ | ○ | ○ | ○ | △ | ○ | △ |
+| misato | ○ | ○ | ○ | ○ | ○ | △ | △ | △ | △ | ○ | △ | △ | △ | ○ | △ |
+| msxaudio | ○ | — | ○ | ○ | ○ | ○ | △ | △ | — | — | — | — | — | — | — |
+| opl3 | ○ | — | ○ | ○ | ○ | ○ | ○ | △ | — | — | — | — | — | — | — |
 
-- `makoto`：各音源を OPNA の FM 向けに変換します。複数の音源が混在する場合は優先順位があります。PCM は OPNA の ADPCM-B へ変換します。
-- `sfg01`：各音源を OPM の FM 向けに変換します。こちらも音源の優先順位があります。PCM の再生には Makoto または MSX-AUDIO を併用できます（`sfg01_makoto` / `sfg01_msxaudio`）。
-- `layered`：FM に変換可能な音源について OPM と OPNA 両方の演奏データを格納し、SFG-01 と Makoto が同じパートを重ねて演奏します。デチューンとも違う、MSX ならではのお遊び機能です。
-- `scc_sfg01`：SCC のパートを実 SCC で鳴らしながら、同じパートを OPM の FM でも重ねます。他のパートは `scc` の付かない構成と同じです。
-- `scc_makoto`：SCC のパートを実 SCC で鳴らしながら、同じパートを OPNA の FM でも重ねます。他のパートは `scc` の付かない構成と同じです。
-- `scc_layered`：SCC のパートを実 SCC で鳴らしながら、同じパートを OPM と OPNA の両方の FM でも重ねます。他のパートは `scc` の付かない構成と同じです。
-- PCM は 256KiB の容量に収まるよう、重複するサンプルの共有や代表への置き換えで自動的に調整されます。
-- 再生は MSX 実機の VGMPlay や、Mami-VSIF Pro 経由の MAmidiMEmo などでどうぞ。実機がなくても、VGM プレーヤーで再生できます。
+各プロファイルでは、入力VGMから抽出した演奏情報を、対応するサウンドカートリッジの音源へ割り当てます。
+複数の音源が混在する場合は、音源ごとの優先順位に従ってチャンネルを割り当てます。音源の仕様やチャンネル数の制約により、一部の演奏情報を再現できない場合があります。
+
+各プロファイルの詳細については、[--vgm-variantsの詳細](README.vgm-variants.md)を参照してください
 
 ## 構成
 
@@ -216,14 +185,6 @@ python scripts/export_mgs.py INDIR --outdir OUTDIR
 
 This script automatically generates MML files and compiles them into MGS files. It also produces VGM and Blueprint output.
 
-MGSC or mgsc-js is required to generate MGS files. libkss-js is used to verify Key-On events in the generated output.
-
-A bundled compiler, MGSEXC, is also included to avoid the buffer limit (select it with `--compiler mgsexc` in `scripts/batch_vgm_to_mgs.py`).
-
-For instructions on setting up these tools, see [Tool Setup](docs/setup_mgs_tools.md).
-
-To install the external tools automatically, use [scripts/setup_mgs_tools.py](scripts/setup_mgs_tools.py).
-
 ### Blueprint Output
 
 In addition to the standard MML/MGS output, the Blueprint feature generates editable MML and MIDI (SMF) files from the extracted musical information.
@@ -265,26 +226,16 @@ The `--force` option does not guarantee successful conversion of every input. It
 | OPM + MSM6258 | No | No | Yes |
 | OPNA (YM2608) | No | Yes | Yes |
 | OPN2 (YM2612) | No | Yes | Yes |
+| OPN (YM2203) | No | Yes | Yes |
+| OPN + SegaPCM | No | No | Yes |
 
 ### MGS Conversion
 
 Musical information from PSG/SSG, OPLL, and SCC is converted into MGSDRV-compatible MML.
 
-For PSG and SCC, the tool extracts software envelopes from volume changes and applies loop and macro optimizations to repeated passages.
-
-HuC6280 is approximately mapped to SCC, with PSG and OPLL used where applicable. Some musical information may not be reproduced accurately, depending on waveform characteristics and sound chip usage.
-
-The NES APU is converted by assigning its pulse and triangle channels to SCC and its noise channel to PSG. DPCM and FDS are reproduced with waveform slices on a free SCC channel or by assignment to OPLL.
-
 ## VGM Output
 
 The tool can generate VGM files from musical information extracted from the source VGM.
-
-VGM generation is independent of MML compilation and may be available even when MML or MGS generation is unsuccessful.
-
-Generated VGM files are musical reconstructions and are not guaranteed to reproduce the original register operations exactly.
-
-For batch VGM generation without MML/MGS compilation, the following script is also available:
 
 ```bash
 python scripts/export_vgm.py INDIR --outdir OUTDIR
@@ -293,12 +244,6 @@ python scripts/export_vgm.py INDIR --outdir OUTDIR
 ## Conversion and Playback Limitations
 
 Because VGM and MML have different representations and constraints, the original performance may not always be reproduced accurately.
-
-MGS files are also subject to MGSDRV buffer limitations. As a result, some generated MML files may exceed the available capacity and fail to compile into MGS files.
-
-In such cases, manually edit or split the generated MML files.
-
-Blueprint also has limitations: sound chip-specific controls, PCM data, and other information that cannot be represented as musical notation may not be included.
 
 
 ## Troubleshooting
@@ -320,33 +265,26 @@ Beyond a player's limit, playback may glitch partway through, never terminate, o
 
 In addition to the standard output, adding `--vgm-variants` also generates VGM files for each sound cartridge configuration. This feature lets you play converted songs as they are on cartridges such as SFG-01 (OPM) and Makoto (OPNA).
 
-The musical information built for MML generation is assigned to other sound chips mounted on MSX sound cartridges. The current targets are SFG-01 (OPM) and Makoto (OPNA).
+The musical information built for MML generation is assigned to other sound chips mounted on MSX sound cartridges. The current targets are SFG-01 (OPM), Makoto (OPNA), Misato (OPN3), MSX-AUDIO (Y8950), and OPL3 (YMF262).
 
     python scripts/export_mgs.py <input.vgm> --outdir <output> --vgm-variants --force
 
-Output goes to `vgm-variants/<profile>/<song>.vgm`. Configurations that cannot be generated are skipped with a reason, and diagnostics remain in `_diagnostics`.
+Output goes to `vgm-variants/<first cartridge profile>/<song>.vgm`. Compositions are placed under the first cartridge's folder in a subfolder named by the added element (e.g. `vgm-variants/sfg01/makoto/<song>.vgm`, `vgm-variants/sfg01/scc/<song>.vgm`). A composition identical to the first cartridge alone is not written. Configurations that cannot be generated are skipped with a reason, and diagnostics remain in `_diagnostics`.
 
-Profiles generated for each source type.
+Base profiles generated for each source type (Yes: generated, Approximate: generated with limitations or unconverted parts, No: not generated).
 
-| Profile | psg | psg_scc | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| sfg01 | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Approximate | Approximate |
-| makoto | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Yes | Yes |
-| sfg01_makoto | No | No | No | No | No | No | No | Yes | No | Yes | Yes |
-| sfg01_msxaudio | No | No | No | No | No | No | No | No | No | Yes | Yes |
-| layered | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Yes | Yes |
-| scc_sfg01 | No | Yes | No | No | No | No | No | No | No | No | No |
-| scc_makoto | No | Yes | No | No | No | No | No | No | No | No | No |
-| scc_layered | No | Yes | No | No | No | No | No | No | No | No | No |
+| Profile | psg | psg_scc | opll | dcsg | dcsgx2 | apu | apu_fds | huc6280 | opna | opm | opn2 | opm_msm6258 | opm_segapcm | opn | opn_segapcm |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| sfg01 | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Approximate | Approximate | Approximate | Yes | Approximate |
+| makoto | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Approximate | Yes | Yes | Yes | Yes | Approximate | Yes | Approximate |
+| misato | Yes | Yes | Yes | Yes | Yes | Approximate | Approximate | Approximate | Approximate | Yes | Approximate | Approximate | Approximate | Yes | Approximate |
+| msxaudio | Yes | No | Yes | Yes | Yes | Yes | Approximate | Approximate | No | No | No | No | No | No | No |
+| opl3 | Yes | No | Yes | Yes | Yes | Yes | Yes | Approximate | No | No | No | No | No | No | No |
 
-- `makoto`: Converts each source for OPNA FM. When several sources are mixed, priorities apply. PCM is converted to OPNA ADPCM-B.
-- `sfg01`: Converts each source for OPM FM. Priorities apply here as well. For PCM playback, Makoto or MSX-AUDIO can be combined (`sfg01_makoto` / `sfg01_msxaudio`).
-- `layered`: For sources that can be converted to FM, performance data for both OPM and OPNA is stored, and SFG-01 and Makoto play the same part layered together. Unlike detune, this is a playful feature only possible on MSX.
-- `scc_sfg01`: Plays the SCC part on real SCC while layering the same part on OPM FM. The other parts are the same as the configuration without `scc`.
-- `scc_makoto`: Plays the SCC part on real SCC while layering the same part on OPNA FM. The other parts are the same as the configuration without `scc`.
-- `scc_layered`: Plays the SCC part on real SCC while layering the same part on both OPM and OPNA FM. The other parts are the same as the configuration without `scc`.
-- PCM is automatically adjusted to fit within the 256 KiB capacity, by sharing duplicated samples and substituting representatives.
-- For playback, use VGMPlay on real MSX hardware, or MAmidiMEmo via Mami-VSIF Pro. Even without real hardware, you can play them in a VGM player.
+Each profile maps the musical information extracted from the input VGM to the sound chips available in the corresponding MSX sound cartridge configuration.
+When multiple sound sources are present, channels are allocated according to source priorities. Some performance details may not be reproduced due to hardware limitations or the number of available channels.
+
+For details on each profile, see the [--vgm-variants details](README.vgm-variants.md).
 
 ## Project Structure
 

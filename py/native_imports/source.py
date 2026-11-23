@@ -17,14 +17,14 @@ from .vgm_loop import read_loop_metadata
 
 WRITE_CHIPS = {0x54: 'opm', 0xa4: 'opm', 0x56: 'opna', 0x57: 'opna',
                0xa6: 'opna', 0xa7: 'opna', 0x52: 'opn2', 0x53: 'opn2',
-               0xa2: 'opn2', 0xa3: 'opn2', 0x50: 'dcsg', 0x30: 'dcsg',
+               0xa2: 'opn2', 0xa3: 'opn2', 0x55: 'opn', 0x50: 'dcsg', 0x30: 'dcsg',
                0x4f: 'dcsg', 0x3f: 'dcsg', 0xb7: 'msm6258', 0xb8: 'msm6295',
                0xc0: 'segapcm', 0xd4: 'c140'}
 BLOCK_CHIPS = {4: 'msm6258', 0x44: 'msm6258', 0x80: 'segapcm',
                0x81: 'opna', 0x8b: 'msm6295', 0x8d: 'c140'}
 STREAM_CHIPS = {0: 'dcsg', 2: 'opn2', 3: 'opm', 4: 'segapcm', 7: 'opna',
                 0x17: 'msm6258', 0x18: 'msm6295', 0x1c: 'c140'}
-CHIPS = ('opm', 'opna', 'dcsg', 'msm6258', 'msm6295', 'segapcm', 'c140', 'opn2')
+CHIPS = ('opm', 'opna', 'dcsg', 'msm6258', 'msm6295', 'segapcm', 'c140', 'opn2', 'opn')
 
 
 def _header(raw):
@@ -34,6 +34,7 @@ def _header(raw):
             header['version'] >= since and offset+size <= header['data_start']) else 0
     header.update(opm_clock_raw=field(0x30, 4, 0x110),
                   opn2_clock_raw=field(0x2c, 4, 0x150),
+                  opn_clock_raw=field(0x44, 4, 0x110),
                   dcsg_clock_raw=field(0x0c, 4, 0x100),
                   dcsg_feedback_raw=field(0x28, 2, 0x110),
                   dcsg_shift_width_raw=field(0x2a, 1, 0x110),
@@ -80,13 +81,13 @@ def _csv(path, rows, fields):
 
 
 def _fm_trace(bundle, chip, root, stem):
-    from . import opm, opna, opn2
+    from . import opm, opna, opn2, opn
     raw, header = bundle['raw'], bundle['header']
-    module = opm if chip == 'opm' else opna if chip == 'opna' else opn2
+    module = opm if chip == 'opm' else opna if chip == 'opna' else opn if chip == 'opn' else opn2
     clock_raw = header[chip+'_clock_raw']
     clock = clock_raw & 0x3fffffff
     chip_type = (('YM2164' if clock_raw & 0x80000000 else 'YM2151') if chip == 'opm'
-                 else 'YM2608' if chip == 'opna' else 'YM2612')
+                 else 'YM2608' if chip == 'opna' else 'YM2203' if chip == 'opn' else 'YM2612')
     rows = []
     for event_id, event in enumerate(bundle['events']):
         command = event.command
@@ -117,7 +118,7 @@ def _fm_trace(bundle, chip, root, stem):
     analysis = module.build_segments(path, end_vgmticks=bundle['source_end_sample'])
     module.dump_analysis(analysis, state_csv=root/f'{stem}.native.{chip}.states.csv',
                          segments_csv=root/f'{stem}.native.{chip}.segments.csv')
-    if chip in ('opna', 'opn2'):
+    if chip in ('opna', 'opn2', 'opn'):
         module.dump_unmodeled_writes(analysis, csv_path=root/f'{stem}.native.{chip}.unmodeled.csv')
     return analysis, str(path)
 
@@ -156,7 +157,7 @@ def analyze_source(source, outdir, stem=None):
     _csv(root/f'{stem}.native.commands.csv', evidence, ('event_id', *bundle['events'][0].__dataclass_fields__))
     for chip in bundle['active_chips']:
         try:
-            if chip in ('opm', 'opna', 'opn2'):
+            if chip in ('opm', 'opna', 'opn2', 'opn'):
                 analysis, trace_paths[chip] = _fm_trace(bundle, chip, root, stem)
             elif chip == 'segapcm':
                 analysis = _sega(bundle, root, stem)
