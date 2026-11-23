@@ -92,7 +92,7 @@ class ExportMgsVgmVariantsS2Tests(unittest.TestCase):
             out = root / 'out'
             rows = variant_pass(source, out, force=force)
             self.assertEqual(rows[0]['status'], 'success', rows)
-            check(out, assert_profiles(self, out, ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'makoto', 'makoto_rx21', 'misato', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'layered', *extra)))
+            check(out, assert_profiles(self, out, ('sfg01', 'sfg01_opl3', 'makoto', 'misato', 'layered', *extra)))
 
     def test_opna_fm_and_ssg_publish_both_base_profiles(self):
         def check(out, report):
@@ -121,7 +121,7 @@ class ExportMgsVgmVariantsS2Tests(unittest.TestCase):
         def check(out, report):
             self.assertGreater(report['summaries']['sfg01']['writes'], 0)
             self.assertEqual(_stamp((out / 'vgm-variants/sfg01/song.vgm').read_bytes(), 0x30), 3579545)
-        self.render(_nes_song(), check)
+        self.render(_nes_song(), check, extra=('msxaudio', 'opl3'))
 
     def test_mixed_opna_dcsg_source_uses_one_shared_native_projection(self):
         # Keep both source devices active in the same authored VGM timeline.

@@ -17,7 +17,7 @@ from native_registers import decode_control
 
 
 COMMAND_CHIPS = {0x54:'opm',0xa4:'opm',0x56:'opna',0x57:'opna',0xa6:'opna',0xa7:'opna',
-    0x52:'opn2',0x53:'opn2',0xa2:'opn2',0xa3:'opn2',
+    0x52:'opn2',0x53:'opn2',0xa2:'opn2',0xa3:'opn2',0x55:'opn',
     0x50:'dcsg',0x30:'dcsg',0x4f:'dcsg',0x3f:'dcsg',0xb7:'msm6258',0xb8:'msm6295',
     0xc0:'segapcm',0xd4:'c140',0xa0:'psg',0xd2:'scc',0x51:'opll',0xa1:'opll',0xb9:'huc6280',0xb4:'nesapu',
     0x5c:'y8950',0x5e:'ymf262',0x5f:'ymf262'}
@@ -25,7 +25,7 @@ BLOCK_CHIPS = {0:'opn2',0x40:'opn2',4:'msm6258',0x44:'msm6258',0x7f:'pcm',0x80:'
                0xc0:'nesapu',0xc1:'nesapu',0xc2:'nesapu'}
 STREAM_CHIPS = {0:'dcsg',1:'opll',2:'opn2',3:'opm',4:'segapcm',7:'opna',0x12:'psg',
                 0x17:'msm6258',0x18:'msm6295',0x19:'scc',0x1c:'c140'}
-HEADER_OFFSETS = {'opm':0x30,'opna':0x48,'opn2':0x2c,'dcsg':0x0c,'msm6258':0x90,'msm6295':0x98,
+HEADER_OFFSETS = {'opm':0x30,'opna':0x48,'opn2':0x2c,'opn':0x44,'dcsg':0x0c,'msm6258':0x90,'msm6295':0x98,
                   'segapcm':0x38,'c140':0xa8,'psg':0x74,'scc':0x9c,'opll':0x10,'huc6280':0xa4,'nesapu':0x84,
                   'y8950':0x58,'ymf262':0x5c}
 CARRIERS = (8,8,8,8,12,14,14,15)  # Source register-bank order M1,M2,C1,C2.
@@ -193,7 +193,7 @@ class _Builder:
                     ('source_continuity_ids',tuple(s.continuity_id for s in gate)),
                     ('volume_domain','native_carrier_attenuation'),
                     ('voice_basis','positive onset state and complete mid-gate voice curve; zero-width setup remains in controls'),
-                    ('channel3_special_observed',chip in ('opna','opn2') and any(s.state.channel3_special_enabled for s in gate)),
+                    ('channel3_special_observed',chip in ('opna','opn2','opn') and any(s.state.channel3_special_enabled for s in gate)),
                     ('csm_observed',any(s.state.csm_enabled for s in gate)),
                     ('noise_enabled_observed',chip=='opm' and channel==7 and any(s.state.noise_enabled for s in gate)),
                     ('pitch_fraction_reset_assumption',chip=='opm' and any(s.state.kf_raw is None for s in gate)),
@@ -654,6 +654,43 @@ def _opna_aux(builder):
                     ('global_total_level_retained_in_controls',True))))
 
 
+def _opn_aux(builder):
+    for device in list(builder.devices.values()):
+        if device.chip!='opn':continue
+        registers={};prescale=6;active={};indices=defaultdict(int)
+        controls=[c for c in builder.controls if c.device_id==device.device_id]
+        def finish(channel,at):
+            row=active.pop(channel,None)
+            if row is None:return
+            uid=f'{device.device_id}:ssg:{channel}:gate:{indices[channel]}';indices[channel]+=1
+            builder.units.append(NativeUnit(uid,device.device_id,'ssg',channel,row['start'],at,
+                tuple(row['pitch']),tuple(row['volume']),tuple(row['voice']),
+                builder.control_ids(device,'ssg',channel,row['start'],at),(),'melody',
+                (('boundary_origin','source_audibility'),('volume_domain','native_ssg_amplitude_register'))))
+        for c in controls:
+            p=dict(c.parameters);register=p['register']
+            from native_registers import encode_control
+            value=encode_control(c,device)[2]
+            registers[register]=value
+            if register in (0x2d,0x2e,0x2f):
+                prescale=6 if register==0x2d else 3 if register==0x2e and prescale==6 else prescale if register==0x2e else 2
+            for channel in range(3):
+                mixer=registers.get(7);amplitude=registers.get(8+channel,0)
+                enabled=mixer is not None and (not mixer&(1<<channel) or not mixer&(8<<channel)) and amplitude&31
+                if not enabled:finish(channel,c.sample);continue
+                if channel not in active:active[channel]=dict(start=c.sample,pitch=[],volume=[],voice=[])
+                row=active[channel]
+                low=registers.get(2*channel);high=registers.get(2*channel+1)
+                period=None if low is None or high is None else low|((high&15)<<8)
+                hz=device.clock_hz/{6:4,3:2,2:1}[prescale]/(16*max(1,period)) if period is not None else None
+                _add_curve(row['pitch'],c.sample,hz);_add_curve(row['volume'],c.sample,amplitude&31)
+                identity=builder.voice(device,'ssg',(('tone_enabled',not bool(mixer&(1<<channel))),
+                    ('noise_enabled',not bool(mixer&(8<<channel))),('hardware_envelope',bool(amplitude&16)),
+                    ('envelope_shape',registers.get(13) if amplitude&16 else None)))
+                _add_curve(row['voice'],c.sample,identity)
+        for channel in list(active):finish(channel,builder.bundle['source_end_sample'])
+
+
 def _patterns(units,root,stem,end_sample):
     """Describe complete-unit repetition without replacing/expanding controls."""
     from loop_structure import LoopStructure
@@ -698,16 +735,19 @@ def build_native_performance(source,outdir,stem=None,legacy_performances=(),lega
     if any(e.command==0xb4 for e in bundle['events']):
         from native_nesapu import add_units
         add_units(builder,root,stem)
-    for chip in ('opm','opna','opn2'):builder.fm(chip)
+    for chip in ('opm','opna','opn2','opn'):builder.fm(chip)
     if any(d.chip=='opn2' for d in builder.devices.values()):
         from native_pcm import add_opn2_pcm
         add_opn2_pcm(builder)
     if any(d.chip=='msm6258' for d in builder.devices.values()):
         from native_msm6258_pcm import add_msm6258_pcm
         add_msm6258_pcm(builder)
+    if any(d.chip=='segapcm' for d in builder.devices.values()):
+        from native_segapcm_pcm import add_segapcm_pcm
+        add_segapcm_pcm(builder)
     builder.dcsg()
     performances,_=_legacy_performances(bundle,root,stem,legacy_performances,legacy_opll_segments,bundle['raw'])
-    _legacy_units(builder,performances);_opll(builder);_y8950(builder);_ymf262(builder);_opna_aux(builder)
+    _legacy_units(builder,performances);_opll(builder);_y8950(builder);_ymf262(builder);_opna_aux(builder);_opn_aux(builder)
     membership=defaultdict(list)
     for unit in builder.units:
         for identity in unit.control_ids:membership[identity].append(unit.unit_id)

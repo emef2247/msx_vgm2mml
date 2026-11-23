@@ -12,17 +12,17 @@
    "ops": [
     {
      "am": 0,
-     "vib": 0,
+     "vib": 1,
      "egt": 1,
      "ksr": 1,
      "mul": 1,
      "ksl": 0,
-     "tl": 28,
-     "ar": 13,
+     "tl": 26,
+     "ar": 9,
      "dr": 0,
      "sl": 0,
-     "rr": 1,
-     "ws": 5
+     "rr": 0,
+     "ws": 0
     },
     {
      "am": 0,
@@ -30,16 +30,16 @@
      "egt": 1,
      "ksr": 0,
      "mul": 1,
-     "ksl": 2,
+     "ksl": 3,
      "tl": 0,
-     "ar": 7,
+     "ar": 8,
      "dr": 8,
      "sl": 0,
-     "rr": 6,
-     "ws": 4
+     "rr": 7,
+     "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 6
   },
   {
    "index": 2,
@@ -47,35 +47,35 @@
    "fb": 4,
    "ops": [
     {
-     "am": 0,
+     "am": 1,
      "vib": 0,
      "egt": 0,
      "ksr": 0,
      "mul": 3,
      "ksl": 1,
-     "tl": 25,
+     "tl": 23,
      "ar": 12,
-     "dr": 7,
+     "dr": 6,
      "sl": 2,
-     "rr": 1,
-     "ws": 1
+     "rr": 3,
+     "ws": 0
     },
     {
-     "am": 0,
+     "am": 1,
      "vib": 1,
      "egt": 0,
      "ksr": 0,
      "mul": 1,
-     "ksl": 0,
+     "ksl": 1,
      "tl": 0,
-     "ar": 7,
+     "ar": 9,
      "dr": 3,
-     "sl": 1,
-     "rr": 3,
-     "ws": 6
+     "sl": 2,
+     "rr": 5,
+     "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 12
   },
   {
    "index": 3,
@@ -84,53 +84,53 @@
    "ops": [
     {
      "am": 0,
-     "vib": 1,
+     "vib": 0,
      "egt": 0,
      "ksr": 1,
      "mul": 3,
-     "ksl": 0,
-     "tl": 24,
+     "ksl": 1,
+     "tl": 26,
      "ar": 10,
-     "dr": 2,
+     "dr": 1,
      "sl": 1,
      "rr": 0,
-     "ws": 7
+     "ws": 0
     },
     {
      "am": 0,
      "vib": 1,
      "egt": 0,
-     "ksr": 0,
+     "ksr": 1,
      "mul": 1,
-     "ksl": 0,
+     "ksl": 1,
      "tl": 0,
      "ar": 11,
-     "dr": 3,
-     "sl": 2,
-     "rr": 1,
-     "ws": 5
+     "dr": 6,
+     "sl": 3,
+     "rr": 2,
+     "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 2
   },
   {
    "index": 4,
    "name": "Flute",
-   "fb": 5,
+   "fb": 6,
    "ops": [
     {
      "am": 1,
-     "vib": 1,
+     "vib": 0,
      "egt": 0,
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 16,
+     "tl": 9,
      "ar": 8,
      "dr": 10,
      "sl": 7,
      "rr": 0,
-     "ws": 5
+     "ws": 0
     },
     {
      "am": 0,
@@ -147,12 +147,12 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 27
   },
   {
    "index": 5,
    "name": "Clarinet",
-   "fb": 6,
+   "fb": 7,
    "ops": [
     {
      "am": 0,
@@ -161,12 +161,12 @@
      "ksr": 0,
      "mul": 2,
      "ksl": 0,
-     "tl": 29,
-     "ar": 6,
+     "tl": 30,
+     "ar": 8,
      "dr": 1,
      "sl": 0,
      "rr": 0,
-     "ws": 7
+     "ws": 0
     },
     {
      "am": 0,
@@ -176,14 +176,14 @@
      "mul": 1,
      "ksl": 0,
      "tl": 0,
-     "ar": 9,
+     "ar": 11,
      "dr": 4,
      "sl": 1,
-     "rr": 9,
-     "ws": 6
+     "rr": 8,
+     "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 29
   },
   {
    "index": 6,
@@ -210,16 +210,16 @@
      "egt": 1,
      "ksr": 0,
      "mul": 2,
-     "ksl": 0,
+     "ksl": 1,
      "tl": 0,
      "ar": 8,
      "dr": 1,
      "sl": 5,
-     "rr": 7,
+     "rr": 8,
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 12
   },
   {
    "index": 7,
@@ -228,17 +228,17 @@
    "ops": [
     {
      "am": 0,
-     "vib": 0,
+     "vib": 1,
      "egt": 1,
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 25,
+     "tl": 27,
      "ar": 6,
-     "dr": 2,
+     "dr": 0,
      "sl": 1,
      "rr": 0,
-     "ws": 1
+     "ws": 0
     },
     {
      "am": 0,
@@ -246,52 +246,52 @@
      "egt": 1,
      "ksr": 0,
      "mul": 1,
-     "ksl": 0,
+     "ksl": 2,
      "tl": 0,
-     "ar": 8,
+     "ar": 9,
      "dr": 1,
      "sl": 0,
-     "rr": 6,
+     "rr": 7,
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 18
   },
   {
    "index": 8,
    "name": "Organ",
-   "fb": 4,
+   "fb": 3,
    "ops": [
     {
      "am": 0,
      "vib": 0,
      "egt": 1,
-     "ksr": 0,
+     "ksr": 1,
      "mul": 3,
      "ksl": 0,
-     "tl": 44,
+     "tl": 34,
      "ar": 11,
      "dr": 0,
      "sl": 0,
      "rr": 1,
-     "ws": 1
+     "ws": 0
     },
     {
-     "am": 0,
-     "vib": 0,
+     "am": 1,
+     "vib": 1,
      "egt": 1,
      "ksr": 0,
      "mul": 1,
-     "ksl": 0,
+     "ksl": 1,
      "tl": 0,
-     "ar": 7,
+     "ar": 9,
      "dr": 0,
      "sl": 0,
-     "rr": 6,
-     "ws": 1
+     "rr": 7,
+     "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 13
   },
   {
    "index": 9,
@@ -302,15 +302,15 @@
      "am": 0,
      "vib": 1,
      "egt": 1,
-     "ksr": 1,
+     "ksr": 0,
      "mul": 1,
      "ksl": 0,
      "tl": 27,
-     "ar": 5,
-     "dr": 5,
+     "ar": 6,
+     "dr": 4,
      "sl": 1,
-     "rr": 0,
-     "ws": 6
+     "rr": 2,
+     "ws": 0
     },
     {
      "am": 0,
@@ -318,13 +318,13 @@
      "egt": 1,
      "ksr": 0,
      "mul": 1,
-     "ksl": 0,
+     "ksl": 3,
      "tl": 0,
-     "ar": 6,
-     "dr": 7,
+     "ar": 7,
+     "dr": 6,
      "sl": 2,
-     "rr": 6,
-     "ws": 2
+     "rr": 7,
+     "ws": 0
     }
    ],
    "level_trim_tl": 0
@@ -342,15 +342,15 @@
      "mul": 1,
      "ksl": 0,
      "tl": 11,
-     "ar": 9,
-     "dr": 5,
-     "sl": 7,
-     "rr": 1,
-     "ws": 1
+     "ar": 8,
+     "dr": 4,
+     "sl": 6,
+     "rr": 2,
+     "ws": 0
     },
     {
      "am": 0,
-     "vib": 1,
+     "vib": 0,
      "egt": 1,
      "ksr": 0,
      "mul": 1,
@@ -359,16 +359,16 @@
      "ar": 15,
      "dr": 0,
      "sl": 0,
-     "rr": 7,
-     "ws": 1
+     "rr": 8,
+     "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 30
   },
   {
    "index": 11,
    "name": "Harpsichord",
-   "fb": 1,
+   "fb": 2,
    "ops": [
     {
      "am": 0,
@@ -385,18 +385,18 @@
      "ws": 0
     },
     {
-     "am": 1,
+     "am": 0,
      "vib": 0,
      "egt": 0,
      "ksr": 0,
      "mul": 1,
-     "ksl": 0,
+     "ksl": 1,
      "tl": 0,
-     "ar": 9,
+     "ar": 13,
      "dr": 15,
-     "sl": 0,
-     "rr": 2,
-     "ws": 1
+     "sl": 4,
+     "rr": 4,
+     "ws": 0
     }
    ],
    "level_trim_tl": 0
@@ -413,29 +413,29 @@
      "ksr": 1,
      "mul": 7,
      "ksl": 0,
-     "tl": 36,
+     "tl": 49,
      "ar": 11,
      "dr": 8,
      "sl": 2,
      "rr": 3,
-     "ws": 4
+     "ws": 0
     },
     {
-     "am": 0,
+     "am": 1,
      "vib": 1,
      "egt": 0,
      "ksr": 0,
      "mul": 1,
-     "ksl": 0,
+     "ksl": 1,
      "tl": 0,
      "ar": 13,
-     "dr": 3,
+     "dr": 2,
      "sl": 1,
-     "rr": 3,
-     "ws": 6
+     "rr": 5,
+     "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 14
   },
   {
    "index": 13,
@@ -449,15 +449,15 @@
      "ksr": 0,
      "mul": 1,
      "ksl": 0,
-     "tl": 11,
+     "tl": 12,
      "ar": 14,
-     "dr": 2,
-     "sl": 2,
+     "dr": 1,
+     "sl": 1,
      "rr": 0,
-     "ws": 3
+     "ws": 0
     },
     {
-     "am": 0,
+     "am": 1,
      "vib": 1,
      "egt": 1,
      "ksr": 0,
@@ -467,51 +467,15 @@
      "ar": 15,
      "dr": 4,
      "sl": 9,
-     "rr": 2,
-     "ws": 6
+     "rr": 5,
+     "ws": 0
     }
    ],
-   "level_trim_tl": 15
+   "level_trim_tl": 29
   },
   {
    "index": 14,
    "name": "AcoustBass",
-   "fb": 2,
-   "ops": [
-    {
-     "am": 0,
-     "vib": 0,
-     "egt": 0,
-     "ksr": 0,
-     "mul": 1,
-     "ksl": 2,
-     "tl": 23,
-     "ar": 10,
-     "dr": 2,
-     "sl": 0,
-     "rr": 3,
-     "ws": 6
-    },
-    {
-     "am": 0,
-     "vib": 0,
-     "egt": 0,
-     "ksr": 0,
-     "mul": 1,
-     "ksl": 0,
-     "tl": 0,
-     "ar": 9,
-     "dr": 0,
-     "sl": 0,
-     "rr": 1,
-     "ws": 2
-    }
-   ],
-   "level_trim_tl": 0
-  },
-  {
-   "index": 15,
-   "name": "ElecGuitar",
    "fb": 3,
    "ops": [
     {
@@ -520,12 +484,48 @@
      "egt": 0,
      "ksr": 0,
      "mul": 1,
+     "ksl": 2,
+     "tl": 20,
+     "ar": 10,
+     "dr": 2,
+     "sl": 0,
+     "rr": 3,
+     "ws": 0
+    },
+    {
+     "am": 1,
+     "vib": 1,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
+     "ksl": 1,
+     "tl": 0,
+     "ar": 10,
+     "dr": 0,
+     "sl": 0,
+     "rr": 4,
+     "ws": 0
+    }
+   ],
+   "level_trim_tl": 5
+  },
+  {
+   "index": 15,
+   "name": "ElecGuitar",
+   "fb": 3,
+   "ops": [
+    {
+     "am": 0,
+     "vib": 1,
+     "egt": 0,
+     "ksr": 0,
+     "mul": 1,
      "ksl": 1,
      "tl": 9,
      "ar": 15,
      "dr": 1,
      "sl": 12,
-     "rr": 1,
+     "rr": 0,
      "ws": 0
     },
     {
@@ -534,7 +534,7 @@
      "egt": 0,
      "ksr": 0,
      "mul": 1,
-     "ksl": 0,
+     "ksl": 1,
      "tl": 0,
      "ar": 15,
      "dr": 2,
@@ -543,12 +543,14 @@
      "ws": 0
     }
    ],
-   "level_trim_tl": 0
+   "level_trim_tl": 14
   }
  ],
  "rhythm": {
   "kind": "opl_native",
-  "note": "OPLL percussion projects to the target native rhythm unit with the composed voice template (derived voices over the commercial one; musical_opl_target / musical_opl3_target); no FM rows."
+  "note": "OPLL percussion projects to the target native rhythm unit using the configured rhythm parameters (musical_opl_target / musical_opl3_target); no FM rows."
  },
- "fit_note": "Voices fitted against IKAOPLL renders of a low-extended 8-note probe set, most recently 2026-11-21 (mean score 8.94 -> 7.19), with level trims re-checked against the IKAOPLL renders the same day. Earlier passes (2026-11-16 against the OPM table, 2026-11-20 against real YM2413 recordings) were intermediate stages toward this fit; see OPL3_FIT in make_presets.py."
+ "fit_note": "Voices fitted against IKAOPLL renders of a low-extended 8-note probe set, most recently 2026-11-21 (mean score 8.94 -> 7.19), with level trims re-checked against the IKAOPLL renders the same day; the 2026-11-22 waveform-select-0 re-fit reset the trims, and they were re-anchored against the IKAOPLL renders on 2026-11-23. Earlier passes (2026-11-16 against the OPM table, 2026-11-20 against real YM2413 recordings) were intermediate stages toward this fit; see OPL3_FIT in make_presets.py.",
+ "copyright": "Copyright (c) 2026 emef2247",
+ "license": "MIT"
 }

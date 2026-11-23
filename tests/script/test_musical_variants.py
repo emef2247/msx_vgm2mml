@@ -43,8 +43,8 @@ class MusicalVariantTests(unittest.TestCase):
             result=export_variants(p,tmp,'authored',force=True)
             self.assertEqual(result['sfg01']['status'],'success')
             self.assertEqual(result['makoto']['status'],'success')
-            self.assertEqual(result['sfg01_msxaudio']['status'],'success')
-            self.assertEqual(result['sfg01_makoto']['status'],'success')
+            self.assertEqual(result['sfg01_msxaudio']['status'],'identical_to_parent')
+            self.assertEqual(result['sfg01_makoto']['status'],'identical_to_parent')
             for name in ('sfg01','makoto'):
                 raw=Path(result[name]['path']).read_bytes()
                 self.assertEqual(tuple(command_times(raw))[-1].vgmticks,4410)

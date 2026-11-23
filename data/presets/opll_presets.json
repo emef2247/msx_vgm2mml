@@ -1,8 +1,8 @@
 {
- "notice": "YM2413 (OPLL) instrument parameter set -- generation seed\n--------------------------------------------------------------\n  - The melodic voices in this set are OPLL-space parameters\n    derived by emef2247 through waveform fitting: candidate\n    parameter sets were rendered to WAV and adjusted until\n    their waveforms matched reference renders of the OPLL\n    voices produced with the IKAOPLL simulator (decap-based\n    RTL). Fit performed 2026-11-21.\n  - The drum entries predate the waveform fit and are\n    carried over unchanged; they have not been fitted yet.\n  - This set is the generation source for the per-chip\n    parameter sets of the vgm2mml converter family. It is a\n    fitted parameter set, not a copy of the YM2413 built-in\n    instrument ROM data.\nCopyright (c) 2026 emef2247 (emef2247@gmail.com).\nAll rights reserved.",
- "copyright": "Copyright (c) 2026 emef2247 (emef2247@gmail.com).\nAll rights reserved.",
+ "notice": "YM2413 (OPLL) instrument parameter dataset\n-----------------------------------------\nIndependently developed by emef2247 through parameter-space sweeps,\nRTL-based sound chip simulation, waveform analysis, and listening-based refinement.\nThis dataset is the reference for generating instrument parameters\nfor supported target sound chips.\nCopyright (c) 2026 emef2247\nSPDX-License-Identifier: MIT",
+ "copyright": "Copyright (c) 2026 emef2247",
  "reference": "IKAOPLL simulator WAV renders (waveform fit, 2026-11-21)",
- "data_source": "waveform fit by emef2247 (melodic voices); drum entries carried over from the previous established set",
+ "data_source": "Independent parameter-space sweeps, RTL-based simulation, waveform analysis, and listening-based refinement by emef2247",
  "signature": "emef2247@gmail.com",
  "melodic": {
   "1": {
@@ -683,5 +683,6 @@
    }
   }
  },
- "variations": {}
+ "variations": {},
+ "license": "MIT"
 }

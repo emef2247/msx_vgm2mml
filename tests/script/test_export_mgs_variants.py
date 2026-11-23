@@ -38,8 +38,25 @@ for _value in (0x80, 0xA0, 0xC0, 0xE0, 0xC0, 0xA0, 0x80, 0x60):
     BURST += bytes((0x52, 0x2a, _value, 0x61, 0x02, 0x00))
 OPN2_SONG = vgm(PHRASE + BURST)
 
-PROFILES = ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'makoto', 'makoto_rx21', 'misato', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'msxaudio', 'opl3', 'layered', 'scc_sfg01', 'scc_makoto', 'scc_layered', 'scc_opl3', 'psg_sfg01', 'psg_makoto', 'psg_layered', 'psg_opl3')
-VARIANT_NAMES = tuple(f'vgm-variants/{profile}/song.vgm' for profile in PROFILES)
+PROFILES = ('sfg01', 'sfg01_opllrhythm', 'sfg01_opl3', 'makoto', 'makoto_msxaudio', 'makoto_msxaudio_msxaudio', 'misato', 'misato_msxaudio', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'msxaudio', 'msxaudio_msxaudio', 'opl3', 'opl3_makoto', 'opl3_msxaudio', 'layered', 'scc_layered', 'psg_layered')
+# Composition profiles are published under their base profile's folder,
+# in a subfolder named by the added element alone.
+FOLDERS = {'sfg01_opllrhythm': 'sfg01/opllrhythm',
+           'makoto_msxaudio': 'makoto/msxaudio',
+           'makoto_msxaudio_msxaudio': 'makoto/msxaudio/msxaudio',
+           'msxaudio_msxaudio': 'msxaudio/msxaudio',
+           'sfg01_opl3': 'sfg01/opl3', 'sfg01_makoto': 'sfg01/makoto',
+           'sfg01_msxaudio': 'sfg01/msxaudio', 'sfg01_misato': 'sfg01/misato',
+           'misato_msxaudio': 'misato/msxaudio',
+           'opl3_makoto': 'opl3/makoto', 'opl3_msxaudio': 'opl3/msxaudio',
+           'scc_layered': 'layered/scc', 'psg_layered': 'layered/psg'}
+
+
+def profile_folder(profile):
+    return FOLDERS.get(profile, profile)
+
+
+VARIANT_NAMES = tuple(f'vgm-variants/{profile_folder(profile)}/song.vgm' for profile in PROFILES)
 
 
 def combined_rows(out):
@@ -68,23 +85,23 @@ def assert_profiles(test, out, expected, stem='song'):
     summaries = report['summaries']
     test.assertEqual(set(summaries), set(PROFILES))
     test.assertEqual({p for p, result in summaries.items() if result['status'] == 'success'}, set(expected))
-    published = {f'vgm-variants/{profile}/{stem}.vgm' for profile in expected}
+    published = {f'vgm-variants/{profile_folder(profile)}/{stem}.vgm' for profile in expected}
     test.assertEqual(set(report['published']), published)
     manifest = json.loads((out / 'listening_manifest.json').read_text(encoding='utf-8'))
     owned = manifest['entries'][stem + '.vgm']['published']
     for profile in PROFILES:
-        path = out / 'vgm-variants' / profile / (stem + '.vgm')
+        path = out / 'vgm-variants' / profile_folder(profile) / (stem + '.vgm')
         test.assertEqual(path.is_file(), profile in expected)
         if profile in expected:
             test.assertIn(path.relative_to(out).as_posix(), owned)
             result = summaries[profile]
             test.assertEqual(result['input_representation'], 'NativePerformance')
             test.assertFalse(result['source_file_consulted'])
-            csv_path = out / '_diagnostics' / stem / 'vgm_variants' / profile / (stem + '.writes.csv')
+            csv_path = out / '_diagnostics' / stem / 'vgm_variants' / profile_folder(profile) / (stem + '.writes.csv')
             test.assertTrue(csv_path.is_file())
             test.assertIn('unit_id', csv_path.read_text().splitlines()[0])
         else:
-            test.assertEqual(summaries[profile]['status'], 'unavailable')
+            test.assertIn(summaries[profile]['status'], ('unavailable', 'identical_to_parent'))
             test.assertTrue(summaries[profile]['reason'])
     test.assertTrue((out / '_diagnostics' / stem / 'vgm_variants/native' / (stem + '.native_music.json')).is_file())
     return report
@@ -100,13 +117,13 @@ class ExportMgsVgmVariantsTests(unittest.TestCase):
             root = Path(tmp); source = root / 'song.vgm'; source.write_bytes(OPN2_SONG)
             out = root / 'out'
             self.run_main(source, '--outdir', out, '--vgm-variants', '--skip-keyon-counts')
-            report = assert_profiles(self, out, ('makoto', 'makoto_rx21', 'sfg01_makoto', 'sfg01_msxaudio', 'layered'))
+            report = assert_profiles(self, out, ('makoto', 'sfg01_makoto', 'sfg01_msxaudio', 'layered', 'misato_msxaudio'))
             self.assertIn('PCM', report['summaries']['sfg01']['reason'])
             makoto = (out / 'vgm-variants/makoto/song.vgm').read_bytes()
             self.assertEqual(struct.unpack_from('<I', makoto, 0x30)[0], 0)
             self.assertEqual(struct.unpack_from('<I', makoto, 0x48)[0], 8000000)
             self.assertIn(b'\x67\x66\x81', makoto)
-            self.assertIn(b'\x67\x66\x88', (out / 'vgm-variants/sfg01_msxaudio/song.vgm').read_bytes())
+            self.assertIn(b'\x67\x66\x88', (out / 'vgm-variants/sfg01/msxaudio/song.vgm').read_bytes())
             layered = (out / 'vgm-variants/layered/song.vgm').read_bytes()
             self.assertEqual(struct.unpack_from('<I', layered, 0x30)[0], 3579545)
             self.assertEqual(struct.unpack_from('<I', layered, 0x48)[0], 8000000)
@@ -125,7 +142,7 @@ class ExportMgsVgmVariantsTests(unittest.TestCase):
             out = Path(tmp) / 'out'
             result = self.run_main(fixture, '--outdir', out, '--vgm-variants', '--skip-keyon-counts', '--compiler', 'mgsexc')
             self.assertEqual(result, 0)
-            assert_profiles(self, out, ('sfg01', 'sfg01_rx21', 'sfg01_opllrhythm', 'makoto', 'makoto_rx21', 'misato', 'sfg01_makoto', 'sfg01_msxaudio', 'sfg01_misato', 'layered', 'psg_sfg01', 'psg_makoto', 'psg_layered'), 'scale_rom1')
+            assert_profiles(self, out, ('sfg01', 'sfg01_opl3', 'makoto', 'misato', 'msxaudio', 'opl3', 'layered', 'psg_layered'), 'scale_rom1')
             self.assertEqual(variant_rows(out)[0]['status'], 'success')
 
     def test_rerun_without_flag_removes_products_and_ownership(self):

@@ -24,11 +24,9 @@ from musical_wave_target import curve_value
 from native_music import NativePCM
 
 _PRESETS = Path(__file__).resolve().parent.parent / 'data' / 'presets'
-_LIBS = {'ika': _PRESETS / 'rhythm_pcm',
-        'rx21': _PRESETS / 'rhythm_pcm_rx21'}
+_LIBS = {'ika': _PRESETS / 'rhythm_pcm'}
 _cache = {}
 _PITCH_CHANNEL = {'BD': 7, 'SD': 6, 'TOM': 8, 'HH': 6, 'CYM': 8}
-_FAMILY_MAP = {'BD': 'BD', 'SD': 'SD', 'HH': 'CLOSEHH', 'CYM': 'CYM'}
 
 
 def _library(name='ika'):
@@ -87,10 +85,7 @@ def build_rhythm_pcm_assets(performance, library='ika', *,
     """Derived NativePCM assets for the first OPLL device's rhythm.
 
     Returns (assets, losses); empty when the performance has no
-    OPLL percussion.  library='ika' plays the IKAOPLL hit library;
-    library='rx21' plays the owner's RX21 recordings instead
-    (HH -> CLOSEHH; TOM -> the sample whose dominant pitch is
-    nearest the event's, with a residual rate ratio).
+    OPLL percussion.  library='ika' plays the IKAOPLL hit library.
     """
     devices = [d for d in performance.devices if d.chip == 'opll']
     if not devices:
@@ -108,10 +103,8 @@ def build_rhythm_pcm_assets(performance, library='ika', *,
     raw = []
     for index, event in enumerate(events):
         family = event.instrument_family
-        hit_key = family if library == 'ika' else _FAMILY_MAP.get(family)
-        if family == 'TOM' and library == 'rx21':
-            hit_key = 'TOM'  # resolved per event below
-        if hit_key is None or (hit_key not in hits and hit_key != 'TOM'):
+        hit_key = family
+        if hit_key not in hits and hit_key != 'TOM':
             losses['opll_rhythm_pcm_unsupported_family'] += 1
             continue
         # Measured on IKAOPLL (2026-11-14): of the five rhythm
@@ -128,29 +121,14 @@ def build_rhythm_pcm_assets(performance, library='ika', *,
                 if sample > event.start_sample:
                     break
                 hz = state.get(_PITCH_CHANNEL[family], hz)
-            if library == 'ika':
-                ref = manifest['families'][family]['ref_hz']
-                if hz is None or hz <= 0:
-                    losses['opll_rhythm_pcm_pitch_unknown'] += 1
-                else:
-                    ratio = hz / ref
-                    if not 0.25 <= ratio <= 4.0:
-                        ratio = max(0.25, min(4.0, ratio))
-                        losses['opll_rhythm_pcm_pitch_ratio_clamped'] += 1
+            ref = manifest['families'][family]['ref_hz']
+            if hz is None or hz <= 0:
+                losses['opll_rhythm_pcm_pitch_unknown'] += 1
             else:
-                osc_ref = manifest['opll_tom_osc_hz']
-                if hz is None or hz <= 0:
-                    losses['opll_rhythm_pcm_pitch_unknown'] += 1
-                    hit_key = 'TOM2'
-                else:
-                    dominant = manifest['opll_tom_nominal_hz'] * hz / osc_ref
-                    doms = manifest['tom_dominant_hz']
-                    hit_key = min(doms, key=lambda n: abs(
-                        math.log2(dominant / doms[n])))
-                    ratio = dominant / doms[hit_key]
-                    if not 0.5 <= ratio <= 2.0:
-                        ratio = max(0.5, min(2.0, ratio))
-                        losses['opll_rhythm_pcm_pitch_ratio_clamped'] += 1
+                ratio = hz / ref
+                if not 0.25 <= ratio <= 4.0:
+                    ratio = max(0.25, min(4.0, ratio))
+                    losses['opll_rhythm_pcm_pitch_ratio_clamped'] += 1
         level = curve_value(event.volume_curve, event.start_sample)
         if level is None:
             level = 0
@@ -165,8 +143,7 @@ def build_rhythm_pcm_assets(performance, library='ika', *,
         gain *= 10 ** (-0.75 * rhythm_tl_offset / 20)
         samples = tuple(max(-32768, min(32767, round(v * gain)))
                         for v in hits[hit_key])
-        raw.append((event.start_sample, rate * ratio, samples,
-                    family if library == 'ika' else hit_key))
+        raw.append((event.start_sample, rate * ratio, samples, family))
     # One Delta-T voice: simultaneous hits are mixed into one asset;
     # a later hit cuts the tail of the one still playing (the OPLL
     # retrigger restarts its own envelope the same way).  Keeping
@@ -197,7 +174,7 @@ def build_rhythm_pcm_assets(performance, library='ika', *,
         peak = max((abs(v) for v in mixed), default=0)
         if peak > 32767:
             # Scale the whole mix to fit instead of hard-clamping
-            # individual samples (the RX21 mixes clipped audibly).
+            # individual samples (hard-clamped mixes clipped audibly).
             scale = 32767 / peak
             mixed = [round(v * scale) for v in mixed]
             losses['opll_rhythm_pcm_mix_normalized'] += 1

@@ -1,11 +1,15 @@
 """OPLL percussion projected to fitted OPM FM one-shot voices."""
+import json
 from pathlib import Path
 import sys
+import tempfile
 import unittest
+from unittest import mock
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / 'py')]
 from native_music import (NativeControl, NativeDevice, NativePercussion,
                           NativePerformance)
+import opll_rhythm_fm
 from opll_rhythm_fm import project_opll_rhythm_fm
 
 
@@ -51,9 +55,34 @@ class OpllRhythmFmTests(unittest.TestCase):
 
     def test_noise_voice_takes_channel_8_and_enables_noise(self):
         # The opll table is all-FM since the 2026-11-21 refit, so the
-        # noise route is exercised through the rx21 table's SD voice.
-        rows, losses, info = project_opll_rhythm_fm(
-            performance((hit('sd', 'SD', 100, 0),)), 'rx21', reserved=set())
+        # noise route is exercised through a fixture table whose SD
+        # voice carries a noise setting (the voice values are the
+        # retired RX21-fitted SD, kept here as fixture data).
+        voice = {'name': 'SD', 'fb': 3, 'alg': 4, 'kc': 46, 'kf': 60,
+                 'nominal_hz': 138.1, 'noise': 13, 'gate_s': 0.12,
+                 'ops': [
+                     {'mul': 10, 'tl': 127, 'ks': 1, 'ar': 31, 'd1r': 28,
+                      'd2r': 4, 'sl': 9, 'rr': 11, 'dt': 7, 'am': 0},
+                     {'mul': 0, 'tl': 11, 'ks': 0, 'ar': 31, 'd1r': 26,
+                      'd2r': 0, 'sl': 0, 'rr': 12, 'dt': 3, 'am': 0},
+                     {'mul': 13, 'tl': 15, 'ks': 0, 'ar': 31, 'd1r': 17,
+                      'd2r': 5, 'sl': 6, 'rr': 13, 'dt': 4, 'am': 0},
+                     {'mul': 2, 'tl': 97, 'ks': 0, 'ar': 31, 'd1r': 24,
+                      'd2r': 0, 'sl': 1, 'rr': 14, 'dt': 0, 'am': 0}],
+                 'level_trim_tl': 12}
+        doc = {'voices': [voice], 'opll_tom_nominal_hz': 95.2,
+               'opll_tom_osc_hz': 42.5, 'tom_dominant_hz': {}}
+        with tempfile.TemporaryDirectory() as td:
+            folder = Path(td) / 'sfg01'
+            folder.mkdir()
+            (folder / 'noise_fixture.json').write_text(json.dumps(doc))
+            with mock.patch.dict(opll_rhythm_fm._TABLES,
+                                 {'noise_fixture': 'noise_fixture.json'}), \
+                    mock.patch.object(opll_rhythm_fm, '_PRESET_DIR',
+                                      Path(td)):
+                rows, losses, info = project_opll_rhythm_fm(
+                    performance((hit('sd', 'SD', 100, 0),)),
+                    'noise_fixture', reserved=set())
         ons = key_ons(rows)
         self.assertEqual(ons[0]['command'][2] & 7, 7)
         noise = [r for r in rows if r['command'][1] == 0x0F]
