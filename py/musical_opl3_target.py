@@ -41,13 +41,17 @@ _RHYTHM_TL = {'BD': 0x53, 'SD': 0x54, 'TOM': 0x52, 'CYM': 0x55, 'HH': 0x51}
 # 57.0 / 53.4 / 23.8 on the same references).  Per-hit levels
 # still follow the source performance's volume curve;
 # _RHYTHM_TL_SHIFT re-anchors rhythm_level()'s fitted
-# reference points so a hit at the reference attenuation lands
-# on the sweep's fitted TL (BD 0, HH 0, SD 0, TOM 0, CYM 36,
-# after the lane offset below).  HH's fitted base sits at the
-# rhythm_level ceiling, so its shift saturates: every HH hit
-# lands on TL 0 regardless of attenuation.  The Y8950 target
-# keeps the fitted shared template untouched.
-_RHYTHM_TL_SHIFT = {'BD': -63, 'SD': -73, 'TOM': -55, 'CYM': -29, 'HH': -75}
+# reference points onto the kit's nominal TLs (BD car 0,
+# HH mod 36, SD car 8, TOM mod 0, CYM car 24), so at the
+# reference attenuation a hit lands exactly on the kit level.
+# The sweep's own fitted TLs (BD/HH/SD/TOM 0) were tried
+# first and the owner's hardware listening rejected them:
+# at those levels the lane sounded like banging on a hard
+# desk rather than instruments, so the level balance is the
+# previous kit's, while the frames, feedback and pitches
+# are the sweep's.  The Y8950 target keeps the fitted
+# shared template untouched.
+_RHYTHM_TL_SHIFT = {'BD': -51, 'SD': -53, 'TOM': -43, 'CYM': -29, 'HH': -27}
 # Lane level on top of the kit anchor (owner's decision,
 # 2026-11-23): with the melodic trims re-anchored to the
 # IKAOPLL reference the kit stood too far forward against the
