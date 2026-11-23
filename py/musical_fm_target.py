@@ -12,7 +12,7 @@ from opm_target_vgm import (_opna_pitch, _opm_lfo_hz, _opna_lfo_rate,
     _opna_pms, _opna_ams, _OPM_PMS_FULL_CENTS, _OPM_AMS_FULL_DB)
 
 CARRIERS = (8, 8, 8, 8, 12, 14, 14, 15)
-FM_CHIPS = ('opm', 'opna', 'opn2')
+FM_CHIPS = ('opm', 'opna', 'opn2', 'opn')
 
 
 def _at(curve, sample, default=None):
@@ -249,7 +249,7 @@ def project_fm(performance, target_chip, target_clock, *, force=False):
                 elif (control.device_id,7) in allocation:
                     losses['fm_native_noise_register_not_projected']+=1
                 continue
-            if 0xa8 <= register <= 0xae and device.chip in ('opna', 'opn2'):
+            if 0xa8 <= register <= 0xae and device.chip in ('opna', 'opn2', 'opn'):
                 lane = control.device_id, control.channel
                 if target_chip in ('opna', 'opn2') and allocation.get(lane) == 2:
                     slot = register & 3
@@ -280,7 +280,7 @@ def project_fm(performance, target_chip, target_clock, *, force=False):
             losses['fm_shared_control_missing_register'] += 1
             continue
         reg, port = p['register'], p.get('port', 0)
-        opn_family = device.chip in ('opna', 'opn2') and target_chip in ('opna', 'opn2')
+        opn_family = device.chip in ('opna', 'opn2', 'opn') and target_chip in ('opna', 'opn2')
         if device.chip == target_chip or opn_family:
             if control.kind in ('opna_lfo', 'opm_lfo_rate') and device.clock_hz != target_clock:
                 losses['fm_shared_lfo_clock_difference'] += 1

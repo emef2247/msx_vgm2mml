@@ -12,7 +12,7 @@ from native_imports.vgm_timing import command_times
 
 
 class SccLayeredTests(unittest.TestCase):
-    def test_three_companions_headers_timing_and_single_psg(self):
+    def test_layered_companion_headers_timing_and_single_psg(self):
         p=replace(performance(),song_loop_sample=1000)
         ay=performance('psg',voice={'mode':1,'hardware_envelope':False})
         p=replace(p,devices=p.devices+ay.devices,voices=p.voices+tuple(
@@ -20,7 +20,7 @@ class SccLayeredTests(unittest.TestCase):
             replace(u,unit_id='ayunit',voice_curve=((0,'ayvoice'),)) for u in ay.units))
         with tempfile.TemporaryDirectory() as tmp:
             result=export_variants(p,tmp,'song',force=True)
-            for name,opm,opna in (('scc_sfg01',True,False),('scc_makoto',False,True),('scc_layered',True,True)):
+            for name,opm,opna in (('scc_layered',True,True),):
                 self.assertEqual(result[name]['status'],'success',result[name])
                 raw=Path(result[name]['path']).read_bytes()
                 self.assertEqual(struct.unpack_from('<I',raw,0x9c)[0],1789773)
@@ -45,7 +45,7 @@ class SccLayeredTests(unittest.TestCase):
         self.assertEqual(values(0,0)[0],0)
         self.assertEqual(values(0,16)[0],255)
         plain,_,_,_=project_variant(p,'sfg01',force=True)
-        layered,_,_,_=project_variant(p,'scc_sfg01',force=True)
+        layered,_,_,_=project_variant(p,'scc_layered',force=True)
         tl=lambda rr:next(r['command'][2] for r in rr if r['command'][:2]==bytes((0x54,0x60)))
         self.assertEqual(tl(layered),tl(plain))
 
@@ -64,7 +64,7 @@ class SccLayeredTests(unittest.TestCase):
     def test_non_scc_input_has_explicit_unavailable_profiles(self):
         with tempfile.TemporaryDirectory() as tmp:
             result=export_variants(performance('psg',voice={'mode':1}),tmp,'song',force=True)
-            for name in ('scc_sfg01','scc_makoto','scc_layered'):
+            for name in ('scc_layered',):
                 self.assertEqual(result[name]['status'],'unavailable')
                 self.assertIn('No sounding SCC',result[name]['reason'])
 
@@ -88,7 +88,7 @@ class SccLayeredTests(unittest.TestCase):
             self.assertEqual(result['scc_layered']['status'],'success',result['scc_layered'])
             from test_export_mgs_variants import variant_pass, assert_profiles
             out=Path(tmp)/'published';variant_pass(path,out,force=True)
-            assert_profiles(self,out,('sfg01','makoto','layered','scc_sfg01','scc_makoto','scc_layered'),'source')
+            assert_profiles(self,out,('sfg01', 'sfg01_opl3','makoto','misato','layered','scc_layered'),'source')
 
 
 if __name__=='__main__':unittest.main()

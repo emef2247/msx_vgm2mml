@@ -17,15 +17,17 @@ from native_registers import decode_control
 
 
 COMMAND_CHIPS = {0x54:'opm',0xa4:'opm',0x56:'opna',0x57:'opna',0xa6:'opna',0xa7:'opna',
-    0x52:'opn2',0x53:'opn2',0xa2:'opn2',0xa3:'opn2',
+    0x52:'opn2',0x53:'opn2',0xa2:'opn2',0xa3:'opn2',0x55:'opn',
     0x50:'dcsg',0x30:'dcsg',0x4f:'dcsg',0x3f:'dcsg',0xb7:'msm6258',0xb8:'msm6295',
-    0xc0:'segapcm',0xd4:'c140',0xa0:'psg',0xd2:'scc',0x51:'opll',0xa1:'opll',0xb9:'huc6280',0xb4:'nesapu'}
+    0xc0:'segapcm',0xd4:'c140',0xa0:'psg',0xd2:'scc',0x51:'opll',0xa1:'opll',0xb9:'huc6280',0xb4:'nesapu',
+    0x5c:'y8950',0x5e:'ymf262',0x5f:'ymf262'}
 BLOCK_CHIPS = {0:'opn2',0x40:'opn2',4:'msm6258',0x44:'msm6258',0x7f:'pcm',0x80:'segapcm',0x81:'opna',0x8b:'msm6295',0x8d:'c140',
                0xc0:'nesapu',0xc1:'nesapu',0xc2:'nesapu'}
 STREAM_CHIPS = {0:'dcsg',1:'opll',2:'opn2',3:'opm',4:'segapcm',7:'opna',0x12:'psg',
                 0x17:'msm6258',0x18:'msm6295',0x19:'scc',0x1c:'c140'}
-HEADER_OFFSETS = {'opm':0x30,'opna':0x48,'opn2':0x2c,'dcsg':0x0c,'msm6258':0x90,'msm6295':0x98,
-                  'segapcm':0x38,'c140':0xa8,'psg':0x74,'scc':0x9c,'opll':0x10,'huc6280':0xa4,'nesapu':0x84}
+HEADER_OFFSETS = {'opm':0x30,'opna':0x48,'opn2':0x2c,'opn':0x44,'dcsg':0x0c,'msm6258':0x90,'msm6295':0x98,
+                  'segapcm':0x38,'c140':0xa8,'psg':0x74,'scc':0x9c,'opll':0x10,'huc6280':0xa4,'nesapu':0x84,
+                  'y8950':0x58,'ymf262':0x5c}
 CARRIERS = (8,8,8,8,12,14,14,15)  # Source register-bank order M1,M2,C1,C2.
 
 
@@ -191,7 +193,7 @@ class _Builder:
                     ('source_continuity_ids',tuple(s.continuity_id for s in gate)),
                     ('volume_domain','native_carrier_attenuation'),
                     ('voice_basis','positive onset state and complete mid-gate voice curve; zero-width setup remains in controls'),
-                    ('channel3_special_observed',chip in ('opna','opn2') and any(s.state.channel3_special_enabled for s in gate)),
+                    ('channel3_special_observed',chip in ('opna','opn2','opn') and any(s.state.channel3_special_enabled for s in gate)),
                     ('csm_observed',any(s.state.csm_enabled for s in gate)),
                     ('noise_enabled_observed',chip=='opm' and channel==7 and any(s.state.noise_enabled for s in gate)),
                     ('pitch_fraction_reset_assumption',chip=='opm' and any(s.state.kf_raw is None for s in gate)),
@@ -381,6 +383,220 @@ def _opll(builder):
                 tuple(row['controls']),True,(('volume_domain','native_attenuation'),)))
 
 
+def _y8950(builder):
+    offsets=[(ch//3)*8+(ch%3) for ch in range(9)]
+    for device in list(builder.devices.values()):
+        if device.chip!='y8950':continue
+        registers=[0]*256;known=set();active={};index=defaultdict(int);rhythm_active={};percussion=[]
+        controls=[c for c in builder.controls if c.device_id==device.device_id]
+        deltat_seen=False
+        def pitch(ch):
+            if 0xa0+ch not in known or 0xb0+ch not in known:return None
+            high=registers[0xb0+ch];fnum=registers[0xa0+ch]|((high&3)<<8);block=(high>>2)&7
+            # The divisor was fitted exactly (144*2**19) against the OPLL
+            # build of the same performance, time-aligned over full songs.
+            return fnum*device.clock_hz/(144*2**(19-block)) if device.clock_hz else None
+        def operator(ch,slot):
+            off=offsets[ch]+3*slot
+            def field(register,extract):
+                return extract(registers[register]) if register in known else None
+            return {'am':field(0x20+off,lambda v:v>>7),'vib':field(0x20+off,lambda v:(v>>6)&1),
+                'egt':field(0x20+off,lambda v:(v>>5)&1),'ksr':field(0x20+off,lambda v:(v>>4)&1),
+                'multiple':field(0x20+off,lambda v:v&15),'key_scale':field(0x40+off,lambda v:v>>6),
+                'total_level':field(0x40+off,lambda v:v&63),
+                'attack':field(0x60+off,lambda v:v>>4),'decay':field(0x60+off,lambda v:v&15),
+                'sustain_level':field(0x80+off,lambda v:v>>4),'release':field(0x80+off,lambda v:v&15)}
+        def carrier_slots(ch):
+            if 0xc0+ch not in known:return (1,)
+            return (0,1) if registers[0xc0+ch]&1 else (1,)
+        def level(ch):
+            values=[operator(ch,slot)['total_level'] for slot in carrier_slots(ch)]
+            values=[v for v in values if v is not None]
+            return min(values) if values else None
+        def voice(ch):
+            attenuation=level(ch);ops=[]
+            for slot in (0,1):
+                op=operator(ch,slot)
+                if slot in carrier_slots(ch) and op['total_level'] is not None and attenuation is not None:
+                    op=dict(op);op['total_level']-=attenuation
+                ops.append(tuple(sorted(op.items())))
+            return builder.voice(device,'fm',(('feedback',(registers[0xc0+ch]>>1)&7 if 0xc0+ch in known else None),
+                ('connection',registers[0xc0+ch]&1 if 0xc0+ch in known else None),('operators',tuple(ops))))
+        def finish(ch,at):
+            row=active.pop(ch,None)
+            if row is None:return
+            start=row['start'];uid=f'{device.device_id}:fm:{ch}:gate:{index[ch]}';index[ch]+=1
+            builder.units.append(NativeUnit(uid,device.device_id,'fm',ch,start,at,
+                tuple(row['pitch']),tuple(row['volume']),tuple(row['voice']),
+                builder.control_ids(device,'fm',ch,start,at),(),'melody',
+                (('boundary_origin','observed_key_or_rhythm_resource'),('volume_domain','native_carrier_attenuation'))))
+        for c in controls:
+            p=dict(c.parameters);register=p['register']
+            from native_registers import encode_control
+            value=encode_control(c,device)[2]
+            old_rhythm=registers[0xbd]
+            registers[register]=value;known.add(register)
+            if 0x07<=register<=0x12:deltat_seen=True
+            new_rhythm=registers[0xbd]
+            for ch in range(9):
+                enabled=bool(registers[0xb0+ch]&32) and not (ch>=6 and new_rhythm&32)
+                if not enabled:finish(ch,c.sample);continue
+                if ch not in active:active[ch]=dict(start=c.sample,pitch=[],volume=[],voice=[])
+                row=active[ch];_add_curve(row['pitch'],c.sample,pitch(ch))
+                _add_curve(row['volume'],c.sample,level(ch))
+                _add_curve(row['voice'],c.sample,voice(ch))
+            if register==0xbd:
+                old=old_rhythm&31 if old_rhythm&32 else 0;new=new_rhythm&31 if new_rhythm&32 else 0
+                for i,(bit,family) in enumerate(((16,'BD'),(8,'SD'),(4,'TOM'),(2,'CYM'),(1,'HH'))):
+                    if old&bit and not new&bit:
+                        row=rhythm_active.pop(i,None)
+                        if row is not None:
+                            percussion[row]['stop']=c.sample;percussion[row]['controls'].append(c.control_id)
+                    if new&bit and not old&bit:
+                        row=dict(instrument=i,family=family,start=c.sample,stop=None,volume=[],controls=[])
+                        percussion.append(row);rhythm_active[i]=len(percussion)-1
+            levels=(registers[0x53]&63 if 0x53 in known else None,
+                    registers[0x54]&63 if 0x54 in known else None,
+                    registers[0x52]&63 if 0x52 in known else None,
+                    registers[0x55]&63 if 0x55 in known else None,
+                    registers[0x51]&63 if 0x51 in known else None)
+            for i,identity in rhythm_active.items():
+                row=percussion[identity];_add_curve(row['volume'],c.sample,levels[i]);row['controls'].append(c.control_id)
+        for ch in list(active):finish(ch,builder.bundle['source_end_sample'])
+        for i,row in enumerate(percussion):
+            builder.percussion.append(NativePercussion(f'{device.device_id}:rhythm:{i}',device.device_id,
+                str(row['instrument']),row['family'],row['start'],row['stop'],tuple(row['volume']),(),
+                tuple(row['controls']),True,(('volume_domain','native_attenuation'),)))
+        if deltat_seen:
+            builder.decisions.append(('y8950_deltat_controls_retained_without_playback_interpretation',device.device_id))
+
+
+def _ymf262(builder):
+    offsets=[(ch//3)*8+(ch%3) for ch in range(9)]
+    pair_primaries=(0,3,6)
+    for device in list(builder.devices.values()):
+        if device.chip!='ymf262':continue
+        registers=[[0]*256 for _ in range(2)];known=[set() for _ in range(2)]
+        active={};index=defaultdict(int);rhythm_active={};percussion=[]
+        controls=[c for c in builder.controls if c.device_id==device.device_id]
+        def pitch(ch):
+            bank,local=divmod(ch,9)
+            if 0xa0+local not in known[bank] or 0xb0+local not in known[bank]:return None
+            high=registers[bank][0xb0+local];fnum=registers[bank][0xa0+local]|((high&3)<<8);block=(high>>2)&7
+            # OPL3 sample rate is clock/288 (the Y8950's is clock/72),
+            # so the same fnum/block pair sounds two octaves lower at
+            # equal clock in this divisor form.
+            return fnum*device.clock_hz/(288*2**(20-block)) if device.clock_hz else None
+        def four_op_pairs():
+            mask=registers[1][4] if 4 in known[1] else 0
+            return {(bank,primary) for bank in range(2)
+                    for i,primary in enumerate(pair_primaries)
+                    if mask>>(bank*3+i)&1}
+        def op_owner(ch,slot,pairs):
+            bank,local=divmod(ch,9)
+            if (bank,local) in pairs:
+                # Chain order interleaves the pair: chain operators
+                # 1/2/3/4 are primary slot 0, secondary slot 0,
+                # primary slot 1, secondary slot 1.
+                owner=local if slot%2==0 else local+1
+                return bank,offsets[owner]+3*(slot//2)
+            return bank,offsets[local]+3*slot
+        def operator(ch,slot,pairs):
+            bank,off=op_owner(ch,slot,pairs);regs=registers[bank];kn=known[bank]
+            def field(register,extract):
+                return extract(regs[register]) if register in kn else None
+            return {'am':field(0x20+off,lambda v:v>>7),'vib':field(0x20+off,lambda v:(v>>6)&1),
+                'egt':field(0x20+off,lambda v:(v>>5)&1),'ksr':field(0x20+off,lambda v:(v>>4)&1),
+                'multiple':field(0x20+off,lambda v:v&15),'key_scale':field(0x40+off,lambda v:v>>6),
+                'total_level':field(0x40+off,lambda v:v&63),
+                'attack':field(0x60+off,lambda v:v>>4),'decay':field(0x60+off,lambda v:v&15),
+                'sustain_level':field(0x80+off,lambda v:v>>4),'release':field(0x80+off,lambda v:v&15),
+                'waveform':field(0xe0+off,lambda v:v&7)}
+        def carrier_slots(ch,pairs):
+            bank,local=divmod(ch,9)
+            if (bank,local) in pairs:
+                def cnt(l):
+                    return registers[bank][0xc0+l]&1 if 0xc0+l in known[bank] else 0
+                return (1,2,3) if cnt(local)|(cnt(local+1)<<1)==3 else (3,)
+            if 0xc0+local not in known[bank]:return (1,)
+            return (0,1) if registers[bank][0xc0+local]&1 else (1,)
+        def level(ch,pairs):
+            values=[operator(ch,slot,pairs)['total_level'] for slot in carrier_slots(ch,pairs)]
+            values=[v for v in values if v is not None]
+            return min(values) if values else None
+        def voice(ch,pairs):
+            bank,local=divmod(ch,9)
+            attenuation=level(ch,pairs);ops=[]
+            count=4 if (bank,local) in pairs else 2
+            for slot in range(count):
+                op=operator(ch,slot,pairs)
+                if slot in carrier_slots(ch,pairs) and op['total_level'] is not None and attenuation is not None:
+                    op=dict(op);op['total_level']-=attenuation
+                ops.append(tuple(sorted(op.items())))
+            def chan_field(register,extract):
+                return extract(registers[bank][register]) if register in known[bank] else None
+            if count==4:
+                connection=chan_field(0xc0+local,lambda v:v&1)
+                second=chan_field(0xc0+local+1,lambda v:v&1)
+                connection=None if connection is None or second is None else connection|(second<<1)
+            else:
+                connection=chan_field(0xc0+local,lambda v:v&1)
+            return builder.voice(device,'fm',(('feedback',chan_field(0xc0+local,lambda v:(v>>1)&7)),
+                ('connection',connection),
+                ('left',chan_field(0xc0+local,lambda v:(v>>5)&1)),
+                ('right',chan_field(0xc0+local,lambda v:(v>>4)&1)),
+                ('operators',tuple(ops))))
+        def finish(ch,at):
+            row=active.pop(ch,None)
+            if row is None:return
+            start=row['start'];uid=f'{device.device_id}:fm:{ch}:gate:{index[ch]}';index[ch]+=1
+            builder.units.append(NativeUnit(uid,device.device_id,'fm',ch,start,at,
+                tuple(row['pitch']),tuple(row['volume']),tuple(row['voice']),
+                builder.control_ids(device,'fm',ch,start,at),(),'melody',
+                (('boundary_origin','observed_key_or_rhythm_resource'),('volume_domain','native_carrier_attenuation'))))
+        for c in controls:
+            p=dict(c.parameters);register=p['register'];bank=p['port']
+            from native_registers import encode_control
+            value=encode_control(c,device)[2]
+            old_rhythm=registers[0][0xbd]
+            registers[bank][register]=value;known[bank].add(register)
+            new_rhythm=registers[0][0xbd]
+            pairs=four_op_pairs()
+            for ch in range(18):
+                b,local=divmod(ch,9)
+                if local in (1,4,7) and (b,local-1) in pairs:
+                    finish(ch,c.sample);continue
+                enabled=bool(registers[b][0xb0+local]&32) and not (b==0 and local>=6 and new_rhythm&32)
+                if not enabled:finish(ch,c.sample);continue
+                if ch not in active:active[ch]=dict(start=c.sample,pitch=[],volume=[],voice=[])
+                row=active[ch];_add_curve(row['pitch'],c.sample,pitch(ch))
+                _add_curve(row['volume'],c.sample,level(ch,pairs))
+                _add_curve(row['voice'],c.sample,voice(ch,pairs))
+            if register==0xbd and bank==0:
+                old=old_rhythm&31 if old_rhythm&32 else 0;new=new_rhythm&31 if new_rhythm&32 else 0
+                for i,(bit,family) in enumerate(((16,'BD'),(8,'SD'),(4,'TOM'),(2,'CYM'),(1,'HH'))):
+                    if old&bit and not new&bit:
+                        row=rhythm_active.pop(i,None)
+                        if row is not None:
+                            percussion[row]['stop']=c.sample;percussion[row]['controls'].append(c.control_id)
+                    if new&bit and not old&bit:
+                        row=dict(instrument=i,family=family,start=c.sample,stop=None,volume=[],controls=[])
+                        percussion.append(row);rhythm_active[i]=len(percussion)-1
+            regs0=registers[0]
+            levels=(regs0[0x53]&63 if 0x53 in known[0] else None,
+                    regs0[0x54]&63 if 0x54 in known[0] else None,
+                    regs0[0x52]&63 if 0x52 in known[0] else None,
+                    regs0[0x55]&63 if 0x55 in known[0] else None,
+                    regs0[0x51]&63 if 0x51 in known[0] else None)
+            for i,identity in rhythm_active.items():
+                row=percussion[identity];_add_curve(row['volume'],c.sample,levels[i]);row['controls'].append(c.control_id)
+        for ch in list(active):finish(ch,builder.bundle['source_end_sample'])
+        for i,row in enumerate(percussion):
+            builder.percussion.append(NativePercussion(f'{device.device_id}:rhythm:{i}',device.device_id,
+                str(row['instrument']),row['family'],row['start'],row['stop'],tuple(row['volume']),(),
+                tuple(row['controls']),True,(('volume_domain','native_attenuation'),)))
+
+
 def _opna_aux(builder):
     for device in list(builder.devices.values()):
         if device.chip!='opna':continue
@@ -438,6 +654,43 @@ def _opna_aux(builder):
                     ('global_total_level_retained_in_controls',True))))
 
 
+def _opn_aux(builder):
+    for device in list(builder.devices.values()):
+        if device.chip!='opn':continue
+        registers={};prescale=6;active={};indices=defaultdict(int)
+        controls=[c for c in builder.controls if c.device_id==device.device_id]
+        def finish(channel,at):
+            row=active.pop(channel,None)
+            if row is None:return
+            uid=f'{device.device_id}:ssg:{channel}:gate:{indices[channel]}';indices[channel]+=1
+            builder.units.append(NativeUnit(uid,device.device_id,'ssg',channel,row['start'],at,
+                tuple(row['pitch']),tuple(row['volume']),tuple(row['voice']),
+                builder.control_ids(device,'ssg',channel,row['start'],at),(),'melody',
+                (('boundary_origin','source_audibility'),('volume_domain','native_ssg_amplitude_register'))))
+        for c in controls:
+            p=dict(c.parameters);register=p['register']
+            from native_registers import encode_control
+            value=encode_control(c,device)[2]
+            registers[register]=value
+            if register in (0x2d,0x2e,0x2f):
+                prescale=6 if register==0x2d else 3 if register==0x2e and prescale==6 else prescale if register==0x2e else 2
+            for channel in range(3):
+                mixer=registers.get(7);amplitude=registers.get(8+channel,0)
+                enabled=mixer is not None and (not mixer&(1<<channel) or not mixer&(8<<channel)) and amplitude&31
+                if not enabled:finish(channel,c.sample);continue
+                if channel not in active:active[channel]=dict(start=c.sample,pitch=[],volume=[],voice=[])
+                row=active[channel]
+                low=registers.get(2*channel);high=registers.get(2*channel+1)
+                period=None if low is None or high is None else low|((high&15)<<8)
+                hz=device.clock_hz/{6:4,3:2,2:1}[prescale]/(16*max(1,period)) if period is not None else None
+                _add_curve(row['pitch'],c.sample,hz);_add_curve(row['volume'],c.sample,amplitude&31)
+                identity=builder.voice(device,'ssg',(('tone_enabled',not bool(mixer&(1<<channel))),
+                    ('noise_enabled',not bool(mixer&(8<<channel))),('hardware_envelope',bool(amplitude&16)),
+                    ('envelope_shape',registers.get(13) if amplitude&16 else None)))
+                _add_curve(row['voice'],c.sample,identity)
+        for channel in list(active):finish(channel,builder.bundle['source_end_sample'])
+
+
 def _patterns(units,root,stem,end_sample):
     """Describe complete-unit repetition without replacing/expanding controls."""
     from loop_structure import LoopStructure
@@ -482,16 +735,19 @@ def build_native_performance(source,outdir,stem=None,legacy_performances=(),lega
     if any(e.command==0xb4 for e in bundle['events']):
         from native_nesapu import add_units
         add_units(builder,root,stem)
-    for chip in ('opm','opna','opn2'):builder.fm(chip)
+    for chip in ('opm','opna','opn2','opn'):builder.fm(chip)
     if any(d.chip=='opn2' for d in builder.devices.values()):
         from native_pcm import add_opn2_pcm
         add_opn2_pcm(builder)
     if any(d.chip=='msm6258' for d in builder.devices.values()):
         from native_msm6258_pcm import add_msm6258_pcm
         add_msm6258_pcm(builder)
+    if any(d.chip=='segapcm' for d in builder.devices.values()):
+        from native_segapcm_pcm import add_segapcm_pcm
+        add_segapcm_pcm(builder)
     builder.dcsg()
     performances,_=_legacy_performances(bundle,root,stem,legacy_performances,legacy_opll_segments,bundle['raw'])
-    _legacy_units(builder,performances);_opll(builder);_opna_aux(builder)
+    _legacy_units(builder,performances);_opll(builder);_y8950(builder);_ymf262(builder);_opna_aux(builder);_opn_aux(builder)
     membership=defaultdict(list)
     for unit in builder.units:
         for identity in unit.control_ids:membership[identity].append(unit.unit_id)

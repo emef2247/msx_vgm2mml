@@ -6,12 +6,25 @@ import math
 import struct
 
 
-def project_pcm(performance, target, *, force=False):
+def project_pcm(performance, target, *, force=False, instance=0):
     from opn2_target_vgm import (_encode_adpcm_b, OPNA_CLOCK, Y8950_CLOCK,
         ADPCM_B_DRAM_BUDGET, Y8950_RAM_BUDGET, ADPCM_B_LEVEL)
     if target not in ('opna','y8950'):
         raise ValueError('Unknown PCM cartridge')
+    if instance not in (0,1):
+        raise ValueError('Unknown PCM cartridge instance')
+    if instance and target!='y8950':
+        raise ValueError('A second PCM instance is only defined for the Y8950 Delta-T')
     assets=sorted(getattr(performance,'pcm_assets',()),key=lambda a:(a.start_sample,a.asset_id))
+    if instance and assets:
+        # The second unit serves the generic decoded-asset path only:
+        # a single-stream source (one MSM6258 stream, one OPN2 DAC
+        # timeline) is one voice and stays on the first unit whole.
+        _devices={d.device_id:d for d in performance.devices}
+        if all(_devices[a.device_id].chip=='msm6258' for a in assets):
+            raise ValueError('MSM6258 stream projection has no second-instance form')
+        if all(_devices[a.device_id].chip=='opn2' and 'dac_timeline' in dict(a.parameters) for a in assets):
+            raise ValueError('OPN2 DAC timeline projection has no second-instance form')
     clock,divisor,budget=(OPNA_CLOCK,144*65536,ADPCM_B_DRAM_BUDGET) if target=='opna' else (Y8950_CLOCK,72*65536,Y8950_RAM_BUDGET)
     msm_assets=[a for a in assets if next(d for d in performance.devices if d.device_id==a.device_id).chip=='msm6258']
     if msm_assets and len(msm_assets)!=len(assets):
@@ -59,11 +72,25 @@ def project_pcm(performance, target, *, force=False):
         groups[-1].append(asset)
     windows=[]
     for group in groups:
-        start=min(a.start_sample for a in group);end=max(a.end_sample for a in group)
-        boundaries=[start,end]
-        if performance.song_loop_sample is not None and start<performance.song_loop_sample<end:
-            boundaries.insert(1,performance.song_loop_sample)
-        windows.extend((group,left,right) for left,right in zip(boundaries,boundaries[1:]))
+        # Cut the overlap chain at every gate boundary, following the
+        # bank-then-stream structure of the x68k SegaPCM route: the
+        # source is first decomposed into gates, and the stream is
+        # then built from segments that each hold a constant set of
+        # sounding gates, mixed and encoded on their own and shared
+        # when identical. A single chain-wide window could outgrow
+        # the whole RAM budget and be dropped entire, taking the
+        # song's PCM body with it while most of the budget sat
+        # unused (AFBII02/03/04 each lost exactly one such window).
+        edges=sorted({edge for a in group for edge in (a.start_sample,a.end_sample)})
+        if performance.song_loop_sample is not None and edges[0]<performance.song_loop_sample<edges[-1]:
+            edges=sorted(set(edges)|{performance.song_loop_sample})
+        active=[];pending=sorted(group,key=lambda a:a.start_sample);index=0
+        for left,right in zip(edges,edges[1:]):
+            while index<len(pending) and pending[index].start_sample<=left:
+                active.append(pending[index]);index+=1
+            active=[a for a in active if a.end_sample>left]
+            if active:
+                windows.append((list(active),left,right))
     for group,start,end in windows:
         natural=min(44100,max(float(a.rate_hz) for a in group))
         delta=max(1,min(65535,round(natural*divisor/clock)));rate=clock*delta/divisor
@@ -93,7 +120,7 @@ def project_pcm(performance, target, *, force=False):
         source_ids=tuple(x for a in group for x in a.source_event_ids)
         asset_ids=tuple(a.asset_id for a in group)
         def emit(at,reg,value,why,order=0):
-            rows.append(dict(sample=at,order=order,command=bytes((0x57 if target=='opna' else 0x5c,reg,value&255)),
+            rows.append(dict(sample=at,order=order,command=bytes((0x57 if target=='opna' else 0xac if instance else 0x5c,reg,value&255)),
                 unit_id='|'.join(asset_ids),device_id='|'.join(sorted({a.device_id for a in group})),
                 source_indices=source_ids,reason=why))
         if target=='opna':
@@ -113,5 +140,7 @@ def project_pcm(performance, target, *, force=False):
     prefix=b''
     if image:
         payload=struct.pack('<II',len(image),0)+image
-        prefix=bytes((0x67,0x66,0x81 if target=='opna' else 0x88))+struct.pack('<I',len(payload))+payload
-    return rows,prefix,losses,dict(playbacks=len(records),unique_samples=len(inventory),dram_bytes=len(image),ram_budget_bytes=budget,ram_used_bytes=len(image),runs=records)
+        # A second chip instance is flagged by the top bit of the
+        # data block size (the VGM dual-chip convention).
+        prefix=bytes((0x67,0x66,0x81 if target=='opna' else 0x88))+struct.pack('<I',len(payload)|(0x80000000 if instance else 0))+payload
+    return rows,prefix,losses,dict(playbacks=len(records),unique_samples=len(inventory),dram_bytes=len(image),ram_budget_bytes=budget,ram_used_bytes=len(image),runs=records,instance=instance)
