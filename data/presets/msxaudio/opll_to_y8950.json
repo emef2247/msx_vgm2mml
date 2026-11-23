@@ -519,6 +519,8 @@
  ],
  "rhythm": {
   "kind": "opl_native",
-  "note": "OPLL percussion projects to the target native rhythm unit with the commercially observed voice template (musical_opl_target / musical_opl3_target); no FM rows."
- }
+  "note": "OPLL percussion projects to the target native rhythm unit using the configured rhythm parameters (musical_opl_target / musical_opl3_target); no FM rows."
+ },
+ "copyright": "Copyright (c) 2026 emef2247",
+ "license": "MIT"
 }

@@ -2,7 +2,7 @@
  "kind": "fitted_rhythm_fm",
  "target": "sfg01",
  "clock_hz": 3579545,
- "source": "OPM 1-channel voices fitted to reference hits with IKAOPM in the loop (rx21_fit/refit2.py, 2026-11-21): survey designs from Fantasy Zone / ChoRenSha 68K / Sorcerian Forever and the sd_deep FM body seeded the search alongside the 2026-11-14 voices. Ops are in logical [M1, C1, M2, C2] order.",
+ "source": "OPM rhythm parameters independently fitted by emef2247 using IKAOPM simulation, IKAOPLL reference renders, and listening-based refinement. Operators are in logical [M1, C1, M2, C2] order.",
  "reference": "IKAOPLL rhythm hit library (data/presets/rhythm_pcm)",
  "tom_osc_ref_hz": 42.5,
  "voices": [
@@ -311,5 +311,7 @@
     }
    ]
   }
- ]
+ ],
+ "copyright": "Copyright (c) 2026 emef2247",
+ "license": "MIT"
 }

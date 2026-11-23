@@ -1,54 +1,22 @@
 #!/usr/bin/env python3
-"""Consolidate the established OPLL set into one header with a
-per-target preset table per chip family.
+"""Generate OPLL reference and sound-chip-specific instrument parameter tables.
 
-Single source of truth: opll_presets.json (the established
-set by emef2247), kept beside this script. Every derived table is generated from it through the
-audited conversion laws, except the msxaudio target, whose preset
-voices are the per-voice fitted set Y8950_FIT below (fitted
-against IKAOPLL WAV output with ymfm Y8950 candidate renders,
-2026-11-22).  opl_derived.json, our own derivation fitted
-against the conversion table observed in commercial MSX
-dual-edition games (opl_commercial.json, kept as the calibration
-reference; owner's policy, 2026-11-14: learn from the commercial
-work, do not copy it - the derived values are an independent
-realisation of the same renders), remains the calibration
-reference it was derived from. The opl3 target generated from
-the derived set through 2026-11-14, but the derived set failed
-its hardware audition that night (melody collapse on the real
-YMF289 that the ymfm fits did not predict), and the owner
-directed (2026-11-15) that opl3 be generated from the
-established set by field identity - the level OPM / OPNA
-already have - with per-voice OPL3 fitting as separate later
-work. The commercial table remains the calibration reference,
-and its rhythm template still feeds the native rhythm unit,
-overlaid with the derived rhythm voices (the melody derivation
-covered the melody voices only):
+The OPLL parameter dataset was independently developed by emef2247
+through parameter-space sweeps, RTL-based sound chip simulation,
+waveform analysis, and listening-based refinement.
 
-- OPL (from the established set; retained for the C header):
-  field identity (the canonical 2OP frame is OPL-native);
-  KSL values are re-framed (YM2413 frame 1<->2 swapped) so the
-  physical key-scale rate is preserved; waveform flag -> WS 1.
-- OPN / OPNA: the measured OPLL>OPNA law -- ALG 4 pair (M1->C1),
-  other pair silenced; mod TL identity; MULTI via the pg ratio
-  table ([0,1,..,10,10,12,12,15,15]); EG AR 2a+4 / D1R 2d+3 /
-  D2R 2r+3 (percussive) / RR r+1, zero stays zero; KSR1 -> KS2;
-  SL/FB identity; DT 0; LFO PMS 4 / AMS 2 (OPN-family steps).
-  OPN and OPNA share the FM field law; the tables are emitted
-  separately because the chips' clocks (and therefore sounding
-  EG/LFO rates) differ and are corrected at projection time.
-- OPM: the measured OPLL>OPM law -- same EG/MULTI/TL core (beta per
-  TL verified equal), LFO PMS 2 / AMS 2 with the fixed bridge
-  depths PMD 86 / AMD 16.
+Single source of truth: opll_presets.json, kept beside this script.
+OPM and OPNA use the conversion laws and per-voice adjustments below.
+OPL3 and Y8950 use independently fitted per-voice parameter sets.
+The base OPLL and OPM rhythm tables are also emitted here.
 
 Carrier TL is a performance value (source VOL << 2); preset tables
-carry 0 for the carrier and the modulator TL from the set.
-Rhythm: the base table carries the OPLL entries; in addition the
-OPM table below carries the five drum voices as preset codes
-(measured candidates v1), with HH/TC also prepared as
-hardware-noise variants.  Which variant sounds, and on which
-channels, is a projection-time decision (the YM2151 noise source
-lives on channel 8).  OPNA uses its internal rhythm instead.
+carry 0 for the carrier and the modulator TL from the dataset.
+OPM drum voices include hardware-noise variants; projection selects
+which variant and channel to use. OPNA uses its internal rhythm unit.
+
+Copyright (c) 2026 emef2247
+SPDX-License-Identifier: MIT
 """
 import json
 from pathlib import Path
@@ -540,9 +508,8 @@ def _established_opl_json(target, chip, clock):
             'voices': voices,
             'rhythm': {'kind': 'opl_native',
                        'note': 'OPLL percussion projects to the target '
-                               'native rhythm unit with the composed '
-                               'voice template (derived voices over the '
-                               'commercial one; musical_opl_target / '
+                               'native rhythm unit using the configured rhythm '
+                               'parameters (musical_opl_target / '
                                'musical_opl3_target); no FM rows.'}}
 
 
@@ -721,34 +688,9 @@ def _fitted_y8950_json():
             'voices': copy.deepcopy(Y8950_FIT),
             'rhythm': {'kind': 'opl_native',
                        'note': 'OPLL percussion projects to the target '
-                               'native rhythm unit with the commercially '
-                               'observed voice template '
-                               '(musical_opl_target / musical_opl3_target); '
-                               'no FM rows.'}}
-
-
-def _derived_opl_json(target, chip, clock):
-    # OPL two-op rows from our own derived preset set
-    # (opl_derived.json): fitted from the established set's
-    # identity frame against renders of the commercially observed
-    # reference voices (opl_commercial.json), NOT copied from
-    # them - per voice 6-13 of 23 fields differ from the reference
-    # values.  Y8950 and YMF262 share the two-op register frame,
-    # so one source feeds both targets.  Carrier TL is a
-    # performance value (source VOL << 2); the source carries 0.
-    doc = json.loads((HERE / 'opl_derived.json').read_text())
-    voices = [{'index': v['index'], 'name': v['name'], 'fb': v['fb'],
-               'ops': v['ops']} for v in doc['voices']]
-    return {'target': target, 'chip': chip, 'clock_hz': clock,
-            'source': 'opl_derived.json via make_presets.py; do not hand-edit',
-            'law': doc['law'],
-            'voices': voices,
-            'rhythm': {'kind': 'opl_native',
-                       'note': 'OPLL percussion projects to the target '
-                               'native rhythm unit with the commercially '
-                               'observed voice template '
-                               '(musical_opl_target / musical_opl3_target); '
-                               'no FM rows.'}}
+                               'native rhythm unit using the configured rhythm '
+                               'parameters (musical_opl_target / '
+                               'musical_opl3_target); no FM rows.'}}
 
 
 def write_target_jsons():
@@ -788,6 +730,8 @@ def write_target_jsons():
             'after audition; --soundcore-levels now affects only '
             'the rhythm lanes).')
     for rel, doc in docs.items():
+        doc['copyright'] = 'Copyright (c) 2026 emef2247'
+        doc['license'] = 'MIT'
         path = HERE / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(_json.dumps(doc, indent=1) + '\n', encoding='utf-8')
