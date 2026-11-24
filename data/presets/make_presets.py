@@ -8,7 +8,6 @@ waveform analysis, and listening-based refinement.
 Single source of truth: opll_presets.json, kept beside this script.
 OPM and OPNA use the conversion laws and per-voice adjustments below.
 OPL3 and Y8950 use independently fitted per-voice parameter sets.
-The base OPLL and OPM rhythm tables are also emitted here.
 
 Carrier TL is a performance value (source VOL << 2); preset tables
 carry 0 for the carrier and the modulator TL from the dataset.
@@ -23,7 +22,6 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SEED = json.loads((HERE / 'opll_presets.json').read_text())
-OUT = HERE / 'opll_presets_established.h'
 
 MUL_MAP = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 12, 12, 15, 15]
 NAMES = ['Violin', 'Guitar', 'Piano', 'Flute', 'Clarinet', 'Oboe', 'Trumpet',
@@ -259,133 +257,7 @@ def rhythm_opm():
     ]
 
 
-def opl_voice(voice):
-    def op(o, tl):
-        ksl = {0: 0, 1: 2, 2: 1, 3: 3}[o['ksl']]  # re-frame to OPL
-        return (o['am'], o['vib'], o['egt'], o['ksr'], o['multi'], ksl,
-                tl, o['ar'], o['dr'], o['sl'], o['rr'], 1 if o['ws'] else 0)
-    return (voice['fb'], [op(voice['mod'], voice['mod']['tl']),
-                          op(voice['car'], 0xFF)])
-
-
-def fmt_op4(v):
-    fb, alg, pms, ams, ops = v
-    flat = [fb, alg, pms, ams] + [x for op in ops for x in op]
-    return '{ ' + ', '.join(str(x) for x in flat) + ' }'
-
-
 def main():
-    mel = [SEED['melodic'][str(i)] for i in range(1, 16)]
-    lines = []
-    lines.append('#ifndef OPLL_PRESETS_ESTABLISHED_H')
-    lines.append('#define OPLL_PRESETS_ESTABLISHED_H')
-    lines.append('')
-    lines.append('/*')
-    for ln in SEED['notice'].splitlines():
-        lines.append(' * ' + ln if ln else ' *')
-    lines.append(' *')
-    lines.append(' * Contents: the base YM2413 set (register bytes), plus')
-    lines.append(' * derived preset tables for OPL, OPN, OPNA and OPM,')
-    lines.append(' * generated from the base set through the audited')
-    lines.append(' * conversion laws (see make_presets.py). Carrier TL is')
-    lines.append(' * a performance value (source VOL << 2); tables carry 0.')
-    lines.append(' * OPLL_OPM_LEVEL_TRIM carries the measured per-voice')
-    lines.append(' * output level correction (carrier TL steps) that')
-    lines.append(' * projections add on top of the performance value.')
-    lines.append(' * Rhythm voices are in the base table; the OPM rhythm')
-    lines.append(' * table at the end carries the drum preset codes.')
-    lines.append(' */')
-    lines.append('')
-    lines.append('/* Base set: YM2413 register bytes (regs 00..07), 15 melodic')
-    lines.append(' * voices + 3 rhythm entries (BD, HH/SD, TOM/TC). */')
-    lines.append('static const unsigned char OPLL_ESTABLISHED_BASE[18][8] = {')
-    def pack(mod, car, fb, dc, dm):
-        def op0(o):
-            return ((o['am'] << 7) | (o['vib'] << 6) | (o['egt'] << 5)
-                    | (o['ksr'] << 4) | o['multi'])
-        return [op0(mod), op0(car), (mod['ksl'] << 6) | mod['tl'],
-                (car['ksl'] << 6) | (dc << 4) | (dm << 3) | fb,
-                (mod['ar'] << 4) | mod['dr'], (car['ar'] << 4) | car['dr'],
-                (mod['sl'] << 4) | mod['rr'], (car['sl'] << 4) | car['rr']]
-
-    base_names = ['Violin', 'Guitar', 'Piano', 'Flute', 'Clarinet',
-                  'Oboe', 'Trumpet', 'Organ', 'Horn', 'Synthesizer',
-                  'Harpsichord', 'Vibraphone', 'Synthsizer Bass',
-                  'Acoustic Bass', 'Electric Guitar', 'R: Bass Drum',
-                  'R: High-Hat(M)/Snare Drum(C)',
-                  'R: Tom-tom(M)/Top Cymbal(C)']
-    base_rows = []
-    for i in range(1, 16):
-        v = SEED['melodic'][str(i)]
-        base_rows.append(pack(v['mod'], v['car'], v['fb'], v['dc'], v['dm']))
-    drums = SEED['drums']
-    base_rows.append(pack(drums['bd']['mod'], drums['bd']['car'],
-                          drums['bd']['fb'], drums['bd']['dc'],
-                          drums['bd']['dm']))
-    base_rows.append(pack(drums['hh']['mod'], drums['sd']['car'],
-                          drums['hh']['fb'], drums['hh']['dc'],
-                          drums['hh']['dm']))
-    base_rows.append(pack(drums['tom']['mod'], drums['tc']['car'],
-                          drums['tom']['fb'], drums['tom']['dc'],
-                          drums['tom']['dm']))
-    for i, (name, vals) in enumerate(zip(base_names, base_rows)):
-        lines.append('    {' + ', '.join(f'0x{v:02X}' for v in vals) +
-                     f'}}, // {i + 1}: {name}')
-    lines.append('};')
-    lines.append('')
-    lines.append('/* OPL version: { FB, { {AM,VIB,EGT,KSR,MULTI,KSL,TL,AR,DR,SL,RR,WS} x2 } }')
-    lines.append(' * KSL re-framed to the OPL frame; carrier TL 0xFF = performance VOL. */')
-    lines.append('static const unsigned char OPLL_PRESET_OPL[15][1 + 2 * 12] = {')
-    for i, v in enumerate(mel):
-        fb, ops = opl_voice(v)
-        flat = [fb] + [x for op in ops for x in op]
-        lines.append('    { ' + ', '.join(str(x) for x in flat) + f' }}, // {NAMES[i]}')
-    lines.append('};')
-    for chip, pms, ams, note in (
-            ('OPN', 4, 2, 'YM2203: field law shared with OPNA; sounding EG/LFO '
-                          'rates follow the 4 MHz clock, corrected at projection.'),
-            ('OPNA', 4, 2, 'YM2608: law measured on this chip.'),
-            ('OPM', 5, 2, 'YM2151: LFO bridge depths PMD 86 / AMD 16 are '
-                          'chip-global constants of the projection. PMS 5 '
-                          'measured on IKAOPM at +/-9 cents (the OPLL '
-                          'vibrato depth class); PMS 2 renders ~0.')):
-        lines.append('')
-        lines.append(f'/* {chip} version: {{ FB, ALG, PMS, AMS, '
-                     '{ {MUL,TL,KS,AR,D1R,D2R,D1L,RR,DT,AM} x4 (M1,C1,M2,C2) } }')
-        lines.append(f' * {note} */')
-        lines.append(f'static const unsigned char OPLL_PRESET_{chip}[15][4 + 4 * 10] = {{')
-        for i, v in enumerate(mel):
-            lines.append(f'    {fmt_op4(four_op(v, pms, ams, 8 if chip in ("OPM", "OPNA") else None, chip in ("OPM", "OPNA")))}, // {NAMES[i]}')
-        lines.append('};')
-    lines.append('')
-    lines.append('')
-    lines.append('/* Per-voice output level trim for OPM projections:')
-    lines.append(' * carrier TL steps added to the performance carrier TL')
-    lines.append(' * (source VOL << 2).  Measured 2026-11-14 on')
-    lines.append(' * IKAOPLL / IKAOPM (see LEVEL_TRIM_TL_OPM in')
-    lines.append(' * make_presets.py for method and per-voice values). */')
-    lines.append('static const signed char OPLL_OPM_LEVEL_TRIM[15] = {')
-    lines.append('    ' + ', '.join(str(LEVEL_TRIM_TL_OPM.get(n, 0)) for n in NAMES) + ' };')
-    lines.append('static const signed char OPLL_OPNA_LEVEL_TRIM[15] = {')
-    lines.append('    ' + ', '.join(str(LEVEL_TRIM_TL_OPNA.get(n, 0)) for n in NAMES) + ' };')
-    lines.append('/* OPM rhythm: { FB, ALG, PMS, AMS, { op x4 } } preset codes')
-    lines.append(' * for the five drum voices, plus HH/TC hardware-noise')
-    lines.append(' * variants.  The companion table gives the reg 0x0F byte')
-    lines.append(' * (NE | NFRQ) for noise rows and 0 for FM rows; a noise')
-    lines.append(' * row sounds on channel 8 (its C2 slot), so the projection')
-    lines.append(' * picks FM or noise per hit by channel availability. */')
-    lines.append('static const unsigned char OPLL_PRESET_OPM_RHYTHM[7][4 + 4 * 10] = {')
-    for name, row, _nf in rhythm_opm():
-        lines.append(f'    {fmt_op4(row)}, // {name}')
-    lines.append('};')
-    lines.append('static const unsigned char OPLL_PRESET_OPM_RHYTHM_NOISE[7] = {')
-    lines.append('    ' + ', '.join(f'0x{nf:02X}' if nf else '0'
-                                     for _name, _row, nf in rhythm_opm()))
-    lines.append('};')
-    lines.append('')
-    lines.append('#endif /* OPLL_PRESETS_ESTABLISHED_H */')
-    OUT.write_text('\n'.join(lines) + '\n', encoding='utf-8')
-    print('wrote', OUT, OUT.stat().st_size, 'bytes')
     write_target_jsons()
 
 
