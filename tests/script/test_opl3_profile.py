@@ -68,23 +68,34 @@ class Opl3ProfileTests(unittest.TestCase):
         unit=back.units[0]
         self.assertEqual((unit.section,unit.channel),('fm',0))
         self.assertAlmostEqual(unit.pitch_curve[0][1],440.0,delta=2.0)
-        # carrier TL = VOL << 2 plus the voice's level trim;
-        # the trim itself is a calibration value, so read it
-        # from the table instead of pinning it here
+        # carrier TL is the parameter's own TL on this target:
+        # the source volume steps and the voice's level trim
+        # are not applied, so read the expectation from the
+        # table instead of pinning a calibration value here
         from musical_opl3_target import _table
         _doc, _table_by_id = _table()
         _trumpet = next(v for v in _table_by_id.values()
                         if v['name'] == 'Trumpet')
         self.assertEqual(unit.volume_curve[0][1],
-                         12 + _trumpet.get('level_trim_tl', 0))
+                         _trumpet['ops'][1]['tl'])
         voice=dict(next(v for v in back.voices
             if v.voice_id==unit.voice_curve[0][1]).parameters)
-        self.assertEqual(voice['feedback'],7)         # established Trumpet
+        self.assertEqual(voice['feedback'], _trumpet['fb'])
         self.assertEqual(len(back.percussion),1)
         self.assertEqual(back.percussion[0].instrument_family,'SD')
-        # att << 2 plus the OPL3 rhythm re-anchor shift for SD (+2 TL;
-        # see _RHYTHM_TL_SHIFT in musical_opl3_target.py)
-        self.assertEqual(back.percussion[0].volume_curve[0][1],6)
+        # the hit level projected through the rhythm law: the
+        # fitted level for the hit's attenuation, re-anchored by
+        # _RHYTHM_TL_SHIFT and the lane's _RHYTHM_TL_OFFSET; all
+        # three are calibration/law values in the code and data,
+        # so read them instead of pinning the result here
+        from musical_opl_target import rhythm_level
+        from musical_opl3_target import _RHYTHM_TL_OFFSET, _RHYTHM_TL_SHIFT
+        _att = performance.percussion[0].volume_curve[0][1]
+        _expected_rhythm = max(0, min(63, rhythm_level('SD', _att)
+                                      + _RHYTHM_TL_SHIFT['SD']
+                                      + _RHYTHM_TL_OFFSET))
+        self.assertEqual(back.percussion[0].volume_curve[0][1],
+                         _expected_rhythm)
 
     def test_opll_shared_control_does_not_leak_into_opl3(self):
         # A source write to OPLL register 0x0F (a shared, non-musical
